@@ -3,11 +3,16 @@
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.
-SPHINXOPTS    ?=
+SPHINXOPTS    ?= -W --keep-going
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = ../website/static
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
+ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
+
+# NOTE: Since we cannot ignore the no-duplicates warning specifically
+# we use a Bash hack for the same purpose. Note, ! is to invert error
+# status of grep
+BASHHACK	  = 2>&1 >/dev/null | grep -v -E "(use :noindex:)|(more than one target found)"
 
 
 # Put it first so that "make" without argument is like "make help".
@@ -15,7 +20,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/api
+	! $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/api $(BASHHACK)
 
 
 .PHONY: help Makefile

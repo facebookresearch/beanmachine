@@ -55,7 +55,8 @@ class CompositionalInference(AbstractMHInference):
         Adds a sequential block to list of blocks.
 
         :param block: list of random variables functions that are to be sampled
-        together sequentially.
+            together sequentially.
+
         """
         blocks = []
         for rv in block:

@@ -23,16 +23,17 @@ markdown = "../docs/api"
 # Multiple strings will be combined into a single regular expression with |
 modules = [
     # Use triple quotes for string literals, useful for regular expressions
-    '''beanmachine''',
-    '''beanmachine\.ppl''',
-    '''beanmachine\.ppl\.(examples|inference|model|world)(\.\w+)*'''
+    #'''beanmachine''',
+    #'''beanmachine\.ppl''',
+    #'''beanmachine\.ppl\.(examples|inference|model|world)(\.\w+)*'''
+    '''beanmachine(\.\w+)*''',
 ]
 
 [filters.exclude]
 modules = [
-    '''beanmachine\.applications(\.\w+)* ''',
+    '''beanmachine\.applications(\.\w+)*''',
     '''beanmachine\.graph(\.\w+)*''',
-    '''beanmachine\.ppl\.(compiler|diagnostic|experimental|inference\.utils|testlib|utils)(\.\w+)*''',
+    '''beanmachine\.ppl\.(compiler|diagnostic|experimental|inference\.utils|legacy|testlib|utils)(\.\w+)*''',
 ]
 
 # If modules or functions isn't defined then will exclude none by default

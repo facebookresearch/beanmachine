@@ -17,36 +17,35 @@ Transforms are supported within the `Variable` class by the following attributes
 Each proposer and inference method has the following optional parameters for initialization
 ```py
 transform_type: TransformType
-transforms: Optional[List]
+transforms: Optional[List[Transform]]
 ```
-TODO: Why is `transforms` a list? Can we have more than one transform associated to a variable? How does that work?
 
 There are three TransformTypes which can be specified
 * `TransformType.NONE`: no transform will be applied
 * `TransformType.DEFAULT`: transforms will convert the distribution to the unconstrained space
-* `TransformType.CUSTOM`: user-provided transforms will be applied
+* `TransformType.CUSTOM`: user-provided transforms, set through the `transforms` parameter, will be applied
 
 ### Default Transforms
 
 The transform applied to each variable depends on the constraints of its distribution:
 
-* No constraints: no transform
+* No constraints or discrete variables: no transform
 * Lower bound $a$: $f(X) = \log(X - a)$
 * Upper bound $b$: $f(X) = \log(-(X - b))$
 * Simplex ($[0,1]$ interval): $f(X) = \text{stick breaking}(X)$
 * Lower bound $a$ and upper bound $b$: $f(X) = \text{stick breaking}((X - a) / (b - a))$
 
-TODO: how are these transforms represented in code?
-
-TODO: not every user will understand what "stick breaking" has to do with lower and upper bounds. Can we provide a version with it with a name directly related the $[0,1]$ interval?
+Default transforms are implemented using the `biject_to()` registry from PyTorch.
 
 ### Custom Transforms
 If `TransformType.CUSTOM` is specified, the user must also provide a list of transforms to the `transforms` parameter of initialization.
 ```py
-mh = SingleSiteNewtonianMonteCarlo(transform_type=TransformType.CUSTOM, transforms=[AffineTransform(2.0, 1.0)])
+mh = CompositionalInference(
+  variable: SingleSiteNewtonianMonteCarloProposer(
+    transform_type=TransformType.CUSTOM, transforms=[AffineTransform(2.0, 1.0)]
+  )
+)
 ```
-
-TODO: why are transforms attached to the inference algorithm? Shouldn't they be attached to a model, or a variable? What does it mean to provide a list of transforms to the algorithm? Does that mean the transform applies to all variable in the model? What happens if multiple transforms are provided?
 
 For each transform, the user must provide the transform function, the inverse function, as well as the Jacobian calculation as described below. These transforms will be applied in order. For example, the list of transforms $[f, g]$ applied to $x$ will result in the value $g(f(x))$. It is recommended to implement the `Transform` class from PyTorch.
 ```py

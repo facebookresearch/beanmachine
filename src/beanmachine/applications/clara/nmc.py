@@ -18,6 +18,8 @@ def simplex_proposer(val, grad):
 
 class State:
     """
+    Represents state of system.
+
     static State consists of:
     - num_labelers: the number of labelers assigning labels
     - num_categories: the number of possible categories for each item and its label
@@ -29,7 +31,8 @@ class State:
     - prevalence: the probability that an item is of a category (size num_categories)
     - true_label: the true label of each item (size num_items)
     - confusion: for each labeler and true label the probability of picking
-           a category (size num_labelers x num_categories x num_categories)
+    a category (size num_labelers x num_categories x num_categories)
+
     """
 
     num_labelers = 0

@@ -19,11 +19,11 @@ sidebar_label: TOC
 ```
 
 
-Links to other documents within the docs folder should contain the path to the document. For example the following links to the introduction.md file in the introduction folder under docs.
+Links to other documents within the `docs` folder should contain the path to the document. For example the following links to the `why_bean_machine.md` file in the `why_bean_machine` folder under `docs`.
 
 
 ```
-[Introduction](_overview/introduction/introduction.md_)
+[Why Bean Machine?](_overview/why_bean_machine/why_bean_machine.md_)
 ```
 
 For a full list of formatting syntax supported by Docusarus, you can visit this [site](https://www.markdownguide.org/basic-syntax/).
