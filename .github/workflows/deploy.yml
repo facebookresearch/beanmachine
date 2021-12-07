@@ -90,16 +90,16 @@ jobs:
       run: auditwheel -v repair dist/*
 
     - name: Install built Bean Machine dist
-      run: pip install wheelhouse/*.whl
+      run: /opt/python/${{ matrix.python-version }}/bin/pip install wheelhouse/*.whl
 
     - name: Install pytest 7.0 (with a importlib patch in pytest-dev/pytest#7870)
-      run: pip install git+https://github.com/pytest-dev/pytest.git@7.0.0.dev0
+      run: /opt/python/${{ matrix.python-version }}/bin/pip install git+https://github.com/pytest-dev/pytest.git@7.0.0.dev0
 
     - name: Print out package info to help with debug
-      run: pip list
+      run: /opt/python/${{ matrix.python-version }}/bin/pip list
 
     - name: Run unit tests with pytest
-      run: pytest
+      run: /opt/python/${{ matrix.python-version }}/bin/pytest
 
     - name: Sending wheels to the deployment workflow
       uses: actions/upload-artifact@v2
