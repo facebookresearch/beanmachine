@@ -12,4 +12,13 @@ test: lint FORCE
 docs: FORCE
 	$(MAKE) -C sphinx html
 
+format-notebook: FORCE
+ifndef nb
+	find tutorials -name "*.ipynb" | xargs jupyter nbconvert --to notebook \
+	--inplace --ClearMetadataPreprocessor.enabled=True
+else
+	jupyter nbconvert --to notebook --inplace \
+		--ClearMetadataPreprocessor.enabled=True $(nb)
+endif
+
 FORCE:
