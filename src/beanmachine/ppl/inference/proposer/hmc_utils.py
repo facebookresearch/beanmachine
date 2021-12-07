@@ -13,9 +13,11 @@ class WindowScheme:
     """
     Spliting adaptation iterations into a series of monotonically increasing windows,
     which can be used to learn the mass matrices in HMC.
+
     Reference:
-    [1] "HMC algorithm parameters" from Stan Reference Manual
-    https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning
+        [1] "HMC algorithm parameters" from Stan Reference Manual
+            https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning
+
     """
 
     def __init__(self, num_adaptive_samples: int):
@@ -61,11 +63,11 @@ class DualAverageAdapter:
     NUTS for adapting step size in [2]. The implementation and notations follows [2].
 
     Reference:
-    [1] Yurii Nesterov. "Primal-dual subgradient methods for convex problems" (2009).
-        https://doi.org/10.1007/s10107-007-0149-x
-    [2] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
-        Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
-        https://arxiv.org/abs/1111.4246
+        [1] Yurii Nesterov. "Primal-dual subgradient methods for convex problems" (2009).
+            https://doi.org/10.1007/s10107-007-0149-x
+        [2] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
+            Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
+            https://arxiv.org/abs/1111.4246
     """
 
     def __init__(self, initial_epsilon: float, delta: float = 0.8):
@@ -96,9 +98,11 @@ class DualAverageAdapter:
 
 class MassMatrixAdapter:
     """
+    Adapts the mass matrix.
+
     Reference:
-    [1] "HMC algorithm parameters" from Stan Reference Manual
-    https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric
+        [1] "HMC algorithm parameters" from Stan Reference Manual
+        https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric
     """
 
     def __init__(self):
@@ -108,10 +112,13 @@ class MassMatrixAdapter:
         self._adapters = {}
 
     def initialize_momentums(self, positions: RVDict) -> RVDict:
-        """Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
-        is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
-        for the first time, this also initialize their (inverse) mass matrices to
-        identity."""
+        """
+        Randomly draw momentum from MultivariateNormal(0, M).
+
+        This momentum variable is denoted as p in [1] and r in [2]. Additionally,
+        for nodes that are seen for the first time, this also initialize their
+        (inverse) mass matrices to identity.
+        """
         momentums = {}
         for node in positions:
             # initialize M^{-1} for nodes that are seen for the first time
@@ -149,9 +156,10 @@ class WelfordCovariance:
     """
     An implementation of Welford's online algorithm for estimating the (co)variance of
     samples.
+
     Reference:
-    [1] "Algorithms for calculating variance" on Wikipedia
-    https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+        [1] "Algorithms for calculating variance" on Wikipedia
+            https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
     """
 
     def __init__(self, diagonal: bool = True):
@@ -192,8 +200,10 @@ class WelfordCovariance:
 
 
 class DictTransform:
-    """A general class for applying a dictionary of Transforms to a dictionary of
-    Tensors"""
+    """
+    A general class for applying a dictionary of Transforms to a dictionary of
+    Tensors.
+    """
 
     def __init__(self, transforms: Dict[RVIdentifier, dist.Transform]):
         self.transforms = transforms
@@ -221,8 +231,10 @@ class DictTransform:
 
 
 class RealSpaceTransform(DictTransform):
-    """Transofrm a dictionary of Tensor values from constrained space to unconstrained
-    (real) space."""
+    """
+    Transform a dictionary of Tensor values from constrained space to unconstrained
+    (real) space.
+    """
 
     def __init__(self, world: World, target_rvs: Set[RVIdentifier]):
         transforms = {}

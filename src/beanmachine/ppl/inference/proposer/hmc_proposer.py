@@ -21,12 +21,12 @@ class HMCProposer(BaseProposer):
     dual-averaging mechanism for dynamically adjusting the step size [2].
 
     Reference:
-    [1] Radford Neal. "MCMC Using Hamiltonian Dynamics" (2011).
-        https://arxiv.org/abs/1206.1901
+        [1] Radford Neal. "MCMC Using Hamiltonian Dynamics" (2011).
+            https://arxiv.org/abs/1206.1901
 
-    [2] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
-        Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
-        https://arxiv.org/abs/1111.4246
+        [2] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
+            Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
+            https://arxiv.org/abs/1111.4246
 
     The current implementation does not use nor adapt a mass matrix -- which is
     equivalent to setting the matrix M to I.

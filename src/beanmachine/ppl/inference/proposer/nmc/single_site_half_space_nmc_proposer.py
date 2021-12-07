@@ -36,7 +36,7 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
             beta = -1 * x * hessian_diag - first_grad
 
         :returns: alpha and beta of the Gamma distribution as proposal
-        distribution
+            distribution
         """
         node_val = world[self.node]
         first_gradient, hessian_diag = hessian_of_log_prob(
@@ -74,7 +74,7 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
 
         :param world: the world in which we're proposing a new value for node
         :returns: the tuple of proposal distribution of the node and arguments
-        that was used or needs to be used to find the proposal distribution
+            that was used or needs to be used to find the proposal distribution
         """
         # if the number of variables in the world is 1 and proposal distribution
         # has already been computed, we can use the old proposal distribution
