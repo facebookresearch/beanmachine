@@ -4,11 +4,11 @@ title: Sitemap
 sidebar_label: Sitemap
 ---
 * [Landing page](landing_page/landing_page.md) [DOES NOT GO TO LANDING PAGE]
-* [Bean Machine advantages](landing_page/bean_machine_advantages.md) [WHERE DOES THIS GO?]
 
 **Overview**
 
 * [Introduction](overview/introduction/introduction.md)
+* [Bean Machine advantages](overview/bean_machine_advantages/bean_machine_advantages.md)
 * [Quick start](overview/quick_start/quick_start.md)
 * [Modeling](overview/modeling/modeling.md)
 * [Inference](overview/inference/inference.md)
