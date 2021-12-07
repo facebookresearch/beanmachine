@@ -10,9 +10,9 @@ BUILDDIR      = ../website/static
 ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
 
 # NOTE: Since we cannot ignore the no-duplicates warning specifically
-# we use a Bash hack for the same purpose!
-# | wc -l | xargs -I % test % -eq 0
-BASHHACK	  = 2>&1 >/dev/null | grep -v "use :noindex:"
+# we use a Bash hack for the same purpose. Note, ! is to invert error
+# status of grep
+BASHHACK	  = 2>&1 >/dev/null | grep -v -E "(use :noindex:)|(more than one target found)"
 
 
 # Put it first so that "make" without argument is like "make help".
@@ -20,7 +20,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/api $(BASHHACK)
+	! $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/api $(BASHHACK)
 
 
 .PHONY: help Makefile
