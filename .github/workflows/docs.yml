@@ -15,7 +15,7 @@ jobs:
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
-        shell: 'script -q -e -c "bash {0}"'
+        shell: bash -l {0}
 
     steps:
     - name: Checkout
