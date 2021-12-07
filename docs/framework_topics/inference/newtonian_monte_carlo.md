@@ -44,49 +44,49 @@ For a $k$-dimensional simplex, the proposal distribution is $q(. \mid \theta)=\t
 
 Below is the NMC algorithm.
 
-$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k $
-$\textbf{Given: } a, b \text{ (default 1, 1)}$
-$\textbf{repeat}$
-$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i$
-$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}$
-$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)$
-$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*$
-$\quad\quad\text{Compute }q_i(.|\theta^*)$
-$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}$
-$\quad\quad u\sim \text{Uniform}(0,1)$
-$\quad\quad\textbf{if }u<\alpha\textbf{ then}$
-$\quad\quad\quad\theta=\theta^*$
-$\quad\quad\textbf{end if}$
-$\quad\textbf{end for}$
-$\quad\text{Output sample }\theta$
-$\textbf{until }\text{Desired number of samples}  $
+$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k\\$
+$\textbf{Given: } a, b \text{ (default 1, 1)}\\$
+$\textbf{repeat}\\$
+$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i\\$
+$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}\\$
+$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)\\$
+$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*\\$
+$\quad\quad\text{Compute }q_i(.|\theta^*)\\$
+$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}\\$
+$\quad\quad u\sim \text{Uniform}(0,1)\\$
+$\quad\quad\textbf{if }u<\alpha\textbf{ then}\\$
+$\quad\quad\quad\theta=\theta^*\\$
+$\quad\quad\textbf{end if}\\$
+$\quad\textbf{end for}\\$
+$\quad\text{Output sample }\theta\\$
+$\textbf{until }\text{Desired number of samples}$
 
 Below is NMC algorithm with adaptive stage added to compute the learning rate parameters $a$ and $b$ for the $\text{Beta}$ distribution.
 
-$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k $
-$\textbf{Given: } a, b \text{ (default 1, 1)}$
-$\textbf{repeat}$
-$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i$
-$\quad\quad\textbf{if }\text{still in warm-up phase}\textbf{ then}$
-$\qquad\qquad \text{Compute } a, b \text{ from mean and variance of the warmup samples using method of moments} $
-$\qquad \textbf{end if}$
-$\quad\quad\text{Sample }\gamma\sim \text{Beta}(a,b)$
-$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}$
-$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)$
-$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*$
-$\quad\quad\text{Compute }q_i(.|\theta^*)$
-$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}$
-$\quad\quad u\sim \text{Uniform}(0,1)$
-$\quad\quad\textbf{if }u<\alpha\textbf{ then}$
-$\quad\quad\quad\theta=\theta^*$
-$\quad\quad\textbf{end if}$
-$\quad\textbf{end for}$
-$\quad\text{Output sample }\theta$
-$\textbf{until }\text{Desired number of samples}  $
+$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k\\$
+$\textbf{Given: } a, b \text{ (default 1, 1)}\\$
+$\textbf{repeat}\\$
+$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i\\$
+$\quad\quad\textbf{if }\text{still in warm-up phase}\textbf{ then}\\$
+$\qquad\qquad \text{Compute } a, b \text{ from mean and variance of the warmup samples using method of moments} \\$
+$\qquad \textbf{end if}\\$
+$\quad\quad\text{Sample }\gamma\sim \text{Beta}(a,b)\\$
+$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}\\$
+$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)\\$
+$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*\\$
+$\quad\quad\text{Compute }q_i(.|\theta^*)\\$
+$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}\\$
+$\quad\quad u\sim \text{Uniform}(0,1)\\$
+$\quad\quad\textbf{if }u<\alpha\textbf{ then}\\$
+$\quad\quad\quad\theta=\theta^*\\$
+$\quad\quad\textbf{end if}\\$
+$\quad\textbf{end for}\\$
+$\quad\text{Output sample }\theta\\$
+$\textbf{until }\text{Desired number of samples}$
 
 ## Using NMC
 

@@ -13,6 +13,10 @@ ConstraintType = Union[constraints.Constraint, Type]
 
 
 class BetaDimensionTransform(Transform):
+    """
+    Volume preserving transformation to the Beta distribution support.
+    """
+
     bijective = True
     domain = constraints.real
     codomain = constraints.real_vector
