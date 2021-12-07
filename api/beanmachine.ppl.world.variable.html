@@ -104,26 +104,74 @@
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.world.variable" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.variable.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">value:</span> <span class="pre">'torch.Tensor'</span></em>, <em class="sig-param"><span class="pre">distribution:</span> <span class="pre">'dist.Distribution'</span></em>, <em class="sig-param"><span class="pre">parents:</span> <span class="pre">'Set[RVIdentifier]'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">children:</span> <span class="pre">'Set[RVIdentifier]'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.variable.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">value:</span> <span class="pre">torch.Tensor</span></em>, <em class="sig-param"><span class="pre">distribution:</span> <span class="pre">torch.distributions.distribution.Distribution</span></em>, <em class="sig-param"><span class="pre">parents:</span> <span class="pre">Set[beanmachine.ppl.model.rv_identifier.RVIdentifier]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">children:</span> <span class="pre">Set[beanmachine.ppl.model.rv_identifier.RVIdentifier]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Primitive used for maintaining metadata of random variables. Usually used
+in conjunction with <cite>World</cite> during inference.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.children">
-<span class="sig-name descname"><span class="pre">children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.children" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.value" title="Permalink to this definition"></a></dt>
+<dd><p>Sampled value of random variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.distribution">
-<span class="sig-name descname"><span class="pre">distribution</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.distributions.distribution.Distribution</span></em><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.distribution" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">distribution</span></span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Distribution random variable was sampled from</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>torch.distributions.Distribution</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.parents">
+<span class="sig-name descname"><span class="pre">parents</span></span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.parents" title="Permalink to this definition"></a></dt>
+<dd><p>Set containing the RVIdentifiers of the parents of the random variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.children">
+<span class="sig-name descname"><span class="pre">children</span></span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.children" title="Permalink to this definition"></a></dt>
+<dd><p>Set containing the RVIdentifiers of the children of the random variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id0" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">distribution</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.distributions.distribution.Distribution</span></em><a class="headerlink" href="#id1" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.log_prob">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">log_prob</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.Tensor</span></em><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.log_prob" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns
+The logprob of the <cite>value</cite> of the value given the distribution.</p>
+</dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.parents">
-<span class="sig-name descname"><span class="pre">parents</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.parents" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">parents</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id2" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -133,8 +181,8 @@
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.variable.Variable.value">
-<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.Tensor</span></em><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.value" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.Tensor</span></em><a class="headerlink" href="#id3" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

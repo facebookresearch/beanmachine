@@ -129,6 +129,7 @@
 <dt class="sig sig-object py" id="beanmachine.ppl.world.BetaDimensionTransform">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">BetaDimensionTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.transforms.Transform</span></code></p>
+<p>Volume preserving transformation to the Beta distribution support.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.BetaDimensionTransform.bijective">
 <span class="sig-name descname"><span class="pre">bijective</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.bijective" title="Permalink to this definition"></a></dt>
@@ -170,23 +171,67 @@ Defaults to preserving shape.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">World</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">observations:</span> <span class="pre">Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_from_prior&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.world.base_world.html#beanmachine.ppl.world.base_world.BaseWorld" title="beanmachine.ppl.world.base_world.BaseWorld"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.world.base_world.BaseWorld</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code>[<a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>]</p>
+<p>A World represents an instantiation of the graphical model and can be manipulated or evaluated.
+In the contest of MCMC inference, a world represents a single Monte Carlo posterior sample.</p>
+<p>A World can also be used as a context manager to run and sample random variables.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+
+<span class="n">world</span> <span class="o">=</span> <span class="n">World</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">world</span><span class="p">:</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="n">foo</span><span class="p">()</span>  <span class="c1"># returns a sample, ie tensor.</span>
+
+<span class="k">with</span> <span class="n">world</span><span class="p">:</span>
+  <span class="n">y</span> <span class="o">=</span> <span class="n">foo</span><span class="p">()</span>  <span class="c1"># same world = same tensor</span>
+
+<span class="k">assert</span> <span class="n">x</span> <span class="o">==</span> <span class="n">y</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>observations</strong> (<em>Optional</em>) – Optional observations, which fixes the random variables to observed values</p></li>
+<li><p><strong>initialize_fn</strong> (<em>callable</em><em>, </em><em>Optional</em>) – Callable which takes a <code class="docutils literal notranslate"><span class="pre">torch.distribution</span></code> object as argument and returns a <code class="docutils literal notranslate"><span class="pre">torch.Tensor</span></code></p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.copy">
 <span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.copy" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a shallow copy of the current world</p>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Shallow copy of the current world.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.enumerate_node">
 <span class="sig-name descname"><span class="pre">enumerate_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.enumerate_node" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a tensor enumerating the support of the node</p>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier"><em>RVIdentifier</em></a>) – RVIdentifier of node.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor enumerating the support of the node.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.get_variable">
 <span class="sig-name descname"><span class="pre">get_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.Variable" title="beanmachine.ppl.world.variable.Variable"><span class="pre">beanmachine.ppl.world.variable.Variable</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.get_variable" title="Permalink to this definition"></a></dt>
-<dd><p>Return a Variable object that contains the metadata of the current node
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier"><em>RVIdentifier</em></a>) – RVIdentifier of node.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Variable object that contains the metadata of the current node
 in the world.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -197,28 +242,50 @@ in the world.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.latent_nodes">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">latent_nodes</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.world.World.latent_nodes" title="Permalink to this definition"></a></dt>
-<dd><p>Return a KeysView of all latent nodes in the current world</p>
+<dd><p>All the latent nodes in the current world.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.log_prob" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the joint log prob of all of the nodes in the current world</p>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nodes</strong> (<em>Optional</em>) – Optional collection of RVIdentifiers to evaluate the log prob of a subset of
+the graph. If none is specified, then all the variables in the world are used.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The joint log prob of all of the nodes in the current world</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.replace">
 <span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.replace" title="Permalink to this definition"></a></dt>
-<dd><p>Return a new world where values specified in the dictionary are replaced.
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>values</strong> (<em>RVDict</em>) – Dict of RVIdentifiers and their values to replace.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new world where values specified in the dictionary are replaced.
 This method will update the internal graph structure.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.World.update_graph">
 <span class="sig-name descname"><span class="pre">update_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.update_graph" title="Permalink to this definition"></a></dt>
 <dd><p>This function adds a node to the graph and initialize its value if the node
-is not found in the graph already. It then returns the value of the node stored
-in world (in original space).</p>
+is not found in the graph already.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier"><em>RVIdentifier</em></a>) – RVIdentifier of node to update in the graph.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The value of the node stored in world (in original space).</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
