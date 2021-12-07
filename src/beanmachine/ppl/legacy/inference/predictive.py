@@ -36,14 +36,14 @@ class Predictive(object):
         """
         Generates predictives from a generative model.
 
-        For example,
+        For example::
 
            obs_queries = [likelihood(i) for i in range(10))]
            posterior = SinglesiteHamiltonianMonteCarlo(10, 0.1).infer(...)
            # generates one sample per world (same shape as `posterior` samples)
            predictives = simulate(obs_queries, posterior=posterior)
 
-        To generate prior predictives,
+        To generate prior predictives::
 
            queries = [prior(), likelihood()]  # specify the full generative model
            # Monte carlo samples of shape (num_samples, sample_shape)

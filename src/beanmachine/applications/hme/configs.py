@@ -92,9 +92,9 @@ class StructuredPriorConfig:
 @dataclass
 class ModelConfig:
     """
-    A configuration class for integrated models. E.g.,
+    A configuration class for integrated models. E.g.::
 
-    ModelConfig(
+        ModelConfig(
             mean_regression = RegressionConfig(
                 distribution="normal",
                 outcome="y",
