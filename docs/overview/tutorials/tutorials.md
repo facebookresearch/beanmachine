@@ -7,6 +7,34 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine.
 
+Let's say that I use a single dollar sign and say $E=mc^2$.
+Then I turn around and use two dolar signs and say $$E=mc^2$$.
+And finally I don't use dollar signs and I start using
+slash square brackets and say \[E=mc^2\].
+Finally, I would like a good old math display so
+here is an attempt using double dollar signs with
+an empty line above and below:
+
+$$
+E=mc^2
+$$
+
+Here's all that I said in a code block
+```
+Let's say that I use a single dollar sign and say $E=mc^2$.
+Then I turn around and use two dolar signs and say $$E=mc^2$$.
+And finally I don't use dollar signs and I start using
+slash square brackets and say \[E=mc^2\].
+Finally, I would like a good old math display so
+here is an attempt using double dollar signs with
+an empty line above and below:
+
+$$
+E=mc^2
+$$
+
+```
+
 ## Tutorials
 
 ### Coin Flipping
