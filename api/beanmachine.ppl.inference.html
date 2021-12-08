@@ -430,24 +430,7 @@ algorithms will inherit from this class, and override the single_inference_step 
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteAncestralMetropolisHastings</span></span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.abstract_mh_infer.AbstractMHInference</span></code></p>
-<p>Implementation for SingleSiteAncestralMetropolisHastings</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings.find_best_single_site_proposer">
-<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
-<dd><p>Finds the best proposer for a node which is
-SingleSiteAncestralMetropolisHastingsProposer for
-SingleSiteAncestralMetropolisHastings</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a proposer for the node</p>
-</dd>
-</dl>
-</dd></dl>
-
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.single_site_inference.html#beanmachine.ppl.inference.single_site_inference.SingleSiteInference" title="beanmachine.ppl.inference.single_site_inference.SingleSiteInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.single_site_inference.SingleSiteInference</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -474,23 +457,12 @@ SingleSiteHamiltonianMonteCarloProposer for SingleSiteHamiltonianMonteCarlo</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNewtonianMonteCarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">beanmachine.ppl.legacy.world.variable.TransformType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_space_alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_space_beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.abstract_mh_infer.AbstractMHInference</span></code></p>
-<p>Implementation for SingleSiteNewtonianMonteCarlo</p>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNewtonianMonteCarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real_space_alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_space_beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.base_inference.html#beanmachine.ppl.inference.base_inference.BaseInference" title="beanmachine.ppl.inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.base_inference.BaseInference</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo.find_best_single_site_proposer">
-<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
-<dd><p>Finds the best proposer for a node which is
-SingleSiteNewtonianMonteCarloProposer for SingleSiteNewtonianMonteCarlo</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a proposer for the node</p>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo.get_proposers">
+<span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo.get_proposers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -518,48 +490,19 @@ SingleSiteHamiltonianMonteCarloProposer for SingleSiteHamiltonianMonteCarlo</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteRandomWalk">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteRandomWalk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">beanmachine.ppl.legacy.world.variable.TransformType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteRandomWalk" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.abstract_mh_infer.AbstractMHInference</span></code></p>
-<p>Implementation for SingleSiteRandomWalk</p>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteRandomWalk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteRandomWalk" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.base_inference.html#beanmachine.ppl.inference.base_inference.BaseInference" title="beanmachine.ppl.inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.base_inference.BaseInference</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteRandomWalk.find_best_single_site_proposer">
-<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteRandomWalk.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
-<dd><p>Finds the best proposer for a node which is
-SingleSiteRandomWalkProposer for
-SingleSiteRandomWalk</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a proposer for the node</p>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteRandomWalk.get_proposers">
+<span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteRandomWalk.get_proposers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteUniformMetropolisHastings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">beanmachine.ppl.legacy.world.variable.TransformType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.abstract_mh_infer.AbstractMHInference</span></code></p>
-<p>Implementation for SingleSiteNewtonianMonteCarlo</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings.find_best_single_site_proposer">
-<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
-<dd><p>Finds the best proposer for a node which is
-SingleSiteUniformMetropolisHastingsProposer for
-SingleSiteUniformMetropolisHastings</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a proposer for the node</p>
-</dd>
-</dl>
-</dd></dl>
-
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteUniformMetropolisHastings</span></span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.single_site_inference.html#beanmachine.ppl.inference.single_site_inference.SingleSiteInference" title="beanmachine.ppl.inference.single_site_inference.SingleSiteInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.single_site_inference.SingleSiteInference</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
