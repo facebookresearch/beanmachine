@@ -5,9 +5,6 @@ import beanmachine.ppl as bm
 import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
-)
 
 
 @bm.random_variable
@@ -54,7 +51,7 @@ def bad():
 
 
 def test_inference_error_reporting():
-    mh = SingleSiteAncestralMetropolisHastings()
+    mh = bm.SingleSiteAncestralMetropolisHastings()
     with pytest.raises(TypeError) as ex:
         mh.infer(None, {}, 10)
     assert (
@@ -134,7 +131,7 @@ def test_inference_error_reporting():
 
 
 def test_handle_cholesky_error():
-    mh = SingleSiteAncestralMetropolisHastings()
+    mh = bm.SingleSiteAncestralMetropolisHastings()
     with warnings.catch_warnings(record=True) as w:
         # Cause all warnings to always be triggered.
         warnings.simplefilter("always")
