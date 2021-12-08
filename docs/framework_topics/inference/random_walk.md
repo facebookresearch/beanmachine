@@ -5,35 +5,37 @@ sidebar_label: 'Single-Site Random Walk MH'
 slug: '/random_walk'
 ---
 
-Bean Machine offers a module for Random Walk Metropolis-Hastings (RWMH), a simple minimal MCMC inference method. The RWMH module is single-site by default, following the philosophy of most inference methods in Bean Machine, and accordingly block-inference patterns are well supported. RWMH precisely follows the standard Metropolos-Hastings algorithm of sampling a value from a proposal distribution, and then running accept-reject according to the computed ratio of the proposed value. This tutorial describes the proposal mechanism, describes adaptive RWMH, and documents the API for the RWMH module.
+Random Walk Metropolis-Hastings is a simple, minimal MCMC inference method. Random Walk Metropolis-Hastings is single-site by default, following the philosophy of most inference methods in Bean Machine, and accordingly multi-site inference patterns are well supported. Random Walk Metropolis-Hastings follows the standard Metropolis-Hastings algorithm of sampling a value from a proposal distribution, and then running accept-reject according to the computed ratio of the proposed value. This is further detailed in the docs for [Ancestral Metropolis-Hastings](ancestral_metropolis_hastings.md). This tutorial describes the proposal mechanism, describes adaptive Random Walk Metropolis-Hastings, and documents the API for the Random Walk Metropolis-Hastings algorithm.
 
-## Proposer
+## Algorithm
 
-The RWMH module has multiple proposers defined on different spaces such as all real numbers, positive real numbers, or intervals of the real numbers. These proposers all have common properties used to propose a new value $Y$ from a current value $X$. The proposal distribution $q(X,Y)$ is constructed to satisfy the following properties $\forall X$:
+Random Walk Metropolis-Hastings works on a single-site basis by proposing new values for a random variable that are close to the current value according to some sense of distance. As such, it is only defined for continuous random variables. The exact distance that a proposed value is from the current value is defined by the _proposal distribution_, and is a parameter that can be provided when configuring the inference method. For discrete random variables, a similar effect may be achieved, but [custom proposers](../custom_proposers/custom_proposers.md) must be used instead.
 
-$$
-\mathbb{E}[ q(X, \cdot) ]= X
-$$
+The Random Walk Metropolis-Hastings algorithm has multiple proposers defined on different spaces such as all real numbers, positive real numbers, or intervals of the real numbers. These proposers all have common properties used to propose a new value $x^\prime$ from a current value $x$. The proposal distribution $q(x,x^\prime)$ is constructed to satisfy the following properties:
 
-$$
-\mathbb{V} [q(X, \cdot)] = \sigma^2
-$$
+\[
+  \begin{aligned}
+    \mathbb{E}[q(x, \cdot)] &= x \\
+    \mathbb{V} [q(x, \cdot)] &= \sigma^2
+  \end{aligned}
+\]
 
-Note that we haven't defined $\sigma$ yet in this tutorial, but the key property to note is that this is a fixed positive number. $\sigma$ is essentially a hyperparameter of the inference algorithm which must be set by the user, and it must be fixed for the duration of inference. An exception is adaptive inference, a method we describe below which tunes $\sigma$ by essentially looking at the observed data. However, it is important to note that when adaptive RWMH is used, samples drawn during adaptation are not valid, as they potentially violate the balance equations of MCMC.
+$\sigma$ is the parameter that may be provided as a parameter when configuring the inference method, and it must be a fixed positive number. Larger values of $\sigma$ will cause the inference method to explore more non-local values for $X$. This may be good for faster exploration of the posterior, but it may cause lower probability values to get proposed (and therefore rejected) as a result.
 
-## Adaptive RWMH
+## Adaptive Random Walk Metropolis-Hastings
 
-The RWMH module is an exemplar use of the Bean Machine pattern for Adaptive inference, and this is enabled by using the argument `num_adaptive_samples` in the call to `infer()`. This turns on the adaptation module for the specified number of samples, tunes the proposer of the inference method during these timesteps, and records these samples as adaptive samples in the created `MonteCarloSamples` object. The adaptation method used is a single-site adaptation of a well known pattern of doing asympototically smaller steps on the value $log(\sigma)$. Details of this method can be found at http://www.stats.ox.ac.uk/~evans/CDT/Adaptive.pdf.
+Selecting a good $\sigma$ value is important for efficient posterior exploration. However, it is often challenging for a user to select a good $\sigma$ value, as it requires a nuanced understanding of the posterior space. Consequently, Bean Machine provides an adaptive version of Random Walk Metropolis-Hastings, in which the inference engine automatically tunes the value of $\sigma$ during the first few samples of inference (known as the adaptation period).
 
-## API
+The Random Walk Metropolis-Hastings algorithm is an exemplar use of the Bean Machine pattern for Adaptive inference, and this is enabled by using the argument `num_adaptive_samples` in the call to `infer()`. This causes Bean Machine to run an adaptation phase at the beginning of inference for the provided number of samples. During this phase, Bean Machine will internally tweak values of $\sigma$ in order to find the largest value that still results in a relatively low number of rejected proposals. Technically speaking, Random Walk adaptation will attempt to achieve an amortized acceptance rate of 0.234. How this value is chosen as the optimal acceptance rate is detailed in [Optional Scaling and Adaptive Markov Chain Monte Carlo](http://www.stats.ox.ac.uk/~evans/CDT/Adaptive.pdf).
 
-The API can be called as follows. Note that $\sigma$ is denoted as `step_size` in the constructor.
+Please note that samples taken during adaptation are not valid posterior samples, and so will not be shown by default when using the `MonteCarloSamples` object returned from inference.
 
+## Usage
 
-```
-from beanmachine.ppl import SingleSiteRandomWalk
+Note that $\sigma$ is denoted as `step_size` in the constructor.
 
-monte_carlo_samples = SingleSiteRandomWalk(
+```py
+samples = bm.SingleSiteRandomWalk(
   step_size = 2.0,
 ).infer(
   queries,
@@ -41,19 +43,24 @@ monte_carlo_samples = SingleSiteRandomWalk(
   num_adapt_steps = 1000,
   num_steps = 200,
 )
-
 ```
 
-If desired, `step_size` does not need to be set, and it will be initialized to the default initial value `1.0`. Either way, if `num_adapt_steps>0` is set, then `step_size` will be changed after inference begins.
+If desired, `step_size` does not need to be set, and it will be initialized to the default initial value `1.0`. Either way, if `num_adapt_steps > 0` is set, then `step_size` will be changed after inference begins.
 
 ```
-from beanmachine.ppl import SingleSiteRandomWalk
-
-monte_carlo_samples = SingleSiteRandomWalk().infer(
+samples = bm.SingleSiteRandomWalk().infer(
   queries,
   observations,
   num_adapt_steps = 1000,
   num_steps = 200,
 )
-
 ```
+
+The parameters to `infer` are described below:
+
+| Name | Usage
+| --- | ---
+| `queries` | A `List` of `@bm.random_variable` targets to fit posterior distributions for.
+| `observations` | The `Dict` of observations. Each key is a random variable, and its value is the observed value for that random variable.
+| `num_samples` | Number of samples to build up distributions for the values listed in `queries`.
+| `num_chains` | Number of separate inference runs to use. Multiple chains can be used by diagnostics to verify inference ran correctly.
