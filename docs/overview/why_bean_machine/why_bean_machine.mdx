@@ -4,6 +4,24 @@ title: 'Why Bean Machine?'
 sidebar_label: 'Why Bean Machine?'
 slug: '/why_bean_machine'
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<!-- ;;;
+export const BokehFigure = ({ plotData }) => {
+  return (
+    <div id={plotData["target_id"]}>
+      <BrowserOnly>
+        {() => {{window.Bokeh.embed.embed_item(plotData)}}}
+      </BrowserOnly>
+    </div>
+  )
+}
+
+import plotDataPriorPoisson from "./prior_poisson_intro.json";
+import plotDataPriorExponential from "./prior_exponential.json";
+;;; -->
+
 <!-- @import "../../header.md" -->
 
 Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient. This page describes the motivation for using [Probabilistic Programming](#probabilistic-programming) in general, and [Bean Machine advantages](#bean-machine-advantages) specifically.
@@ -30,6 +48,8 @@ num_new_cases ~ Poisson(reproduction_rate * num_infected)
 
 ![](/img/poisson_3.png)
 
+<!-- ;;; <BokehFigure plotData={plotDataPriorPoisson} /> -->
+
 <!-- It might be more interesting to show the Poisson distribution for reproduction_rate=0.1 and num_inference=1000000 -->
 
 Let's fix for now the value of `num_infected`, then the above statement gives the CPD of the random variable `num_new_cases`, conditioned on the value of its **parent** random variable `reproduction_rate`. Since the parameter of the Poisson distribution is also its mean, this CPD is consistent with the knowledge that we were trying to express.
@@ -41,6 +61,8 @@ reproduction_rate ~ Exponential(1 / 0.1)
 ```
 
 ![](/img/exponential_10.png)
+
+<!-- ;;; <BokehFigure plotData={plotDataPriorExponential} /> -->
 
 ### Inference
 

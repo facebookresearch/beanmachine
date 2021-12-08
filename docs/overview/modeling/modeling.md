@@ -8,7 +8,7 @@ sidebar_label: 'Modeling'
 
 ## <a name="declarative_style"></a>Declarative Style
 
-Bean Machine allows you to express models declaratively, in a way that closely follows the notation that statisticians use in their everyday work. Consider our example from the [Quick Start](../quick_start/quick_start.md). We could express this mathematically as:
+Bean Machine allows you to express models declaratively, in a way that closely follows the notation that statisticians use in their everyday work. Consider our example from the [Quick Start](../quick_start/quick_start.mdx). We could express this mathematically as:
 
 * $n_\text{infected}$: known constant
 * $\texttt{reproduction\_rate} \sim \text{Exponential}(10.0)$
@@ -50,7 +50,7 @@ In [Defining Random Variable Families](#random_variable_families), we'll see how
 
 ## <a name="calling_outside"></a>Calling a Random Variable from an Ordinary Function
 
-It is valid to call random variable functions from ordinary Python functions. In fact, you've seen it a few times in the [Quick Start](../quick_start/quick_start.md) already! We've used it to bind data, specify our queries, and access samples once inference has been completed.
+It is valid to call random variable functions from ordinary Python functions. In fact, you've seen it a few times in the [Quick Start](../quick_start/quick_start.mdx) already! We've used it to bind data, specify our queries, and access samples once inference has been completed.
 
 Under the hood, Bean Machine transforms random variable functions so that they act like function references. Here's an example, which we just call from the Python toplevel scope:
 
