@@ -28,6 +28,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         adapt_mass_matrix (bool): Whether to adapt the mass matrix. Defaults to True,
         target_accept_prob (float): Target accept prob. Increasing this value would lead to smaller step size. Defaults to 0.8.
     """
+
     def __init__(
         self,
         trajectory_length: float,
@@ -80,6 +81,7 @@ class GlobalNoUTurnSampler(BaseInference):
         multinomial_sampling (bool): Whether to use multinomial sampling as in [2], defaults to True.
         target_accept_prob (float): Target accept probability. Increasing this would lead to smaller step size. Defaults to 0.8.
     """
+
     def __init__(
         self,
         max_tree_depth: int = 10,
