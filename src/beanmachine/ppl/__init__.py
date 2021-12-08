@@ -8,7 +8,6 @@ from .inference import (
     CompositionalInference,
     GlobalHamiltonianMonteCarlo,
     GlobalNoUTurnSampler,
-    Predictive,
     RejectionSampling,
     SingleSiteAncestralMetropolisHastings,
     SingleSiteHamiltonianMonteCarlo,

@@ -4,9 +4,6 @@ from unittest.mock import patch
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.compositional_infer import (
-    CompositionalInference,
-)
 from beanmachine.ppl.inference.proposer.nuts_proposer import (
     NUTSProposer,
 )
@@ -20,11 +17,7 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
     GlobalAncestralMetropolisHastings,
-)
-from beanmachine.ppl.inference.single_site_uniform_mh import (
-    SingleSiteUniformMetropolisHastings,
 )
 
 
@@ -77,7 +70,7 @@ class ChangingShapeModel:
 def test_inference_config():
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
-    compositional = CompositionalInference({model.foo: nuts})
+    compositional = bm.CompositionalInference({model.foo: nuts})
     queries = [model.foo(0), model.foo(1)]
     observations = {model.baz(): torch.tensor(2.0)}
 
@@ -105,10 +98,10 @@ def test_inference_config():
     assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
 
     # test overriding default kwarg
-    compositional = CompositionalInference(
+    compositional = bm.CompositionalInference(
         {
             model.foo: bm.GlobalNoUTurnSampler(),
-            ...: SingleSiteAncestralMetropolisHastings(),
+            ...: bm.SingleSiteAncestralMetropolisHastings(),
         }
     )
     compositional.infer(queries, observations, num_chains=1, num_samples=2)
@@ -125,7 +118,7 @@ def test_inference_config():
 def test_config_inference_with_tuple_of_rv():
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
-    compositional = CompositionalInference({(model.foo, model.baz): nuts})
+    compositional = bm.CompositionalInference({(model.foo, model.baz): nuts})
     world = compositional._initialize_world([model.baz()], {})
     with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
         compositional.get_proposers(
@@ -139,11 +132,11 @@ def test_config_inference_with_tuple_of_rv():
 
 def test_config_inference_with_tuple_of_inference():
     model = SampleModel()
-    compositional = CompositionalInference(
+    compositional = bm.CompositionalInference(
         {
             (model.foo, model.bar): (
-                SingleSiteAncestralMetropolisHastings(),
-                SingleSiteUniformMetropolisHastings(),
+                bm.SingleSiteAncestralMetropolisHastings(),
+                bm.SingleSiteUniformMetropolisHastings(),
             ),
             model.baz: bm.GlobalNoUTurnSampler(),
         }
@@ -165,10 +158,10 @@ def test_config_inference_with_tuple_of_inference():
 
 def test_nested_compositional_inference():
     model = SampleModel()
-    ancestral_mh = SingleSiteAncestralMetropolisHastings()
-    compositional = CompositionalInference(
+    ancestral_mh = bm.SingleSiteAncestralMetropolisHastings()
+    compositional = bm.CompositionalInference(
         {
-            (model.foo, model.bar): CompositionalInference(
+            (model.foo, model.bar): bm.CompositionalInference(
                 {
                     model.foo: bm.GlobalNoUTurnSampler(),
                     # this ancestral mh class is never going to be invoked
@@ -191,7 +184,7 @@ def test_nested_compositional_inference():
 def test_block_inference_changing_support():
     model = ChangingSupportSameShapeModel()
     queries = [model.K()] + [model.component(j) for j in range(3)]
-    compositional = CompositionalInference(
+    compositional = bm.CompositionalInference(
         {(model.K, model.component): GlobalAncestralMetropolisHastings()}
     )
     sampler = compositional.sampler(queries, {}, num_samples=10, num_adaptive_samples=5)
@@ -214,7 +207,7 @@ def test_block_inference_changing_support():
 def test_block_inference_changing_shape():
     model = ChangingShapeModel()
     queries = [model.K()] + [model.component(j) for j in range(3)]
-    compositional = CompositionalInference()
+    compositional = bm.CompositionalInference()
 
     # should run without error
     samples = compositional.infer(queries, {}, num_samples=5, num_chains=1).get_chain()
