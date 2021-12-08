@@ -21,4 +21,7 @@ else
 		--ClearMetadataPreprocessor.enabled=True $(nb)
 endif
 
+website: docs FORCE
+	$(MAKE) -C website 
+
 FORCE:
