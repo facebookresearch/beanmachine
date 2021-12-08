@@ -169,8 +169,12 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         Return an az.InferenceData from MonteCarloSamples.
         """
+        if self.num_adaptive_samples > 0:
+            adaptive_samples = self.adaptive_samples
+        else:
+            adaptive_samples = None
         return az.from_dict(
             posterior=self.samples,
-            warmup_posterior=self.adaptive_samples,
+            warmup_posterior=adaptive_samples,
             save_warmup=include_adapt_steps,
         )
