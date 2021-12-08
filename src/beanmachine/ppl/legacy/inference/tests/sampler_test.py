@@ -4,6 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.legacy.inference import SingleSiteAncestralMetropolisHastings
 
 
 class SamplerTest(unittest.TestCase):
@@ -19,7 +20,7 @@ class SamplerTest(unittest.TestCase):
     def test_sampler_smoke(self):
         model = self.SampleModel()
         num_samples = 10
-        sampler = bm.SingleSiteAncestralMetropolisHastings().sampler(
+        sampler = SingleSiteAncestralMetropolisHastings().sampler(
             [model.foo()],
             {model.bar(): torch.tensor(0.8)},
             num_samples,
@@ -51,7 +52,7 @@ class SamplerTest(unittest.TestCase):
         num_chains = 2
         num_samples = 10
         samplers = [
-            bm.SingleSiteAncestralMetropolisHastings().sampler(
+            SingleSiteAncestralMetropolisHastings().sampler(
                 [model.foo()], {model.bar(): torch.tensor(0.3)}, num_samples
             )
             for _ in range(num_chains)
@@ -68,7 +69,7 @@ class SamplerTest(unittest.TestCase):
             return next(mock_out)
 
         model = self.SampleModel()
-        sampler = bm.SingleSiteAncestralMetropolisHastings().sampler(
+        sampler = SingleSiteAncestralMetropolisHastings().sampler(
             [model.foo()], {model.bar(): torch.tensor(0.3)}, thinning=4
         )
         # mock the result of inference

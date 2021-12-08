@@ -6,9 +6,6 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.base_proposer import (
     BaseProposer,
 )
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
-)
 from beanmachine.ppl.world import World, init_from_prior
 
 
@@ -65,7 +62,7 @@ def test_initialize_world():
 
 
 def test_initialize_from_prior():
-    mh = SingleSiteAncestralMetropolisHastings()
+    mh = bm.SingleSiteAncestralMetropolisHastings()
     model = SampleModel()
     queries = [model.foo()]
 

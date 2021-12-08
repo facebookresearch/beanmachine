@@ -46,7 +46,7 @@ class BaseInference(metaclass=ABCMeta):
         queries: List[RVIdentifier],
         observations: RVDict,
         num_samples: int,
-        num_chains: int = 1,
+        num_chains: int = 4,
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_fn: InitializeFn = init_to_uniform,
