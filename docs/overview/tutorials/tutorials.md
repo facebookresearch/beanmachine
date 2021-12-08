@@ -78,12 +78,3 @@ In this tutorial we will explore linear regression in combination with hierarchi
 [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/NBA_IRT.ipynb) • Run in Google Colab
 
 This tutorial demonstrates how to use Bean Machine to predict when NBA players will receive a foul call from a referee. This model and exposition is based on [Austin Rochford's 2018 analysis](https://render.githubusercontent.com/view/ipynb?color_mode=light&commit=d5d87c500dc6bf5a37abab41b37757804ac642b8&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f66616365626f6f6b72657365617263682f6265616e6d616368696e652f643564383763353030646336626635613337616261623431623337373537383034616336343262382f7475746f7269616c732f4e42415f4952542e6970796e623f746f6b656e3d41414c4f48354c475a43454e4d554d4234324545584733425255375445&nwo=facebookresearch%2Fbeanmachine&path=tutorials%2FNBA_IRT.ipynb&repository_id=201103120&repository_type=Repository#references) of the [2015/2016 NBA season games](https://render.githubusercontent.com/view/ipynb?color_mode=light&commit=d5d87c500dc6bf5a37abab41b37757804ac642b8&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f66616365626f6f6b72657365617263682f6265616e6d616368696e652f643564383763353030646336626635613337616261623431623337373537383034616336343262382f7475746f7269616c732f4e42415f4952542e6970796e623f746f6b656e3d41414c4f48354c475a43454e4d554d4234324545584733425255375445&nwo=facebookresearch%2Fbeanmachine&path=tutorials%2FNBA_IRT.ipynb&repository_id=201103120&repository_type=Repository#references) data.
-
-
-## Advanced
-
-### Dynamic Bistable Hidden Markov Model
-
-[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/advanced/Dynamic_bistable_hidden_Markov_model.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/advanced/Dynamic_bistable_hidden_Markov_model.ipynb)
-
-In this notebook, we will walk through performing inference for a Bistable Hidden Markov Model (HMM) with Bean Machine MCMC and compare it with handwritten Approximate Bayesian Computation (ABC) Inference.
