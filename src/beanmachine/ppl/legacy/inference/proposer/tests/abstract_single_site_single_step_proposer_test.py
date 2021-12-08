@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.legacy.inference import CompositionalInference
 from beanmachine.ppl.legacy.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
@@ -69,7 +70,7 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
 
     def test_custom_proposer(self):
         model = self.SampleGammaModel()
-        ci = bm.CompositionalInference({model.foo: self.CustomProposer()})
+        ci = CompositionalInference({model.foo: self.CustomProposer()})
         ci.queries_ = [model.foo()]
         ci.observations_ = {model.bar(): tensor(2.0)}
         ci._infer(2)
@@ -92,7 +93,7 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
         model = self.SampleGammaModel()
         # force invalid gradient during halfspace proposal
         proposer = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
-        ci = bm.CompositionalInference({model.foo: proposer})
+        ci = CompositionalInference({model.foo: proposer})
         foo_key = model.foo()
         ci.queries_ = [model.foo()]
         ci.observations_ = {model.bar(): tensor(-1.0)}
@@ -109,7 +110,7 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
 
         # valid gradient during halfspace proposal
         proposer = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
-        ci = bm.CompositionalInference({model.foo: proposer})
+        ci = CompositionalInference({model.foo: proposer})
         foo_key = model.foo()
         ci.queries_ = [model.foo()]
         ci.observations_ = {model.bar(): tensor(2.0)}

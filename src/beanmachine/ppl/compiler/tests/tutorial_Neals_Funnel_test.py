@@ -12,9 +12,6 @@ import beanmachine.ppl as bm
 import torch  # from torch import manual_seed, tensor
 import torch.distributions as dist  # from torch.distributions import Bernoulli, Normal, Uniform
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from beanmachine.ppl.legacy.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
-    SingleSiteHamiltonianMonteCarloProposer,
-)
 from torch import tensor
 
 
@@ -88,7 +85,9 @@ class tutorialNealsFunnelTest(unittest.TestCase):
             num_chains=num_chains,
         )
 
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(path_length=0.1, step_size=0.01)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(
+            trajectory_length=0.1, initial_step_size=0.01
+        )
         _ = hmc.infer(
             queries=queries,
             observations=observations,
@@ -98,15 +97,11 @@ class tutorialNealsFunnelTest(unittest.TestCase):
 
         ghmc = bm.CompositionalInference(
             {
-                z: SingleSiteHamiltonianMonteCarloProposer(
-                    path_length=0.1, step_size=0.01
-                ),
-                x: SingleSiteHamiltonianMonteCarloProposer(
-                    path_length=0.1, step_size=0.01
+                (z, x): bm.SingleSiteHamiltonianMonteCarlo(
+                    trajectory_length=0.1, initial_step_size=0.01
                 ),
             }
         )
-        ghmc.add_sequential_proposer([z, x])
         ghmc.infer(
             queries=queries,
             observations=observations,

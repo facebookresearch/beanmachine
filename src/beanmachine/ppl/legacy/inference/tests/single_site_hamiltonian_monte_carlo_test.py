@@ -4,6 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.legacy.inference import SingleSiteHamiltonianMonteCarlo
 from torch import tensor
 
 
@@ -35,7 +36,7 @@ class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_hamiltonian_monte_carlo(self):
         model = self.SampleNormalModel()
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 10)
+        hmc = SingleSiteHamiltonianMonteCarlo(0.1, 10)
         foo_key = model.foo()
         bar_key = model.bar()
         hmc.queries_ = [model.foo()]
@@ -50,7 +51,7 @@ class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_hamiltonian_monte_carlo_parents_changed(self):
         model = self.ChangingParentsModel()
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 10)
+        hmc = SingleSiteHamiltonianMonteCarlo(0.1, 10)
 
         parent_one_key = model.parent_one()
         child_key = model.bad_child()

@@ -3,6 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
+from beanmachine.ppl.legacy.inference import CompositionalInference
 from beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
@@ -79,7 +80,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositional_inference(self):
         model = self.SampleModel()
-        c = bm.CompositionalInference()
+        c = CompositionalInference()
         foo_key = model.foo()
         c.world_ = World()
         distribution = dist.Bernoulli(0.1)
@@ -155,7 +156,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositional_inference_with_input(self):
         model = self.SampleModel()
-        c = bm.CompositionalInference({model.foo: SingleSiteAncestralProposer()})
+        c = CompositionalInference({model.foo: SingleSiteAncestralProposer()})
         foo_key = model.foo()
         c.world_ = World()
         distribution = dist.Normal(0.1, 1)
@@ -178,7 +179,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_proposer_for_block(self):
         model = self.SampleNormalModel()
-        ci = bm.CompositionalInference()
+        ci = CompositionalInference()
         ci.add_sequential_proposer([model.foo, model.bar])
         ci.queries_ = [
             model.foo(0),
@@ -260,7 +261,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositional_inference_transform_default(self):
         model = self.SampleTransformModel()
-        ci = bm.CompositionalInference(
+        ci = CompositionalInference(
             {
                 model.realspace: SingleSiteNewtonianMonteCarloProposer(
                     transform_type=TransformType.DEFAULT
@@ -302,7 +303,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositional_inference_transform_mixed(self):
         model = self.SampleTransformModel()
-        ci = bm.CompositionalInference(
+        ci = CompositionalInference(
             {
                 model.realspace: SingleSiteNewtonianMonteCarloProposer(
                     transform_type=TransformType.CUSTOM,
@@ -381,7 +382,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositional_inference_ancestral_beta(self):
         model = self.SampleTransformModel()
-        ci = bm.CompositionalInference(
+        ci = CompositionalInference(
             {model.beta: SingleSiteAncestralProposer(transform_type=TransformType.NONE)}
         )
 
