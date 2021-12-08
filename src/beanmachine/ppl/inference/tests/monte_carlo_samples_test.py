@@ -173,11 +173,11 @@ class MonteCarloSamplesTest(unittest.TestCase):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
         samples = mh.infer([model.foo()], {}, num_samples=10, num_chains=1)
-        az_xarray = samples.to_inferencedata()
+        az_xarray = samples.to_inference_data()
         self.assertNotIn("warmup_posterior", az_xarray)
 
         samples = mh.infer(
-            [model.foo()], {}, num_samples=10, num_adaptive_steps=2, num_chains=1
+            [model.foo()], {}, num_samples=10, num_adaptive_samples=2, num_chains=1
         )
-        az_xarray = samples.to_inferencedata(include_adapt_steps=True)
+        az_xarray = samples.to_inference_data(include_adapt_steps=True)
         self.assertIn("warmup_posterior", az_xarray)
