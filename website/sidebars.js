@@ -49,8 +49,8 @@ module.exports = {
         },
       ],
       Advanced: [
-        'overview/beanstalk/beanstalk',
         'overview/bean_machine_advantages/bean_machine_advantages',
+        'overview/beanstalk/beanstalk',
         ],
     },
     'overview/tutorials/tutorials',
