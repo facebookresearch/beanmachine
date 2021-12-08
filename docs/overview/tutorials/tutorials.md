@@ -58,6 +58,13 @@ This tutorial demonstrates the application of hierarchical models with data from
 This tutorial demonstrates how to use Bean Machine to predict when NBA players will receive a foul call from a referee. This model and exposition is based on [Austin Rochford's 2018 analysis](https://austinrochford.com/posts/2018-02-04-nba-irt-2.html) of the [2015/2016 NBA season games](https://www.basketball-reference.com/leagues/NBA_2016_games.html) data. It will introduce you to Item Response Theory, and demonstrate its advantages over standard regression models. It will also iterate on that model several times, demonstrating how to evolve your model to improve predictive performance.
 
 
+### Modeling Medical Efficacy by Marginalizing Discrete Variables in Zero-Inflated Count Data
+
+[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Zero_inflated_count_data.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Zero_inflated_count_data.ipynb)
+
+This tutorial investigates data that originated from [Berry](https://www.jstor.org/stable/2531826), and was analyzed by [Farewell and Sprott](https://www.jstor.org/stable/2531746), from a study about the efficacy of a medication that helps prevent irregular heartbeats. Counts of patients' irregular heartbeats were observed 60 seconds before the administration of the drug, and 60 seconds after the medication was taken. A large percentage of records show zero irregular heartbeats in the 60 seconds after taking the medication. There are more observed zeros than would be expected if we were to sample from one of the common statistical discrete distributions. The problem we face is trying to model these zero counts in order to appropriately quantify the medication's impact on reducing irregular heartbeats.
+
+
 ### Hidden Markov Model
 
 [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Hidden_Markov_model.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hidden_Markov_model.ipynb)
