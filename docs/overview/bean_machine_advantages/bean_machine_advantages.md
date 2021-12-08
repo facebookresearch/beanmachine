@@ -1,16 +1,13 @@
 ---
 id: bean_machine_advantages
-title: Bean Machine Advantages
-sidebar_label: Bean Machine Advantages
+title: Bean Machine within Probabilistic Programming
+sidebar_label: Bean Machine within Probabilistic Programming
+slug: '/bean_machine_within_probabilistic_programming'
 ---
 
-:::tip
+The [Overview](../why_bean_machine) gave reasons for using Bean Machine that are common to most probabilistic programming systems, namely the convenience of writing code for generative probabilistic models that is separate from inference itself. Here we provide some reasons that are more specific to Bean Machine within the set of probabilistic programming systems.
 
-If you're new to probabilistic programming languages, we recommend you skip to the [next page](../quick_start/quick_start.md)!
-
-:::
-
-By building on top of PyTorch with a declarative modeling syntax, Bean Machine can be simultaneously performant and intuitive for building probabilistic models. Bean Machine provides further value by implementing cutting-edge inference algorithms and allowing the user to select and program custom inferences for different problems and subproblems.
+Bean Machine builds on top of PyTorch with a declarative modeling syntax, being therefore simultaneously performant and intuitive for building probabilistic models. It provides further value by implementing cutting-edge inference algorithms and allowing the user to select and program custom inferences for different problems and subproblems.
 
 ## Site-based inference
 
@@ -20,7 +17,7 @@ Bean Machine uses a site-based inference engine. "Sites" are random variable fam
 
 The simplest form of site-based inference is called "single-site" inference. In the single-site paradigm, models are built up from random variables that can be reasoned about individually. Bean Machine can exploit this modularity to update random variables one-at-a-time, reducing unnecessary computation and enabling posterior updates that might not be possible if processing the entire model in one go.
 
-Bean Machine also supports "multi-site" inference, in which multiple sites are reasoned about jointly. This increases complexity during inference, but it allows the engine to exploit inter-site correlations when fitting the posterior distribution.
+Bean Machine also supports "multi-site" inference, in which sites are families of multiple random variables are reasoned about jointly. This increases complexity during inference, but it allows the engine to exploit inter-site correlations when fitting the posterior distribution.
 
 Altogether, site-based inference is a flexible pattern for trading off complexity and modularity, and enables the advanced techniques outlined below.
 

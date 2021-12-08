@@ -13,7 +13,6 @@ module.exports = {
     {
       Overview: [
         'overview/why_bean_machine/why_bean_machine',
-        'overview/bean_machine_advantages/bean_machine_advantages',
         'overview/quick_start/quick_start',
         'overview/modeling/modeling',
         'overview/inference/inference',
@@ -49,7 +48,10 @@ module.exports = {
           Development: ['framework_topics/development/logging'],
         },
       ],
-      Advanced: ['overview/beanstalk/beanstalk'],
+      Advanced: [
+        'overview/beanstalk/beanstalk',
+        'overview/bean_machine_advantages/bean_machine_advantages',
+        ],
     },
     'overview/tutorials/tutorials',
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.
