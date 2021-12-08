@@ -6,6 +6,10 @@ slug: '/why_bean_machine'
 ---
 <!-- @import "../../header.md" -->
 
+:::tip
+This page describes aspects of Bean Machine that are common among probabilistic programming systems in general. For a view of features more specific to Bean Machine proper, check [Bean Machine within Probabilistic Programming](../bean_machine_within_probabilistic_programming).
+:::
+
 Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient.
 
 ## Why Generative models?
@@ -63,6 +67,8 @@ In the rest of this Overview we'll introduce you to Bean Machine's syntax, and s
 ## Target Audience
 
 While we hope that the guides you'll find here are relevant to anyone with an ML background, there are excellent resources available if this is your first exposure to Bayesian analysis! We highly recommend the excellent YouTube series _[Statistical Rethinking](https://www.youtube.com/playlist?list=PLDcUM9US4XdNM4Edgs7weiyIguLSToZRI)_, which walks through Bayesian thinking and probabilistic modeling. For a more hands-on experience, you can check out the free, online tutorial _[Bayesian Methods for Hackers](https://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/#contents)_.
+
+To get into more details on how Bean Machine is used, continue on to [Quick Start](../quickstart)!
 
 <!-- ## Sneak Peek at Bean Machine Syntax
 
