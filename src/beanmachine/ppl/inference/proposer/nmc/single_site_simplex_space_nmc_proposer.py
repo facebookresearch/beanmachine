@@ -75,9 +75,9 @@ class SingleSiteSimplexSpaceNMCProposer(SingleSiteAncestralProposer):
         :param node: the node for which we're proposing a new value for
         :param node_var: the Variable of the node
         :param world: the world in which we're proposing a new value for node
-        required to find a proposal distribution
+            required to find a proposal distribution
         :returns: the tuple of proposal distribution of the node and arguments
-        that was used or needs to be used to find the proposal distribution
+            that was used or needs to be used to find the proposal distribution
         """
         # if the number of variables in the world is 1 and proposal distribution
         # has already been computed, we can use the old proposal distribution

@@ -44,12 +44,12 @@ class NUTSProposer(HMCProposer):
     as introduced in Appendix 2 of [2]) instead of drawn uniformly.
 
     Reference:
-    [1] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
-        Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
-        https://arxiv.org/abs/1111.4246
+        [1] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
+            Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
+            https://arxiv.org/abs/1111.4246
 
-    [2] Michael Betancourt. "A Conceptual Introduction to Hamiltonian Monte Carlo"
-        (2017). https://arxiv.org/abs/1701.02434
+        [2] Michael Betancourt. "A Conceptual Introduction to Hamiltonian Monte Carlo"
+            (2017). https://arxiv.org/abs/1701.02434
     """
 
     def __init__(

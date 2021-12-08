@@ -79,11 +79,11 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         :param node: the node for which we're proposing a new value for
         :param node_var: the Variable of the node
         :param world: the world in which we're proposing a new value for node
-        required to find a proposal distribution which in this case is the
-        fraction of distance between the current value and NMC mean that we're
-        going to pick as our proposer mean.
+            required to find a proposal distribution which in this case is the
+            fraction of distance between the current value and NMC mean that we're
+            going to pick as our proposer mean.
         :returns: the tuple of proposal distribution of the node and arguments
-        that was used or needs to be used to find the proposal distribution
+            that was used or needs to be used to find the proposal distribution
         """
         frac_dist = self._sample_frac_dist(world)
         self.learning_rate_ = frac_dist
@@ -212,7 +212,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         :param node: the node for which we have already proposed a new value for.
         :param node_var: the Variable object associated with node.
         :param node_acceptance_results: the boolean values of acceptances for
-         values collected so far within _infer().
+            values collected so far within _infer().
         :param is_accepted: bool representing whether the new value was accepted.
         """
         if not is_accepted:

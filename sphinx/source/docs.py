@@ -103,7 +103,7 @@ def sparse_module_hierarchy(mod_names: Sequence[str]) -> Mapping[str, Any]:
 
 
 # Generate 1 rst for each module
-def save_rst(mod_name, sub_mod_names):
+def save_rst(mod_name, sub_mod_names, exclude_symbols):
     rst = f"""{mod_name}
 {"="*len(mod_name)}
 """
@@ -132,10 +132,14 @@ Module contents
 .. automodule:: {mod_name}
    :members:
    :undoc-members:
-   :show-inheritance:
-"""
+   :show-inheritance:"""
     )
-    return rst
+
+    if len(exclude_symbols):
+        exclude_string = ", ".join(exclude_symbols)
+        rst = rst + f"\n   :exclude-members: {exclude_string}"
+
+    return rst + "\n"
 
 
 def print_include_modules(
@@ -150,8 +154,9 @@ def print_include_modules(
     # Enumerate documentable symbols keyed by module
     modules_and_symbols = search_package(config)
 
-    for k in sorted(modules_and_symbols.keys()):
-        print(k)
+    for key in sorted(modules_and_symbols.keys()):
+        exclude_symbols = [x[0] for x in modules_and_symbols[key][1]]
+        print(key, exclude_symbols)
 
 
 def search_package(config):
@@ -200,8 +205,8 @@ def search_package(config):
             new_y1 = [
                 (a, b)
                 for a, b in y[1]
-                if patterns["include"]["symbols"].fullmatch(x + "." + a) is not None
-                and patterns["exclude"]["symbols"].fullmatch(x + "." + a) is None
+                if patterns["include"]["symbols"].fullmatch(x + "." + a) is None
+                or patterns["exclude"]["symbols"].fullmatch(x + "." + a) is not None
             ]
 
             tmp[x] = (y[0], new_y1)
@@ -262,7 +267,8 @@ Indices and tables
             sub_mod_names = list(v.keys())
 
             with open(h + ".rst", "w") as file:
-                rst = save_rst(mod_name, sub_mod_names)
+                exclude_symbols = [x[0] for x in modules_and_symbols[mod_name][1]]
+                rst = save_rst(mod_name, sub_mod_names, exclude_symbols)
                 print(rst, file=file)
 
             dfs(v)
