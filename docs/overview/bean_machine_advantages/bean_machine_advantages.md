@@ -1,11 +1,9 @@
 ---
 id: bean_machine_advantages
-title: Bean Machine within Probabilistic Programming
-sidebar_label: Bean Machine within Probabilistic Programming
-slug: '/bean_machine_within_probabilistic_programming'
+title: Bean Machine Advantages
+sidebar_label: Bean Machine Advantages
+slug: '/bean_machine_advantages'
 ---
-
-The [Overview](../why_bean_machine) gave reasons for using Bean Machine that are common to most probabilistic programming systems, namely the convenience of writing code for generative probabilistic models that is separate from inference itself. Here we provide some reasons that are more specific to Bean Machine within the set of probabilistic programming systems.
 
 Bean Machine builds on top of PyTorch with a declarative modeling syntax, being therefore simultaneously performant and intuitive for building probabilistic models. It provides further value by implementing cutting-edge inference algorithms and allowing the user to select and program custom inferences for different problems and subproblems.
 
