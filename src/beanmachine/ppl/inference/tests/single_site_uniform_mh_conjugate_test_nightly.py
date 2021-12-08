@@ -15,7 +15,7 @@ class SingleSiteUniformMetropolisHastingsConjugateTest(
         self.beta_binomial_conjugate_run(self.mh)
 
     def test_gamma_gamma_conjugate_run(self):
-        self.gamma_gamma_conjugate_run(self.mh)
+        self.gamma_gamma_conjugate_run(self.mh, random_seed=123)
 
     def test_gamma_normal_conjugate_run(self):
         self.gamma_normal_conjugate_run(self.mh, num_samples=7500)

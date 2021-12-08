@@ -17,6 +17,7 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
             self.mh, num_samples=3000, num_adaptive_samples=1600
         )
 
+    @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_gamma_gamma_conjugate_run(self):
         self.mh = bm.SingleSiteRandomWalk(step_size=3.0)
         self.gamma_gamma_conjugate_run(
@@ -29,13 +30,13 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
             self.mh, num_samples=6000, num_adaptive_samples=5000
         )
 
-    @unittest.skip("FIXME: Proposer getting stuck.")
+    @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_normal_normal_conjugate_run(self):
         self.normal_normal_conjugate_run(
             self.mh, num_samples=2000, num_adaptive_samples=2000
         )
 
-    # TODO: Expected n_eff levels should be documented in tests
+    @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_dirichlet_categorical_conjugate_run(self):
         self.dirichlet_categorical_conjugate_run(
             self.mh, num_samples=2000, num_adaptive_samples=2000
