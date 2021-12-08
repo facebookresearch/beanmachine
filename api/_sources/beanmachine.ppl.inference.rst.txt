@@ -12,6 +12,8 @@ Subpackages
    beanmachine.ppl.inference.compositional_infer
    beanmachine.ppl.inference.hmc_inference
    beanmachine.ppl.inference.monte_carlo_samples
+   beanmachine.ppl.inference.nuts_inference
+   beanmachine.ppl.inference.predictive
    beanmachine.ppl.inference.proposer
    beanmachine.ppl.inference.sampler
    beanmachine.ppl.inference.single_site_ancestral_mh

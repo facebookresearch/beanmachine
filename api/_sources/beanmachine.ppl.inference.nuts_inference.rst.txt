@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.nuts_inference
+========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.nuts_inference
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
