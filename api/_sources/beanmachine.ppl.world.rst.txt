@@ -20,4 +20,5 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: get_default_transforms, get_world_context
 

@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="beanmachine.ppl.world.base_world" href="beanmachine.ppl.world.base_world.html" />
-    <link rel="prev" title="beanmachine.ppl.testlib.hypothesis_testing" href="beanmachine.ppl.testlib.hypothesis_testing.html" /> 
+    <link rel="prev" title="beanmachine.ppl.model.utils" href="beanmachine.ppl.model.utils.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,20 +40,13 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">beanmachine.ppl.world</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.base_world.html">beanmachine.ppl.world.base_world</a></li>
@@ -291,27 +284,6 @@ is not found in the graph already.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.get_default_transforms">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">get_default_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.transforms.Transform</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.get_default_transforms" title="Permalink to this definition"></a></dt>
-<dd><p>Get transforms of a distribution to transform it from constrained space
-into unconstrained space.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>distribution</strong> – the distribution to check</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a Transform that need to be applied to the distribution</p>
-</dd>
-</dl>
-<p>to transform it from constrained space into unconstrained space</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.get_world_context">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">get_world_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.get_world_context" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.init_from_prior">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">init_from_prior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.init_from_prior" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -328,7 +300,7 @@ into unconstrained space.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="beanmachine.ppl.testlib.hypothesis_testing.html" class="btn btn-neutral float-left" title="beanmachine.ppl.testlib.hypothesis_testing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.model.utils.html" class="btn btn-neutral float-left" title="beanmachine.ppl.model.utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="beanmachine.ppl.world.base_world.html" class="btn btn-neutral float-right" title="beanmachine.ppl.world.base_world" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

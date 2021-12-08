@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="beanmachine.ppl.model.rv_identifier" href="beanmachine.ppl.model.rv_identifier.html" />
-    <link rel="prev" title="beanmachine.ppl.legacy.world.world_vars" href="beanmachine.ppl.legacy.world.world_vars.html" /> 
+    <link rel="prev" title="beanmachine.ppl.inference.single_site_uniform_mh" href="beanmachine.ppl.inference.single_site_uniform_mh.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,18 +40,12 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">beanmachine.ppl.model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html">beanmachine.ppl.model.rv_identifier</a></li>
@@ -62,7 +56,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.model">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
 </ul>
 
@@ -151,25 +144,24 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.model.</span></span><span class="sig-name descname"><span class="pre">StatisticalModel</span></span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Parent class to all statistical models implemented in Bean Machine.</p>
-<p>every random variable in the model needs to be defined with function
+<p>Every random variable in the model needs to be defined with function
 declaration accompanied with &#64;bm.random_variable decorator.</p>
 <p>for instance, here is Gaussian Mixture Model implementation:</p>
-<p>K, alpha, beta, gamma = init()</p>
-<p>&#64;bm.random_variable
-def mu():</p>
-<blockquote>
-<div><p>return Normal(alpha, beta)</p>
-</div></blockquote>
-<p>&#64;bm.random_variable
-def z(i):</p>
-<blockquote>
-<div><p>return Uniform(K)</p>
-</div></blockquote>
-<p>&#64;bm.random_variable
-def y(i):</p>
-<blockquote>
-<div><p>return Normal(mu(z(i)), gamma)</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">K</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">init</span><span class="p">()</span>
+
+<span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
+<span class="k">def</span> <span class="nf">mu</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+
+<span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
+<span class="k">def</span> <span class="nf">z</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Uniform</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+
+<span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
+<span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="p">(</span><span class="n">z</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="n">gamma</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.model.StatisticalModel.functional">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">functional</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.functional" title="Permalink to this definition"></a></dt>
@@ -188,10 +180,10 @@ def y(i):</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>tuple of function and arguments which is to be used to identify</p>
+<dd class="field-even"><p>tuple of function and arguments which is to be used to identify
+a particular function call.</p>
 </dd>
 </dl>
-<p>a particular function call.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -242,7 +234,7 @@ all statistical models.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="beanmachine.ppl.legacy.world.world_vars.html" class="btn btn-neutral float-left" title="beanmachine.ppl.legacy.world.world_vars" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.inference.single_site_uniform_mh.html" class="btn btn-neutral float-left" title="beanmachine.ppl.inference.single_site_uniform_mh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="beanmachine.ppl.model.rv_identifier.html" class="btn btn-neutral float-right" title="beanmachine.ppl.model.rv_identifier" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

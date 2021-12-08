@@ -40,16 +40,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.base_inference.html">beanmachine.ppl.inference.base_inference</a></li>
@@ -67,15 +62,12 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_nmc.html">beanmachine.ppl.inference.single_site_nmc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_random_walk.html">beanmachine.ppl.inference.single_site_random_walk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_uniform_mh.html">beanmachine.ppl.inference.single_site_uniform_mh</a></li>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.utils.html">beanmachine.ppl.inference.utils</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
 </ul>
 
@@ -170,7 +162,7 @@ representing the graph deduced from the model.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.bmg_inference.BMGInference.to_graph">
-<span class="sig-name descname"><span class="pre">to_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.graph.html#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.bmg_inference.BMGInference.to_graph" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">to_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.graph.Graph</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.bmg_inference.BMGInference.to_graph" title="Permalink to this definition"></a></dt>
 <dd><p>Produce a BMG graph and a map from queried RVIdentifiers to the corresponding
 indices of the inference results.</p>
 </dd></dl>

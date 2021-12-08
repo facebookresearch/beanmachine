@@ -11,11 +11,8 @@ Subpackages
    beanmachine.ppl.diagnostics
    beanmachine.ppl.distribution
    beanmachine.ppl.examples
-   beanmachine.ppl.experimental
    beanmachine.ppl.inference
-   beanmachine.ppl.legacy
    beanmachine.ppl.model
-   beanmachine.ppl.testlib
    beanmachine.ppl.world
 
 Module contents
@@ -25,4 +22,5 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: Diagnostics, param
 

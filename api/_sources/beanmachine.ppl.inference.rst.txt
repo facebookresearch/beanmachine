@@ -19,7 +19,6 @@ Subpackages
    beanmachine.ppl.inference.single_site_nmc
    beanmachine.ppl.inference.single_site_random_walk
    beanmachine.ppl.inference.single_site_uniform_mh
-   beanmachine.ppl.inference.utils
 
 Module contents
 ---------------
