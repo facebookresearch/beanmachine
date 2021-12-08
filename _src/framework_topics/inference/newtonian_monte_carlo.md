@@ -7,44 +7,71 @@ slug: '/newtonian_monte_carlo'
 
 Newtonian Monte Carlo (NMC, Arora et al., 2020) is a second-order gradient-based Markov chain Monte Carlo (MCMC) algorithm that uses the first- and second-order gradients to propose a new value for a random variable.
 
-To understand the idea behind NMC, we revisit two other common MCMC algorithms, [Random Walk](framework_topics/inference/random_walk.md) and Metropolis-adjusted Langevin algorithm (MALA). In Random Walk, we propose the next parameter value $\theta\in\R^k$ for our model using a simple Normal distribution centered at the current value: $q(. \mid \theta) = \mathcal{N}(\theta, \epsilon^2I_k)$. This Normal distribution has covariance $\epsilon^2I_k$ where $\epsilon$ is the user-specified step size and $I_k$ ​is a $k \times k$ identity matrix (Metropolis et al., 1953). In cases where the target density, $\pi(\theta)$, is differentiable, we can use the proposal distribution proposed by MALA which is $q(.|\theta)=\mathcal{N}(\theta+\frac{\epsilon^2}{2}\nabla \log\pi(\theta),  \epsilon^2I_k)$ (Robert & Tweedie, 1996). In MALA, we use a Normal distribution whose mean is $\frac{\epsilon^2}{2}$​ away from the current value, $\theta$, in the direction of the first-order gradient of the target density, $\pi(\theta)$. In both Random Walk and MALA, we have the problem of finding the correct step size. A large step size may lead to an ineffective exploration of the space and low acceptance rate. A small step size can lead to a high acceptance rate but slow exploration of the space.
+## Algorithm
 
-In NMC, we follow the same intuition and try to overcome the problem of choosing the step size by using the second-order gradient information. NMC offers different proposers based on the support of the random variable $\theta$, Real-Space proposer, Half-Space proposer and Simplex space proposer. One can also choose to transform the random variable $\theta$ from Half-Space or simplex into Real-Space and use the Real-Space proposer algorithm.
+To understand the idea behind NMC, we revisit two other common MCMC algorithms, [Random Walk](framework_topics/inference/random_walk.md) and [Metropolis-adjusted Langevin algorithm (MALA)](https://en.wikipedia.org/wiki/Metropolis-adjusted_Langevin_algorithm). In Random Walk, we propose the next parameter value $\theta\in\R^k$ for our model using a simple Normal distribution centered at the current value: $q(. \mid \theta) = \mathcal{N}(\theta, \epsilon^2I_k)$. This Normal distribution has covariance $\epsilon^2I_k$ where $\epsilon$ is the user-specified step size and $I_k$ ​is a $k \times k$ identity matrix (Metropolis et al., 1953). In cases where the posterior density, $\pi(\theta)$, is differentiable, we can use the proposal distribution proposed by MALA which is $q(.|\theta)=\mathcal{N}(\theta+\frac{\epsilon^2}{2}\nabla \log\pi(\theta),  \epsilon^2I_k)$ (Robert & Tweedie, 1996). In MALA, we use a Normal distribution whose mean is $\frac{\epsilon^2}{2}$​ away from the current value, $\theta$, in the direction of the first-order gradient of the posterior density, $\pi(\theta)$. In both Random Walk and MALA, we have the problem of finding the correct step size. A large step size may lead to an ineffective exploration of the space and low acceptance rate. A small step size can lead to a high acceptance rate but slow exploration of the space.
+
+In NMC, we follow the same intuition. However, with NMC, we try to overcome the problem of choosing the step size by using second-order gradient information for $\theta$ when choosing the parameters for the proposal distribution. Like Random Walk and MALA, NMC is free to use a Normal distribution as the proposal distribution. However, in Bean Machine, we can offer alternative proposal distributions in the case where $\theta$ has a constrained support. We refer to these different types of proposal distributions as "proposers". Bean Machine offers several out of the box: Real-Space proposer, Half-Space proposer, and Simplex space proposer. One can also choose to transform the random variable $\theta$ from Half-Space or simplex into Real-Space and use the Real-Space proposer algorithm.
 
 ## NMC Proposers
+
+This section details the different proposers that NMC can use out-of-the-box, as well as the ways that second-order gradient information is incorporated into their parameter selections.
 
 ### Real-Space Proposer
 
 NMC uses a Multivariate Normal distribution to propose values in unconstrained space. Conceptually, NMC theorizes that the posterior is shaped like a Normal distribution. It uses first- and second-order gradient information from the current sample in order to build a proposal distribution whose shape matches that of this theoretical Normal distribution.
 
-Mathematically, the proposal distribution $q$ used as a function of the current sample location $\theta$ is: $q(. \mid \theta)=\mathcal{N}(\theta-\nabla^2 \log\pi(\theta)^{-1}\nabla \log\pi(\theta), -\nabla ^2\log\pi(\theta)^{-1})$.
+Mathematically, the proposal distribution $q$ used as a function of the current sample location $\theta$ is:
 
-This proposal distribution works well the closer that the posterior is to a Normal distribution. However, in cases when the posterior is quite dissimilar to a Normal distribution, this proposer may overfit to its Normal assumption. To alleviate this, we introduce a "learning rate" $\gamma$, whose purpose is to reduce the strength of that Normal assumption when choosing a mean for the proposal distribution. The proposal distribution with the learning rate is: $q(. \mid \theta)=\mathcal{N}(\theta-\gamma\nabla^2 \log\pi(\theta)^{-1}\nabla \log\pi(\theta), -\nabla ^2\log\pi(\theta)^{-1})$. $\gamma\in[0, 1]$. $\gamma$ is initially drawn from $\text{Beta}(a, b)$, and an appropriate distribution for $\gamma$ is jointly learned with the rest of the model during inference ("Riemann manifold MALA", Section 5 of Girolami & Calderhead, 2011).
+$$
+  q(. \mid \theta)=\mathcal{N}(\theta-\nabla^2 \log\pi(\theta)^{-1}\nabla \log\pi(\theta), -\nabla ^2\log\pi(\theta)^{-1})
+$$
+
+### Adaptive Real-Space Proposer
+
+The above proposal distribution works well the closer that the posterior is to a Normal distribution. However, in cases when the posterior is quite dissimilar to a Normal distribution, this proposer may overfit to its Normal assumption. To alleviate this, we introduce a "learning rate" $\gamma$, whose purpose is to reduce the strength of that Normal assumption when choosing a mean for the proposal distribution. The learning rate must be fit during the [adaptive phase](../programmable_inference/adaptive_inference.md) of inference.
+
+The proposal distribution with the learning rate is:
+
+$$
+  q(. \mid \theta)=\mathcal{N}(\theta-\gamma\nabla^2 \log\pi(\theta)^{-1}\nabla \log\pi(\theta), -\nabla ^2\log\pi(\theta)^{-1})
+$$
+
+$\gamma\in[0, 1]$ is initially drawn from $\text{Beta}(a, b)$, and an appropriate distribution for $\gamma$ is jointly learned with the rest of the model during inference ("Riemann manifold MALA", Section 5 of Girolami & Calderhead, 2011).
 
 This proposer works for:
 
 1. Random variables with unconstrained space support.
 2. Random variables with constrained space support that are transformed into unconstrained space.
 
-Subsequent sections will cover proposal distributions used in constrained spaces.
-
 ### Half-Space Proposer
 
 For random variables constrained with half-space support, NMC uses $\text{Gamma}$ as the base proposal distribution, and fits its parameters using local first- and second-order gradient information.
 
-Mathematically, it is: $q(. \mid \theta)=\text{Gamma}(1-\theta^2\nabla^2\log\pi(\theta), -\theta\nabla^2\log\pi(\theta)-\nabla \log\pi(\theta))$.
+Mathematically, it is:
+
+$$
+  q(. \mid \theta)=\text{Gamma}(1-\theta^2\nabla^2\log\pi(\theta), -\theta\nabla^2\log\pi(\theta)-\nabla \log\pi(\theta))
+$$
 
 ### Simplex Proposer
 
 For random variables constrained with simplex-valued support, NMC uses the $\text{Dirichlet}$ distribution as the base proposal distribution, and fits its parameters using local first- and second-order gradient information.
 
-For a $k$-dimensional simplex, the proposal distribution is $q(. \mid \theta)=\text{Dirichlet}(x;\alpha)$, where $\alpha \in \mathbb{R}^k$ and $\alpha_i = 1-\theta_i^2\left(\nabla_{ii}\log\pi(\theta)-\underset{i\neq j}{\max}\nabla_{ij}^2\log\pi(\theta)\right)$.
+For a $k$-dimensional simplex, the proposal distribution is:
 
-## NMC Algorithm
+$$
+  \begin{aligned}
+    q(. \mid \theta)&=\text{Dirichlet}(x;\alpha), \alpha \in \mathbb{R}^k\\
+    \alpha_i &= 1-\theta_i^2\left(\nabla_{ii}\log\pi(\theta)-\underset{i\neq j}{\max}\nabla_{ij}^2\log\pi(\theta)\right)
+  \end{aligned}
+$$
 
-Below is the NMC algorithm.
+## Details
 
-$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k\\$
+Below are the NMC algorithm details.
+
+$\textbf{Input:} \text{ posterior density } \pi \text{ defined on } \theta_1...\theta_k\\$
 $\textbf{Given: } a, b \text{ (default 1, 1)}\\$
 $\textbf{repeat}\\$
 $\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:\\$
@@ -63,9 +90,9 @@ $\quad\textbf{end for}\\$
 $\quad\text{Output sample }\theta\\$
 $\textbf{until }\text{Desired number of samples}$
 
-Below is NMC algorithm with adaptive stage added to compute the learning rate parameters $a$ and $b$ for the $\text{Beta}$ distribution.
+Below is NMC algorithm with adaptive phase added to compute the learning rate parameters $a$ and $b$ for the $\text{Beta}$ distribution.
 
-$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k\\$
+$\textbf{Input:} \text{ posterior density } \pi \text{ defined on } \theta_1...\theta_k\\$
 $\textbf{Given: } a, b \text{ (default 1, 1)}\\$
 $\textbf{repeat}\\$
 $\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:\\$
@@ -88,13 +115,15 @@ $\quad\textbf{end for}\\$
 $\quad\text{Output sample }\theta\\$
 $\textbf{until }\text{Desired number of samples}$
 
-## Using NMC
+## Usage
 
 Here is how we call NMC, where $a$ and $b$ are `real_space_alpha` and `real_space_beta`.
 
 ```py
-nmc = SingleSiteNewtonianMonteCarlo(real_space_alpha=1.0, real_space_beta=5.0)
-samples = nmc.infer(
+samples = bm.SingleSiteNewtonianMonteCarlo(
+  real_space_alpha=1.0,
+  real_space_beta=5.0,
+).infer(
   queries=...,
   observations=...,
   num_samples=...,
@@ -102,11 +131,13 @@ samples = nmc.infer(
 )
 ```
 
-To enable adaptive stage run, we can set `num_adaptive_samples` during inference.
+To enable the adaptive phase in order to use a learning rate, we can set `num_adaptive_samples` during inference.
 
 ```py
-nmc = SingleSiteNewtonianMonteCarlo(real_space_alpha=1.0, real_space_beta=5.0)
-samples = nmc.infer(
+samples = bm.SingleSiteNewtonianMonteCarlo(
+  real_space_alpha=1.0,
+  real_space_beta=5.0,
+).infer(
   queries=...,
   observations=...,
   num_samples=...,
@@ -118,8 +149,9 @@ samples = nmc.infer(
 For random variables with half-space and simplex support, `SingleSiteNewtonianMonteCarlo` by default uses the half-space and simplex proposer. If a modeler is interested in transforming the random variables to real space and using the unconstrained proposer instead, we can write it as follows:
 
 ```py
-nmc = SingleSiteNewtonianMonteCarlo(`transform_type=``TransformType``.``DEFAULT`)
-samples = nmc.infer(
+samples = bm.SingleSiteNewtonianMonteCarlo(
+  transform_type=TransformType.DEFAULT,
+).infer(
   queries=...,
   observations=...,
   num_samples=...,
@@ -127,6 +159,16 @@ samples = nmc.infer(
   num_adaptive_samples=num_warmup_samples,
 )
 ```
+
+The parameters to `infer` are described below:
+
+| Name | Usage
+| --- | ---
+| `queries` | A `List` of `@bm.random_variable` targets to fit posterior distributions for.
+| `observations` | The `Dict` of observations. Each key is a random variable, and its value is the observed value for that random variable.
+| `num_samples` | Number of samples to build up distributions for the values listed in `queries`.
+| `num_chains` | Number of separate inference runs to use. Multiple chains can be used by diagnostics to verify inference ran correctly.
+
 
 ---
 
