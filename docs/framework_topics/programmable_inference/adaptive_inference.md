@@ -1,11 +1,9 @@
 ---
 id: adaptive_inference
-title: 'Adaptation and Warmup'
-sidebar_label: 'Adaptation and Warmup'
+title: 'Adaptation'
+sidebar_label: 'Adaptation'
 slug: '/adaptive_inference'
 ---
-
-_TODO_: the text does not mention the term "warmup" even once. Do we really need it in the title? Also, perhaps "warmup" is a more familiar term to the community of users than "adaptation". Should we switch and use "warmup" even in the API?
 
 MCMC inference methods all make use of some proposal distribution which should, through some justification, produce samples which resemble samples from the target distribution. Formally, the proposal distribution is $q_{\theta}(x,y)$ for $x,y \in \omega$.
 
