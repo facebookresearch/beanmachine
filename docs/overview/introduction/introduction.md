@@ -56,11 +56,9 @@ One way to understand the semantics of the inference task is to think of a gener
 
 Our generative model specifies a _joint_ probability distribution over each of these worlds, based on the _prior_ distribution we've chosen for `reproduction_rate` and the _likelihood_ of `num_new_cases` given some `reproduction_rate`. Now, the inference task is to restrict attention to only those worlds in which `num_new_cases = 238154`. We're interested in learning the resulting _posterior_ distribution over `reproduction_rate` assignments within these worlds that are compatible with our observation.
 
-## Where Does Bean Machine Fit In?
-
-In the rest of this Overview we'll introduce you to Bean Machine's syntax, and show you how it can be used to learn about problems like this one. Traditionally, lots of painstaking, hand-crafted work has gone into modeling generative scenarios. Bean Machine aims to handle all of the manual work involved in fitting data to your model, leaving you to focus on the exciting part: the problem itself! Keep on reading to find out how.
-
 ## Target Audience
+
+In the rest of this Overview we'll introduce you to Bean Machine, and show you how it can be used to learn about problems like this one.
 
 While we hope that the guides you'll find here are relevant to anyone with an ML background, there are excellent resources available if this is your first exposure to Bayesian analysis! We highly recommend the excellent YouTube series _[Statistical Rethinking](https://www.youtube.com/playlist?list=PLDcUM9US4XdNM4Edgs7weiyIguLSToZRI)_, which walks through Bayesian thinking and probabilistic modeling. For a more hands-on experience, you can check out the free, online tutorial _[Bayesian Methods for Hackers](https://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/#contents)_.
 

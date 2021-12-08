@@ -3,6 +3,7 @@
 pushd %~dp0
 
 REM Command file for Sphinx documentation
+REM NOTE: On Windows we don't treat warnings as errors
 
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build

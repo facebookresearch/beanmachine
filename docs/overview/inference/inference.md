@@ -38,7 +38,7 @@ def num_cases(day):
 ## Prior and Posterior Distributions
 
 
-<!-- <img style="float: right;" src="../introduction/exponential_10.png" width='400px'> -->
+<!-- <img style="float: right;" src="../why_bean_machine/exponential_10.png" width='400px'> -->
 
 The $\text{Exponential}$ distribution used here represents our beliefs about the disease's reproduction rate before seeing any data, and is known as the _prior distribution_. We've visualized this distribution previously: it represents a reproduction rate that is around 10% on average, but could be as high as 50%, and is highly right-skewed (the right side has a long tail).
 

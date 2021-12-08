@@ -4,9 +4,6 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.single_site_uniform_mh import (
-    SingleSiteUniformMetropolisHastings,
-)
 
 
 class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
@@ -30,7 +27,7 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
 
     def test_single_site_uniform_mh_with_bernoulli(self):
         model = self.SampleBernoulliModel()
-        mh = SingleSiteUniformMetropolisHastings()
+        mh = bm.SingleSiteUniformMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
         sampler = mh.sampler([foo_key], {bar_key: torch.tensor(0.0)}, num_samples=5)
@@ -42,7 +39,7 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
 
     def test_single_site_uniform_mh_with_categorical(self):
         model = self.SampleCategoricalModel()
-        mh = SingleSiteUniformMetropolisHastings()
+        mh = bm.SingleSiteUniformMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
         sampler = mh.sampler([foo_key], {bar_key: torch.tensor(0.0)}, num_samples=5)

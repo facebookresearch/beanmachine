@@ -2,9 +2,6 @@
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
-)
 
 
 class SampleModel:
@@ -33,7 +30,7 @@ class ReproducibleModel:
 
 def test_single_site_ancestral_mh():
     model = SampleModel()
-    mh = SingleSiteAncestralMetropolisHastings()
+    mh = bm.SingleSiteAncestralMetropolisHastings()
     foo_key = model.foo()
     bar_key = model.bar()
     sampler = mh.sampler(
@@ -48,7 +45,7 @@ def test_single_site_ancestral_mh():
 
 def test_single_site_ancestral_mh_reproducible_results():
     model = ReproducibleModel()
-    mh = SingleSiteAncestralMetropolisHastings()
+    mh = bm.SingleSiteAncestralMetropolisHastings()
 
     queries = [model.mu()]
     observations = {}

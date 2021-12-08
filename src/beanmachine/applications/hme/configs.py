@@ -8,7 +8,8 @@ from typing import Union, Dict, List
 
 @dataclass
 class RegressionConfig:
-    """A configuration class for regression model specifications.
+    """
+    A configuration class for regression model specifications.
 
     :param distribution: distribution family of outcome variable conditional on mixed effects, defaults to 'normal'
     :param outcome: column name of outcome, defaults to 'y'
@@ -32,7 +33,8 @@ class RegressionConfig:
 
 @dataclass
 class MixtureConfig:
-    """A configuration class for mixture components.
+    """
+    A configuration class for mixture components.
 
     :param use_null_mixture: flag of whether the outcome is a mixture of null (0 effect) and alternative (non-zero effect), defaults to True
     :param use_bimodal_alternative: flag of whether to consider H1 model as a mixture of positive (H1+) and negative (H1-) effects, defaults to False
@@ -63,7 +65,8 @@ class MixtureConfig:
 
 @dataclass
 class PriorConfig:
-    """A configuration class for prior distributions.
+    """
+    A configuration class for prior distributions.
 
     :param distribution: prior distribution family, defaults to flat prior
     :param parameters: parameter values of prior distribution family
@@ -75,7 +78,8 @@ class PriorConfig:
 
 @dataclass
 class StructuredPriorConfig:
-    """A configuration class for structured prior distributions.
+    """
+    A configuration class for structured prior distributions.
 
     :param specification: type (e.g., AR, RW, etc) of the structured prior
     :param category_order: list of categorical covariate levels, specifying its ordinal structure
@@ -87,7 +91,8 @@ class StructuredPriorConfig:
 
 @dataclass
 class ModelConfig:
-    """A configuration class for integrated models. E.g.,
+    """
+    A configuration class for integrated models. E.g.::
 
         ModelConfig(
             mean_regression = RegressionConfig(
@@ -120,7 +125,8 @@ class ModelConfig:
 
 @dataclass
 class InferConfig:
-    """A configuration class for MCMC posterior inference.
+    """
+    A configuration class for MCMC posterior inference.
 
     :param n_iter: total number of posterior inference iterations
     :param n_warmup: number of posterior inference iterations to discard as burn-in or warm-up period

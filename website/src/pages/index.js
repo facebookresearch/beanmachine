@@ -82,8 +82,8 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/introduction')}>
-              Introduction
+              to={useBaseUrl('docs/why_bean_machine')}>
+              Why Bean Machine?
             </Link>
             <Link
               className={clsx(
@@ -91,7 +91,7 @@ function Home() {
                 styles.getStarted,
               )}
               to={useBaseUrl('docs/quickstart')}>
-              Get Started
+              Quick Start
             </Link>
             <Link
               className={clsx(

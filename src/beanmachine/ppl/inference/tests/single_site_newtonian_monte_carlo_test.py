@@ -4,16 +4,16 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
+from beanmachine.ppl.inference.proposer.nmc import (
     SingleSiteHalfSpaceNMCProposer,
     SingleSiteRealSpaceNMCProposer,
     SingleSiteSimplexSpaceNMCProposer,
 )
-from beanmachine.ppl.experimental.global_inference.single_site_nmc import (
-    SingleSiteNewtonianMonteCarlo,
-)
 from beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
+)
+from beanmachine.ppl.legacy.inference.single_site_newtonian_monte_carlo import (
+    SingleSiteNewtonianMonteCarlo as LegacySingleSiteNewtonianMonteCarlo,
 )
 from beanmachine.ppl.legacy.world import TransformType
 from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
@@ -107,7 +107,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
     def test_single_site_newtonian_monte_carlo_student_t(self):
         model = self.SampleStudentTModel()
         samples = (
-            SingleSiteNewtonianMonteCarlo()
+            bm.SingleSiteNewtonianMonteCarlo()
             .infer(
                 queries=[model.x()],
                 observations={},
@@ -121,7 +121,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_newtonian_monte_carlo_default_transform(self):
         model = self.SampleTransformModel()
-        nw = bm.SingleSiteNewtonianMonteCarlo(transform_type=TransformType.DEFAULT)
+        nw = LegacySingleSiteNewtonianMonteCarlo(transform_type=TransformType.DEFAULT)
 
         real_key = model.realspace()
         half_key = model.halfspace()
@@ -193,7 +193,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_newtonian_monte_carlo_no_transform(self):
         model = self.SampleTransformModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
 
         real_key = model.realspace()
         half_key = model.halfspace()
@@ -259,7 +259,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_newtonian_monte_carlo_transform_shape(self):
         model = self.SampleShapeModel()
-        nw = bm.SingleSiteNewtonianMonteCarlo(transform_type=TransformType.DEFAULT)
+        nw = LegacySingleSiteNewtonianMonteCarlo(transform_type=TransformType.DEFAULT)
 
         real_key = model.realspace()
         half_key = model.halfspace()
@@ -300,7 +300,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_newtonian_monte_carlo_no_transform_independent_shape(self):
         model = self.SampleIndependentShapeModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
 
         real_key = model.realspace()
         half_key = model.halfspace()
