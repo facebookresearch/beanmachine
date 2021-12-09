@@ -53,7 +53,7 @@ This tutorial demonstrates the application of hierarchical models with data from
 
 ### Modeling NBA Foul Calls Using Item Response Theory
 
-[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/NBA_IRT.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/NBA_IRT.ipynb)
+[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Item_Response_Theory.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Item_Response_Theory.ipynb)
 
 This tutorial demonstrates how to use Bean Machine to predict when NBA players will receive a foul call from a referee. This model and exposition is based on [Austin Rochford's 2018 analysis](https://austinrochford.com/posts/2018-02-04-nba-irt-2.html) of the [2015/2016 NBA season games](https://www.basketball-reference.com/leagues/NBA_2016_games.html) data. It will introduce you to Item Response Theory, and demonstrate its advantages over standard regression models. It will also iterate on that model several times, demonstrating how to evolve your model to improve predictive performance.
 
@@ -83,6 +83,6 @@ This tutorial uses Bean Machine to infer which latent clusters observed points a
 
 ### Neal's Funnel
 
-[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Tutorial_Sampling_Neal_funnel_in_Bean_Machine.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hidden_Markov_model.ipynb)
+[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Neals_funnel.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hidden_Markov_model.ipynb)
 
 This tutorial demonstrates modeling and running inference on the Neal's funnel model in Bean Machine. Neal's funnel is a synthetic model in which the posterior distribution is known beforehand, and Bean Machine's inference engine is tasked with automatically recovering that posterior distribution. Neal's funnel has proven difficult-to-handle for classical inference methods due to its unusual topology. This tutorial demonstrates how to overcome this by using second-order gradient methods in Bean Machine. It also demonstrates how to implement models with factors in Bean Machine through custom distributions.
