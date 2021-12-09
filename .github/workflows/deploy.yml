@@ -3,6 +3,16 @@ name: Deployment
 on:
   # this workflow can only be manually triggered for now.
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Where to deploy the artifacts? Only build, deploy to test PyPI, deploy to PyPI.'
+        required: true
+        type: choice
+        default: 'test'
+        options:
+          - build
+          - test
+          - prod
 
 env:
   PYTHONUNBUFFERED: 1
@@ -125,8 +135,17 @@ jobs:
         mv beanmachine-*/* dist/
 
     - name: Publish to Test PyPI
+      if: github.event.inputs.deploy == 'test'
       uses: pypa/gh-action-pypi-publish@v1.4.2
       with:
         password: ${{ secrets.TEST_PYPI_PASSWORD }}
         repository_url: https://test.pypi.org/legacy/
+        skip_existing: true
+        verbose: true
+
+    - name: Publish to PyPI
+      if: github.event.inputs.deploy == 'prod' && startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@v1.4.2
+      with:
+        password: ${{ secrets.PYPI_PASSWORD }}
         verbose: true
