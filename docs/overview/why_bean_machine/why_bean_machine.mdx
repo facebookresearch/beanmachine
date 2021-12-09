@@ -26,14 +26,14 @@ Generative modeling with Bean Machine offers many benefits:
 A generative probabilistic model consists of **random variables** and **conditional probability distributions** (CPDs) that encode knowledge about some domain. For example, consider a simplified model for the spread of infectious diseases, where we wish to express the idea that the average number of new cases on a given day is proportional to the current number of infections, with the proportionality constant being the daily reproduction rate of the disease. In order to express this mathematically, it is common practice to rely on _elementary probability distributions_ (EPDs) with well known statistics, such as the _Poisson_ distribution here:
 
 ```
-num_new_cases ~ Poisson(reproduction_rate * num_infected)
+num_new ~ Poisson(reproduction_rate * num_init)
 ```
 
 <img src={useBaseUrl("/img/prior_poisson_intro.png")} />
 
 Let's fix for now the value of `num_infected`, then the above statement gives the CPD of the random variable `num_new_cases`, conditioned on the value of its **parent** random variable `reproduction_rate`. Since the parameter of the Poisson distribution is also its mean, this CPD is consistent with the knowledge that we were trying to express.
 
-A well-formed generative model must specify the EPD or CPD of each random variable, and the **directed graph** induced by all the parent-child relationships among random variables must be **acyclic**. To complete our model, we must therefore also specify a distribution for the random variable `reproduction_rate`. In the case of new diseases, where we don't know anything yet about the actual reproduction rate, this poses a seemingly intractable problem. In the **Bayesian approach** to this problem, we specify the probability distributions of random variables without parents as our **_a priori_** beliefs (i.e., before seeing any data) about them. So, in this example, if infectious disease experts believe that a new disease would have a daily reproduction rate which is strictly positive and could be expected to be drawn from a distribution with a mean of 0.1, then we could express this belief with the help of another EPD, the *Exponential* distribution, as follows:
+A well-formed generative model must specify the EPD or CPD of each random variable, and the **directed graph** induced by all the parent-child relationships among random variables must be **acyclic**. To complete our model, we must therefore also specify a distribution for the random variable `reproduction_rate`. In the case of new diseases, where we don't know anything yet about the actual reproduction rate, this poses a seemingly intractable problem. In the **Bayesian approach** to this problem, we specify the probability distributions of random variables without parents as our **_a priori_** beliefs (i.e., before seeing any data) about them. So, in this example, if infectious disease experts believe that a new disease would have a daily reproduction rate which is strictly positive and could be expected to be drawn from a distribution with a mean of $0.1$, then we could express this belief with the help of another EPD, the *Exponential* distribution, as follows:
 
 ```
 reproduction_rate ~ Exponential(1 / 0.1)
@@ -45,17 +45,17 @@ reproduction_rate ~ Exponential(1 / 0.1)
 
 Given a generative model, the natural next step is to use it to perform inference. Inference is the process of combining a **model** with **data** to obtain **insights**, in the form of **_a posteriori_** beliefs over values of interest. Our documentation refers to the data as _"observations"_, to the values of interest as _"queried random variables"_, and to the insights as _"posterior distributions"_.
 
-In our example above, let's say we observe that `num_infected = 1087980` and that `num_new_cases = 238154`. Now, given this observation, we might want to query the posterior distribution for `reproduction_rate`. Mathematically speaking, we seek the following CPD:
+In our example above, let's say we observe that `num_init = 1087980` and that `num_new = 238154`. Now, given this observation, we might want to query the posterior distribution for `reproduction_rate`. Mathematically speaking, we seek the following CPD:
 
-$$\mathbb{P}(\texttt{reproduction\_rate} \,\mid\, \texttt{num\_infected}=1087980,\; \texttt{num\_new\_cases} = 238154)$$
+$$\mathbb{P}(\texttt{reproduction\_rate} \,\mid\, \texttt{num\_init}=1087980,\; \texttt{num\_new} = 238154)$$
 
 One way to understand the semantics of the inference task is to think of a generative probabilistic model as specifying a distribution over possible **worlds**. A world can be thought of as an assignment of specific admissible values to all random variables in the model. So, for example, some possible worlds in our case are:
 
-- `reproduction_rate = 0.01, num_new_cases = 9000`,
-- `reproduction_rate = 0.1, num_new_cases = 90000`, or
-- `reproduction_rate = 0.9, num_new_cases = 800000`.
+- `reproduction_rate = 0.01, num_new = 9000`,
+- `reproduction_rate = 0.1, num_new = 90000`, or
+- `reproduction_rate = 0.9, num_new = 800000`.
 
-Our generative model specifies a _joint_ probability distribution over each of these worlds, based on the _prior_ distribution we've chosen for `reproduction_rate` and the _likelihood_ of `num_new_cases` given some `reproduction_rate`. Now, the inference task is to restrict attention to only those worlds in which `num_new_cases = 238154`. We're interested in learning the resulting _posterior_ distribution over `reproduction_rate` assignments within these worlds that are compatible with our observation.
+Our generative model specifies a _joint_ probability distribution over each of these worlds, based on the _prior_ distribution we've chosen for `reproduction_rate` and the _likelihood_ of `num_new` given some `reproduction_rate`. Now, the inference task is to restrict attention to only those worlds in which `num_new = 238154`. We're interested in learning the resulting _posterior_ distribution over `reproduction_rate` assignments within these worlds that are compatible with our observation.
 
 ### Where Does Bean Machine Fit In?
 

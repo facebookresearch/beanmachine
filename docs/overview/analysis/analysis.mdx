@@ -17,9 +17,10 @@ In the [Inference](../inference/inference.md) section, we obtained results on th
 
 ```py
 samples = bm.CompositionalInference().infer(
-    queries=[ reproduction_rate() ],
+    queries=[reproduction_rate()],
     observations=observations,
-    num_samples=10000,
+    num_samples=7000,
+    num_adaptive_samples=3000,
     num_chains=4,
 )
 samples
@@ -33,7 +34,7 @@ samples
 We ran inference to compute the posterior for `reproduction_rate()`, since that was listed in `queries`. We can see that the posterior for `reproduction_rate()` (and only for `reproduction_rate()`) is available in `samples`:
 
 ```py
-samples.get_rv_names()
+list(samples.keys())
 ```
 ```
 [RVIdentifier(function=<function reproduction_rate>, arguments=())]
@@ -51,12 +52,12 @@ tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
         [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])
 ```
 
-The result has shape $4 \times 10000$, representing the 10,000 samples that we drew in each of the four chains of inference from the posterior distribution.
+The result has shape $4 \times 7000$, representing the $7000$ samples that we drew in each of the four chains of inference from the posterior distribution.
 
 `MonteCarloSamples` supports convenient dictionary indexing syntax to obtain the same information:
 
 ```py
-samples[ reproduction_rate() ]
+samples[reproduction_rate()]
 ```
 ```
 tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
@@ -82,7 +83,7 @@ chain
 This returns a new `MonteCarloSamples` object which is limited to the specified chain. Tensors no longer have a dimension representing the chain:
 
 ```py
-chain[ reproduction_rate() ]
+chain[reproduction_rate()]
 ```
 ```
 tensor([1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193])
@@ -93,12 +94,7 @@ tensor([1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193])
 Visualizing the results of inference can be a great help in understanding them. Since you now know how to access posterior samples, you're free to use whatever visualization tools you prefer.
 
 ```py
-reproduction_rate_samples = samples[ reproduction_rate() ][0][100:]
-plt.hist(reproduction_rate_samples, label="reproduction_rate_samples")
-plt.axvline(reproduction_rate_samples.mean(), label=f"Posterior mean = {reproduction_rate_samples.mean() :.2f}", color="K")
-plt.xlabel("reproduction_rate")
-plt.ylabel("Probability density")
-plt.legend();
+reproduction_rate_samples = samples[reproduction_rate()][0][100:]
 ```
 
 <img src={useBaseUrl("/img/posterior_rate_dynamic.png")} />
@@ -111,22 +107,26 @@ After running inference it is useful to run diagnostic tools to assess reliabili
 
 Bean Machine provides important summary statistics for individual, numerically-valued random variables. Let's take a look at the code to generate them, and then we'll break down the statistics themselves.
 
-Bean Machine's `Diagnostics` object makes it easy to generate a Pandas `DataFrame` presenting these statistics for all queried random variables:
+Bean Machine's interface to the `Arviz` libray makes it easy to generate a Pandas `DataFrame` presenting these statistics for all queried random variables:
 
 ```py
-bm.Diagnostics(samples).summary()
+import arviz as az
+
+az.rcParams["stats.hdi_prob"] = 0.89
+az.summary(samples.to_xarray(), round_to=5)
 ```
 
-| | avg | std | 2.5% | 50% | 97.5% | r_hat | n_eff
-| -- | -- | -- | -- | -- | -- | -- | --
-| `reproduction_rate()[]` | 0.218 | 0.004 | 0.216 | 0.218 | 0.219 | 1.003 | 631.315
+|| **mean** | **sd** | **hdi_5.5%** | **hdi_94.5%** | **mcse_mean** | **mcse_sd** | **ess_bulk** | **ess_tail** | **r_hat**
+| -- | -- | -- | -- | -- | -- | -- | -- | -- | --
+| `reproduction_rate()` | 0.21965 | 0.0003 | 0.21916 | 0.22012 | 0.0 | 0.0 | 18556.76464 | 17903.45852 | 1.00017
 
 The statistics presented are:
 
   1. **Mean and standard deviation.**
-  2. **95% confidence interval.**
-  3. **Convergence diagnostic [$\hat{R}$](https://projecteuclid.org/euclid.ss/1177011136).**
+  2. **97% confidence interval.**
+  3. **Markov chain standard error.**
   4. **Effective sample size [$N_\text{eff}$](https://www.mcmchandbook.net/HandbookChapter1.pdf).**
+  5. **Convergence diagnostic [$\hat{R}$](https://projecteuclid.org/euclid.ss/1177011136).**
 
 These statistics provide different insights into the quality of the results of inference. For instance, we can use them in combination with synthetically generated data for which we know ground truth values for parameters and then check to make sure that these values fall within the 95% confidence intervals. Of course, in doing so it is important to keep in mind that the prior distributions in our model (and not just the data) will always have an influence on the posterior distribution. Similarly, we can use the size of the 95% confidence interval to gain insights into the model: if it is large, this could indicate that either we have too few observations or that the prior is too weak.
 
@@ -141,10 +141,21 @@ In the case of our example model, we have a healthy $\hat{R}$ value close to 1.0
 Bean Machine can also plot diagnostic information to assess health of the inference run. Let's take a look:
 
 ```py
-bm.Diagnostics(samples).plot(display=True)
+az.plot_trace(
+    {'Reproduction rate': samples[reproduction_rate()].numpy()[:, 100:]},
+    compact=False,
+    show=False,
+)[0][1]
 ```
 
 <img src={useBaseUrl("/img/mcmc_trace.png")} />
+
+```py
+az.plot_autocorr(
+    {'Reproduction rate': samples[reproduction_rate()].numpy()[:, 100:]},
+    show=False,
+)
+```
 
 <img src={useBaseUrl("/img/mcmc_autocorr.png")} />
 

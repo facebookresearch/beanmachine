@@ -8,22 +8,23 @@ sidebar_label: 'Modeling'
 
 Bean Machine allows you to express models declaratively, in a way that closely follows the notation that statisticians use in their everyday work. Consider our example from the [Quick Start](../quick_start/quick_start.mdx). We could express this mathematically as:
 
-* $n_\text{infected}$: known constant
+* $n_\text{init}$: known constant
 * $\texttt{reproduction\_rate} \sim \text{Exponential}(10.0)$
-* $n_\text{new} \sim \text{Poisson}(\texttt{reproduction\_rate} \cdot n_\text{infected})$
+* $n_\text{new} \sim \text{Poisson}(\texttt{reproduction\_rate} \cdot n_\text{init})$
 
 Let's take a look at the model again:
 
 ```py
-num_infected = 1087980
+reproduction_rate_rate = 10.0
+num_init = 1087980
 
 @bm.random_variable
 def reproduction_rate():
-    return dist.Exponential(rate=10.0)
+    return dist.Exponential(rate=reproduction_rate_rate)
 
 @bm.random_variable
-def num_new_cases():
-    return dist.Poisson(reproduction_rate() *  num_infected)
+def num_new(num_current):
+    return dist.Poisson(reproduction_rate() *  num_current)
 ```
 
 You can see how the Python code maps almost one-to-one to the mathematical definition. When building models in Bean Machine's declarative syntax, we encourage you to first think of the model mathematically, and then to evolve the code to fit to that definition.
@@ -53,10 +54,10 @@ It is valid to call random variable functions from ordinary Python functions. In
 Under the hood, Bean Machine transforms random variable functions so that they act like function references. Here's an example, which we just call from the Python toplevel scope:
 
 ```py
-num_new_cases()
+num_new()
 ```
 ```
-RVIdentifier(function=<function num_new_cases at 0x7ff00372d290>, arguments=())
+RVIdentifier(function=<function num_new at 0x7ff00372d290>, arguments=())
 ```
 
 As you can see, the call to this random variable function didn't return a distribution, or a sample from a distribution. Rather, it resulted in an `RVIdentifier` object, which represents a reference to a random variable function. You as the user can't do much with this object on its own, but Bean Machine will use this reference to access and re-evaluate different parts of your model.
@@ -67,23 +68,17 @@ As discussed in [Calling a Random Variable from Another Random Variable Function
 
 Let's dive into this by extending our example model. In the previous example, we were modeling the number of new cases on a given day as a function of the number of infected individuals on the previous day. However, what if we wanted to  model the spread of disease over multiple days? This might correspond to the following mathematical model:
 
-* $n_i \sim \text{Poisson}((1 + \texttt{reproduction\_rate}) \cdot n_{i-1})$, where $n_i$ represents the number of cases on day $i$.
+* $n_i-n_{i-1} \sim \text{Poisson}(\texttt{reproduction\_rate} \cdot n_{i-1})$,
+* where $n_i$ represents the number of cases on day $i$, and $n_0=n_\text{init}$.
 
 It is common for statistical models to group random variables together into a _family_ of random variables as you see here.
 
 In Bean Machine, we generalize the ability to index into a family of random variables with arbitrary Python objects. We can extend our previous example to add an index onto our random variable `num_new_cases()` with an object of type `datetime.date`:
 
 ```py
-import datetime
+from datetime import date, timedelta
 
-@bm.random_variable
-def num_cases(day):
-    # Base case for recursion
-    if day == datetime.date(2021, 1, 1):
-        return dist.Poisson(num_infected)
-    return dist.Poisson(
-        (1 + reproduction_rate()) *  num_cases(day - datetime.timedelta(days=1))
-    )
+time = [date(2021, 1, 1), date(2021, 1, 2), date(2021, 1, 3)]
 ```
 
 ## Transforming Random Variables
@@ -93,19 +88,22 @@ There's one last important construct in Bean Machine's modeling toolkit: `@bm.fu
 In the above example, you'll notice that we added 1 to the reproduction rate, to turn it into a coefficient for the previous day's number of cases. It would be nice to capture this as its own function. Here's an **incorrect** attempt (don't do this!):
 
 ```py
-# COUNTER-EXAMPLE
-
-def infection_rate():
-    return 1 + reproduction_rate()
-
 @bm.random_variable
-def num_cases(day):
-    # Base case for recursion
-    if day == datetime.date(2021, 1, 1):
-        return dist.Poisson(num_infected)
-    return dist.Poisson(
-        infection_rate() *  num_cases(day - datetime.timedelta(days=1))
-    )
+def num_new(today):
+    yesterday = today - timedelta(days=1)
+    return dist.Poisson(reproduction_rate() * num_total(yesterday))
+```
+
+Note how this allows us to express a more complex dependency structure - Where previously we relied on the availability of an argument `num_current` to describe the infections at some ambient "current time", now we can invoke the more precise notion of the case count "the day before `today`". This knowledge is in turn represented in another part of our probabilistic generative model, namely in the function
+
+```py
+# WARNING: INCORRECT COUNTER-EXAMPLE
+def num_total(today):
+    if today <= time[0]:
+        return num_init
+    else:
+        yesterday = today - timedelta(days=1)
+        return num_new(today) + num_total(yesterday)
 ```
 
 Why is this incorrect? You'll notice that `num_cases()` now calls into `infection_rate()`, which itself depends on the random variable function `reproduction_rate()`. We _can't_ make `infection_rate()` a random variable function, as it does _not_ return a [PyTorch distribution](https://pytorch.org/docs/stable/distributions.html?highlight=distribution#module-torch.distributions). However, since there is no `@bm.random_variable` decorator, Bean Machine inference _won't know_ that it should treat `reproduction_rate()` inside the function scope as a random variable function. Indeed, like we discussed in [Calling a Random Variable from an Ordinary Function](#calling_outside), `reproduction_rate()` in this context would merely return an `RVIdentifier` -- definitely not what we want.
@@ -116,17 +114,17 @@ Here's the correct way to write this model:
 
 ```py
 @bm.functional
-def infection_rate():
-    return 1 + reproduction_rate()
+def num_total(today):
+    if today <= time[0]:
+        return num_init
+    else:
+        yesterday = today - timedelta(days=1)
+        return num_new(today) + num_total(yesterday)
 
 @bm.random_variable
-def num_cases(day):
-    # Base case for recursion
-    if day == datetime.date(2021, 1, 1):
-        return dist.Poisson(num_infected)
-    return dist.Poisson(
-        infection_rate() *  num_cases(day - datetime.timedelta(days=1))
-    )
+def num_new(today):
+    yesterday = today - timedelta(days=1)
+    return dist.Poisson(reproduction_rate() * num_total(yesterday))
 ```
 
 One last note: while a `@bm.functional` can be queried (viewed) during inference, it can't be directly bound (softly constrained) to observations like a `@bm.random_variable`. This is because it is a deterministic function and thus inappropriate as a likelihood.

@@ -12,26 +12,28 @@ A little note on vocabulary: You've already seen in [Modeling](../modeling/model
 
 Let's make this concrete by returning to our disease modeling example. As a refresher, here's the full model:
 
-
 ```py
+reproduction_rate_rate = 10.0
+num_init = 1087980
+time = [date(2021, 1, 1), date(2021, 1, 2), date(2021, 1, 3)]
+
 @bm.random_variable
 def reproduction_rate():
-    return dist.Exponential(rate=10.0)
+    return dist.Exponential(rate=reproduction_rate_rate)
 
 @bm.functional
-def infection_rate():
-    return 1 + reproduction_rate()
+def num_total(today):
+    if today <= time[0]:
+        return num_init
+    else:
+        yesterday = today - timedelta(days=1)
+        return num_new(today) + num_total(yesterday)
 
 @bm.random_variable
-def num_cases(day):
-    # Base case for recursion
-    if day == date(2021, 1, 1):
-        return dist.Poisson(num_infected)
-    return dist.Poisson(
-        infection_rate() *  num_cases(day - datetime.timedelta(days=1))
-    )
+def num_new(today):
+    yesterday = today - timedelta(days=1)
+    return dist.Poisson(reproduction_rate() * num_total(yesterday))
 ```
-
 
 ## Prior and Posterior Distributions
 
@@ -48,10 +50,8 @@ Throughout this guide, we'll see how observing many days worth of case data will
 Inference requires us to bind data to the model in order to learn posterior distributions for your queried random variables. For this example model, we can bind a few days of data with a simple dictionary:
 
 ```py
-observations = {
-    num_cases(datetime.date(2021, 1, 2)): tensor(1381734.),
-    num_cases(datetime.date(2021, 1, 3)): tensor(1630446.),
-}
+case_history = tensor([num_init, 1381734., 1630446.])
+observations = {num_new(t): d for t, d in zip(time[1:], case_history.diff())}
 ```
 
 Recall that calls to random variable functions from ordinary functions (including the Python toplevel) return `RVIdentifier` objects. So, the keys of this dictionary are `RVIdentifiers`, and the values are values of observed data corresponding to each key that you provide. Note that the value for a particular observation must be of the same type as the [support for the distribution that it's bound to](https://pytorch.org/docs/stable/distributions.html#torch.distributions.distribution.Distribution.support). In this case, the [support for the $\text{Poisson}$ distribution](https://pytorch.org/docs/stable/distributions.html#torch.distributions.poisson.Poisson.support) is scalar, so we have bound scalar tensors here.
@@ -64,9 +64,10 @@ We're finally ready to run inference! Let's take a look first, and then we'll ex
 
 ```py
 samples = bm.CompositionalInference().infer(
-    queries=[ reproduction_rate() ],
+    queries=[reproduction_rate()],
     observations=observations,
-    num_samples=10000,
+    num_samples=7000,
+    num_adaptive_samples=3000,
     num_chains=4,
 )
 ```
