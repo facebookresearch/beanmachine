@@ -6,22 +6,6 @@ sidebar_label: 'Analysis'
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-<!-- ;;;
-export const BokehFigure = ({ plotData }) => {
-  return (
-    <div id={plotData["target_id"]}>
-      <BrowserOnly>
-        {() => {{window.Bokeh.embed.embed_item(plotData)}}}
-      </BrowserOnly>
-    </div>
-  )
-}
-
-import plotDataPosteriorRate from "./posterior_rate_dynamic.json";
-import plotDataMCMCTrace from "./mcmc_trace.json";
-import plotDataMCMCAutocorrelation from "./mcmc_autocorr.json";
-;;; -->
-
 <!-- @import "../../header.md" -->
 
 Inference results are useful not only for learning from your posterior distributions, but for verifying that inference ran correctly. We'll cover common techniques for analyzing results in this section.
@@ -121,8 +105,6 @@ plt.legend();
 
 ![](/img/posterior_reproduction_rate.png)
 
-<!-- ;;; <BokehFigure plotData={plotDataPosteriorRate} /> -->
-
 ## <a name="diagnostics"></a>Diagnostics
 
 After running inference it is useful to run diagnostic tools to assess reliability of the inference run. Bean Machine provides two standard types of such diagnostic tools, discussed below.
@@ -166,13 +148,9 @@ bm.Diagnostics(samples).plot(display=True)
 
 ![](/img/trace_reproduction_rate.png)
 
-<!-- ;;; <BokehFigure plotData={plotDataMCMCTrace} /> -->
-
 ![](/img/autocorrelation_reproduction_rate.png)
 
 <BokehFigure plotData={plotDataMCMCAutocorrelation} />
-
-<!-- ;;; <BokehFigure plotData={plotDataMCMCAutocorrelation} /> -->
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace plots and autocorrelation plots.
 
