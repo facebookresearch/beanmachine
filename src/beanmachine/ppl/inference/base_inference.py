@@ -23,12 +23,19 @@ from tqdm.auto import tqdm
 
 
 class BaseInference(metaclass=ABCMeta):
+    """
+    Abstract class all inference methods should inherit from.
+    """
+
     @staticmethod
     def _initialize_world(
         queries: List[RVIdentifier],
         observations: RVDict,
         initialize_fn: InitializeFn = init_to_uniform,
     ) -> World:
+        """
+        Initializes a world with all of the random variables (queries and observations).
+        """
         world = World(observations, initialize_fn)
         # recursively add parent nodes to the graph
         for node in queries:
@@ -44,6 +51,10 @@ class BaseInference(metaclass=ABCMeta):
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:
+        """
+        Returns the proposer(s) corresponding to every non-observed variable
+        in target_rvs.  Should be implemented by the specific inference algorithm.
+        """
         raise NotImplementedError
 
     def infer(
@@ -56,6 +67,18 @@ class BaseInference(metaclass=ABCMeta):
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_fn: InitializeFn = init_to_uniform,
     ) -> MonteCarloSamples:
+        """
+        Performs inference and returns a ``MonteCarloSamples`` object with samples from the posterior.
+
+        Args:
+            queries: List of queries
+            observations: Observations as an RVDict keyed by RVIdentifier
+            num_samples: Number of samples.
+            num_chains: Number of chains to run, defaults to 4.
+            num_adaptive_samples:  Number of adaptive samples, defaults to 0.
+            verbose: Verbose level for logging.
+            initialize_fn: Callable that returns a tensor. Initializes to uniform as default.
+        """
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )
@@ -97,9 +120,18 @@ class BaseInference(metaclass=ABCMeta):
         num_adaptive_samples: int = 0,
         initialize_fn: InitializeFn = init_to_uniform,
     ) -> Sampler:
-        """Returns a generator that returns a new world (represents a new state of the
+        """
+        Returns a generator that returns a new world (represents a new state of the
         graph) each time it is iterated. If num_samples is not provided, this method
-        will returns an infinite generator."""
+        will return an infinite generator.
+
+        Args:
+            queries: List of queries
+            observations: Observations as an RVDict keyed by RVIdentifier
+            num_samples: Number of samples, defaults to None for an infinite sampler.
+            num_adaptive_samples:  Number of adaptive samples, defaults to 0.
+            initialize_fn: Callable that returns a tensor. Initializes to uniform as default.
+        """
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )

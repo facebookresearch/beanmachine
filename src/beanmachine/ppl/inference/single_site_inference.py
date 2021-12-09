@@ -21,6 +21,13 @@ from beanmachine.ppl.world import World
 
 
 class SingleSiteInference(BaseInference):
+    """
+    Base class for single site inference algorithms.
+
+    Args:
+        proposer_class: Class of proposer to initialize with
+    """
+
     def __init__(self, proposer_class: Type[BaseSingleSiteMHProposer], **kwargs):
         self.proposer_class = proposer_class
         self.inference_args = kwargs
@@ -43,6 +50,12 @@ class SingleSiteInference(BaseInference):
 
 
 class JointSingleSiteInference(SingleSiteInference):
+    """
+    Base class for single site joint inference algorithms.  The primary difference between
+    the Joint version is that proposers are shuffled at each step and a single `SequentialProposer`
+    containing all the individual proposers are returned.
+    """
+
     def get_proposers(
         self,
         world: World,
