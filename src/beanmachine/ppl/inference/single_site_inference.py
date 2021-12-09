@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import random
 from typing import List, Set, Type
 
 from beanmachine.ppl.inference.base_inference import BaseInference
@@ -12,9 +11,6 @@ from beanmachine.ppl.inference.proposer.base_proposer import (
 )
 from beanmachine.ppl.inference.proposer.base_single_site_proposer import (
     BaseSingleSiteMHProposer,
-)
-from beanmachine.ppl.inference.proposer.sequential_proposer import (
-    SequentialProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
@@ -40,15 +36,3 @@ class SingleSiteInference(BaseInference):
                 )
             proposers.append(self._proposers[node])
         return proposers
-
-
-class JointSingleSiteInference(SingleSiteInference):
-    def get_proposers(
-        self,
-        world: World,
-        target_rvs: Set[RVIdentifier],
-        num_adaptive_sample: int,
-    ) -> List[BaseProposer]:
-        proposers = super().get_proposers(world, target_rvs, num_adaptive_sample)
-        random.shuffle(proposers)
-        return [SequentialProposer(proposers)]
