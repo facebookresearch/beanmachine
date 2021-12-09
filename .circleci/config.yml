@@ -45,20 +45,6 @@ commands:
           no_output_timeout: 1h
           command: pytest -vv
 
-  nightly_tests:
-    description: "Run nightly tests as an ordinary user"
-    steps:
-      - run:
-          name: "Install test dependencies"
-          command: pip install pytest
-      - run:
-          name: "Run nightly tests and report overall runtimes"
-          no_output_timeout: 1h
-          command: |
-            export PYTHONUNBUFFERED=1
-            pytest -o python_files="*_nightly.py" --durations=0
-
-
 jobs:
 
   user_install_test_py37_pip:
@@ -71,18 +57,6 @@ jobs:
       - pip_install_pytest_patch
       - pip_list
       - user_unit_tests
-
-  nightly_test_py37_pip:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - apt_get_install_deps
-      - checkout
-      - user_install_beanmachine
-      - pip_install_pytest_patch
-      - pip_list
-      - nightly_tests
-
 
 aliases:
 
@@ -99,14 +73,3 @@ workflows:
     jobs:
       - user_install_test_py37_pip:
           filters: *exclude_ghpages_fbconfig
-
-  nightly_test:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - nightly_test_py37_pip

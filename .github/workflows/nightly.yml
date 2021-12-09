@@ -1,0 +1,49 @@
+name: Nightly Tests
+
+on:
+  schedule:
+    - cron:  "0 0 * * *"  # this workflow will trigger on UTC 00:00 AM every day
+
+env:
+  PYTHONUNBUFFERED: 1
+  PYTEST_ADDOPTS: "--color=yes"
+
+jobs:
+  nightly-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+    defaults:
+      run:
+        # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
+        shell: bash -l {0}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Miniconda with Python ${{ matrix.python-version }}
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        miniconda-version: "latest"
+        python-version: ${{ matrix.python-version }}
+        activate-environment: test_env
+
+    - name: Install dependencies
+      run: |
+        conda install -y eigen boost
+        python -m pip install --upgrade pip
+
+    - name: Install Bean Machine
+      run: pip install -v .
+
+    - name: Install pytest 7.0 (with a importlib patch in pytest-dev/pytest#7870)
+      run: pip install git+https://github.com/pytest-dev/pytest.git@7.0.0.dev0
+
+    - name: Print out package info to help with debug
+      run: pip list
+
+    - name: Run nightly tests
+      run: pytest -o python_files="*_nightly.py" --durations=0

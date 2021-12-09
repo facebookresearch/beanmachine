@@ -13,7 +13,8 @@ from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
 from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaModel
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
-from beanmachine.ppl.legacy.inference.abstract_mh_infer import AbstractMHInference
+from beanmachine.ppl.inference import utils
+from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.testlib.hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,
@@ -162,7 +163,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
     def _compare_run(
         self,
         moments: Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]],
-        mh: AbstractMHInference,
+        mh: BaseInference,
         num_chains: int,
         num_samples: int,
         random_seed: Optional[int],
@@ -179,8 +180,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
         expected_mean, expected_std, queries, observations = moments
 
-        if random_seed is not None:
-            torch.manual_seed(123)
+        if random_seed is None:
+            random_seed = 123
+        utils.seed(random_seed)
 
         predictions = mh.infer(
             queries,
@@ -293,7 +295,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def beta_binomial_conjugate_run(
         self,
-        mh: AbstractMHInference,
+        mh: BaseInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         random_seed: Optional[int] = 17,
@@ -319,7 +321,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def gamma_gamma_conjugate_run(
         self,
-        mh: AbstractMHInference,
+        mh: BaseInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         random_seed: Optional[int] = 17,
@@ -345,7 +347,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def gamma_normal_conjugate_run(
         self,
-        mh: AbstractMHInference,
+        mh: BaseInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         random_seed: Optional[int] = 17,
@@ -371,7 +373,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def normal_normal_conjugate_run(
         self,
-        mh: AbstractMHInference,
+        mh: BaseInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         random_seed: Optional[int] = 17,
@@ -397,7 +399,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def dirichlet_categorical_conjugate_run(
         self,
-        mh: AbstractMHInference,
+        mh: BaseInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         random_seed: Optional[int] = 17,
