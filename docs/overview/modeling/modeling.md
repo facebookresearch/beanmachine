@@ -1,7 +1,7 @@
 ---
-id: modeling
 title: 'Modeling'
 sidebar_label: 'Modeling'
+slug: '/overview/modeling'
 ---
 
 ## <a name="declarative_style"></a>Declarative Style

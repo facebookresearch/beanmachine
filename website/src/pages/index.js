@@ -82,7 +82,7 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/why_bean_machine')}>
+              to={useBaseUrl('docs/overview/why_bean_machine')}>
               Why Bean Machine?
             </Link>
             <Link
@@ -90,7 +90,7 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/quickstart')}>
+              to={useBaseUrl('docs/overview/quick_start')}>
               Quick Start
             </Link>
             <Link

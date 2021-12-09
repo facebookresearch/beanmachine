@@ -1,7 +1,7 @@
 ---
-id: inference
 title: Inference
 sidebar_label: 'Inference'
+slug: '/overview/inference'
 ---
 
 Inference is the process of combining a _model_ with _data_ to obtain _insights_, in the form of probability distributions over values of interest.
