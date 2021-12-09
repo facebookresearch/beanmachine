@@ -103,7 +103,7 @@ setup(
     url="https://beanmachine.org",
     project_urls={
         "Documentation": "https://beanmachine.org",
-        "Source": "https://github.com/facebookincubator/BeanMachine",
+        "Source": "https://github.com/facebookresearch/beanmachine",
     },
     keywords=[
         "Probabilistic Programming Language",
