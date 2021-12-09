@@ -4,8 +4,6 @@ title: 'Modeling'
 sidebar_label: 'Modeling'
 ---
 
-<!-- @import "../../header.md" -->
-
 ## <a name="declarative_style"></a>Declarative Style
 
 Bean Machine allows you to express models declaratively, in a way that closely follows the notation that statisticians use in their everyday work. Consider our example from the [Quick Start](../quick_start/quick_start.mdx). We could express this mathematically as:

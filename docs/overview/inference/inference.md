@@ -4,9 +4,7 @@ title: Inference
 sidebar_label: 'Inference'
 ---
 
-<!-- @import "../../header.md" -->
-
-Inference is the process of combining _model_ with _data_ to obtain _insights_, in the form of probability distributions over values of interest.
+Inference is the process of combining a _model_ with _data_ to obtain _insights_, in the form of probability distributions over values of interest.
 
 A little note on vocabulary: You've already seen in [Modeling](../modeling/modeling.md) that the _model_ in Bean Machine is comprised of random variable functions. In Bean Machine, the _data_ is built up of a dictionary mapping random variable functions to their observed values, and _insights_ take the form of discrete samples from a probability distribution. We refer to random variables that we're learning distributions for as queried random variables.
 
@@ -38,7 +36,6 @@ def num_cases(day):
 ## Prior and Posterior Distributions
 
 
-<!-- <img style="float: right;" src="../why_bean_machine/exponential_10.png" width='400px'> -->
 
 The $\text{Exponential}$ distribution used here represents our beliefs about the disease's reproduction rate before seeing any data, and is known as the _prior distribution_. We've visualized this distribution previously: it represents a reproduction rate that is around 10% on average, but could be as high as 50%, and is highly right-skewed (the right side has a long tail).
 

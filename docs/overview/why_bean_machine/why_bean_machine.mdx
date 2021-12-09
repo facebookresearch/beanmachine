@@ -7,8 +7,6 @@ slug: '/why_bean_machine'
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-<!-- @import "../../header.md" -->
-
 Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient. This page describes the motivation for using [Probabilistic Programming](#probabilistic-programming) in general, and [Bean Machine advantages](#bean-machine-advantages) specifically.
 
 ## Probabilistic Programming
@@ -32,9 +30,6 @@ num_new_cases ~ Poisson(reproduction_rate * num_infected)
 ```
 
 <img src={useBaseUrl("/img/prior_poisson_intro.png")} />
-
-
-<!-- It might be more interesting to show the Poisson distribution for reproduction_rate=0.1 and num_inference=1000000 -->
 
 Let's fix for now the value of `num_infected`, then the above statement gives the CPD of the random variable `num_new_cases`, conditioned on the value of its **parent** random variable `reproduction_rate`. Since the parameter of the Poisson distribution is also its mean, this CPD is consistent with the knowledge that we were trying to express.
 
@@ -122,35 +117,3 @@ PyTorch offers strong performance for models comprised of a small number of larg
 To address this, we are developing an experimental inference runtime called Bean Machine Graph (BMG) Inference. BMG Inference is a specialized combination of compiler and a fast, independent runtime that is optimized to run inference even for un-tensorized models. By design, BMG Inference has the same interface as other Bean Machine inference methods, relying on a custom behind-the-scenes compiler to interpret your model and translate it to a faster implementation with no Python dependencies.
 
 BMG Inference routinely achieves 1 to 2 orders-of-magnitude speedup for untensorized models. However, please note that this infrastructure is under development, and the supported feature set may be limited.
-
-<!-- ## Sneak Peek at Bean Machine Syntax
-
-At this point it would be helpful to briefly look at our example model written in Bean Machine.
-Random variables such as reproduction_rate and num_new_cases are represented as functions which compute the CPD of these variables and return a distribution object.
-These CPD functions are marked with the `beanmachine.ppl.random_variable` decorator and all EPDs are based on PyTorch EPDs in the `torch.distribution` package.
-
-```
-import beanmachine.ppl as bm
-import torch.distribution as dist
-
-num_infected = 1087980
-
-@bm.random_variable
-def reproduction_rate():
-    return Exponential(0.1)
-
-@bm.random_variable
-def num_new_cases():
-    return Poisson(reproduction_rate() *  num_infected)
-```
-
-The call to inference involves first creating an appropriate inference engine object and then invoking the `infer` method as follows
-
-```
-engine = bm.<Inference Engine>()
-engine.infer(queries = [reproduction_rate()],
-             observations = {new_new_cases() : 238154})
-```
-
-Here it is important to note that the call `reproduction_rate()` in the list of queried variables refers to the name of a random variable while the same call in the CPD of `num_new_cases()` refers to the value of the random variable.
- -->
