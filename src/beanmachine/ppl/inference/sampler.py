@@ -28,6 +28,19 @@ from beanmachine.ppl.world import World
 
 
 class Sampler(Generator[World, Optional[World], None]):
+    """
+    Samplers are generators of Worlds that generate samples from the joint.
+    It is used to generate Monte Carlo samples during MCMC inference.
+    At each iteration, the proposer(s) proposer a values for the random variables, which
+    are then accepted according to the MH ratio. The next world is then returned.
+
+    Args:
+        kernel (BaseInference): Inference class to get proposers from.
+        initial_world (World): Optional initial world to initialize from.
+        num_samples (int, Optional): Number of samples. If none is specified, num_samples = inf.
+        num_adaptive_samples (int, Optional): Number of adaptive samples, defaults to 0.
+    """
+
     def __init__(
         self,
         kernel: BaseInference,
