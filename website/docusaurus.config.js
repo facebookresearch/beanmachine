@@ -15,7 +15,7 @@ module.exports = {
   title: 'Bean Machine',
   tagline:
     'A universal probabilistic programming language to enable fast and accurate Bayesian analysis',
-  url: 'https://beanmachine.org',  // Change to path for release.
+  url: 'https://beanmachine.org', // Change to path for release.
   baseUrl: '/', // for devserver preview use '/~brianjo/beanmachine/'
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -41,12 +41,12 @@ module.exports = {
         {
           to: '/docs/tutorials',
           label: 'Tutorials',
-          position: 'left'
+          position: 'left',
         },
         {
           href: 'pathname:///api/index.html',
           label: 'API',
-          position: 'left'
+          position: 'left',
         },
         // {to: 'blog', label: 'Blog', position: 'left'},
         // Please keep GitHub link to the right for consistency.
@@ -151,8 +151,10 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl: fbContent({
-            internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/',
-            external: 'https://github.com/facebook/docusaurus/edit/master/website/'
+            internal:
+              'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/',
+            external:
+              'https://github.com/facebookresearch/beanmachine/edit/master/website/',
           }),
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
@@ -161,9 +163,11 @@ module.exports = {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl: fbContent({
-            internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/blog/',
-            external: 'https://github.com/facebook/docusaurus/edit/master/website/blog/'
-          })
+            internal:
+              'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/blog/',
+            external:
+              'https://github.com/facebookresearch/beanmachine/edit/master/website/blog/',
+          }),
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

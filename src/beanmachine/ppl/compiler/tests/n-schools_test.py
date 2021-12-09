@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 # """End-to-end test for n-schools model based on the one in PPL Bench"""
-# See for example https://github.com/facebookresearch/pplbench/blob/master/pplbench/models/n_schools.py
+# See for example https://github.com/facebookresearch/pplbench/blob/main/pplbench/models/n_schools.py
 
 import logging
 import unittest
