@@ -7,7 +7,7 @@ slug: '/why_bean_machine'
 <!-- @import "../../header.md" -->
 
 :::tip
-This page describes aspects of Bean Machine that are common among probabilistic programming systems in general. For a view of features more specific to Bean Machine proper, check [Bean Machine within Probabilistic Programming](../bean_machine_within_probabilistic_programming).
+This page describes aspects of Bean Machine that are common among probabilistic programming systems in general. For a view of features more specific to Bean Machine proper, check [Bean Machine Advantages](../bean_machine_advantages).
 :::
 
 Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient.
