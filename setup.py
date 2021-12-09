@@ -1,4 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+# Copyright (c) Meta Platforms, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
 
 import os
 import platform
@@ -95,7 +98,7 @@ setup(
     name="beanmachine",
     version=version,
     description="Probabilistic Programming Language for Bayesian Inference",
-    author="Facebook, Inc.",
+    author="Meta Platforms, Inc.",
     license="MIT",
     url="https://beanmachine.org",
     project_urls={
