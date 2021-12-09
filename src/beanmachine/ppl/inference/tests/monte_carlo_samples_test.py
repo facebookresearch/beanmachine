@@ -168,3 +168,16 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
         self.assertEqual(samples.get(model.foo(), chain=0).shape, (20,))
         self.assertEqual(samples.get(model.foo(), chain=0, thinning=4).shape, (5,))
+
+    def test_to_inference_data(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([model.foo()], {}, num_samples=10, num_chains=1)
+        az_xarray = samples.to_inference_data()
+        self.assertNotIn("warmup_posterior", az_xarray)
+
+        samples = mh.infer(
+            [model.foo()], {}, num_samples=10, num_adaptive_samples=2, num_chains=1
+        )
+        az_xarray = samples.to_inference_data(include_adapt_steps=True)
+        self.assertIn("warmup_posterior", az_xarray)
