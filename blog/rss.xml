@@ -10,7 +10,7 @@
         <item>
             <title><![CDATA[Welcome]]></title>
             <link>https://beanmachine.org/blog/2019/05/29/hello-world</link>
-            <guid>Welcome</guid>
+            <guid>/2019/05/29/hello-world</guid>
             <pubDate>Wed, 29 May 2019 00:00:00 GMT</pubDate>
             <description><![CDATA[Welcome to this the BeanMachine site blog.]]></description>
             <content:encoded><![CDATA[<p>Welcome to this the BeanMachine site blog.</p><p>This blog is created with <a href="https://v2.docusaurus.io/"><strong>Docusaurus 2 alpha</strong></a>.</p>]]></content:encoded>

@@ -9,7 +9,7 @@
     <icon>https://beanmachine.org/img/favicon.ico</icon>
     <entry>
         <title type="html"><![CDATA[Welcome]]></title>
-        <id>Welcome</id>
+        <id>/2019/05/29/hello-world</id>
         <link href="https://beanmachine.org/blog/2019/05/29/hello-world"/>
         <updated>2019-05-29T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Welcome to this the BeanMachine site blog.]]></summary>
