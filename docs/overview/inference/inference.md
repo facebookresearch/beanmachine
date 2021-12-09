@@ -93,5 +93,4 @@ You're already seen `queries` and `observations` many times. `num_samples` is us
 
 ---
 
-Now that we've run inference, it's time to explore our results in
-the [Analysis](../analysis/analysis.md) section!
+Now that we've run inference, it's time to explore our results in the [Analysis](../analysis/analysis.mdx) section!

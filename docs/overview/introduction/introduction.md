@@ -26,7 +26,7 @@ A generative probabilistic model consists of **random variables** and **conditio
 num_new_cases ~ Poisson(reproduction_rate * num_infected)
 ```
 
-![](/img/poisson_3.png)
+![](/img/prior_poisson_intro.png)
 
 <!-- It might be more interesting to show the Poisson distribution for reproduction_rate=0.1 and num_inference=1000000 -->
 
@@ -38,7 +38,7 @@ A well-formed generative model must specify the EPD or CPD of each random variab
 reproduction_rate ~ Exponential(1 / 0.1)
 ```
 
-![](/img/exponential_10.png)
+![](/img/prior_exponential.png)
 
 ## Inference
 
