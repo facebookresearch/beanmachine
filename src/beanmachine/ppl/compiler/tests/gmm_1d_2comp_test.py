@@ -1,4 +1,8 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 """End-to-end test for tutorial on GMM with Poisson number of components"""
 # This file is a manual replica of the Bento tutorial with the same name
 # TODO: The disabled test generates the following error:
