@@ -5,25 +5,19 @@ sidebar_label: 'Diagnostics Module'
 slug: '/diagnostics'
 ---
 
-This notebook introduces the Diagnostics class in Bean Machine (BM) which aims to assist the modeler to get insights about the model performance. Diagnostics currently supports two main components: 1) General Summary Statistics module and 2) Visualizer module.
+This section introduces the Diagnostics class in Bean Machine (BM) which aims to assist the modeler to get insights about the model performance. Diagnostics currently supports two main components:
 
-**General Summary Statistics Module** aggregates the statistics of all or a subset of queries over a specific chain or all chains.
+**General Summary Statistics Module**: aggregates the statistics of all or a subset of queries over a specific chain or all chains.
 
-**Visualizer Module** processes samples and encapsulates the results in a plotly object which could be used for actual visualization.
+**Visualizer Module**: processes samples and encapsulates the results in a [Plotly](https://plotly.com/python/) graphing library object which could be used for actual visualization.
 
 
 Both of the BM Diagnostics components support function registration which allows the user to extend each component with new functionalities that modeler might be interested to have.
 
-The rest of this document goes over examples of how each component can be called or extended.
+The rest of this document goes over examples of how each component can be called or extended by showing how they would be used after defining the following model and running inference on it:
 
-
-## Model and Inference
-
-Suppose we want to use BM Diagnostics module over the inferred samples of the following model:
 
 ```python
-Example:
-
 @sample
 def dirichlet(i, j):
     return dist.Dirichlet(
@@ -48,15 +42,13 @@ samples = mh.infer([beta(0), dirichlet(1, 5), normal()], {}, 50, chains)
 
 ## Summary Statistics
 
-Calling the summary() function on learned model parameters outputs a table including mean, standard deviation (std), confidence interval (CI), r-hat and effective sample size (n-eff).
+Calling the `summary()` method on a sample set outputs a table including mean, standard deviation (`std`), confidence interval (`CI`), $\hat{R}$ (`r-hat`),effective sample size (`n-eff`), as well as user-defined functions (as shown below).
 
-User also has the flexibility to define new functions and register them as part of the available summary stat functions. So, when summary() is called, the results for the user defined function will be added to the output table.
-
-Here are different ways that modeler can call summary() function:
+Here are different ways to invoke the `summary()` function:
 
 ### 1. Getting Summary Statistics for All Queries over All Chains
 
-Simply call summary() to get a comprehensive table of gathered statistics for all queries.
+Simply call `summary()` to get a comprehensive table of gathered statistics for all queries.
 
 ```python
 out_df= Diagnostics(samples).summary()
@@ -64,122 +56,94 @@ out_df= Diagnostics(samples).summary()
 
 ### 2. Getting Summary Statistics for a Subset of Queries
 
-Considering a big list of queries that model may have, user may hand-pick a subset of queries to confine the output table.
+Considering a large number of queries that the model may have, the user may hand-pick a subset of queries to confine the output table to.
 
 ```python
-Example:
-
 out_df = Diagnostics(samples).summary([dirichlet(1, 5), beta(0)])
 ```
 
 ### 3. Getting Summary for a Specific Chain
 
-To compare how results may change over the course of chains, user can pass the chain number to summary() function.
+To compare how results may change over the course of a particular chain, the user can pass the chain number to the `summary()` method.
 
 ```python
-Example:
-
 out_df = Diagnostics(samples).summary(query_list=[dirichlet(1, 5)], chain=1)
 
 ```
-### 4. Extend Summary Module by New Functions
+### 4. Extending Summary with New Functions
 
-User has the option to extend the summary module by registering new functions or overwrite an already available functions. To add new functions, user should make a derived class of the Diagnostics class and register new functions in the class constructor as follow:
+The user has the option to extend the summary module by registering new functions or overwrite an already available function. To add new functions, they must define a sub-class of `Diagnostics` and register new functions in the class' `__init__` function.
 
-```python
-
-def newfunc(query_samples: Tensor) -> Tensor
-
-class Mydiag(Diagnostics):
-    def __init__(self, samples: MonteCarloSamples):
-        super().__init__(samples)
-        self.newfunc = self.summaryfn(newfunc, display_names=["new_func"])
-```
-
-**summaryfn** wrapper treats the newfunc as part of the summary module and adds its results to the output table.
-
-The input to all default summary stat functions has the shape of **torch.Size([C, N])** where **C** and **N** are the number of chains and samples-per-chain respectively considering that **query_samples** is as follow:
+The input to these user-defined functions must be the samples for a particular query, that is, a tensor of shape `torch.Size([C, N])` where `C` and `N` are the number of chains and samples-per-chain respectively. The samples for a query can typically be obtained by code like the following:
 
 ```python
 samples = mh.infer(...)
-query_samples = samples[query] ## query_samples.shape = torch.Size([C, N])
+query_samples = samples[query] ## query_samples.shape == torch.Size([C, N])
 ```
 
-```python
-Example:
+The following illustrates how to add a user-defined mean function to a `Diagnostics` subclass:
 
-def mymean(query_samples: Tensor) -> Tensor:
+```python
+def my_mean(query_samples: Tensor) -> Tensor:
     return torch.mean(query_samples, dim=[0, 1])
 
 
-class Mydiag(Diagnostics):
+class MyDiag(Diagnostics):
     def __init__(self, samples: MonteCarloSamples):
         super().__init__(samples)
-        self.mymean = self.summaryfn(mymean, display_names=["mymean"])
+        self.my_mean_stat = self.summaryfn(my_mean, display_names=["My mean"])
 
 
-customDiag = Mydiag(samples)
-out = customDiag.summary(query_list=[dirichlet(1, 5)], chain=0)
-out.head()
+custom_diag = MyDiag(samples)
+out = custom_diag.summary(query_list=[dirichlet(1, 5)], chain=0)
 ```
 
-### 5. Individual Calling of Summary Statistics Functions
+### 5. Invoking Individual Summary Statistics Functions
 
 ```python
-Example:
+# Obtaining user-defined statistic over all chains
+out_df = custom_diag.my_mean_stat([dirichlet(1, 5)])
 
-# calling user-defined func over all chains
-out_df = customDiag.mymean([dirichlet(1, 5)])
+# Obtaining user-defined statistic over one chain
+out_df = custom_diag.my_mean_stat([dirichlet(1, 5)], chain = 1)
 
-# calling user-defined func over a specific chain
-out_df = customDiag.mymean([dirichlet(1, 5)], chain = 1)
-
-# calling a default func over a specific chain
-out_df = customDiag.std([dirichlet(1, 5)], chain = 1)
+# Obtaining default statistic over one chain
+out_df = custom_diag.std([dirichlet(1, 5)], chain = 1)
 
 ```
 
 ### 6. Overriding an Already Registered Function
 
+Instead of defining a new summary statistic, the user can override one of the default ones. Here the user redefines `mean` by using the following line in the `__init__` function:
+
 ```python
-Example:
-
-def mean(query_samples: Tensor) -> Tensor:
-    y = query_samples + torch.ones(query_samples.size())
-    return torch.mean(y, dim=[0, 1])
-
-class Mydiag(Diagnostics):
-    def __init__(self, samples: MonteCarloSamples):
-        super().__init__(samples)
-        self.mean = self.summaryfn(mean, display_names=["avg"])
-
-customDiag = Mydiag(samples)
-out = customDiag.summary(query_list=[dirichlet(1, 5)], chain=0)
+self.mean = self.summaryfn(my_mean, display_names=["avg"])
 ```
 
 ## Visualization
 
-Currently we support trace plots and auto-correlation plots for samples of a requested model parameter. User can define new visualization-related functions and register them via **plotfn** wrapper. Each of these functions return a plotly object and so user can modify the object as he/she wishes. Here are different ways to call plot over whole or a subset of queries.
+Currently we support trace plots and auto-correlation plots for samples of a requested model parameter. The user can extend this by defining new visualization functions returning a [Plotly](https://plotly.com/python/) object and registering them via `plotfn` method, analogously to the way `summaryfn` was used for defining new summary statistics.
+
+Here are different ways to call plot over all, or a subset of, queries.
 
 ### 1. Execute All Plot-Related Functions for All Queries
-User can enable plotting the returned plotly object by passing display = True to the plot() function. The default is false which means that only the plotly object is returned. So, user has the flexibility to update the layout for the outputted object and frame the outputted plot they way he/she wishes.
+
+To compute all Plotly objects given a set of samples, simply invoke the `plot()` method. The method returns the Plotly objects without displaying them. To display them as well, use a `display=True` argument.
 
 ```python
-Example:
-fig = Diagnostics(samples).plot()
+fig = Diagnostics(samples).plot()  # returns a Plotly object
+fig = Diagnostics(samples).plot(display=True)  # returns a Plotly object and displays it
 ```
 
 ### 2. Execute All Plot-Related Functions for a Subset of Queries
 
 ```python
-Example:
 figs = Diagnostics(samples).plot(query_list=[dirichlet(1, 5)])
 ```
 
 ### 3. Update and Display the Plotly Object
 
 ```python
-Example:
 for _i,fig in enumerate(figs):
     fig.update_layout(paper_bgcolor="LightBlue",height=1500, width=700,)
     fig.update_layout(legend_orientation="h")
@@ -191,15 +155,12 @@ for _i,fig in enumerate(figs):
 ### 4. Execute All Plot-Related Functions for a Specific Chain
 
 ```python
-Example:
-d = Diagnostics(samples)
-figs = d.plot(query_list=[dirichlet(1, 5)], chain = 0)
+figs = Diagnostics(samples).plot(query_list=[dirichlet(1, 5)], chain = 0)
 ```
 
 ### 5. Individual Calling of a Plot-Related Function
 
 ```python
-Example:
 d = Diagnostics(samples)
 
 autocorr_object = d.autocorr([dirichlet(1, 5)]) # pass "display = True" to output the plot
