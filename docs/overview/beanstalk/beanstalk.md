@@ -2,6 +2,7 @@
 id: beanstalk
 title: Bean Machine Graph Inference
 sidebar_label: 'Bean Machine Graph Inference'
+slug: /beanstalk
 ---
 
 <!-- @import "../../header.md" -->
@@ -14,8 +15,9 @@ BMG inference is still used on models defined in Python as usual, but relies on 
 - these models are *unvectorized*, that is, their stochastic quantities are tensors which contain exactly one value.
 - they are *static*, that is, their corresponding *graph* is the same regardless of the values of random variables’ values. To get a better idea of what a model's graph is and when it is static, see section [Model graphs (static and dynamic)](#graphs) below.
 
+### Examples
 The tutorials currently working with BMG inference are:
-- Linear regression;
+- Linear regression [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Linear_Regression.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Linear_Regression.ipynb);
 - Gaussian mixture model [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/GMM_with_2_dimensions_and_4_components.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/GMM_with_2_dimensions_and_4_components.ipynb);
 - Neal's funnel [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Tutorial_Sampling_Neal_funnel_in_Bean_Machine.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hidden_Markov_model.ipynb).
 
@@ -27,6 +29,7 @@ In this release, models accepted by BMG inference have the following restriction
 
 - With some exceptions, all tensor quantities manipulated by the model must be single-valued. There is
   some limited support for one- and two-dimensional tensors.
+- They represent static probabilistic graphs
 - `@random_variable` functions must return a univariate `Bernoulli`, `Beta`, `Binomial`, `Categorical`,
   `Chi2`, `Dirichlet`, `Gamma`, `HalfCauchy`, `HalfNormal`, `Normal`, `StudentT` or `Uniform(0., 1.)`
   distribution.
