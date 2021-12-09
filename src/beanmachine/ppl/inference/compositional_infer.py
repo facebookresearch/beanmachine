@@ -5,7 +5,17 @@
 
 import inspect
 from collections import defaultdict
-from typing import Dict, Tuple, Callable, Union, List, Set, Optional, TYPE_CHECKING
+from typing import (
+    Dict,
+    Tuple,
+    Callable,
+    Union,
+    List,
+    Set,
+    Optional,
+    TYPE_CHECKING,
+    cast,
+)
 
 import torch.distributions as dist
 from beanmachine.ppl.inference.base_inference import BaseInference
@@ -68,36 +78,83 @@ class _DefaultInference(SingleSiteNewtonianMonteCarlo):
         return proposers
 
 
+def _get_rv_family(rv_wrapper: Callable) -> Callable:
+    """A helper function that return the unbounded function for a give random variable
+    wrapper"""
+    if inspect.ismethod(rv_wrapper):
+        # For methods, we'll need to use the unbounded function instead of the
+        # bounded method to determine which proposer to apply
+        return cast(Callable, rv_wrapper.__func__)
+    else:
+        return rv_wrapper
+
+
+def _get_nodes_for_rv_family(
+    rv_families: Union[Callable, Tuple[Callable, ...]],
+    rv_family_to_node: Dict[Callable, Set[RVIdentifier]],
+) -> Set[RVIdentifier]:
+    """A helper function that returns a list of nodes that belong to a particular RV
+    family (or a particular tuple of RV families)"""
+    # collect all nodes that belong to rv_families
+    families = {rv_families} if isinstance(rv_families, Callable) else set(rv_families)
+    nodes = set().union(*(rv_family_to_node.get(family, set()) for family in families))
+    return nodes
+
+
 class CompositionalInference(BaseInference):
     def __init__(
         self,
         inference_dict: Optional[
             Dict[
                 Union[Callable, Tuple[Callable, ...], EllipsisClass],
-                Union[BaseInference, Tuple[BaseInference, ...]],
+                Union[BaseInference, Tuple[BaseInference, ...], EllipsisClass],
             ]
         ] = None,
     ):
-        self.config = {}
-        default_ = _DefaultInference()
-        if inference_dict is not None:
-            default_ = inference_dict.pop(Ellipsis, default_)
-            for rv_families, inference in inference_dict.items():
-                if isinstance(rv_families, Callable):
-                    rv_families = (rv_families,)
-                # For methods, we'll need to use the unbounded function instead of the
-                # bounded method to determine which proposer to apply
-                config_key = tuple(
-                    family.__func__ if inspect.ismethod(family) else family
-                    for family in rv_families
-                )
-                self.config[config_key] = inference
-
-        self._default_inference = default_
+        self.config: Dict[Union[Callable, Tuple[Callable, ...]], BaseInference] = {}
         # create a set for the RV families that are being covered in the config; this is
         # useful in get_proposers to determine which RV needs to be handle by the
         # default inference method
-        self._covered_rv_families = set().union(*self.config)
+        self._covered_rv_families = set()
+
+        default_inference = _DefaultInference()
+        if inference_dict is not None:
+            default_inference = inference_dict.pop(Ellipsis, default_inference)
+            assert isinstance(default_inference, BaseInference)
+            # preprocess inference dict
+            for rv_families, inference in inference_dict.items():
+                # parse key
+                if isinstance(rv_families, Callable):
+                    config_key = _get_rv_family(rv_families)
+                    self._covered_rv_families.add(config_key)
+                else:
+                    # key is a tuple/block of families
+                    config_key = tuple(map(_get_rv_family, rv_families))
+                    self._covered_rv_families.update(config_key)
+
+                # parse value
+                if isinstance(inference, BaseInference):
+                    config_val = inference
+                elif inference == Ellipsis:
+                    config_val = default_inference
+                else:
+                    # value is a tuple of inferences
+                    assert isinstance(inference, tuple)
+                    # there should be a one to one relationship between key and value
+                    assert isinstance(config_key, tuple) and len(config_key) == len(
+                        inference
+                    )
+                    # convert to an equivalent nested compositional inference
+                    config_val = CompositionalInference(
+                        {
+                            rv_family: algorithm
+                            for rv_family, algorithm in zip(config_key, inference)
+                        }
+                    )
+
+                self.config[config_key] = config_val
+
+        self._default_inference = default_inference
 
     def get_proposers(
         self,
@@ -110,44 +167,26 @@ class CompositionalInference(BaseInference):
         for node in target_rvs:
             rv_family_to_node[node.wrapper].add(node)
 
-        def _get_proposers_for_inference(
-            rv_families: Tuple[Callable, ...],
-            inferences: Union[BaseInference, Tuple[BaseInference, ...]],
-        ) -> List[BaseProposer]:
-            """Given a tuple of random variable families, this helper function collect
-            all nodes in world that belong to the families of random variables and
-            invoke the inference to spawn proposers for them."""
-            if isinstance(inferences, tuple):
-                # each inference method is responsible for updating a corresponding
-                # rv_family
-                assert len(inferences) == len(rv_families)
-                sub_proposers = []
-                for rv_family, inference in zip(rv_families, inferences):
-                    sub_proposers.extend(
-                        _get_proposers_for_inference((rv_family,), inference)
-                    )
-                if len(sub_proposers) > 0:
-                    return [SequentialProposer(sub_proposers)]
-            else:
-                # collect all nodes that belong to rv_families
-                nodes = set().union(
-                    *(rv_family_to_node.get(family, set()) for family in rv_families)
-                )
-                if len(nodes) > 0:
-                    return inferences.get_proposers(world, nodes, num_adaptive_sample)
-            return []
-
-        proposers = []
+        all_proposers = []
         for target_families, inferences in self.config.items():
-            proposers.extend(_get_proposers_for_inference(target_families, inferences))
+            nodes = _get_nodes_for_rv_family(target_families, rv_family_to_node)
+            if len(nodes) > 0:
+                proposers = inferences.get_proposers(world, nodes, num_adaptive_sample)
+                if isinstance(target_families, tuple):
+                    # tuple of RVs == block into a single accept/reject step
+                    proposers = [SequentialProposer(proposers)]
+                all_proposers.extend(proposers)
 
         # apply default proposers on nodes whose family are not covered by any of the
         # proposers listed in the config
         remaining_families = rv_family_to_node.keys() - self._covered_rv_families
-        proposers.extend(
-            _get_proposers_for_inference(
-                tuple(remaining_families), self._default_inference
-            )
+        remaining_nodes = _get_nodes_for_rv_family(
+            tuple(remaining_families), rv_family_to_node
         )
+        if len(remaining_nodes) > 0:
+            proposers = self._default_inference.get_proposers(
+                world, remaining_nodes, num_adaptive_sample
+            )
+            all_proposers.extend(proposers)
 
-        return proposers
+        return all_proposers

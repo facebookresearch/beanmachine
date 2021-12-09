@@ -21,9 +21,6 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    GlobalAncestralMetropolisHastings,
-)
 
 
 class SampleModel:
@@ -186,11 +183,26 @@ def test_nested_compositional_inference():
         mock.assert_not_called()
 
 
+def test_block_inference_with_default_algorithm():
+    model = SampleModel()
+    # block foo and baz together, but uses the default inference
+    compositional = bm.CompositionalInference({(model.foo, model.bar, model.baz): ...})
+    # make sure that things can run without failure
+    queries = [model.baz()]
+    observations = {}
+    compositional.infer(queries, observations, num_chains=1, num_samples=10)
+    # check to see if proposers are indeed blocked together
+    world = compositional._initialize_world(queries, observations)
+    proposers = compositional.get_proposers(world, world.latent_nodes, 0)
+    assert len(proposers) == 1
+    assert isinstance(proposers[0], SequentialProposer)
+
+
 def test_block_inference_changing_support():
     model = ChangingSupportSameShapeModel()
     queries = [model.K()] + [model.component(j) for j in range(3)]
     compositional = bm.CompositionalInference(
-        {(model.K, model.component): GlobalAncestralMetropolisHastings()}
+        {(model.K, model.component): bm.SingleSiteAncestralMetropolisHastings()}
     )
     sampler = compositional.sampler(queries, {}, num_samples=10, num_adaptive_samples=5)
     old_world = next(sampler)
