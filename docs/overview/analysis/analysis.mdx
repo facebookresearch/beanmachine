@@ -10,8 +10,7 @@ Inference results are useful not only for learning from your posterior distribut
 
 ## Results of Inference
 
-Bean Machine stores the results of inference in an object of type `MonteCarloSamples`. This class uses
-an underlying data structure of a dictionary mapping a model's random variables to a PyTorch tensor of sampled values. The class can be accessed like a dictionary, and there are additional wrapper methods to make function calls more explicit.
+Bean Machine stores the results of inference in an object of type `MonteCarloSamples`. This class uses an underlying data structure of a dictionary mapping a model's random variables to a PyTorch tensor of sampled values. The class can be accessed like a dictionary, and there are additional wrapper methods to make function calls more explicit.
 
 In the [Inference](../inference/inference.md) section, we obtained results on the disease modeling example by running inference:
 
@@ -31,7 +30,7 @@ samples
 
 ### Extracting Samples for a Specific Variable
 
-We ran inference to compute the posterior for `reproduction_rate()`, since that was listed in `queries`. We can see that the posterior for `reproduction_rate()` (and only for `reproduction_rate()`) is available in `samples`:
+By adding `reproduction_rate()` to the `queries` keyword, we ran inference to compute the posterior for that random variable. We can see that it, and no other random variable, is available in `samples`:
 
 ```py
 list(samples.keys())
@@ -120,21 +119,21 @@ az.summary(samples.to_xarray(), round_to=5)
 | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
 | `reproduction_rate()` | 0.21965 | 0.0003 | 0.21916 | 0.22012 | 0.0 | 0.0 | 18556.76464 | 17903.45852 | 1.00017
 
-The statistics presented are:
+We recommend reading the official [`ArviZ` documentation](https://arviz-devs.github.io/arviz/api/generated/arviz.summary.html) for a full explanation, but the statistics presented are:
 
-  1. **Mean and standard deviation.**
-  2. **97% confidence interval.**
-  3. **Markov chain standard error.**
-  4. **Effective sample size [$N_\text{eff}$](https://www.mcmchandbook.net/HandbookChapter1.pdf).**
-  5. **Convergence diagnostic [$\hat{R}$](https://projecteuclid.org/euclid.ss/1177011136).**
+  1. **Mean** and **standard deviation** (SD).
+  1. 87% **highest density interval** (HDI).
+  1. **Markov chain standard error** (MCSE).
+  1. **Effective sample size** (ESS) [$N_\text{eff}$](https://www.mcmchandbook.net/HandbookChapter1.pdf).
+  1. **Convergence diagnostic** [$\hat{R}$](https://dx.doi.org/10.1214/20-BA1221).
 
-These statistics provide different insights into the quality of the results of inference. For instance, we can use them in combination with synthetically generated data for which we know ground truth values for parameters and then check to make sure that these values fall within the 95% confidence intervals. Of course, in doing so it is important to keep in mind that the prior distributions in our model (and not just the data) will always have an influence on the posterior distribution. Similarly, we can use the size of the 95% confidence interval to gain insights into the model: if it is large, this could indicate that either we have too few observations or that the prior is too weak.
+We choose to display the $89\%$ HDI, following recommendations in [_Statistical Rethinking: A Bayesian Course with Examples in R and Stan (McElreath, 2020)_](https://dx.doi.org/10.1201/9780429029608). The statistics above provide different insights into the quality of the results of inference. For instance, we can use them in combination with synthetically generated data for which we know ground truth values for parameters and then check to make sure that these values fall within some HDI of our posterior samples. Of course, in doing so it is important to keep in mind that the prior distributions in our model (and not just the data) will always have an influence on the posterior distribution. Similarly, we can use the size of the HDI to gain insights into the model: if it is large, this could indicate that either we have too few observations or that the prior is too weak.
 
-$\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to $1.0$ indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.1$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior that inference is unable to reliably explore the posterior distribution.
+$\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to $1.0$ indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.01$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior that inference is unable to reliably explore the posterior distribution.
 
 $N_\text{eff} \in [1,$ `num_samples`$]$ summarizes how independent posterior samples are from one another. Although inference was run for `num_samples` iterations, it's possible that those samples were very similar to each other (due to the way inference is implemented), and may not each be representative of the full posterior space. Larger numbers are better here, and if your particular use case calls for a certain number of samples to be considered, you should ensure that $N_\text{eff}$ is at least that large.
 
-In the case of our example model, we have a healthy $\hat{R}$ value close to 1.0, and a healthy number of effective samples of 631.
+In the case of our example model, we have a healthy $\hat{R}$ value very close to 1.0, and a healthy relative number of effective samples: around 98% and 93% in the bulk and tail estimators.
 
 ### Diagnostic Plots
 
@@ -164,7 +163,7 @@ The diagnostics output shows two diagnostic plots for individual random variable
   * Trace plots are simply a time series of values assigned to random variables over each iteration of inference. The concrete values assigned are usually problem-specific. However, it's important that these values are "mixing" well over time. This means that they don't tend to get stuck in one region for large periods of time, and that each of the chains ends up exploring the same space as the other chains throughout the course of inference.
   * Autocorrelation plots measure how predictive the last several samples are of the current sample. Autocorrelation may vary between -1.0 (deterministically anticorrelated) and 1.0 (deterministically correlated). (We compute autocorrelation approximately, so it may sometimes exceed these bounds.) In an ideal world, the current sample is chosen independently of the previous samples: an autocorrelation of zero. This is not possible in practice, due to stochastic noise and the mechanics of how inference works. The autocorrelation plots here plot how correlated samples from the end of the chain are compared with samples taken from elsewhere within the chain, as indicated by the iteration index on the x axis.
 
-For our example model, we see from the trace plots that each of the chains are healthy: they don't get stuck, and do not explore a chain-specific subset of the space. From the autocorrelation plots, we see the absolute magnitude of autocorrelation to be very small, often around 0.1, indicating a healthy exploration of the space.
+For our example model, we see from the trace plots that each of the chains are healthy: they don't get stuck, and do not explore a chain-specific subset of the space. From the autocorrelation plots, we see the absolute magnitude of autocorrelation to be very small, often well below $0.1$, indicating a healthy exploration of the space.
 
 ---
 

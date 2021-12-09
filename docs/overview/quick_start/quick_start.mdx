@@ -32,12 +32,12 @@ There are a few things to notice here!
 
 <img src={useBaseUrl("/img/prior_exponential.png")} />
 
-  * As you can see, the prior encourages smaller values for the reproduction rate, averaging at a rate of 10%, but allows for the possibility of much larger spread rates.
+  * As you can see, the prior encourages smaller values for the reproduction rate, averaging at a rate of $10\%$, but allows for the possibility of much larger spread rates.
   * Lastly, realize that although you've provided a prior distribution here, the framework will automatically "refine" this distribution, as it searches for values that represent observed data that you'll provide later. So, after we fit the model to observed data, the random variable will no longer look like the graph shown above!
 
-The last piece of the model is how the reproduction rate relates to the new cases of illness that we observe the subsequent day. This number of new cases is related to the underlying reproduction rate -- how fast the virus tends to spread -- as well as the current number of cases. However, it's not a deterministic function of those two values. Instead, it depends on a lot of environmental factors like social behavior, stochasticity of transmission, and so on. It would be far too complicated to capture all of those factors in a single model. Instead, we'll aggregate all of these environmental factors in the form of a probability distribution, the $\text{Poisson}$ distribution.
+The last piece of the model describes how the reproduction rate relates to the new cases we observe the subsequent day. This number of new cases is related to the underlying reproduction rate -- how fast the virus tends to spread -- as well as the current number of cases. However, it's not a deterministic function of those two values. Instead, it depends on a lot of environmental factors like social behavior, stochasticity of transmission, and so on. It would be far too complicated to capture all of those factors in a single model. Instead, we'll aggregate all of these environmental factors in the form of a probability distribution, the $\text{Poisson}$ distribution.
 
-Let's say, for this example, we observed a little over a million, 1087980, cases today. We use such a precise number here to remind you that this is a known value and not a random one. In this case, if the disease were to happen to have a reproduction rate of 0.1, this is what our $\text{Poisson}$ distribution for new cases would look like:
+Let's say, for this example, we observed a little over a million, $1087980$, cases today. We use such a precise number here to remind you that this is a known value and not a random one. In this case, if the disease were to happen to have a reproduction rate of $0.1$, this is what our $\text{Poisson}$ distribution for new cases would look like:
 
 <img src={useBaseUrl("/img/prior_poisson.png")} />
 
@@ -55,7 +55,7 @@ As you can see, this function relies on the `reproduction_rate()` that we define
 
 ## Data
 
-With the model fully defined, we should gather some data to learn about! In the real world, you might work with a government agency to determine the number of real, new cases observed on the next day. For sake of our example, let's say that we observed 238154 new cases on the next day. Bean Machine's random variable syntax allows you to bind this information directly as an observation for the `num_new_cases()` random variable within a simple Python dictionary. Here's how to do it:
+With the model fully defined, we should gather some data to learn about! In the real world, you might work with a government agency to determine the number of real, new cases observed on the next day. For the sake of our example, let's say that we observed $238154$ new cases on the next day. Bean Machine's random variable syntax allows you to bind this information directly as an observation for the `num_new()` random variable within a simple Python dictionary. Here's how to do it:
 
 ```py
 from torch import tensor
@@ -66,11 +66,11 @@ observations = {
 }
 ```
 
-Using a random variable function as keys in this dictionary may feel unusual at first, but it quickly becomes an intuitive way to reference these random variable functions by name!
+Using a random variable function and its arguments as keys in this dictionary may feel unusual at first, but it quickly becomes an intuitive way to reference these random variable functions by name! Note also that we're using `num_init` as an argument to the random variable function, i.e., as side information for how to evaluate the evidence during inference. This might seem unnecessary, since `num_init` could simply remain a global constant in this example, but a similar indexing scheme will come in handy when we extend the model to time series with more than a single time step.
 
 ## Inference
 
-With model and observations in hand, we're ready for the fun part: inference! Inference is the process of combining _model_ with _data_ to obtain _insights_, in the form of probability distributions over values of interest. Bean Machine offers a powerful and general inference framework to enable fitting arbitrary models to data.
+With model and observations in hand, we're ready for the fun part: inference! Inference is the process of combining a _model_ with _data_ to obtain _insights_, in the form of probability distributions over values of interest. Bean Machine offers a powerful and general inference framework to enable fitting arbitrary models to data.
 
 The call to inference involves first creating an appropriate inference engine object and then invoking the `infer` method:
 
@@ -93,7 +93,7 @@ Lastly, `num_samples` is the number of samples that you want to learn. Bean Mach
 
 ## Analysis
 
-Our results are ready! Let's visualize results for the reproduction rate.
+Our results are ready! Let's visualize them for the reproduction rate parameter.
 
 The `samples` object that we have now contains samples from the probability distributions that we've fit for our model and data. It supports dictionary-like indexing using -- you guessed it -- the same random variable referencing syntax we've seen before. A second index (here, `[0]`) selects one of the inference chains generated by the sampling algorithm; this will be explained in the [Inference](../inference/inference.md) section, so let us just use `0` for now.
 
