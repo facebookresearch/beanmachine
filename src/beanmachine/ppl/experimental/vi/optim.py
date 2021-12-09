@@ -1,8 +1,9 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
+# @lint-ignore-every LICENSELINT
 # Sourced/adapted from: https://github.com/pyro-ppl/pyro
+#
 # Copyright (c) 2017-2019 Uber Technologies, Inc.
 # SPDX-License-Identifier: Apache-2.0
+
 import inspect
 from typing import (
     Any,
