@@ -1,4 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
 
 # In lattice_typer.py we assign a type to every node in a graph.
 # If the node or any ancestor node is unsupported in BMG then the node

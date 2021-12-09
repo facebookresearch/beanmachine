@@ -1,4 +1,8 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 # """End-to-end test for n-schools model based on the one in PPL Bench"""
 # See for example https://github.com/facebookresearch/pplbench/blob/master/pplbench/models/n_schools.py
 
