@@ -1,9 +1,12 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
 # TODO: for now, we'll just turn off error checking in this module.
 # pyre-ignore-all-errors
-
 
 from typing import Any, Tuple
 
