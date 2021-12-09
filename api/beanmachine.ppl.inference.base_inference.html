@@ -108,22 +108,50 @@
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.base_inference.BaseInference">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.base_inference.</span></span><span class="sig-name descname"><span class="pre">BaseInference</span></span><a class="headerlink" href="#beanmachine.ppl.inference.base_inference.BaseInference" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class all inference methods should inherit from.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.base_inference.BaseInference.get_proposers">
 <em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.base_inference.BaseInference.get_proposers" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the proposer(s) corresponding to every non-observed variable
+in target_rvs.  Should be implemented by the specific inference algorithm.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.base_inference.BaseInference.infer">
 <span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">List[beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor],</span> <span class="pre">num_samples:</span> <span class="pre">int,</span> <span class="pre">num_chains:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4,</span> <span class="pre">num_adaptive_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">verbose:</span> <span class="pre">beanmachine.ppl.inference.utils.VerboseLevel</span> <span class="pre">=</span> <span class="pre">VerboseLevel.LOAD_BAR,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_to_uniform&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.base_inference.BaseInference.infer" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Performs inference and returns a <code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> object with samples from the posterior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queries</strong> – List of queries</p></li>
+<li><p><strong>observations</strong> – Observations as an RVDict keyed by RVIdentifier</p></li>
+<li><p><strong>num_samples</strong> – Number of samples.</p></li>
+<li><p><strong>num_chains</strong> – Number of chains to run, defaults to 4.</p></li>
+<li><p><strong>num_adaptive_samples</strong> – Number of adaptive samples, defaults to 0.</p></li>
+<li><p><strong>verbose</strong> – Verbose level for logging.</p></li>
+<li><p><strong>initialize_fn</strong> – Callable that returns a tensor. Initializes to uniform as default.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.base_inference.BaseInference.sampler">
 <span class="sig-name descname"><span class="pre">sampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">List[beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor],</span> <span class="pre">num_samples:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">num_adaptive_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_to_uniform&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.sampler.html#beanmachine.ppl.inference.sampler.Sampler" title="beanmachine.ppl.inference.sampler.Sampler"><span class="pre">beanmachine.ppl.inference.sampler.Sampler</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.base_inference.BaseInference.sampler" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a generator that returns a new world (represents a new state of the
 graph) each time it is iterated. If num_samples is not provided, this method
-will returns an infinite generator.</p>
+will return an infinite generator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queries</strong> – List of queries</p></li>
+<li><p><strong>observations</strong> – Observations as an RVDict keyed by RVIdentifier</p></li>
+<li><p><strong>num_samples</strong> – Number of samples, defaults to None for an infinite sampler.</p></li>
+<li><p><strong>num_adaptive_samples</strong> – Number of adaptive samples, defaults to 0.</p></li>
+<li><p><strong>initialize_fn</strong> – Callable that returns a tensor. Initializes to uniform as default.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
