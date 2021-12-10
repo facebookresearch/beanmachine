@@ -8,7 +8,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.distribution.flat import Flat
+from beanmachine.ppl.distributions.flat import Flat
 from beanmachine.ppl.experimental.neutra.iafmcmc_infer import IAFMCMCinference
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
 from torch import nn, tensor as tensor

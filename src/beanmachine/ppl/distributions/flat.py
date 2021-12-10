@@ -8,13 +8,17 @@ import torch.distributions as dist
 
 
 class Flat(dist.Distribution):
+    """
+    Flat distribution used as an improper prior. Samples 0 with
+    shape sample shape
+
+    Args
+        shape: pass a tuple, and give a shape of Flat prior.
+    """
 
     has_enumerate_support = False
     support = dist.constraints.real
     has_rsample = True
-    """
-    :param shape: pass a tuple, and give a shape of Flat prior.
-    """
 
     def __init__(self, shape):
         self.shape = shape
