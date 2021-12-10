@@ -28,6 +28,7 @@ module.exports = {
             'framework_topics/inference/random_walk',
             'framework_topics/inference/uniform_metropolis_hastings',
             'framework_topics/inference/hamiltonian_monte_carlo',
+            'framework_topics/inference/no_u_turn_sampler',
             'framework_topics/inference/newtonian_monte_carlo',
           ],
           'Programmable Inference': [
