@@ -6,22 +6,28 @@ sidebar_label: 'Installation'
 <!-- @import "../../header.md" -->
 
 ## Did You Check Out Colab?
-... [TODO[Brad]: Here we should have information about how easy it is to try our tool on Colab before installing it on own machine. Will also be good to put some links to this Colab at the top of the website's main tutorials.]
+The Google Colaboratory web service (Colab) is probably the quickest way to run Bean Machine. For example, [here is what our Coin Flipping tutorial looks like on Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb). Similar links can be found for each of our tutorials in the Tutorials section.
 
 ## Requirements
-... [TODO: Add instructions]
+Python 3.7-3.8 and PyTorch 1.10.
 
-## Installation
+Note: Some features are not yet supported on Python 3.9+
 
-Bean Machine can be built from the source available on GitHub or installed directly using PIP or conda.
+## Latest Release
 
-To build from source: ... [TODO: Add instructions]
-
-[TODO: Check!] To install from source In can also be installed using PIP using the following command:
+Using `pip` you can get the latest release with the following command:
 ```
 pip install beanmachine
 ```
-[TODO: Check!]It can be installed using conda
+
+## Installing From Source
+To install from source, the first step is to clone the git repository:
 ```
-conda install beanmachine -c pytorch
+git clone https://github.com/facebookresearch/beanmachine.git
+cd beanmachine
+pip install -e .
+```
+If you are a developer and plan to experiment with modifying the code, we recommend replacing the last step above with:
+```
+pip install -e ".[dev]"
 ```
