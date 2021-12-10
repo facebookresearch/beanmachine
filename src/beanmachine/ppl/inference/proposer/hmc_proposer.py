@@ -35,6 +35,16 @@ class HMCProposer(BaseProposer):
 
     The current implementation does not use nor adapt a mass matrix -- which is
     equivalent to setting the matrix M to I.
+
+    Args:
+        initial_world: Initial world to propose from.
+        target_rvs: Set of RVIdentifiers to indicate which variables to propose.
+        num_adaptive_samples: Number of adaptive samples to run.
+        trajectory_length: Length of single trajectory.
+        initial_step_size: Initial step size.
+        adapt_step_size: Flag whether to adapt step size, defaults to True.
+        adapt_mass_matrix: Flat whether to adapt mass matrix, defaults to True.
+        target_accept_prob: Target accept prob, defaults to 0.8.
     """
 
     def __init__(
