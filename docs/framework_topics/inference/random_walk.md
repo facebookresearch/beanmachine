@@ -32,7 +32,7 @@ Please note that samples taken during adaptation are not valid posterior samples
 
 ## Usage
 
-Note that $\sigma$ is denoted as `step_size` in the constructor.
+The following code snippet illustrates how to use the inference method. Here, `step_size` represents $\sigma$ from the algorithm above.
 
 ```py
 samples = bm.SingleSiteRandomWalk(
@@ -47,7 +47,7 @@ samples = bm.SingleSiteRandomWalk(
 
 If desired, `step_size` does not need to be set, and it will be initialized to the default initial value `1.0`. Either way, if `num_adapt_steps > 0` is set, then `step_size` will be changed after inference begins.
 
-```
+```py
 samples = bm.SingleSiteRandomWalk().infer(
   queries,
   observations,
