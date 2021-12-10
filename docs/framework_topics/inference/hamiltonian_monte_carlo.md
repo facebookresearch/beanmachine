@@ -97,7 +97,7 @@ Once the adaptive phase ends, we no longer update our parameters, and the origin
 
 ## Tuning the path length
 
-While adaptive HMC can effectively tun the step size and covariance matrix, Bean Machine relies on a separate algorithm for tuning the path length $\lambda$. This algorithm is called the No-U-Turn Sampler, and has its own documentation page, [no_u_turn_sampler.md](no_u_turn_sampler.md).
+While adaptive HMC can effectively tun the step size and covariance matrix, Bean Machine relies on a separate algorithm for tuning the path length $\lambda$. This algorithm is called the No-U-Turn Sampler, and has its own documentation page, [No-U-Turn Samplers](no_u_turn_sampler.md).
 
 ## Usage
 
