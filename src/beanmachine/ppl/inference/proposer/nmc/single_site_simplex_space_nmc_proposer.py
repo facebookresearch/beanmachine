@@ -25,7 +25,10 @@ LOGGER = logging.getLogger("beanmachine")
 
 class SingleSiteSimplexSpaceNMCProposer(SingleSiteAncestralProposer):
     """
-    Single-Site Simplex Newtonian Monte Carlo Proposers
+    Single-Site Simplex Newtonian Monte Carlo Proposer
+    See sec. 3.2 of [1]
+
+    [1] Arora, Nim, et al. `Newtonian Monte Carlo: single-site MCMC meets second-order gradient methods`
     """
 
     def __init__(
@@ -77,12 +80,10 @@ class SingleSiteSimplexSpaceNMCProposer(SingleSiteAncestralProposer):
         """
         Returns the proposal distribution of the node.
 
-        :param node: the node for which we're proposing a new value for
-        :param node_var: the Variable of the node
-        :param world: the world in which we're proposing a new value for node
-            required to find a proposal distribution
-        :returns: the tuple of proposal distribution of the node and arguments
-            that was used or needs to be used to find the proposal distribution
+        Args:
+            world: the world in which we're proposing a new value for node.
+        Returns:
+            The proposal distribution.
         """
         # if the number of variables in the world is 1 and proposal distribution
         # has already been computed, we can use the old proposal distribution
