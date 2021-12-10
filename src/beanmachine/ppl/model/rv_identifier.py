@@ -9,6 +9,11 @@ from typing import Callable, Tuple
 
 @dataclass(eq=True, frozen=True)
 class RVIdentifier:
+    """
+    Struct representing the unique key corresponding to a
+    BM random variable.
+    """
+
     wrapper: Callable
     arguments: Tuple
 

@@ -15,24 +15,13 @@ class StatisticalModel(object):
     Parent class to all statistical models implemented in Bean Machine.
 
     Every random variable in the model needs to be defined with function
-    declaration accompanied with @bm.random_variable decorator.
+    declaration wrapped the ``bm.random_variable`` .
 
-    for instance, here is Gaussian Mixture Model implementation::
+    Every deterministic functional that a user would like to query during
+    inference should be wrapped in a ``bm.functional`` .
 
-        K, alpha, beta, gamma = init()
-
-        @bm.random_variable
-        def mu():
-            return Normal(alpha, beta)
-
-        @bm.random_variable
-        def z(i):
-            return Uniform(K)
-
-        @bm.random_variable
-        def y(i):
-            return Normal(mu(z(i)), gamma)
-
+    [EXPERIMENTAL]: Every parameter of the guide distribution that is to be learned
+    via variational inference should be wrapped in a ``bm.param`` .
     """
 
     @staticmethod
@@ -40,11 +29,13 @@ class StatisticalModel(object):
         """
         Creates a key to uniquely identify the Random Variable.
 
-        :param wrapper: reference to the wrapper function
-        :param arguments: function arguments
+        Args:
+          wrapper: reference to the wrapper function
+          arguments: function arguments
 
-        :returns: tuple of function and arguments which is to be used to identify
-            a particular function call.
+        Returns:
+          Tuple of function and arguments which is to be used to identify
+          a particular function call.
         """
         return RVIdentifier(wrapper=wrapper, arguments=arguments)
 
@@ -52,7 +43,15 @@ class StatisticalModel(object):
     def random_variable(f):
         """
         Decorator to be used for every stochastic random variable defined in
-        all statistical models.
+        all statistical models. E.g.::
+
+          @bm.random_variable
+          def foo():
+            return Normal(0., 1.)
+
+          def foo():
+            return Normal(0., 1.)
+          foo = bm.random_variable(foo)
         """
 
         @wraps(f)
@@ -71,7 +70,16 @@ class StatisticalModel(object):
     @staticmethod
     def functional(f):
         """
-        Decorator to be used for every query defined in statistical model.
+        Decorator to be used for every query defined in statistical model, which are
+        functions of ``bm.random_variable`` ::
+
+          @bm.random_variable
+          def foo():
+            return Normal(0., 1.)
+
+          @bm.functional():
+          def bar():
+            return foo() * 2.0
         """
 
         @wraps(f)
@@ -91,9 +99,15 @@ class StatisticalModel(object):
     @staticmethod
     def param(init_fn):
         """
-        Decorator to be used for params (variable to be optimized).
+        Decorator to be used for params (variable to be optimized with VI).::
 
-        TODO: DRY out with `random_variable`
+          @bm.param
+          def mu():
+            return Normal(0., 1.)
+
+          @bm.random_variable
+          def foo():
+            return Normal(mu(), 1.)
         """
 
         @wraps(init_fn)
