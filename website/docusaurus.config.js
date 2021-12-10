@@ -51,7 +51,7 @@ module.exports = {
         // {to: 'blog', label: 'Blog', position: 'left'},
         // Please keep GitHub link to the right for consistency.
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/facebookresearch/beanmachine',
           label: 'GitHub',
           position: 'right',
         },
