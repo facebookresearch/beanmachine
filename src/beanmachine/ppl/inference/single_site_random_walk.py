@@ -17,6 +17,14 @@ from beanmachine.ppl.world import World
 
 
 class SingleSiteRandomWalk(BaseInference):
+    """
+    Single Site random walk Metropolis-Hastings. This single site algorithm uses a Normal distribution
+    proposer.
+
+    Args:
+        step_size: Step size, defaults to 1.0
+    """
+
     def __init__(self, step_size: float = 1.0):
         self.step_size = step_size
         self._proposers = {}
