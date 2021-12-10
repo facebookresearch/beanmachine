@@ -30,6 +30,18 @@ LOGGER = logging.getLogger("beanmachine")
 
 
 class SingleSiteNewtonianMonteCarlo(BaseInference):
+    """
+    Single site Newtonian Monte Carlo [1]. This algorithm selects a proposer
+    based on the support of the random variable. Valid supports include real, positive real, and simplex.
+    Each site is proposed independently.
+
+    [1] Arora, Nim, et al. `Newtonian Monte Carlo: single-site MCMC meets second-order gradient methods`
+
+    Args:
+        real_space_alpha: alpha value for real space as specified in [1], defaults to 10.0
+        real_space_beta: beta value for real space  as specified in [1], defaults to 1.0
+    """
+
     def __init__(
         self,
         real_space_alpha: float = 10.0,
@@ -53,8 +65,10 @@ class SingleSiteNewtonianMonteCarlo(BaseInference):
         return proposers
 
     def _init_nmc_proposer(self, node: RVIdentifier, world: World) -> BaseProposer:
-        """A helper function that initialize a NMC proposer for the given node. The type
-        of NMC proposer will be chosen based on a node's support."""
+        """
+        A helper function that initialize a NMC proposer for the given node. The type
+        of NMC proposer will be chosen based on a node's support.
+        """
         distribution = world.get_variable(node).distribution
         support = distribution.support  # pyre-ignore
         if is_constraint_eq(support, dist.constraints.real):
