@@ -21,10 +21,14 @@ class BaseSingleSiteMHProposer(BaseProposer):
         self.node = target_rv
 
     def propose(self, world: World):
-        """Propose a new value for self.node with Metropolis-Hasting algorithm
-        https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#Formal_derivation
+        """
+        Propose a new value for self.node with `Metropolis-Hasting algorithm
+        <https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#Formal_derivation>`_
         Classes that inherit this proposer should override `get_proposal_distribution`
         to define the algorithm-specific way to sample the next state.
+
+        Args:
+            world: World to calculate proposal for.
         """
         proposal_dist = forward_dist = self.get_proposal_distribution(world)
         old_value = world[self.node]
