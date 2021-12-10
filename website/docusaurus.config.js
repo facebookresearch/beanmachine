@@ -64,51 +64,7 @@ module.exports = {
     },
     footer: {
       style: 'dark',
-      /* Commenting this section out while the fix a DS2 issue.
       links: [
-        {
-          title: 'Learn',
-          items: [
-            {
-              label: 'Quick Start',
-              to: '/docs/overview/quick_start/quick_start/',
-            },
-            {
-              label: 'Modeling',
-              to: '/docs/overview/modeling/modeling/',
-            },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: 'blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
-          ],
-        },
         {
           title: 'Legal',
           // Please do not remove the privacy and terms, it's a legal requirement.
@@ -128,7 +84,6 @@ module.exports = {
           ],
         },
       ],
-      */
 
       logo: {
         alt: 'Bean Machine Logo',
