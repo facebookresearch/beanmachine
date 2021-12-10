@@ -3,7 +3,7 @@ name = "Configuration for autogenerating API docs for Bean Machine"
 [settings]
 # This can be a list of strings if you want to document more than one module
 search = ["beanmachine"]
-github = "https://github.com/facebookresearch/beanmachine/blob/master/"
+github = "https://github.com/facebookresearch/beanmachine/blob/main/"
 
 [paths]
 # Paths are all relative to the *first* search module

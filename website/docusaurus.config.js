@@ -154,7 +154,7 @@ module.exports = {
             internal:
               'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/',
             external:
-              'https://github.com/facebookresearch/beanmachine/edit/master/website/',
+              'https://github.com/facebookresearch/beanmachine/edit/main/website/',
           }),
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
@@ -166,7 +166,7 @@ module.exports = {
             internal:
               'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/blog/',
             external:
-              'https://github.com/facebookresearch/beanmachine/edit/master/website/blog/',
+              'https://github.com/facebookresearch/beanmachine/edit/main/website/blog/',
           }),
         },
         theme: {

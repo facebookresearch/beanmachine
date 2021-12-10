@@ -2,9 +2,9 @@
 The API is extracted from the Python docstrings and converted to HTML with [Sphinx](https://www.sphinx-doc.org/en/master/).
 
 ### Configuration
-Bean Machine uses a [custom script](https://github.com/facebookresearch/beanmachine/blob/master/sphinx/source/docs.py) to autogenerate the `.rst` files for Sphinx. It is run inside [`conf.py`](https://github.com/stefanwebb/beanmachine/blob/master/sphinx/source/conf.py) and so is hidden from the end-user.
+Bean Machine uses a [custom script](https://github.com/facebookresearch/beanmachine/blob/main/sphinx/source/docs.py) to autogenerate the `.rst` files for Sphinx. It is run inside [`conf.py`](https://github.com/stefanwebb/beanmachine/blob/main/sphinx/source/conf.py) and so is hidden from the end-user.
 
-A configuration file, [`configuration.toml`](https://github.com/facebookresearch/beanmachine/blob/master/website/documentation.toml) specifies which symbols (modules, classes, members, attributes, functions, and variables) to include and exclude from the Sphinx output based on filtering by Python regular expressions.
+A configuration file, [`configuration.toml`](https://github.com/facebookresearch/beanmachine/blob/main/website/documentation.toml) specifies which symbols (modules, classes, members, attributes, functions, and variables) to include and exclude from the Sphinx output based on filtering by Python regular expressions.
 
 You can test the configuration file by running `python sphinx/source/docs.py`, which will, without running Sphinx, print one line to the terminal for each module that will be documented according to [`configuration.toml`]. Following each module name is a list of members that will be *excluded* from documentation for that module.
 
