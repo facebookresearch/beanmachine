@@ -12,5 +12,10 @@ from beanmachine.ppl.inference.single_site_inference import (
 
 
 class SingleSiteUniformMetropolisHastings(SingleSiteInference):
+    """
+    Single site uniform Metropolis-Hastings. This single site algorithm proposes
+    from a uniform distribution (uniform Categorical for discrete variables).
+    """
+
     def __init__(self):
         super().__init__(SingleSiteUniformProposer)
