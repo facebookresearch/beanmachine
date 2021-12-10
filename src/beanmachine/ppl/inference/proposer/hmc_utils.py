@@ -118,11 +118,13 @@ class MassMatrixAdapter:
 
     def initialize_momentums(self, positions: RVDict) -> RVDict:
         """
-        Randomly draw momentum from MultivariateNormal(0, M).
+        Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
+        is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
+        for the first time, this also initializes their (inverse) mass matrices to
+        the identity matrix.
 
-        This momentum variable is denoted as p in [1] and r in [2]. Additionally,
-        for nodes that are seen for the first time, this also initialize their
-        (inverse) mass matrices to identity.
+        Args:
+            positions: RVDict corresponding to the positions of the energy function.
         """
         momentums = {}
         for node in positions:
@@ -207,7 +209,10 @@ class WelfordCovariance:
 class DictTransform:
     """
     A general class for applying a dictionary of Transforms to a dictionary of
-    Tensors.
+    Tensors
+
+    Args:
+        transforms: Dict of torch.distributions.Transform keyed by the RVIdentifier
     """
 
     def __init__(self, transforms: Dict[RVIdentifier, dist.Transform]):
@@ -237,8 +242,12 @@ class DictTransform:
 
 class RealSpaceTransform(DictTransform):
     """
-    Transform a dictionary of Tensor values from constrained space to unconstrained
+    Transform a dictionary of Tensor values from a constrained space to the unconstrained
     (real) space.
+
+    Args:
+        world: World which contains the random variables of interest.
+        target_rvs: Set of RVIdentifiers corresponding to the random variables of interest.
     """
 
     def __init__(self, world: World, target_rvs: Set[RVIdentifier]):
