@@ -36,7 +36,10 @@ class _ProposalArgs(NamedTuple):
 
 class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
     """
-    Single-Site Real Space Newtonian Monte Carlo Proposers
+    Single-Site Real Space Newtonian Monte Carlo Proposer
+    See sec. 3.1 of [1]
+
+    [1] Arora, Nim, et al. `Newtonian Monte Carlo: single-site MCMC meets second-order gradient methods`
     """
 
     def __init__(self, node: RVIdentifier, alpha: float = 10.0, beta: float = 1.0):
@@ -81,14 +84,13 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         """
         Returns the proposal distribution of the node.
 
-        :param node: the node for which we're proposing a new value for
-        :param node_var: the Variable of the node
-        :param world: the world in which we're proposing a new value for node
-            required to find a proposal distribution which in this case is the
-            fraction of distance between the current value and NMC mean that we're
-            going to pick as our proposer mean.
-        :returns: the tuple of proposal distribution of the node and arguments
-            that was used or needs to be used to find the proposal distribution
+        Args:
+            world: the world in which we're proposing a new value for node
+                required to find a proposal distribution which in this case is the
+                fraction of distance between the current value and NMC mean that we're
+                going to pick as our proposer mean.
+        Returns:
+            The proposal distribution.
         """
         frac_dist = self._sample_frac_dist(world)
         self.learning_rate_ = frac_dist
@@ -174,8 +176,6 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Compute Alpha and Beta using Method of Moments.
-
-        :returns: the alpha and beta of the Beta prior to learning rate.
         """
         # Running mean and variance are computed following the link below:
         # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -214,11 +214,10 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         """
         Do adaption based on the learning rates.
 
-        :param node: the node for which we have already proposed a new value for.
-        :param node_var: the Variable object associated with node.
-        :param node_acceptance_results: the boolean values of acceptances for
-            values collected so far within _infer().
-        :param is_accepted: bool representing whether the new value was accepted.
+        Args:
+            world: the world in which we're operating in.
+            accept_log_prob: Current accepted log prob (Not used in this particular proposer).
+            is_accepted: bool representing whether the new value was accepted.
         """
         if not is_accepted:
             if self.accepted_samples_ == 0:

@@ -25,7 +25,10 @@ LOGGER = logging.getLogger("beanmachine")
 
 class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
     """
-    Single-Site Half Space Newtonian Monte Carlo Proposers
+    Single-Site Half Space Newtonian Monte Carlo Proposers.
+    See sec. 3.2 of [1]
+
+    [1] Arora, Nim, et al. `Newtonian Monte Carlo: single-site MCMC meets second-order gradient methods`
     """
 
     def __init__(self, node: RVIdentifier):
@@ -39,9 +42,6 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
         Computes alpha and beta of the Gamma proposal given the node.
             alpha = 1 - hessian_diag * x^2
             beta = -1 * x * hessian_diag - first_grad
-
-        :returns: alpha and beta of the Gamma distribution as proposal
-            distribution
         """
         node_val = world[self.node]
         first_gradient, hessian_diag = hessian_of_log_prob(
@@ -77,9 +77,10 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
         """
         Returns the proposal distribution of the node.
 
-        :param world: the world in which we're proposing a new value for node
-        :returns: the tuple of proposal distribution of the node and arguments
-            that was used or needs to be used to find the proposal distribution
+        Args:
+            world: the world in which we're proposing a new value for node.
+        Returns:
+            The proposal distribution.
         """
         # if the number of variables in the world is 1 and proposal distribution
         # has already been computed, we can use the old proposal distribution
