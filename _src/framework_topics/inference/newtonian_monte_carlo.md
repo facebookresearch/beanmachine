@@ -117,7 +117,7 @@ $\textbf{until }\text{Desired number of samples}$
 
 ## Usage
 
-Here is how we call NMC, where $a$ and $b$ are `real_space_alpha` and `real_space_beta`.
+The following code snippet illustrates how to use the inference method. Here, `real_space_alpha` represents $a$ and `real_space_beta` represents $b$ from the algorithm above.
 
 ```py
 samples = bm.SingleSiteNewtonianMonteCarlo(

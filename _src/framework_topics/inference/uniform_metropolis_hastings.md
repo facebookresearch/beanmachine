@@ -19,7 +19,9 @@ Please note that, if you use this inference method for continuous random variabl
 
 ## Usage
 
-```
+The following code snippet illustrates how to use the inference method.
+
+```py
 samples = bm.SingleSiteUniformMetropolisHastings().infer(
     queries,
     observations,

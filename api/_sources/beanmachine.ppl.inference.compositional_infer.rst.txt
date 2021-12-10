@@ -8,5 +8,5 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: _DefaultInference
+   :exclude-members: _DefaultInference, _get_nodes_for_rv_family, _get_rv_family
 

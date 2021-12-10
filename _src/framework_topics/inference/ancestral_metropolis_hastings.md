@@ -53,6 +53,8 @@ For each inference iteration:
 
 ## Usage
 
+The following code snippet illustrates how to use the inference method.
+
 ```py
 samples = bm.SingleSiteAncestralMetropolisHastings().infer(
     queries,

@@ -17,9 +17,9 @@ BMG inference is still used on models defined in Python as usual, but relies on 
 
 ### Examples
 The tutorials currently working with BMG inference are:
-- Linear regression [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Linear_Regression.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Linear_Regression.ipynb);
-- Gaussian mixture model [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/GMM_with_2_dimensions_and_4_components.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/GMM_with_2_dimensions_and_4_components.ipynb);
-- Neal's funnel [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Neals_funnel.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hidden_Markov_model.ipynb).
+- Linear regression [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Linear_Regression.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Linear_Regression.ipynb);
+- Gaussian mixture model [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb);
+- Neal's funnel [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hidden_Markov_model.ipynb).
 
 For the above three models, the BMG version of [Newtonian Monte Carlo (NMC)](../../framework_topics/inference/newtonian_monte_carlo.md) inference reduces runtime to generate samples of size 10K for the posterior distribution by anywhere between 80 and 250 times depending on the model.
 
