@@ -55,6 +55,18 @@ class NUTSProposer(HMCProposer):
 
         [2] Michael Betancourt. "A Conceptual Introduction to Hamiltonian Monte Carlo"
             (2017). https://arxiv.org/abs/1701.02434
+
+    Args:
+        initial_world: Initial world to propose from.
+        target_rvs: Set of RVIdentifiers to indicate which variables to propose.
+        num_adaptive_samples: Number of adaptive samples to run.
+        max_tree_depth: Maximum tree depth, defaults to 10.
+        max_delta_energy: Maximum delta energy (for numerical stability), defaults to 1000.
+        initial_step_size: Defaults to 1.0.
+        adapt_step_size: Whether to adapt step size with Dual averaging as suggested in [1], defaults to True.
+        adapt_mass_matrix: Whether to adapt mass matrix using Welford Scheme, defaults to True.
+        multinomial_sampling: Whether to use multinomial sampling as in [2], defaults to True.
+        target_accept_prob: Target accept probability. Increasing this would lead to smaller step size. Defaults to 0.8.
     """
 
     def __init__(
