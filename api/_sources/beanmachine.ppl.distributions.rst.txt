@@ -1,0 +1,20 @@
+beanmachine.ppl.distributions
+=============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.distributions.flat
+   beanmachine.ppl.distributions.unit
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.distributions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

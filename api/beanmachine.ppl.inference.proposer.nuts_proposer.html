@@ -43,7 +43,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
@@ -123,6 +123,22 @@ as introduced in Appendix 2 of [2]) instead of drawn uniformly.</p>
 <dt>[2] Michael Betancourt. “A Conceptual Introduction to Hamiltonian Monte Carlo”</dt><dd><p>(2017). <a class="reference external" href="https://arxiv.org/abs/1701.02434">https://arxiv.org/abs/1701.02434</a></p>
 </dd>
 </dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_world</strong> – Initial world to propose from.</p></li>
+<li><p><strong>target_rvs</strong> – Set of RVIdentifiers to indicate which variables to propose.</p></li>
+<li><p><strong>num_adaptive_samples</strong> – Number of adaptive samples to run.</p></li>
+<li><p><strong>max_tree_depth</strong> – Maximum tree depth, defaults to 10.</p></li>
+<li><p><strong>max_delta_energy</strong> – Maximum delta energy (for numerical stability), defaults to 1000.</p></li>
+<li><p><strong>initial_step_size</strong> – Defaults to 1.0.</p></li>
+<li><p><strong>adapt_step_size</strong> – Whether to adapt step size with Dual averaging as suggested in [1], defaults to True.</p></li>
+<li><p><strong>adapt_mass_matrix</strong> – Whether to adapt mass matrix using Welford Scheme, defaults to True.</p></li>
+<li><p><strong>multinomial_sampling</strong> – Whether to use multinomial sampling as in [2], defaults to True.</p></li>
+<li><p><strong>target_accept_prob</strong> – Target accept probability. Increasing this would lead to smaller step size. Defaults to 0.8.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">

@@ -43,7 +43,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
@@ -120,10 +120,14 @@ conditioned on its current value in world.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.base_single_site_proposer.BaseSingleSiteMHProposer.propose">
 <span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.base_single_site_proposer.BaseSingleSiteMHProposer.propose" title="Permalink to this definition"></a></dt>
-<dd><p>Propose a new value for self.node with Metropolis-Hasting algorithm
-<a class="reference external" href="https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#Formal_derivation">https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#Formal_derivation</a>
+<dd><p>Propose a new value for self.node with <a class="reference external" href="https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#Formal_derivation">Metropolis-Hasting algorithm</a>
 Classes that inherit this proposer should override <cite>get_proposal_distribution</cite>
 to define the algorithm-specific way to sample the next state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>world</strong> – World to calculate proposal for.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

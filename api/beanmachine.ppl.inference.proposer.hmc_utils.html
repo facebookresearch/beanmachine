@@ -43,7 +43,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
@@ -111,7 +111,12 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">DictTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.distributions.transforms.Transform</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A general class for applying a dictionary of Transforms to a dictionary of
-Tensors.</p>
+Tensors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>transforms</strong> – Dict of torch.distributions.Transform keyed by the RVIdentifier</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DictTransform.inv">
 <span class="sig-name descname"><span class="pre">inv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_vals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform.inv" title="Permalink to this definition"></a></dt>
@@ -172,10 +177,15 @@ NUTS for adapting step size in [2]. The implementation and notations follows [2]
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums">
 <span class="sig-name descname"><span class="pre">initialize_momentums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums" title="Permalink to this definition"></a></dt>
-<dd><p>Randomly draw momentum from MultivariateNormal(0, M).</p>
-<p>This momentum variable is denoted as p in [1] and r in [2]. Additionally,
-for nodes that are seen for the first time, this also initialize their
-(inverse) mass matrices to identity.</p>
+<dd><p>Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
+is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
+for the first time, this also initializes their (inverse) mass matrices to
+the identity matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>positions</strong> – RVDict corresponding to the positions of the energy function.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -189,8 +199,16 @@ for nodes that are seen for the first time, this also initialize their
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.RealSpaceTransform">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">RealSpaceTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.RealSpaceTransform" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform" title="beanmachine.ppl.inference.proposer.hmc_utils.DictTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.DictTransform</span></code></a></p>
-<p>Transform a dictionary of Tensor values from constrained space to unconstrained
+<p>Transform a dictionary of Tensor values from a constrained space to the unconstrained
 (real) space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>world</strong> – World which contains the random variables of interest.</p></li>
+<li><p><strong>target_rvs</strong> – Set of RVIdentifiers corresponding to the random variables of interest.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">

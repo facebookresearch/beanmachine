@@ -1,0 +1,11 @@
+beanmachine.ppl.distributions.unit
+==================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.distributions.unit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

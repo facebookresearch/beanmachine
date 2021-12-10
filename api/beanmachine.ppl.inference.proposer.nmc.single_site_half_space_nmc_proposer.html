@@ -43,7 +43,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
@@ -111,19 +111,15 @@
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer.SingleSiteHalfSpaceNMCProposer">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteHalfSpaceNMCProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer.SingleSiteHalfSpaceNMCProposer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.html#beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer" title="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer</span></code></a></p>
-<p>Single-Site Half Space Newtonian Monte Carlo Proposers</p>
+<p>Single-Site Half Space Newtonian Monte Carlo Proposers.
+See sec. 3.2 of [1]</p>
+<p>[1] Arora, Nim, et al. <cite>Newtonian Monte Carlo: single-site MCMC meets second-order gradient methods</cite></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer.SingleSiteHalfSpaceNMCProposer.compute_alpha_beta">
 <span class="sig-name descname"><span class="pre">compute_alpha_beta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer.SingleSiteHalfSpaceNMCProposer.compute_alpha_beta" title="Permalink to this definition"></a></dt>
 <dd><dl class="simple">
 <dt>Computes alpha and beta of the Gamma proposal given the node.</dt><dd><p>alpha = 1 - hessian_diag * x^2
 beta = -1 * x * hessian_diag - first_grad</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>alpha and beta of the Gamma distribution as proposal
-distribution</p>
 </dd>
 </dl>
 </dd></dl>
@@ -134,11 +130,10 @@ distribution</p>
 <dd><p>Returns the proposal distribution of the node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>world</strong> – the world in which we’re proposing a new value for node</p>
+<dd class="field-odd"><p><strong>world</strong> – the world in which we’re proposing a new value for node.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the tuple of proposal distribution of the node and arguments
-that was used or needs to be used to find the proposal distribution</p>
+<dd class="field-even"><p>The proposal distribution.</p>
 </dd>
 </dl>
 </dd></dl>

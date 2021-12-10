@@ -43,7 +43,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
@@ -124,6 +124,20 @@ dual-averaging mechanism for dynamically adjusting the step size [2].</p>
 </dl>
 <p>The current implementation does not use nor adapt a mass matrix – which is
 equivalent to setting the matrix M to I.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_world</strong> – Initial world to propose from.</p></li>
+<li><p><strong>target_rvs</strong> – Set of RVIdentifiers to indicate which variables to propose.</p></li>
+<li><p><strong>num_adaptive_samples</strong> – Number of adaptive samples to run.</p></li>
+<li><p><strong>trajectory_length</strong> – Length of single trajectory.</p></li>
+<li><p><strong>initial_step_size</strong> – Initial step size.</p></li>
+<li><p><strong>adapt_step_size</strong> – Flag whether to adapt step size, defaults to True.</p></li>
+<li><p><strong>adapt_mass_matrix</strong> – Flat whether to adapt mass matrix, defaults to True.</p></li>
+<li><p><strong>target_accept_prob</strong> – Target accept prob, defaults to 0.8.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.do_adaptation">
 <span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.do_adaptation" title="Permalink to this definition"></a></dt>

@@ -13,12 +13,12 @@ Random Walk Metropolis-Hastings works on a single-site basis by proposing new va
 
 The Random Walk Metropolis-Hastings algorithm has multiple proposers defined on different spaces such as all real numbers, positive real numbers, or intervals of the real numbers. These proposers all have common properties used to propose a new value $x^\prime$ from a current value $x$. The proposal distribution $q(x,x^\prime)$ is constructed to satisfy the following properties:
 
-\[
+$$
   \begin{aligned}
     \mathbb{E}[q(x, \cdot)] &= x \\
     \mathbb{V} [q(x, \cdot)] &= \sigma^2
   \end{aligned}
-\]
+$$
 
 $\sigma$ is the parameter that may be provided as a parameter when configuring the inference method, and it must be a fixed positive number. Larger values of $\sigma$ will cause the inference method to explore more non-local values for $X$. This may be good for faster exploration of the posterior, but it may cause lower probability values to get proposed (and therefore rejected) as a result.
 

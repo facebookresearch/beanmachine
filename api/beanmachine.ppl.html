@@ -44,7 +44,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
@@ -56,7 +56,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
@@ -117,19 +117,19 @@
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.diagnostics.html#module-beanmachine.ppl.diagnostics">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.distribution.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distribution.flat.html">beanmachine.ppl.distribution.flat</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.distribution.flat.html#module-beanmachine.ppl.distribution.flat">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.distributions.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.flat.html">beanmachine.ppl.distributions.flat</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.distributions.flat.html#module-beanmachine.ppl.distributions.flat">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distribution.unit.html">beanmachine.ppl.distribution.unit</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.distribution.unit.html#module-beanmachine.ppl.distribution.unit">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.unit.html">beanmachine.ppl.distributions.unit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.distributions.unit.html#module-beanmachine.ppl.distributions.unit">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.distribution.html#module-beanmachine.ppl.distribution">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.distributions.html#module-beanmachine.ppl.distributions">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a><ul>
@@ -339,6 +339,8 @@ in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.RVIdentifier">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.</span></span><span class="sig-name descname"><span class="pre">RVIdentifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapper</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arguments</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.RVIdentifier" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Struct representing the unique key corresponding to a
+BM random variable.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="beanmachine.ppl.RVIdentifier.arguments">
 <span class="sig-name descname"><span class="pre">arguments</span></span><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span></em><a class="headerlink" href="#beanmachine.ppl.RVIdentifier.arguments" title="Permalink to this definition"></a></dt>
@@ -413,6 +415,18 @@ in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.SingleSiteNewtonianMonteCarlo">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNewtonianMonteCarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real_space_alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_space_beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.SingleSiteNewtonianMonteCarlo" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.base_inference.html#beanmachine.ppl.inference.base_inference.BaseInference" title="beanmachine.ppl.inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.base_inference.BaseInference</span></code></a></p>
+<p>Single site Newtonian Monte Carlo [1]. This algorithm selects a proposer
+based on the support of the random variable. Valid supports include real, positive real, and simplex.
+Each site is proposed independently.</p>
+<p>[1] Arora, Nim, et al. <cite>Newtonian Monte Carlo: single-site MCMC meets second-order gradient methods</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>real_space_alpha</strong> – alpha value for real space as specified in [1], defaults to 10.0</p></li>
+<li><p><strong>real_space_beta</strong> – beta value for real space  as specified in [1], defaults to 1.0</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.SingleSiteNewtonianMonteCarlo.get_proposers">
 <span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.SingleSiteNewtonianMonteCarlo.get_proposers" title="Permalink to this definition"></a></dt>
@@ -461,6 +475,13 @@ in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.SingleSiteRandomWalk">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.</span></span><span class="sig-name descname"><span class="pre">SingleSiteRandomWalk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.SingleSiteRandomWalk" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.base_inference.html#beanmachine.ppl.inference.base_inference.BaseInference" title="beanmachine.ppl.inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.base_inference.BaseInference</span></code></a></p>
+<p>Single Site random walk Metropolis-Hastings. This single site algorithm uses a Normal distribution
+proposer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>step_size</strong> – Step size, defaults to 1.0</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.SingleSiteRandomWalk.get_proposers">
 <span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.SingleSiteRandomWalk.get_proposers" title="Permalink to this definition"></a></dt>
@@ -474,6 +495,8 @@ in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.SingleSiteUniformMetropolisHastings">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.</span></span><span class="sig-name descname"><span class="pre">SingleSiteUniformMetropolisHastings</span></span><a class="headerlink" href="#beanmachine.ppl.SingleSiteUniformMetropolisHastings" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.single_site_inference.html#beanmachine.ppl.inference.single_site_inference.SingleSiteInference" title="beanmachine.ppl.inference.single_site_inference.SingleSiteInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.single_site_inference.SingleSiteInference</span></code></a></p>
+<p>Single site uniform Metropolis-Hastings. This single site algorithm proposes
+from a uniform distribution (uniform Categorical for discrete variables).</p>
 </dd></dl>
 
 <dl class="py function">
@@ -502,7 +525,17 @@ in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.functional">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.</span></span><span class="sig-name descname"><span class="pre">functional</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.functional" title="Permalink to this definition"></a></dt>
-<dd><p>Decorator to be used for every query defined in statistical model.</p>
+<dd><p>Decorator to be used for every query defined in statistical model, which are
+functions of <code class="docutils literal notranslate"><span class="pre">bm.random_variable</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+
+<span class="nd">@bm</span><span class="o">.</span><span class="n">functional</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">bar</span><span class="p">():</span>
+  <span class="k">return</span> <span class="n">foo</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -514,7 +547,16 @@ in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.random_variable">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.</span></span><span class="sig-name descname"><span class="pre">random_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.random_variable" title="Permalink to this definition"></a></dt>
 <dd><p>Decorator to be used for every stochastic random variable defined in
-all statistical models.</p>
+all statistical models. E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">random_variable</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">

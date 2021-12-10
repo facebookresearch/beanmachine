@@ -9,7 +9,7 @@ Subpackages
 
    beanmachine.ppl.conftest
    beanmachine.ppl.diagnostics
-   beanmachine.ppl.distribution
+   beanmachine.ppl.distributions
    beanmachine.ppl.examples
    beanmachine.ppl.inference
    beanmachine.ppl.model
