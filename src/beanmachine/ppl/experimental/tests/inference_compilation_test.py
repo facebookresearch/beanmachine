@@ -8,7 +8,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.distribution import Flat
+from beanmachine.ppl.distributions import Flat
 from beanmachine.ppl.examples.conjugate_models import NormalNormalModel
 from beanmachine.ppl.experimental.inference_compilation.ic_infer import ICInference
 from torch import tensor

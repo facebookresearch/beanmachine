@@ -11,7 +11,7 @@ import scipy.stats
 import torch
 import torch.distributions as dist
 import torch.nn as nn
-from beanmachine.ppl.distribution.flat import Flat
+from beanmachine.ppl.distributions.flat import Flat
 from beanmachine.ppl.experimental.vi.optim import (
     BMMultiOptimizer,
     BMOptim,
