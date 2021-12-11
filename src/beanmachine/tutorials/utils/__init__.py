@@ -4,12 +4,4 @@
 # LICENSE file in the root directory of this source tree.
 
 # flake8: noqa
-import sys
-from pathlib import Path
-
-tutorials_dir = Path.cwd().parent
-sys.path.insert(0, str(tutorials_dir))
-
-
-import etl
-import plots
+from beanmachine.tutorials.utils import etl, plots

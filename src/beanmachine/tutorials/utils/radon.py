@@ -7,10 +7,10 @@
 from typing import Dict
 
 import arviz as az
-import etl
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
+from beanmachine.tutorials.utils import etl
 from bokeh.layouts import layout
 from bokeh.models import ColumnDataSource, HoverTool, Whisker
 from bokeh.models.tickers import FixedTicker

@@ -34,6 +34,7 @@ modules = [
     '''beanmachine\.applications(\.\w+)*''',
     '''beanmachine\.graph(\.\w+)*''',
     '''beanmachine\.ppl\.(compiler|diagnostic|experimental|inference\.utils|legacy|testlib|utils)(\.\w+)*''',
+    '''beanmachine\.tutorials(\.\w+)*''',
 ]
 
 # If modules or functions isn't defined then will exclude none by default
