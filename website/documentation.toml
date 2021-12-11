@@ -1,0 +1,50 @@
+name = "Configuration for autogenerating API docs for Bean Machine"
+
+[settings]
+# This can be a list of strings if you want to document more than one module
+search = ["beanmachine"]
+github = "https://github.com/facebookresearch/beanmachine/blob/main/"
+
+[paths]
+# Paths are all relative to the *first* search module
+sidebar = "../website"
+sidebar_filename = "api.sidebar.js"
+
+# TODO: Base path for Docusaurus 2 content
+markdown = "../docs/api"
+
+# TODO: regular expression for sections that are visible initially: unfurled = "..."
+
+[filters]
+
+[filters.include]
+# If modules or symbols isn't defined then will include all by default
+
+# Multiple strings will be combined into a single regular expression with |
+modules = [
+    # Use triple quotes for string literals, useful for regular expressions
+    #'''beanmachine''',
+    #'''beanmachine\.ppl''',
+    #'''beanmachine\.ppl\.(examples|inference|model|world)(\.\w+)*'''
+    '''beanmachine(\.\w+)*''',
+]
+
+[filters.exclude]
+modules = [
+    '''beanmachine\.applications(\.\w+)*''',
+    '''beanmachine\.graph(\.\w+)*''',
+    '''beanmachine\.ppl\.(compiler|diagnostic|experimental|inference\.utils|legacy|testlib|utils)(\.\w+)*''',
+    '''beanmachine\.tutorials(\.\w+)*''',
+]
+
+# If modules or functions isn't defined then will exclude none by default
+symbols = [
+    # Anything that begins with an underscore
+    '''(\w+\.)+_.*''',
+
+    # Specific stuff
+    '''beanmachine.ppl.Diagnostics''',
+    '''beanmachine.ppl.param''',
+    '''beanmachine.ppl.models.utils.get_beanmachine_logger''',
+    '''beanmachine.ppl.world.(ProposalDistribution|TransformData|TransformType|get_default_transforms|get_world_context)''',
+]

@@ -1,0 +1,75 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_docs_job:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+    defaults:
+      run:
+        # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
+        shell: bash -l {0}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Miniconda with Python ${{ matrix.python-version }}
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        miniconda-version: "latest"
+        python-version: ${{ matrix.python-version }}
+        activate-environment: test_env
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y yarn
+        conda install -y eigen boost
+        python -m pip install --upgrade pip
+        python -m pip install setuptools
+        python -m pip install notebook
+
+    - name: Install Bean Machine in editable mode
+      run: pip install -v -e .[dev]
+
+#    - name: Add tutorials to Docs
+#      run: |
+#        cd tutorials
+#        sh convert.sh
+#        cd ..
+
+    - name: Check env
+      run: echo `which sphinx-build`
+
+    - name: Build the docset
+      run: |
+        cd sphinx
+        pip install -r requirements.txt
+        make html
+        cd ..
+
+    - name: Build the Website
+      run: |
+        cd website
+        yarn install
+        yarn build
+        cd ..
+
+    - name: Get output time
+      run: echo "The time was ${{ steps.build.outputs.time }}"
+
+    - name: Deploy
+      if: ${{ github.event_name == 'push' }}
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: website/build # The folder the action should deploy.

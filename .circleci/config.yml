@@ -1,0 +1,75 @@
+version: 2.1
+
+commands:
+
+  user_install_beanmachine:
+    description: "Install beanmachine as an ordinary user would via pip"
+    steps:
+      - run:
+          name: "Install beanmachine"
+          command: pip install --progress-bar off -v .
+
+  pip_install_pytest_patch:
+    steps:
+      - run:
+          name: "Install a patched pytest version from PR (pytest-dev/pytest#7870)"
+          command: >
+            pip install --progress-bar off
+            git+https://github.com/pytest-dev/pytest.git@refs/pull/7870/head
+
+  apt_get_install_deps:
+    description: "Install beanmachine graph dependencies via apt-get"
+    steps:
+      - run:
+          name: "Update package lists"
+          command: sudo apt-get update
+      - run:
+          name: "Install Boost and Eigen"
+          command: sudo apt-get install libboost-dev libeigen3-dev
+
+  pip_list:
+    description: "Print out package info to help with debug"
+    steps:
+      - run:
+          name: "Pip list installed packages"
+          command: pip list
+
+  user_unit_tests:
+    description: "Run unit tests as an ordinary user"
+    steps:
+      - run:
+          name: "Install test dependencies"
+          command: pip install pytest
+      - run:
+          name: "Run unit tests"
+          no_output_timeout: 1h
+          command: pytest -vv
+
+jobs:
+
+  user_install_test_py37_pip:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - apt_get_install_deps
+      - checkout
+      - user_install_beanmachine
+      - pip_install_pytest_patch
+      - pip_list
+      - user_unit_tests
+
+aliases:
+
+  - &exclude_ghpages_fbconfig
+    branches:
+      ignore:
+        - gh-pages
+        - fb-config
+
+
+workflows:
+
+  lint_and_test:
+    jobs:
+      - user_install_test_py37_pip:
+          filters: *exclude_ghpages_fbconfig

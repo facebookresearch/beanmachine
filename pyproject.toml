@@ -1,0 +1,30 @@
+[build-system]
+# PEP 518: The minimum build requirement used in setup.py (before install depndencies)
+requires = ["setuptools", "wheel", "pybind11>=2.6.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py"
+filterwarnings = [
+    # By default, all warnings are treated as errors
+    "error",
+    # patsy is a statsmodels dependency which currently triggers a DeprecationWarning
+    "default::DeprecationWarning:patsy.constraint",
+    # pytorch warns about vmap usage since it's experimental
+    "ignore:torch.vmap is an experimental prototype.*:UserWarning",
+    # pandas sometimes complains about binary compatibility with numpy
+    "default:numpy.ufunc size changed, may indicate binary incompatibility.*:RuntimeWarning",
+    # flowtorch warnings
+    "ignore:DenseAutoregressive input_dim = 1. Consider using an affine transformation instead.*:UserWarning",
+    # statsmodels's deprecation warning
+    "default:the 'unbiased'' keyword is deprecated, use 'adjusted' instead.*:FutureWarning",
+    # nbval fspath deprecation not supported in sphinx
+    "ignore::DeprecationWarning:nbval",
+    # PyTorch 1.10 warns against creating a tensor from a list of numpy arrays
+    """default:Creating a tensor from a list of numpy.ndarrays is extremely slow. Please
+    consider converting the list to a single numpy.ndarray with numpy.array() before
+    converting to a tensor.*:UserWarning""",
+]
+
+[tool.usort]
+first_party_detection=false
