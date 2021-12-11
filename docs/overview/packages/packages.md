@@ -39,4 +39,4 @@ Facebook specific:
 BMG: https://fb.quip.com/TDA7AIjRmScW
 
 Ignore--saved for formatting tips:
-Let's quickly translate the model we discussed in ["Why Bean Machine?"](../why_bean_machine/why_bean_machine.md) into Bean Machine code! Although this will get you up-and-running, **it's important that you read through all of the pages in the Overview to have a complete understanding of Bean Machine**. Happy modeling!
+Let's quickly translate the model we discussed in ["Why Bean Machine?"](../why_bean_machine/why_bean_machine.mdx) into Bean Machine code! Although this will get you up-and-running, **it's important that you read through all of the pages in the Overview to have a complete understanding of Bean Machine**. Happy modeling!

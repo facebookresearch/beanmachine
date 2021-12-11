@@ -33,7 +33,7 @@ module.exports = {
       },
       items: [
         {
-          to: 'docs/why_bean_machine',
+          to: 'docs/overview/why_bean_machine',
           // activeBasePath: '../',
           label: 'Docs',
           position: 'left',
