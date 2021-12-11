@@ -1,10 +1,11 @@
 # Bean Machine
 <div align="center">
-  <a href="http://beanmachine.org"> <img width="220px" height="220px" src="website/static/img/beanmachine.png"></a>
+  <a href="http://beanmachine.org"> <img width="220px" height="220px" src="https://beanmachine.org/img/beanmachine.svg"></a>
 </div>
 
 [![Lint](https://github.com/facebookresearch/beanmachine/actions/workflows/lint.yml/badge.svg)](https://github.com/facebookresearch/beanmachine/actions/workflows/lint.yml)
 [![Tests](https://github.com/facebookresearch/beanmachine/actions/workflows/test.yml/badge.svg)](https://github.com/facebookresearch/beanmachine/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/beanmachine)](https://pypi.org/project/beanmachine)
 
 
 ## Overview
