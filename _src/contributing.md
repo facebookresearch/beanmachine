@@ -1,7 +1,7 @@
 ---
-id: contributing
 title: Contributing Docs
 sidebar_label: Contributing Docs
+slug: contributing
 ---
 
 This document describes how to add and update markdown content that is presented in this Docusaurus 2 project.
@@ -19,11 +19,11 @@ sidebar_label: TOC
 ```
 
 
-Links to other documents within the `docs` folder should contain the path to the document. For example the following links to the `why_bean_machine.md` file in the `why_bean_machine` folder under `docs`.
+Links to other documents within the `docs` folder should contain the path to the document. For example the following links to the `modeling.md` file in the `modeling` folder under `docs`.
 
 
 ```
-[Why Bean Machine?](_overview/why_bean_machine/why_bean_machine.md_)
+[Modeling](_overview/modeling/modeling.md_)
 ```
 
 For a full list of formatting syntax supported by Docusarus, you can visit this [site](https://www.markdownguide.org/basic-syntax/).
