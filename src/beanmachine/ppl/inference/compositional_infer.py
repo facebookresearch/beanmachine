@@ -102,6 +102,33 @@ def _get_nodes_for_rv_family(
 
 
 class CompositionalInference(BaseInference):
+    """
+    The ``CompositionalInference`` class enables combining multiple inference algorithms
+    and blocking random variables together. By default, it uses different proposer to
+    update each site by (by look at the support of the distribution that that site).
+    To override the default behavior, you can pass an ``inference_dict``. To learn more
+    about Compositional Inference, please see the `Compositional Inference
+    <https://beanmachine.org/docs/compositional_inference/>`_ page on our website.
+
+    Example 0 (use different inference method for different random variable families)::
+
+        CompositionalInference({
+            model.foo: bm.SingleSiteAncestralMetropolisHastings(),
+            model.bar: bm.SingleSiteNewtonianMonteCarlo(),
+        })
+
+    Example 1 (override default inference method)::
+
+        CompositionalInference({...: bm.SingleSiteAncestralMetropolisHastings()})
+
+    Example 2 (block inference (jointly propose) ``model.foo`` and ``model.bar``)::
+
+        CompositionalInference({(model.foo, model.bar): bm.GlobalNoUTurnSampler()})
+
+    Args:
+        inference_dict: an optional inference configuration as shown above.
+    """
+
     def __init__(
         self,
         inference_dict: Optional[
