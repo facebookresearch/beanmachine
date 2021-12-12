@@ -84,7 +84,7 @@ def num_new(today):
     return dist.Poisson(reproduction_rate() * num_total(yesterday))
 ```
 
-Note how this allows us to express a more complex dependency structure - Where previously we relied on the availability of an argument `num_current` to describe the infections at some ambient "current time", now we can invoke the more precise notion of the case count "the day before `today`". This knowledge is in turn represented in another part of our probabilistic generative model, namely in the function
+Note how this allows us to express a more complex dependency structure: where we previously relied on the argument `num_current` to describe the infections at some unspecified "current time", we can now use a more precise notion of (for example) "the day before `today`". This knowledge is in turn represented in another part of our probabilistic generative model, namely in the function `num_total`:
 
 ```py
 # WARNING: INCORRECT COUNTER-EXAMPLE
@@ -98,7 +98,7 @@ def num_total(today):
 
 ## Transforming Random Variables
 
-The problem in the above code is that we _can't_ decorate `num_total()` with `@bm.random_variable`. The reason we cannot is that it _doesn't return_ a [PyTorch elementary probability distribution (EPD)](https://pytorch.org/docs/stable/distributions.html?highlight=distribution#module-torch.distributions). But, without a `@bm.random_variable` decorator on this function, Bean Machine _won't know_ that it should treat `num_new()` inside its body as a random variable function. As we discussed in [Calling a Random Variable from an Ordinary Function](#calling_outside), this call to `num_new()` would merely return an `RVIdentifier`, which is not what we want.
+The problem in the above code is that we _can't_ decorate `num_total()` with `@bm.random_variable`. The reason we cannot is that it _doesn't return_ a [PyTorch elementary probability distribution](https://pytorch.org/docs/stable/distributions.html?highlight=distribution#module-torch.distributions). But, without a `@bm.random_variable` decorator on this function, Bean Machine _won't know_ that it should treat `num_new()` inside its body as a random variable function. As we discussed in [Calling a Random Variable from an Ordinary Function](#calling_outside), this call to `num_new()` would merely return an `RVIdentifier`, which is not what we want.
 
 What do we do then? What we need here, and what is also the last important construct in Bean Machine's modeling toolkit, is the `@bm.functional` decorator. This decorator behaves like `@bm.random_variable`, except that it does require the function it is decorating to return only elementary distributions. As such, it can be used to deterministically transform the results of one or more other `@bm.random_variable` or `@bm.functional` functions. With this construct we can now write this model as follows:
 
@@ -117,7 +117,7 @@ def num_new(today):
     return dist.Poisson(reproduction_rate() * num_total(yesterday))
 ```
 
-One last note: while a `@bm.functional` can be queried (viewed) during inference, it can't be directly bound (softly constrained) to observations like a `@bm.random_variable`. This is because in Bean Machine, we rely on PyTorch's elementary probability distributions (EPDs) to score observations.
+One last note: while a `@bm.functional` can be queried during inference, it can't have observations bound to it.
 
 ---
 

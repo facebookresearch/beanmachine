@@ -6,11 +6,11 @@ slug: 'overview/analysis'
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-Inference results are useful not only for learning from your posterior distributions, but for verifying that inference ran correctly. We'll cover common techniques for analyzing results in this section. As is the case for everything else in this **Overview**, the code for this section is available as a notebook on [GitHub](https://github.com/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb) and [Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb).
+Inference results are useful not only for learning posterior distributions, but for verifying that inference ran correctly. We'll cover common techniques for analyzing results in this section. As is the case for everything else in this **Overview**, the code for this section is available as a notebook on [GitHub](https://github.com/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb) and [Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb).
 
 ## Results of Inference
 
-Bean Machine stores the results of inference in an object of type `MonteCarloSamples`. This class uses an underlying data structure of a dictionary mapping a model's random variables to a PyTorch tensor of sampled values. The class can be accessed like a dictionary, and there are additional wrapper methods to make function calls more explicit.
+Bean Machine stores the results of inference in an object of type [`MonteCarloSamples`](https://beanmachine.org/api/beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples). Internally, this class uses a dictionary to map random variables to PyTorch tensors of posterior samples. The class can be accessed like a dictionary, and there are additional wrapper methods to make function calls more explicit.
 
 In the [Inference](../inference/inference.md) section, we obtained results on the disease modeling example by running inference:
 
@@ -65,7 +65,7 @@ tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
         [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])
 ```
 
-Please note that many inference methods require a small number of samples before they start drawing samples that correctly resemble the posterior distribution. We recommend you discard at least a few hundred samples before using your inference results.
+Please note that many inference methods require a small number of samples before they start drawing samples that correctly resemble the posterior distribution. The 3000 samples that we specified in `num_adaptive_samples` were already excluded for us, so nothing needs to be done here. However, if you use no adaptive samples, we recommend you discard at least a few hundred samples before using your inference results.
 
 ### Extracting Samples for a Specific Chain
 
@@ -93,7 +93,7 @@ tensor([1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193])
 Visualizing the results of inference can be a great help in understanding them. Since you now know how to access posterior samples, you're free to use whatever visualization tools you prefer.
 
 ```py
-reproduction_rate_samples = samples[reproduction_rate()][0][100:]
+reproduction_rate_samples = samples.get_chain(0)[reproduction_rate()]
 ```
 
 <img src={useBaseUrl("/img/posterior_rate_dynamic.png")} />
@@ -106,7 +106,7 @@ After running inference it is useful to run diagnostic tools to assess reliabili
 
 Bean Machine provides important summary statistics for individual, numerically-valued random variables. Let's take a look at the code to generate them, and then we'll break down the statistics themselves.
 
-Bean Machine's interface to the `Arviz` libray makes it easy to generate a Pandas `DataFrame` presenting these statistics for all queried random variables:
+Bean Machine's interface to the [`ArviZ`](https://arviz-devs.github.io/arviz/) libray makes it easy to generate a Pandas `DataFrame` presenting these statistics for all queried random variables:
 
 ```py
 import arviz as az
@@ -117,19 +117,19 @@ az.summary(samples.to_xarray(), round_to=5)
 
 || **mean** | **sd** | **hdi_5.5%** | **hdi_94.5%** | **mcse_mean** | **mcse_sd** | **ess_bulk** | **ess_tail** | **r_hat**
 | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
-| `reproduction_rate()` | 0.21965 | 0.0003 | 0.21916 | 0.22012 | 0.0 | 0.0 | 18556.76464 | 17903.45852 | 1.00017
+| `reproduction_rate()` | 0.2196 | 0.0003 | 0.2192 | 0.2201 | 0.0 | 0.0 | 20134.7627 | 19526.0694 | 1.0
 
 We recommend reading the official [`ArviZ` documentation](https://arviz-devs.github.io/arviz/api/generated/arviz.summary.html) for a full explanation, but the statistics presented are:
 
   1. **Mean** and **standard deviation** (SD).
-  1. 87% **highest density interval** (HDI).
+  1. 89% **highest density interval** (HDI).
   1. **Markov chain standard error** (MCSE).
   1. **Effective sample size** (ESS) [$N_\text{eff}$](https://www.mcmchandbook.net/HandbookChapter1.pdf).
   1. **Convergence diagnostic** [$\hat{R}$](https://dx.doi.org/10.1214/20-BA1221).
 
-We choose to display the $89\%$ HDI, following recommendations in [_Statistical Rethinking: A Bayesian Course with Examples in R and Stan (McElreath, 2020)_](https://dx.doi.org/10.1201/9780429029608). The statistics above provide different insights into the quality of the results of inference. For instance, we can use them in combination with synthetically generated data for which we know ground truth values for parameters and then check to make sure that these values fall within some HDI of our posterior samples. Of course, in doing so it is important to keep in mind that the prior distributions in our model (and not just the data) will always have an influence on the posterior distribution. Similarly, we can use the size of the HDI to gain insights into the model: if it is large, this could indicate that either we have too few observations or that the prior is too weak.
+We choose to display the 89% highest density interval (HDI), following recommendations in [_Statistical Rethinking: A Bayesian Course with Examples in R and Stan (McElreath, 2020)_](https://dx.doi.org/10.1201/9780429029608). The statistics above provide different insights into the quality of the results of inference. For instance, we can use them in combination with synthetically generated data for which we know ground truth values for parameters and then check to make sure that these values fall within some HDI of our posterior samples. Of course, in doing so it is important to keep in mind that the prior distributions in our model (and not just the data) will have an influence on the posterior distribution. Similarly, we can use the size of the HDI to gain insights into the model: if it is large, this could indicate that either we have too few observations or that the prior is too weak.
 
-$\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to $1.0$ indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.01$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior that inference is unable to reliably explore the posterior distribution.
+$\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to $1.0$ indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.01$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior, or that the particular inference method is unable to reliably explore the posterior distribution.
 
 $N_\text{eff} \in [1,$ `num_samples`$]$ summarizes how independent posterior samples are from one another. Although inference was run for `num_samples` iterations, it's possible that those samples were very similar to each other (due to the way inference is implemented), and may not each be representative of the full posterior space. Larger numbers are better here, and if your particular use case calls for a certain number of samples to be considered, you should ensure that $N_\text{eff}$ is at least that large.
 
@@ -141,19 +141,15 @@ Bean Machine can also plot diagnostic information to assess health of the infere
 
 ```py
 az.plot_trace(
-    {'Reproduction rate': samples[reproduction_rate()].numpy()[:, 100:]},
+    {"Reproduction rate": samples[reproduction_rate()]},
     compact=False,
-    show=False,
-)[0][1]
+)
 ```
 
 <img src={useBaseUrl("/img/mcmc_trace.png")} />
 
 ```py
-az.plot_autocorr(
-    {'Reproduction rate': samples[reproduction_rate()].numpy()[:, 100:]},
-    show=False,
-)
+az.plot_autocorr({"Reproduction rate": samples[reproduction_rate()]})
 ```
 
 <img src={useBaseUrl("/img/mcmc_autocorr.png")} />
@@ -167,4 +163,4 @@ For our example model, we see from the trace plots that each of the chains are h
 
 ---
 
-Congratulations, you've made it through the **Overview**! If you're looking to get an even deeper understanding of Bean Machine, check out the **Framework** topics next. Or, if you're looking to get to coding, check out our [Tutorials](../tutorials/tutorials.md). In either case, happy modeling!
+Congratulations, you've made it through the **Overview**! If you're looking to get an even deeper understanding of Bean Machine, check out the **Framework** topics next. Or, if you're looking to get to coding, check out our [**Tutorials**](../tutorials/tutorials.md). In either case, happy modeling!
