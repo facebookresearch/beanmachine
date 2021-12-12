@@ -12,7 +12,6 @@ Welcome to BeanMachine's documentation!
    beanmachine.ppl.conftest
    beanmachine.ppl.diagnostics
    beanmachine.ppl.distributions
-   beanmachine.ppl.examples
    beanmachine.ppl.inference
    beanmachine.ppl.model
    beanmachine.ppl.world
