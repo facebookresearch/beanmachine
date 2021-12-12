@@ -112,7 +112,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         samples = self.samples[rv]
 
         if include_adapt_steps:
-            samples = torch.cat([samples, self.adaptive_samples[rv]], dim=1)
+            samples = torch.cat([self.adaptive_samples[rv], samples], dim=1)
 
         if thinning > 1:
             samples = samples[:, ::thinning]
