@@ -285,12 +285,31 @@ is not found in the graph already.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.init_from_prior">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">init_from_prior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.init_from_prior" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Samples from the distribution.</p>
+<p>Used as an arg for <code class="docutils literal notranslate"><span class="pre">World</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">torch.distribution.Distribution</span></code> corresponding to
+the distribution to sample from</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.init_to_uniform">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">init_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.init_to_uniform" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Initializes a uniform distribution to sample from transformed to the
+support of <code class="docutils literal notranslate"><span class="pre">distribution</span></code>.  A Categorical is used for discrete distributions,
+a bijective transform is used for constrained continuous distributions, and
+<code class="docutils literal notranslate"><span class="pre">distribution</span></code> is used otherwise.</p>
+<p>Used as an arg for <code class="docutils literal notranslate"><span class="pre">World</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">torch.distribution.Distribution</span></code> of the RV, usually
+the prior distribution.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 </section>
