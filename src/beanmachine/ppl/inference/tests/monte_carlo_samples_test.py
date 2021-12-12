@@ -165,6 +165,18 @@ class MonteCarloSamplesTest(unittest.TestCase):
         inference_data = samples.to_inference_data()
         self.assertIn(model.foo(), inference_data.posterior)
 
+    def test_get_variable(self):
+        model = self.SampleModel()
+        samples = MonteCarloSamples(
+            [{model.foo(): torch.arange(10)}], num_adaptive_samples=3
+        ).get_chain(0)
+        self.assertTrue(
+            torch.all(samples.get_variable(model.foo()) == torch.arange(3, 10))
+        )
+        self.assertTrue(
+            torch.all(samples.get_variable(model.foo(), True) == torch.arange(10))
+        )
+
     def test_thinning(self):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
