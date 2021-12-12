@@ -78,7 +78,7 @@ Bean Machine uses a site-based inference engine. "Sites" are random variable fam
 
 The simplest form of site-based inference is called "single-site" inference. In the single-site paradigm, models are built up from random variables that can be reasoned about individually. Bean Machine can exploit this modularity to update random variables one-at-a-time, reducing unnecessary computation and enabling posterior updates that might not be possible if processing the entire model in one go.
 
-Bean Machine also supports "multi-site" inference, in which sites are families of multiple random variables are reasoned about jointly. This increases complexity during inference, but it allows the engine to exploit inter-site correlations when fitting the posterior distribution.
+Bean Machine also supports "multi-site" inference. Multi-site inference reasons about multiple families of random variables jointly. This increases complexity during inference, but it allows the engine to exploit inter-site correlations when fitting the posterior distribution.
 
 Altogether, site-based inference is a flexible pattern for trading off complexity and modularity, and enables the advanced techniques outlined below.
 
