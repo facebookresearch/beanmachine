@@ -25,7 +25,7 @@ modules = [
     # Use triple quotes for string literals, useful for regular expressions
     #'''beanmachine''',
     #'''beanmachine\.ppl''',
-    #'''beanmachine\.ppl\.(examples|inference|model|world)(\.\w+)*'''
+    #'''beanmachine\.ppl\.(inference|model|world)(\.\w+)*'''
     '''beanmachine(\.\w+)*''',
 ]
 
@@ -33,7 +33,7 @@ modules = [
 modules = [
     '''beanmachine\.applications(\.\w+)*''',
     '''beanmachine\.graph(\.\w+)*''',
-    '''beanmachine\.ppl\.(compiler|diagnostic|experimental|inference\.utils|legacy|testlib|utils)(\.\w+)*''',
+    '''beanmachine\.ppl\.(compiler|diagnostic|examples|experimental|inference\.utils|legacy|testlib|utils)(\.\w+)*''',
     '''beanmachine\.tutorials(\.\w+)*''',
 ]
 
