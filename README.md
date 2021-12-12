@@ -11,7 +11,7 @@
 ## Overview
 
 Bean Machine is a probabilistic programming language for inference over statistical models written in the Python language using a declarative syntax. Bean Machine is built on top of PyTorch and Bean Machine Graph, a custom C++ backend.
-Check out [our tutorials and Quick Start](https://beanmachine.org/docs/quickstart) to get started!
+Check out our [tutorials](https://beanmachine.org/docs/tutorials/) and [Quick Start](https://beanmachine.org/docs/overview/quick_start/) to get started!
 
 ## Installation
 Bean Machine supports Python 3.7, 3.8 and PyTorch 1.10.
