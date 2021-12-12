@@ -14,6 +14,19 @@ InitializeFn = Callable[[dist.Distribution], torch.Tensor]
 
 
 def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
+    """
+    Initializes a uniform distribution to sample from transformed to the
+    support of ``distribution``.  A Categorical is used for discrete distributions,
+    a bijective transform is used for constrained continuous distributions, and
+    ``distribution`` is used otherwise.
+
+    Used as an arg for ``World``
+
+    Args:
+        distribution: ``torch.distribution.Distribution`` of the RV, usually
+                      the prior distribution.
+
+    """
     sample_val = distribution.sample()
     if distribution.has_enumerate_support:
         support = distribution.enumerate_support(expand=False).flatten()
@@ -27,4 +40,13 @@ def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
 
 
 def init_from_prior(distribution: dist.Distribution) -> torch.Tensor:
+    """
+    Samples from the distribution.
+
+    Used as an arg for ``World``
+
+    Args:
+        distribution: ``torch.distribution.Distribution`` corresponding to
+                      the distribution to sample from
+    """
     return distribution.sample()
