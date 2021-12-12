@@ -83,6 +83,6 @@ This tutorial uses Bean Machine to infer which latent clusters observed points a
 
 ### Neal's Funnel
 
-[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hidden_Markov_model.ipynb)
+[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb)
 
 This tutorial demonstrates modeling and running inference on the Neal's funnel model in Bean Machine. Neal's funnel is a synthetic model in which the posterior distribution is known beforehand, and Bean Machine's inference engine is tasked with automatically recovering that posterior distribution. Neal's funnel has proven difficult-to-handle for classical inference methods due to its unusual topology. This tutorial demonstrates how to overcome this by using second-order gradient methods in Bean Machine. It also demonstrates how to implement models with factors in Bean Machine through custom distributions.
