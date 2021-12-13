@@ -32,7 +32,7 @@ This tutorial shows how to build a simple Bayesian model to deduce the line whic
 
 ### Sparse Logistic Regression
 
-[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Tutorial_Implement_sparse_logistic_regression.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Tutorial_Implement_sparse_logistic_regression.ipynb)
+[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb)
 
 This tutorial demonstrates modeling and running inference on a sparse logistic regression model in Bean Machine. This tutorial showcases the inference techniques in Bean Machine, and applies the model to a public dataset to evaluate performance. This tutorial will also introduce the `@bm.functional` decorator, which can be used to deterministically transform random variables. This tutorial uses it for convenient post-processing.
 
