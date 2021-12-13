@@ -87,7 +87,7 @@ The optimal acceptance rate for HMC, as derived by Neal (2011), is 0.65. It is d
 
 Due to the challenge of selecting good hyperparameters, Bean Machine provides extensions to HMC to help choose appropriate values.
 
-One such extension is called Adaptive Hamiltonian Monte Carlo. Adaptive HMC Adaptive HMC requires an [adaptive phase](../custom_inference/adaptive_inference.md), where Bean Machine uses the HMC algorithm to generate samples while tuning HMC's  step size and covariance matrix. Adaptive HMC provides two main improvements over HMC, outlined below.
+One such extension is called Adaptive Hamiltonian Monte Carlo. Adaptive HMC Adaptive HMC requires an adaptive phase, where Bean Machine uses the HMC algorithm to generate samples while tuning HMC's  step size and covariance matrix. Adaptive HMC provides two main improvements over HMC, outlined below.
 
 **Users do not have to specify a step size.**  During the adaptive phase, the step size is adjusted in order to achieve the optimal acceptance rate of 0.65 on average. If the acceptance rate is above optimal, then Bean Machine is being too careful and discretizing in steps that are too small; therefore, the step size should be increased. If the acceptance rate is too low, then the step size should be decreased. We follow the [Robbins-Monro stochastic approximation method](https://en.wikipedia.org/wiki/Stochastic_approximation#Robbins%E2%80%93Monro_algorithm), where earlier iterations within the adaptive phase have a larger influence over the step size than later iterations.
 
