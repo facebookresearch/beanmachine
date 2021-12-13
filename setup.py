@@ -19,13 +19,14 @@ REQUIRED_MINOR = 7
 
 TEST_REQUIRES = ["pytest", "pytest-cov"]
 TUTORIALS_REQUIRES = [
+    "bokeh",
+    "cma",
+    "ipywidgets",
     "jupyter",
     "matplotlib",
-    "cma",
-    "torchvision",
+    "scikit-learn>=1.0.0",
     "seaborn",
-    "bokeh",
-    "ipywidgets",
+    "torchvision",
 ]
 DEV_REQUIRES = (
     TEST_REQUIRES
