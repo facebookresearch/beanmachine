@@ -11,7 +11,7 @@ Proposal algorithms will behave differently depending on the shape and constrain
 
 Bean Machine allows users to use default transformations for transforming constrained spaces into unconstrained spaces, or to specify custom transforms. Additionally, transforms can also be used in other ways such as specifying kernels for Gaussian processes.
 
-Transforms are supported within the `Variable` class by the following attributes: `value`, `transformed_value` and `jacobian` (a generalization of derivatives for multi-variable functions). These will be populated accordingly depending on the transforms specified. If there are no transforms, then `transformed_value` will be equivalent to `value`, and `jacobian` will be zero. The attribute `transformed_value` will be used throughout inference since it is in the unconstrained space required by the algorithm. See [`World` and `Variable` API](../custom_proposers/variable.md) for more details.
+Transforms are supported within the `Variable` class by the following attributes: `value`, `transformed_value` and `jacobian` (a generalization of derivatives for multi-variable functions). These will be populated accordingly depending on the transforms specified. If there are no transforms, then `transformed_value` will be equivalent to `value`, and `jacobian` will be zero. The attribute `transformed_value` will be used throughout inference since it is in the unconstrained space required by the algorithm. See [`World` and `Variable` API](../world.md) for more details.
 
 ## Specifying Transforms
 Each proposer and inference method has the following optional parameters for initialization

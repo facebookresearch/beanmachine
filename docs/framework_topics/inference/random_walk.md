@@ -9,7 +9,7 @@ Random Walk Metropolis-Hastings is a simple, minimal MCMC inference method. Rand
 
 ## Algorithm
 
-Random Walk Metropolis-Hastings works on a single-site basis by proposing new values for a random variable that are close to the current value according to some sense of distance. As such, it is only defined for continuous random variables. The exact distance that a proposed value is from the current value is defined by the _proposal distribution_, and is a parameter that can be provided when configuring the inference method. For discrete random variables, a similar effect may be achieved, but [custom proposers](../custom_proposers/custom_proposers.md) must be used instead.
+Random Walk Metropolis-Hastings works on a single-site basis by proposing new values for a random variable that are close to the current value according to some sense of distance. As such, it is only defined for continuous random variables. The exact distance that a proposed value is from the current value is defined by the _proposal distribution_, and is a parameter that can be provided when configuring the inference method. For discrete random variables, a similar effect may be achieved, but [custom proposers](../custom_inference/custom_proposers.md) must be used instead.
 
 The Random Walk Metropolis-Hastings algorithm has multiple proposers defined on different spaces such as all real numbers, positive real numbers, or intervals of the real numbers. These proposers all have common properties used to propose a new value $x^\prime$ from a current value $x$. The proposal distribution $q(x,x^\prime)$ is constructed to satisfy the following properties:
 
