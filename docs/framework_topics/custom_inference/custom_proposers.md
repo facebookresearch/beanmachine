@@ -27,7 +27,7 @@ def post_process(
 * world: graphical data structure representing variable dependencies and values in the model *before* the proposal is made
 
 The return value of `propose` is a tuple with three values
-* $x'$, the new proposed value for the node (if a variable has an associated [transform](../programmable_inference/transforms.md), this returned value must be in the variable's original space -- use `Variable.inverse_transform_value` to transform values in the transformed space back to the original space)
+* $x'$, the new proposed value for the node (if a variable has an associated [transform](../custom_inference/transforms.md), this returned value must be in the variable's original space -- use `Variable.inverse_transform_value` to transform values in the transformed space back to the original space)
 * $\log[g(x' \mid x)]$, the log probability of proposing this value
 * a dictionary of auxiliary variables used in `propose` that are useful in `post_process` (this will typically be intermediary computations used by both functions, so they do not need to be recomputed by `post_process`)
 
