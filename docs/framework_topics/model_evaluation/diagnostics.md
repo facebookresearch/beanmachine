@@ -5,11 +5,11 @@ sidebar_label: 'Diagnostics Module'
 slug: '/diagnostics'
 ---
 
-:::tip
-The Diagnostics module is still available but planned to be deprecated in favor of [ArviZ](https://arviz-devs.github.io/arviz/), a third-party package for exploratory analysis of Bayesian  models.
+:::warning
+The Diagnostics module is still available but will be deprecated in future releases in favor of [ArviZ](https://arviz-devs.github.io/arviz/). Check out the tutorials for examples of Arviz integration.
 :::
 
-This section introduces the Diagnostics class in Bean Machine (BM) which aims to assist the modeler to get insights about the model performance. Diagnostics currently supports two main components:
+This section describes the Diagnostics class in Bean Machine (BM) which aims to assist the modeler to get insights about the model performance. Diagnostics currently supports two main components:
 
 **General Summary Statistics Module**: aggregates the statistics of all or a subset of queries over a specific chain or all chains.
 
