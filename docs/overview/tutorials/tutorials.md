@@ -5,9 +5,7 @@ sidebar_label: 'Tutorials'
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine.
-
-## Tutorials
+These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine. Play around with them in an interactive Google Colab notebook!
 
 ### Coin Flipping
 
