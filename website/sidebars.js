@@ -21,7 +21,11 @@ module.exports = {
         'overview/installation/installation',
       ],
       Framework: [
+        'framework_topics/world',
         {
+//           'World and Variables': [
+//             'framework_topics/world',
+//           ],
           'Inference Methods': [
             'framework_topics/inference/inference',
             'framework_topics/inference/ancestral_metropolis_hastings',
@@ -38,9 +42,9 @@ module.exports = {
             'framework_topics/programmable_inference/compositional_inference',
             'framework_topics/programmable_inference/adaptive_inference',
           ],
-          'Custom Proposers': [
-            'framework_topics/custom_proposers/variable',
-            'framework_topics/custom_proposers/custom_proposers',
+          'Custom Inference': [
+            'framework_topics/custom_inference/variable',
+            'framework_topics/custom_inference/custom_proposers',
           ],
           'Model Evaluation': [
             'framework_topics/model_evaluation/diagnostics',
