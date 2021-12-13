@@ -9,11 +9,11 @@ slug: /beanstalk
 
 ### What is Bean Machine Graph Inference?
 
-Bean Machine Graph (BMG) inference is an experimental implementation of inference methods intended for use on restricted models under active development. It uses an internal compiler called Beanstalk which is automatically executed, without users' intervention.
+Bean Machine Graph (BMG) inference is an experimental implementation under active development of inference methods intended for use on a restricted set of models. It uses a compiler (internally referred to as Beanstalk) which is automatically executed, without user intervention.
 
-BMG inference is still used on models defined in Python as usual, but relies on a C++ runtime and therefore bypasses Python overhead during inference. Moreover, it is designed specifically to gain significant performance improvements for inference in models restricted in two ways:
-- these models are *unvectorized*, that is, their stochastic quantities are tensors which contain exactly one value.
-- they are *static*, that is, their corresponding *graph* is the same regardless of the values of random variables’ values. To get a better idea of what a model's graph is and when it is static, see section [Model graphs (static and dynamic)](#graphs) below.
+BMG inference is still used on models defined in Python as usual, but relies on a C++ runtime and therefore bypasses Python overhead during inference. Moreover, it is designed specifically to gain significant performance improvements for inference in models with the following properties:
+- These models are *unvectorized*, that is, their stochastic quantities are tensors which contain exactly one value.
+- They are *static*, that is, their corresponding *graph* is the same regardless of the values of random variables’ values. To get a better idea of what a model's graph is and when it is static, see section [Model graphs (static and dynamic)](#graphs) below.
 
 ### Examples
 The tutorials currently working with BMG inference are:
