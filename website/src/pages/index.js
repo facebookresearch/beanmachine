@@ -121,6 +121,18 @@ function Home() {
             </div>
           </section>
         )}
+        <div className="container">
+          <p>
+            <i>
+              <mark>
+              <b>Status: Beta.  </b>
+              APIs are likely to change. Functionalities are constantly being
+              improved. Bug reports are welcome, but bandwidth is very limited
+              for feature requests.
+              </mark>
+            </i>
+          </p>
+        </div>
       </main>
     </Layout>
   );
