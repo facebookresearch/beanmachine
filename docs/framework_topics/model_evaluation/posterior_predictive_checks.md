@@ -11,7 +11,7 @@ $$
 p(x_{new} | x) = E_{z\sim p(z|x)} p(x_{new}|z)
 $$
 
-In Bean Machine, samples can be generated from the model via `simulate` (TODO: link to docs). Let's take the earlier model of inferring bias of a coin.
+In Bean Machine, samples can be generated from the model via [`simulate`](https://beanmachine.org/api/beanmachine.ppl.inference.predictive.html?beanmachine.ppl.inference.predictive.Predictive.simulate#beanmachine.ppl.inference.predictive.simulate). Let's take the earlier model of inferring bias of a coin.
 ```python
 @bm.random_variable
 def coin_bias():
@@ -32,32 +32,32 @@ observations = {coin_toss(i): coin_data[i] for i in range(flip_count)}
 
 # simulate from the prior
 x_new = simulate(queries + list(observations.keys()),
-                 num_samples=100)
+                 num_samples=1)
 assert isinstance(x_new, MonteCarloSamples)
-plot(x_new)
+
+# Print out some generated coin tosses from our model.
+print([x_new[coin_toss(i)] for i in range(flip_count)])
 ```
-*TODO: add plot*
 
-
-To generate the (empirical) *posterior* predictive distribution $p(x_{new}|x)$, we call `simulate()` on our posterior samples returned by `infer()`.
-
-*TODO: explain what it means to simulate from a posterior represented by samples; is it some sort of re-sampling? Explain how we get the (1, 100, 100) shape below exactly. What is the 1 dimension? Inference chain? Why do we get an inference chain when sampling from samples? Presumably that is not an MCMC method.*
+This is also known as a prior predictive. Now lets say we've run inference to learn more sensible distributions for our random variables, and we'd like to generate new data with our learned model.
+To generate the (empirical) *posterior* predictive distribution $p(x_{new}|x)$, we call `simulate()` on our posterior samples returned by `infer()`. Note that this time, the first argument
+to `simulate` is only the observations since those are the values we are querying. The samples for the other random variables have already been collected from inference.
 
 ```python
 # run inference
-posterior = mcmc.infer(queries, obs, num_samples=100)
+num_infer_samples = 30
+num_sim_samples = 50
+posterior = mcmc.infer(queries, obs, num_samples=30)
 
 # generate predictives from our posterior
 x_post_pred = simulate(observations.keys(),
                        posterior=posterior,
                        num_samples=100)
-assert x_post_pred[queries[0]].shape == (1, 100, 100)
-plot(x_post_pred)
+assert x_post_pred[queries[0]].shape == (1, num_infer_samples, num_sim_samples)
 ```
-*TODO: add plot*
 
-Notice that in the posterior predictive case, we pass the observation keys (random variable identifiers) as the "queries" since we are querying about their posterior distribution.
-
-*TODO: the first plot shows both `queries` and `observations.keys()` whereas the second plot only shows `observations`. I am not how the first plot will show this data, but I would assume the point of showing the second plot is to compare it with the first one to see if the posterior on `observations.keys()` looks like the distribution on `observations.keys()` in the first plot. This means that the first plot should show the representation on these variables separately from the distribution on `queries`. In any case, it is not very clear what is being done here so this needs a more clear explanation.*
+Note the shape here; since `simulate` is an inference subroutine under the hood (one in which we just forward sample the model), in theory, it can be run with multiple chains. For this example,
+we only have one chain. Then for each Monte Carlo sample of our posterior, we sample `num_sim_samples` many coin flips. We can then use [`Empirical`](https://beanmachine.org/api/beanmachine.ppl.html#beanmachine.ppl.empirical)
+to sample from this resulting bag of samples. From here, one can compute various statistics on the posterior predictive data and compare with the ground truth data to assess model fitness.
 
 [^1]: Gelman, A., et al. *Understanding predictive information criteria for Bayesian models*. https://arxiv.org/abs/1307.5928.
