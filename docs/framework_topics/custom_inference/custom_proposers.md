@@ -48,7 +48,7 @@ The `node` is of type `RVIdentifier`, which includes only the function and its p
 ```py
 world.get_node_in_world_raise_error(node, False)
 ```
-This returns the associated [`Variable`](variable.md) (see Variable API documentation for more details).
+This returns the associated `Variable`.
 
 <!--
     It is odd and surprising that world.get_node_in_world_raise_error(node, False) returns a Variable, not a node, in spite of its name.

@@ -88,7 +88,7 @@ Regardless of the inference method, `infer()` has a few important general parame
 | `queries` | A list of random variable functions to fit posterior distributions for.
 | `observations` | The Python dictionary of observations that we discussed in [Binding Data](#binding-data).
 | `num_samples` | The integer number of samples with which to approximate the posterior distributions for the values listed in `queries`.
-| `num_adaptive_samples` | The integer number of samples to spend before `num_samples` on tuning the inference algorithm for the `queries`, see [Adaptation and Warmup](../../framework_topics/custom_inference/adaptive_inference.md).
+| `num_adaptive_samples` | The integer number of samples to spend before `num_samples` on tuning the inference algorithm for the `queries`.
 | `num_chains` | The integer number of separate inference runs to use. Multiple chains can be used to verify that inference ran correctly.
 
 You've already seen `queries` and `observations` many times. `num_adaptive_samples` and `num_samples` are used to specify the number of iterations to respectively tune, and then run, inference. More iterations will allow inference to explore the posterior distribution more completely, resulting in more reliable posterior distributions. `num_chains` lets you specify the number of identical runs of the entire inference algorithm to perform, called "chains". Multiple chains of inference can be used to validate that inference ran correctly and was run for enough iterations to produce reliable results, and their behavior can also help detect whether the model was well specified. We'll revisit chains in [Inference Methods](../../framework_topics/inference/inference.md).
