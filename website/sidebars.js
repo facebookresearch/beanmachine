@@ -59,7 +59,6 @@ module.exports = {
     // {
     //   Packages: ['overview/packages/packages'],
     // },
-    'contributing',
     {
       ...fbInternalOnly({FacebookIntern: ['overview/facebook/facebook']}),
     },
