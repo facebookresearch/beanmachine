@@ -7,7 +7,7 @@ const BokehFigure = React.memo(({ pathToData }) => {
   const targetID = plotData["target_id"];
   return (
     <div className="bk-root" id={targetID}>
-      <BrowserOnly fallback={<div>loading...</div>}>
+      <BrowserOnly fallback={<img src={useBaseUrl(`/img/${targetID}.png`)} />}>
         {() => {
           {
             window.Bokeh.embed.embed_item(plotData, targetID);
