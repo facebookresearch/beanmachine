@@ -177,6 +177,22 @@ class MonteCarloSamplesTest(unittest.TestCase):
             torch.all(samples.get_variable(model.foo(), True) == torch.arange(10))
         )
 
+    def test_get_log_likehoods(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        foo_key = model.foo()
+        bar_key = model.bar()
+        samples = mh.infer(
+            [foo_key],
+            {bar_key: torch.tensor(4.)},
+            num_samples=10,
+            num_chains=2,
+        )
+        self.assertTrue(hasattr(samples, "log_likelihoods"))
+        self.assertIn(bar_key, samples.log_likelihoods)
+        self.assertTrue(hasattr(samples, "adaptive_log_likelihoods"))
+        self.assertIn(bar_key, samples.adaptive_log_likelihoods)
+        
     def test_thinning(self):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
