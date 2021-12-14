@@ -184,7 +184,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         bar_key = model.bar()
         samples = mh.infer(
             [foo_key],
-            {bar_key: torch.tensor(4.)},
+            {bar_key: torch.tensor(4.0)},
             num_samples=10,
             num_chains=2,
         )
@@ -192,7 +192,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertIn(bar_key, samples.log_likelihoods)
         self.assertTrue(hasattr(samples, "adaptive_log_likelihoods"))
         self.assertIn(bar_key, samples.adaptive_log_likelihoods)
-        
+
     def test_thinning(self):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
