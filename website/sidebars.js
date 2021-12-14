@@ -37,8 +37,8 @@ module.exports = {
             'framework_topics/custom_inference/custom_proposers',
             // Todo, stale and not fully supported
             // 'framework_topics/custom_inference/transforms',
-            'framework_topics/custom_inference/block_inference',
             'framework_topics/custom_inference/compositional_inference',
+            'framework_topics/custom_inference/block_inference',
           ],
           'Model Evaluation': [
             'framework_topics/model_evaluation/diagnostics',
@@ -48,9 +48,7 @@ module.exports = {
           Development: ['framework_topics/development/logging'],
         },
       ],
-      Advanced: [
-        'overview/beanstalk/beanstalk',
-        ],
+      Advanced: ['overview/beanstalk/beanstalk'],
     },
     'overview/tutorials/tutorials',
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.
