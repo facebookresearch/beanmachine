@@ -83,6 +83,7 @@ class BaseInference(metaclass=ABCMeta):
             queries, observations, observations_must_be_rv=True
         )
         chain_results = []
+        chain_logll = []
         for _ in range(num_chains):
             sampler = self.sampler(
                 queries,
@@ -92,6 +93,7 @@ class BaseInference(metaclass=ABCMeta):
                 initialize_fn,
             )
             samples = {query: [] for query in queries}
+            log_likelihoods = {obs: [] for obs in observations}
             # Main inference loop
             for world in tqdm(
                 sampler,
@@ -99,6 +101,8 @@ class BaseInference(metaclass=ABCMeta):
                 desc="Samples collected",
                 disable=verbose == VerboseLevel.OFF,
             ):
+                for obs in observations:
+                    log_likelihoods[obs].append(world.log_prob([obs]))
                 # Extract samples
                 for query in queries:
                     raw_val = world.call(query)
@@ -110,7 +114,18 @@ class BaseInference(metaclass=ABCMeta):
 
             samples = {node: torch.stack(val) for node, val in samples.items()}
             chain_results.append(samples)
-        return MonteCarloSamples(chain_results, num_adaptive_samples)
+
+            log_likelihoods = {node: torch.stack(val)
+                               for node, val in log_likelihoods.items()}
+            chain_logll.append(log_likelihoods)
+
+        return MonteCarloSamples(
+            chain_results,
+            num_adaptive_samples,
+            True,
+            chain_logll,
+            observations,
+        )
 
     def sampler(
         self,

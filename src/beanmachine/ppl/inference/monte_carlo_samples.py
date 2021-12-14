@@ -28,6 +28,8 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         chain_results: Union[List[RVDict], RVDict],
         num_adaptive_samples: int = 0,
         stack_not_cat: bool = True,
+        logll_results: Optional[List[RVDict]] = None,
+        observations: Optional[RVDict] = None,
     ):
         if isinstance(chain_results, list):
             self.num_chains = len(chain_results)
@@ -41,6 +43,15 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         for rv, val in chain_results.items():
             self.adaptive_samples[rv] = val[:, :num_adaptive_samples]
             self.samples[rv] = val[:, num_adaptive_samples:]
+
+        logll = merge_dicts(logll_results, 0, stack_not_cat)
+        self.log_likelihoods = {}
+        self.adaptive_log_likelihoods = {}
+        for rv, val in logll.items():
+            self.adaptive_log_likelihoods[rv] = val[:, :num_adaptive_samples]
+            self.log_likelihoods[rv] = val[:, num_adaptive_samples:]
+
+        self.observations = observations
 
         # single_chain_view is only set when self.get_chain is called
         self.single_chain_view = False
@@ -174,10 +185,15 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         if self.num_adaptive_samples > 0:
             adaptive_samples = self.adaptive_samples
+            adaptive_logll = self.adaptive_log_likelihoods
         else:
             adaptive_samples = None
+            adaptive_logll = None
         return az.from_dict(
             posterior=self.samples,
             warmup_posterior=adaptive_samples,
             save_warmup=include_adapt_steps,
+            warmup_log_likelihood=adaptive_logll,
+            log_likelihood=self.log_likelihoods,
+            observed_data=self.observations,
         )
