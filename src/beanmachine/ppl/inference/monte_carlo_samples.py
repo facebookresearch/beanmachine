@@ -44,12 +44,16 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             self.adaptive_samples[rv] = val[:, :num_adaptive_samples]
             self.samples[rv] = val[:, num_adaptive_samples:]
 
-        logll = merge_dicts(logll_results, 0, stack_not_cat)
-        self.log_likelihoods = {}
-        self.adaptive_log_likelihoods = {}
-        for rv, val in logll.items():
-            self.adaptive_log_likelihoods[rv] = val[:, :num_adaptive_samples]
-            self.log_likelihoods[rv] = val[:, num_adaptive_samples:]
+        if logll_results is not None:
+            logll = merge_dicts(logll_results, 0, stack_not_cat)
+            self.log_likelihoods = {}
+            self.adaptive_log_likelihoods = {}
+            for rv, val in logll.items():
+                self.adaptive_log_likelihoods[rv] = val[:, :num_adaptive_samples]
+                self.log_likelihoods[rv] = val[:, num_adaptive_samples:]
+        else:
+            self.log_likelihoods = None
+            self.adaptive_log_likelihoods = None
 
         self.observations = observations
 
