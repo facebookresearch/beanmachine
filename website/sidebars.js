@@ -33,9 +33,10 @@ module.exports = {
             'framework_topics/inference/newtonian_monte_carlo',
           ],
           'Custom Inference': [
-            'framework_topics/custom_inference/custom_proposers',
             'framework_topics/custom_inference/programmable_inference',
-            'framework_topics/custom_inference/transforms',
+            'framework_topics/custom_inference/custom_proposers',
+            // Todo, stale and not fully supported
+            // 'framework_topics/custom_inference/transforms',
             'framework_topics/custom_inference/block_inference',
             'framework_topics/custom_inference/compositional_inference',
           ],
