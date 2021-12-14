@@ -23,9 +23,6 @@ module.exports = {
       Framework: [
         'framework_topics/world',
         {
-//           'World and Variables': [
-//             'framework_topics/world',
-//           ],
           'Inference Methods': [
             'framework_topics/inference/inference',
             'framework_topics/inference/ancestral_metropolis_hastings',
@@ -35,16 +32,14 @@ module.exports = {
             'framework_topics/inference/no_u_turn_sampler',
             'framework_topics/inference/newtonian_monte_carlo',
           ],
-          'Programmable Inference': [
-            'framework_topics/programmable_inference/programmable_inference',
-            'framework_topics/programmable_inference/transforms',
-            'framework_topics/programmable_inference/block_inference',
-            'framework_topics/programmable_inference/compositional_inference',
-            'framework_topics/programmable_inference/adaptive_inference',
-          ],
           'Custom Inference': [
             'framework_topics/custom_inference/variable',
             'framework_topics/custom_inference/custom_proposers',
+            'framework_topics/custom_inference/programmable_inference',
+            'framework_topics/custom_inference/transforms',
+            'framework_topics/custom_inference/block_inference',
+            'framework_topics/custom_inference/compositional_inference',
+            'framework_topics/custom_inference/adaptive_inference',
           ],
           'Model Evaluation': [
             'framework_topics/model_evaluation/diagnostics',

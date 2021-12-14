@@ -29,7 +29,7 @@ $$
 
 ### Adaptive Real-Space Proposer
 
-The above proposal distribution works well the closer that the posterior is to a Normal distribution. However, in cases when the posterior is quite dissimilar to a Normal distribution, this proposer may overfit to its Normal assumption. To alleviate this, we introduce a "learning rate" $\gamma$, whose purpose is to reduce the strength of that Normal assumption when choosing a mean for the proposal distribution. The learning rate must be fit during the [adaptive phase](../programmable_inference/adaptive_inference.md) of inference.
+The above proposal distribution works well the closer that the posterior is to a Normal distribution. However, in cases when the posterior is quite dissimilar to a Normal distribution, this proposer may overfit to its Normal assumption. To alleviate this, we introduce a "learning rate" $\gamma$, whose purpose is to reduce the strength of that Normal assumption when choosing a mean for the proposal distribution. The learning rate must be fit during the [adaptive phase](../custom_inference/adaptive_inference.md) of inference.
 
 The proposal distribution with the learning rate is:
 
