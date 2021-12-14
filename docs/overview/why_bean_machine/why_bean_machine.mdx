@@ -68,7 +68,7 @@ If you have previous knowledge of probabilistic programming, you may want to rea
 
 ## Bean Machine Advantages
 
-Bean Machine builds on top of PyTorch with a declarative modeling syntax, being therefore simultaneously performant and intuitive for building probabilistic models. It provides further value by implementing cutting-edge inference algorithms and allowing the user to select and program custom inferences for different problems and subproblems.
+Bean Machine builds on top of PyTorch with a declarative modeling syntax, being therefore simultaneously performant and intuitive for building probabilistic models. It balances automation with flexibility by implementing cutting-edge inference algorithms and allowing the user to select and program custom inferences for different problems and subproblems.
 
 ### Site-Based Inference
 
@@ -84,19 +84,20 @@ Altogether, site-based inference is a flexible pattern for trading off complexit
 
 ### Declarative Modeling
 
-<!-- Usability improvements -->
-In Bean Machine, random variables are implemented as decorated Python functions, which naturally form an interface for the model. Using functions makes it simple to determine a random variable's definition, since it is contained in a function that is usually only a few lines long. This lets you directly refer to random variables to access inferred distributions or when binding data to your model. This is safer and more natural than relying on string identifiers, and also enables IDE support and type-checking in many cases.
+Bean Machine provides a declarative syntax with first class support for random variables. This makes it intuitive for users to reason about their models in a program as they would on paper; a model is simply defined by a collection of random variables that interact with each other in a particular way.
+In Bean Machine, random variables are implemented as decorated Python functions, which provide a unique pointer to that random variable. Using functions makes it simple to determine a random variable's definition, since it is contained in a function that is usually only a few lines long. 
 
-<!-- Efficiency improvements -->
-Declarative modeling also frees the inference engine to reorder model execution. Foremost, it enables computation of immediate dependencies for random variables. This makes it possible to propose new values for a random variable by examining only its dependencies, saving significant amounts of compute in models with complex structure.
+This 'localization' where a model is fully defined by a collection of random variables allows Bean Machine to easily track dependencies between them. Armed with the model structure, at inference time, Bean Machine can control which parts of the model get updated and explored.
+As opposed to trace-based inference where a model execution is stored, operating directly with random variables as first class lazy objects and "worlds" to track their instantiations allows Bean Machine to reason about model specific structure such as control flow.
+It also allows Bean machine to easily reorder model execution or perhaps update only a subgraph, saving significant amounts of compute in models with many latent variables.
 
 ### Programmable Inference
 
-<!-- Compositional inference -->
-Bean Machine allows the user to design and apply powerful inference methods. Because Bean Machine can propose updates for random variables individually, the user is free to customize the _method_ which it uses to propose those values. Different inference methods can be supplied for different families of random variables. For example, a particular model can leverage gradient information when proposing values for differentiable random variables, and at the same time might sample from discrete ones with a particle filter. This single-site "compositional inference" pattern enables seamless interoperation among any MCMC-based inference strategies.
+<!-- Compositional and block inference -->
+Bean Machine allows the user to design and apply powerful inference methods. Because Bean Machine can propose updates for random variables or groups of random variables individually, the user is free to customize the _method_ which it uses to propose those values. Different inference methods can be supplied for different families of random variables. For example, a particular model can leverage gradient information when proposing values for differentiable random variables, and at the same time might sample from discrete ones with a particle filter. This "compositional inference" pattern enables seamless interoperation among any MCMC-based inference strategies.
 
-<!-- Block inference -->
-Though powerful, compositional inference limits Bean Machine's global understanding of the model. To combat this, Bean Machine exposes a separate functionality to allow joint processing of multiple sites. This "multi-site inference" causes Bean Machine to process both sites together before updating either, which is especially useful for updating highly-correlated random variables. Certain inference methods may be able to further exploit multi-sites with inference-specific optimizations.  Since multi-site inference is orthogonal to compositional inference, it allows you to create sophisticated, model-specific inference strategies with virtually no additional effort.
+At the same time, the user has control over which variables should be updated ("blocked") together versus independently, for instance for random variables that are tightly correlated. This "multi-site inference" may be able to further exploit multiple sites with inference-specific optimizations.
+BeanMachine's `CompositionalInference` API balances this flexibility with automation, automatically using proposers based on the support of the random variable, while allowing the user to specify how to build the best compositional MCMC proposer with virtually no additional effort.
 
 ### Advanced Methods
 
@@ -111,8 +112,9 @@ For certain domains, prepackaged inference methods may not be the best tool for 
 ### Bean Machine Graph Compilation
 
 <!-- PyTorch performance -->
-PyTorch offers strong performance for models comprised of a small number of large tensors. However, many probabilistic models have a rich or sparse structure that is difficult to write in terms of just a handful of large tensor operations. And in many cases, these are exactly the problems for which probabilistic modeling is most compelling!
+PyTorch offers strong performance for models comprised of a small number of large tensors. However, many probabilistic models have a rich or sparse structure that is difficult to write in terms of just a handful of large tensor operations.
+Also, certain inference algorithms such as NUTS have dynamic control flow, which incurs a significant amount of Python and PyTorch overhead during execution.
 
-To address this, we are developing an experimental inference runtime called Bean Machine Graph (BMG) Inference. BMG Inference is a specialized combination of compiler and a fast, independent runtime that is optimized to run inference even for un-tensorized models. By design, BMG Inference has the same interface as other Bean Machine inference methods, relying on a custom behind-the-scenes compiler to interpret your model and translate it to a faster implementation with no Python dependencies.
+To address this, we are developing an experimental inference runtime called Bean Machine Graph (BMG) Inference. BMG Inference is a specialized combination of a compiler and a fast, independent C++ runtime that is optimized to run inference even for un-tensorized models. By design, BMG Inference has the same interface as other Bean Machine inference methods, relying on a custom behind-the-scenes compiler to interpret your model and translate it to a faster implementation with no Python dependencies.
 
 BMG Inference routinely achieves 1 to 2 orders-of-magnitude speedup for untensorized models. However, please note that this infrastructure is under development, and the supported feature set may be limited.
