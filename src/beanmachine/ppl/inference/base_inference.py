@@ -115,8 +115,9 @@ class BaseInference(metaclass=ABCMeta):
             samples = {node: torch.stack(val) for node, val in samples.items()}
             chain_results.append(samples)
 
-            log_likelihoods = {node: torch.stack(val)
-                               for node, val in log_likelihoods.items()}
+            log_likelihoods = {
+                node: torch.stack(val) for node, val in log_likelihoods.items()
+            }
             chain_logll.append(log_likelihoods)
 
         return MonteCarloSamples(
