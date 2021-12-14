@@ -1,61 +1,40 @@
 ---
 title: 'Custom Proposers'
-sidebar_label: 'Proposers'
+sidebar_label: 'Custom Proposers'
 slug: '/custom_proposers'
 ---
 ## API
 
-Bean Machine is flexible and easily allows users to supply custom Metropolis-Hastings proposers for specific random variables. This enables users to easily incorporate domain knowledge in inference.
+Bean Machine is flexible and allows users to supply custom MCMC proposers. This enables users to easily incorporate domain knowledge or exploit model structure during inference.
 
-For each iteration of sampling of variable $X$ with value $x$ using the Metropolis Hastings algorithm, we first sample a new value $x'$ for $X$ using proposal distribution $g$. We then update the world to reflect this change, and use the Metropolis Hastings ratio of
+We will focus on [Metropolis Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm), the most common flavor of MCMC inference.
+For each iteration of sampling of variable $X$ with value $x$ using the MH algorithm, we first sample a new value $x'$ for $X$ using proposal distribution $g$.
+We then update the world to reflect this change, and use the Metropolis Hastings ratio of
 $$\text{min}\big[1, \frac{p(x')g(x \mid x')}{p(x)g(x' \mid x)}\big]$$
 to decide whether to keep the update or to revert to the world as it was before it.
 
-Bean Machine allows users to easily provide custom proposals for $g$, without needing to implement other details such as the calculations for $p(x')$ or the acceptance ratio. All proposers must inherit from the `AbstractSingleSiteProposer` class and implement the following methods:
+Bean Machine allows users to easily provide custom proposals for $g$, without needing to implement other details such as the calculations for $p(x')$ or the acceptance ratio.
+All MH proposers must inherit from the `BaseSingleSiteMHProposer` class and implement the following method, which returns the proposal distribution as a `torch.distribution`:
 ```py
-def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:
+def get_proposal_distribution(self, world: World) -> dist.Distribution
 ```
+and optionally an adaptation stage if applicable:
 ```py
-def post_process(
-    self, node: RVIdentifier, world: World, auxiliary_variables: Dict
-) -> Tensor:
+def do_adaptation(self, world: World, accept_log_prob: torch.Tensor, *args, **kwargs) -> None:
 ```
 
-### Propose
-`propose` takes two parameters: the node and the world.
-* node: $X$, the random variable to propose a new value for
-* world: graphical data structure representing variable dependencies and values in the model *before* the proposal is made
-
-The return value of `propose` is a tuple with three values
-* $x'$, the new proposed value for the node (if a variable has an associated [transform](../custom_inference/transforms.md), this returned value must be in the variable's original space -- use `Variable.inverse_transform_value` to transform values in the transformed space back to the original space)
-* $\log[g(x' \mid x)]$, the log probability of proposing this value
-* a dictionary of auxiliary variables used in `propose` that are useful in `post_process` (this will typically be intermediary computations used by both functions, so they do not need to be recomputed by `post_process`)
-
-### Post Process
-`post_process` takes three parameters: the node, the world, and the auxiliary variables dictionary.
-* node: (same as `propose`) $X$, the random variable to propose a new value for
-* world: (same as `propose`, but *updated with the proposed* value for node) graphical data structure representing variable dependencies and values in the model
-* auxiliary variables: the same dictionary returned by `propose`
-
-The return value of `post_process` is $\log[g(x \mid x')]$, the log probability of proposing the original value given the new value.
-
-<!--
-    `post_process` it not a very descriptive name. Why not `reverse_proposal_distribution` or something similar?
--->
-
-### Important Methods
-The `node` is of type `RVIdentifier`, which includes only the function and its parameters. To access the `Variable` corresponding to this node in the world, call
+One may also override the `propose` method which is invoked at each iteration, to use any algorithm to propose a new world along with its acceptance log probability. By default the MH algorithm is used.
 ```py
-world.get_node_in_world_raise_error(node, False)
+def propose(self, world: World) -> Tuple[World, torch.Tensor]
 ```
-This returns the associated `Variable`.
 
-<!--
-    It is odd and surprising that world.get_node_in_world_raise_error(node, False) returns a Variable, not a node, in spite of its name.
-    It might be good to rename it.
--->
+For single site algorithms, passing the custom proposer into `SingleSiteInference` and using the resulting object, which assigns an instance of the proposer per variable, is usually sufficient.
+To implement custom blocking, which is handled at the algorithm level, the user must define the abstract method `BaseInference.get_proposers` which defines
+which proposers (and which order) to execute for which random variables.  See [blocking](../custom_inference/block_inference.md) for more examples.
 
-## Sample Custom Proposer
+That's it! Let's walk through an example to see how we'd do this in practice.
+
+## Example Custom Proposer
 
 <!--
 It might make sense to replace this example by a more classic Metropolis-Hastings example).
@@ -84,70 +63,48 @@ An ideal MH proposer for location values would propose locations according to th
 With this intuition, we use Bean Machine’s easily implementable proposer interface to write a custom proposer for the `event_attr` variable, which inspects the `det_attr(s)` children variables and uses a Gaussian mixture model proposer around the predicted attributes for each of the detections:
 
 ```py
-class SingleSiteSeismicProposer(AbstractSingleSiteProposer):
+class SingleSiteSeismicProposer(BaseSingleSiteMHProposer):
 
-    def value(self, child: RVIdentifier) -> Tensor:
-        return world.get_node_in_world_raise_error(child, False).value
+    def get_proposal_distribution(world: World) -> dist.Distribution:
+        # self.node is given at initialization of the proposer since
+        # there is one proposer per node
+        node_var = world.get_variable(self.node)
 
-    def proposal_distribution_of_event_given_children_det_attr(event_node):
         # instead of computing the probability of the event given
         # the join detections (a computation exponential in the number of detections),
         # we compute the probability of the event
         # given each separate detection and propose to use one of them
         # by sampling from a Gaussian mixture model.
-        event_var = world.get_node_in_world_raise_error(node, False)
-        inverse_distributions_of_event_given_det_attrs =
-            [inverted_laplace(self.value(child_det_attr))
-            for child_det_attr in event_var.children]
-        return create_gaussian_mixture_model(inverse_distributions_of_event_given_det_attrs)
-
-    def propose(self, event_node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:
-        proposal_distribution = proposal_distribution_of_event_given_children_det_attr(event_node)
-        new_value = proposal_distribution.sample()
-        log_prob = proposal_distribution.log_prob(new_value)
-        return new_value, log_prob, {}
-
-    def post_process(self, event_node: RVIdentifier, world: World, aux_variables: Dict) -> Tensor:
-        proposal_distribution = proposal_distribution_of_event_given_children_det_attr(event_node)
-        old_value = world.get_old_value(event_node)
-        return proposal_distribution.log_prob(old_value)
+        inverse_distributions_of_event =
+            [inverted_laplace(world[child_det_attr])
+            for child_det_attr in node_var.children]
+        return create_gaussian_mixture_model(inverse_distributions_of_event)
 ```
 
-Note that the particular above proposer proposes a new value based solely on the values of the *children* of `node`, and does not use the *value* of node.
-Therefore the value $\log[g(x' \mid x)]$ returned by `propose` is independent of the actual value $x$.
-Likewise, the value $\log[g(x \mid x')]$ returned by `post_process` does not use the new value $x'$.
+Since this is a single site proposer, there is one proposer per node and each node is updated independently from all the others.
+In this case we can just use `SingleSiteInference`, and run inference with that.
+```py
+SeismicInference = SingleSiteInference(SingleSiteSeismicProposer)
+observations = {...}
+samples = SeismicInference([event_attr()], observations, num_samples)
+```
 
-Because the proposal distribution is the same in both `propose` and `post_process` (since it only depends on the children variable which are not modified),
-an important optimization in this sampler could be to add the value of `proposal_distribution` in the dictionary of auxiliary variables returned by `propose` (under a suitable key such as `'proposal_distribution'`) and simply reuse it in `post_process`:
+If we wanted more complex blocking logic, we would define our own inference class by overriding `get_proposers`.
+Note that the user is free to define the blocking logic however they want; this is one example where we block all the variables together.
 
 ```py
-# last line of 'propose'
-return new_value, log_prob, {'proposal_distribution': proposal_distribution}
+class MultiSiteSeismicInference(BaseInference):
+
+    def get_proposers(self, world, target_rvs, num_adaptive_samples):
+        proposers = []
+        for rv in target_rvs:
+            proposers.append(SingleSiteSeismicProposer(rv))
+        # This is a list of all the proposers to use during inference.
+        # In this case, we will block everything together with SequentialProposer
+        # This means that all of the proposers will be shuffled and proposed
+        # in a single MH step.
+        return [SequentialProposer(proposers)]
+
 ```
-
-```py
-# first line of 'post_process'
-proposal_distribution = aux_variables['proposal_distribution']
-```
-
-Also note that in `post_process` we must evaluate the proposal distribution on $x$, which is no longer available from `event_node.value`
-because now the world has been updated with the new value $x'$.
-However the old value is still available from `world.get_old_value(node)` (or `world.get_old_transformed_value(node)` if a transform is being used).
-
-
-## Gradient-Based Proposers
-
-The `World` class also provides support for gradient-based proposers (see World and Variable API documentation for more details). For all continuous variables, the gradient is tracked for `transformed_value`. Because of the locally-structured nature of Bean Machine models, the contribution of a variable to a world's likelihood is determined solely from the values of the variable itself and its child nodes (those nodes whose distributions are directly influenced by the value of the variable). The likelihood of the relevant parts of the world, also known as the score, can be computed using
-```py
-compute_score(node_var: Variable) -> Tensor
-```
-To calculate the gradient of a variable in the `propose` method, we first need to access the `Variable` object corresponding to the `RVIdentifier` node. We then compute the score of node, and then take the gradient with respect to the `transformed_value` using the `grad` implementation supported by PyTorch.
-
-```py
-node_var = world.get_node_in_world(node, False)
-score = world.compute_score(node_var)
-first_gradient = grad(score, node_val)
-```
-The gradient can now be used to obtain a new proposal for the variable.
 
 [1] Arora, Nimar & Russell, Stuart & Sudderth, Erik. (2013). NET-VISA: Network Processing Vertically Integrated Seismic Analysis. The Bulletin of the Seismological Society of America. 103. 709-729. 10.1785/0120120107.
