@@ -3,8 +3,11 @@ title: Analysis
 sidebar_label: Analysis
 slug: '/overview/analysis'
 ---
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import {
+  PosteriorRateDynamicPlot,
+  MCMCTracePlot,
+  MCMCAutocorrPlot
+} from "./plots.jsx";
 
 Inference results are useful not only for learning posterior distributions, but for verifying that inference ran correctly. We'll cover common techniques for analyzing results in this section. As is the case for everything else in this **Overview**, the code for this section is available as a notebook on [GitHub](https://github.com/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb) and [Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb).
 
@@ -96,7 +99,7 @@ Visualizing the results of inference can be a great help in understanding them. 
 reproduction_rate_samples = samples.get_chain(0)[reproduction_rate()]
 ```
 
-<img src={useBaseUrl("/img/posterior_rate_dynamic.png")} />
+<PosteriorRateDynamicPlot />
 
 ## <a name="diagnostics"></a>Diagnostics
 
@@ -146,13 +149,13 @@ az.plot_trace(
 )
 ```
 
-<img src={useBaseUrl("/img/mcmc_trace.png")} />
+<MCMCTracePlot />
 
 ```py
 az.plot_autocorr({"Reproduction rate": samples[reproduction_rate()]})
 ```
 
-<img src={useBaseUrl("/img/mcmc_autocorr.png")} />
+<MCMCAutocorrPlot />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace plots and autocorrelation plots.
 
