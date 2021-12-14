@@ -40,19 +40,8 @@ samples = bm.SingleSiteRandomWalk(
 ).infer(
   queries,
   observations,
-  num_adapt_steps = 1000,
-  num_steps = 200,
-)
-```
-
-If desired, `step_size` does not need to be set, and it will be initialized to the default initial value `1.0`. Either way, if `num_adapt_steps > 0` is set, then `step_size` will be changed after inference begins.
-
-```py
-samples = bm.SingleSiteRandomWalk().infer(
-  queries,
-  observations,
-  num_adapt_steps = 1000,
-  num_steps = 200,
+  num_samples,
+  num_adaptive_samples = 500,
 )
 ```
 
