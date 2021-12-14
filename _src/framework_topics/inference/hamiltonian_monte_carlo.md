@@ -50,6 +50,12 @@ Bean Machine can compute $\frac{\partial U}{\partial q_i}$ using autograd.
 
 The goal of these equations is to determine where the new sample will come to rest after a framework-specified path length $\lambda$. Both the potential energy (from the posterior's likelihood) and the kinetic energy (from the injected "kick") will interact with the sampled value to influence how it travels over the posterior surface.
 
+:::caution
+
+Since we are computing gradients, all of the latent (non-observed) variables must be continuous. For discrete variables, use [`CompositionalInference`](../custom_inference/compositional_inference.md) or marginalize them out as in the [Zero inflated count data tutorial](../tutorials/#modeling-medical-efficacy-by-marginalizing-discrete-variables-in-zero-inflated-count-data).
+
+:::
+
 ## Approximating Hamiltonian dynamics
 
 Unfortunately, this system of differential equations cannot be analytically computed. Instead, Bean Machine discretizes these equations based on a discrete time step $t$, and simulates how they influence each other in this discrete setting for a framework-specified path length $\lambda$. This discrete simulation is referred to as the "leapfrog" algorithm. Each simulated time step is referred to as a "leapfrog step".
@@ -105,51 +111,17 @@ In Bean Machine, inference using HMC can be specified as an inference method for
 
 ```py
 bm.SingleSiteHamiltonianMonteCarlo(
-    trajectory_length=1.0,
+    1.0,  # trajectory length
     initial_step_size=0.1,
+    adapt_step_size=True
+    adapt_mass_matrix=True
+    target_accept_prob=0.8
 ).infer(
     queries,
     observations,
     num_samples,
     num_chains,
-)
-```
-
-[`CompositionalInference`](../custom_inference/compositional_inference.md)can alternatively be used to select HMC for specific variables:
-
-```py
-bm.CompositionalInference({
-    x: bm.SingleSiteHamiltonianMonteCarlo(
-        trajectory_length=1.0,
-        initial_step_size=0.1,
-    ),
-}).infer(
-    # Same arguments as above snippet
-)
-```
-
-All the above will only update one random variable at a time per iteration. To resample all variables at once, use:
-
-```py
-bm.GlobalHamiltonianMonteCarlo(
-    trajectory_length=1.0,
-    initial_step_size=0.1,
-).infer(
-    # Same arguments as above snippet
-)
-```
-
-Adaptive HMC will be used automatically when no step size is specified:
-
-```py
-bm.SingleSiteHamiltonianMonteCarlo(
-    trajectory_length=1.0,
-).infer(
-    queries,
-    observations,
-    num_samples,
-    num_chains,
-    num_adaptive_samples=1000,
+    num_adaptive_samples=100,
 )
 ```
 
@@ -159,25 +131,25 @@ bm.SingleSiteHamiltonianMonteCarlo(
 
 :::
 
-The global variant for adaptive HMC, `GlobalHamiltonianMonteCarlo`, comes with a few more options for tuning the step size and acceptance probability:
+The global variant for adaptive HMC, `GlobalHamiltonianMonteCarlo`, which proposes all of the variables in the model jointly, follows the same API:
 
 ```py
 bm.GlobalHamiltonianMonteCarlo(
-    trajectory_length=1.0,
-    initial_step_size=1.0,
-    adapt_step_size=True,
-    adapt_mass_matrix=True,
-    target_accept_prob=0.8,
+    1.0,  # trajectory length
+    initial_step_size=0.1,
+    adapt_step_size=True
+    adapt_mass_matrix=True
+    target_accept_prob=0.8
 ).infer(
     queries,
     observations,
     num_samples,
     num_chains,
-    num_adaptive_samples=1000,
+    num_adaptive_samples=100,
 )
 ```
 
-These arguments allow us to decide if we want to tune the step size `adjust_step_size` or covariance matrix `adapt_mass_matrix`.  The `target_accept_prob` argument indicates the acceptance probability which should be targeted by the step size tuning algorithm. While the optimal value is 65.1%, higher values have been show to be more robust. As a result, Bean Machine targets an acceptance rate of 0.8 by default. **Again, do not forget to specify `num_adaptive_samples`, or no adaptation will occur.**
+These arguments allow us to decide if we want to tune the step size `adjust_step_size` or covariance matrix `adapt_mass_matrix`.  The `target_accept_prob` argument indicates the acceptance probability which should be targeted by the step size tuning algorithm. While the optimal value is 65.1%, higher values have been show to be more robust. As a result, Bean Machine targets an acceptance rate of 0.8 by default.
 
 The parameters to `infer` are described below:
 
@@ -187,6 +159,7 @@ The parameters to `infer` are described below:
 | `observations` | The `Dict` of observations. Each key is a random variable, and its value is the observed value for that random variable.
 | `num_samples` | Number of samples to build up distributions for the values listed in `queries`.
 | `num_chains` | Number of separate inference runs to use. Multiple chains can be used by diagnostics to verify inference ran correctly.
+| `num_adaptive_samples` | Number of warmup samples to adapt the parameters.
 
 
 ---
