@@ -17,6 +17,13 @@ class SequentialProposer(BaseProposer):
         self.proposers = proposers
 
     def propose(self, world: World) -> Tuple[World, torch.Tensor]:
+        """
+        Computes the joint log prob of all the proposers
+        for the world.
+
+        Args:
+            world: World to compute joint log prob of
+        """
         accept_log_prob = 0.0
         for proposer in self.proposers:
             world, log_prob = proposer.propose(world)
@@ -24,6 +31,9 @@ class SequentialProposer(BaseProposer):
         return world, cast(torch.Tensor, accept_log_prob)
 
     def do_adaptation(self, *args, **kwargs) -> None:
+        """
+        Run `do_adaptation` for all of the proposers
+        """
         for proposer in self.proposers:
             proposer.do_adaptation(*args, **kwargs)
 
