@@ -5,13 +5,13 @@ sidebar_label: 'Newtonian Monte Carlo'
 slug: '/newtonian_monte_carlo'
 ---
 
-Newtonian Monte Carlo (NMC, Arora et al., 2020) is a second-order gradient-based Markov chain Monte Carlo (MCMC) algorithm that uses the first- and second-order gradients to propose a new value for a random variable.
+Newtonian Monte Carlo (NMC) (Arora, et al., 2020) is a second-order gradient-based Markov chain Monte Carlo (MCMC) algorithm that uses the first- and second-order gradients to propose a new value for a random variable.
 
 ## Algorithm
 
 To understand the idea behind NMC, we revisit two other common MCMC algorithms, [Random Walk](framework_topics/inference/random_walk.md) and [Metropolis-adjusted Langevin algorithm (MALA)](https://en.wikipedia.org/wiki/Metropolis-adjusted_Langevin_algorithm). In Random Walk, we propose the next parameter value $\theta\in\R^k$ for our model using a simple Normal distribution centered at the current value: $q(. \mid \theta) = \mathcal{N}(\theta, \epsilon^2I_k)$. This Normal distribution has covariance $\epsilon^2I_k$ where $\epsilon$ is the user-specified step size and $I_k$ ​is a $k \times k$ identity matrix (Metropolis et al., 1953). In cases where the posterior density, $\pi(\theta)$, is differentiable, we can use the proposal distribution proposed by MALA which is $q(.|\theta)=\mathcal{N}(\theta+\frac{\epsilon^2}{2}\nabla \log\pi(\theta),  \epsilon^2I_k)$ (Robert & Tweedie, 1996). In MALA, we use a Normal distribution whose mean is $\frac{\epsilon^2}{2}$​ away from the current value, $\theta$, in the direction of the first-order gradient of the posterior density, $\pi(\theta)$. In both Random Walk and MALA, we have the problem of finding the correct step size. A large step size may lead to an ineffective exploration of the space and low acceptance rate. A small step size can lead to a high acceptance rate but slow exploration of the space.
 
-In NMC, we follow the same intuition. However, with NMC, we try to overcome the problem of choosing the step size by using second-order gradient information for $\theta$ when choosing the parameters for the proposal distribution. Like Random Walk and MALA, NMC is free to use a Normal distribution as the proposal distribution. However, in Bean Machine, we can offer alternative proposal distributions in the case where $\theta$ has a constrained support. We refer to these different types of proposal distributions as "proposers". Bean Machine offers several out of the box: Real-Space proposer, Half-Space proposer, and Simplex space proposer. One can also choose to transform the random variable $\theta$ from Half-Space or simplex into Real-Space and use the Real-Space proposer algorithm.
+In NMC, we follow the same intuition. However, with NMC, we try to overcome the problem of choosing the step size by using second-order gradient information for $\theta$ when choosing the parameters for the proposal distribution. Like Random Walk and MALA, NMC is free to use a Normal distribution as the proposal distribution. However, in Bean Machine, we can offer alternative proposal distributions in the case where $\theta$ has a constrained support. Bean Machine offers several out of the box: Real-Space proposer, Half-Space proposer, and Simplex space proposer.
 
 ## NMC Proposers
 
@@ -146,19 +146,7 @@ samples = bm.SingleSiteNewtonianMonteCarlo(
 )
 ```
 
-For random variables with half-space and simplex support, `SingleSiteNewtonianMonteCarlo` by default uses the half-space and simplex proposer. If a modeler is interested in transforming the random variables to real space and using the unconstrained proposer instead, we can write it as follows:
-
-```py
-samples = bm.SingleSiteNewtonianMonteCarlo(
-  transform_type=TransformType.DEFAULT,
-).infer(
-  queries=...,
-  observations=...,
-  num_samples=...,
-  num_chains=...,
-  num_adaptive_samples=num_warmup_samples,
-)
-```
+Remember, for random variables with half-space and simplex support, `SingleSiteNewtonianMonteCarlo` by default uses the half-space and simplex proposer respectively.
 
 The parameters to `infer` are described below:
 
@@ -168,6 +156,7 @@ The parameters to `infer` are described below:
 | `observations` | The `Dict` of observations. Each key is a random variable, and its value is the observed value for that random variable.
 | `num_samples` | Number of samples to build up distributions for the values listed in `queries`.
 | `num_chains` | Number of separate inference runs to use. Multiple chains can be used by diagnostics to verify inference ran correctly.
+| `num_adaptive_samples` | Number of warmup samples to adapt the parameters.
 
 
 ---
