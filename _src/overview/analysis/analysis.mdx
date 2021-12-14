@@ -1,7 +1,7 @@
 ---
 title: Analysis
 sidebar_label: Analysis
-slug: 'overview/analysis'
+slug: '/overview/analysis'
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import BrowserOnly from "@docusaurus/BrowserOnly";
@@ -131,7 +131,7 @@ We choose to display the 89% highest density interval (HDI), following recommend
 
 $\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to $1.0$ indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.01$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior, or that the particular inference method is unable to reliably explore the posterior distribution.
 
-$N_\text{eff} \in [1,$ `num_samples`$]$ summarizes how independent posterior samples are from one another. Although inference was run for `num_samples` iterations, it's possible that those samples were very similar to each other (due to the way inference is implemented), and may not each be representative of the full posterior space. Larger numbers are better here, and if your particular use case calls for a certain number of samples to be considered, you should ensure that $N_\text{eff}$ is at least that large.
+$N_\text{eff} \in [1,$ `num_samples`$]$ summarizes how independent posterior samples are from one another. Although inference was run for `num_samples` iterations, it's possible that those samples were very similar to each other (due to the way inference is implemented), and may not each be representative of the full posterior space. Larger numbers are better here, and if your particular use case calls for a certain number of samples to be considered, you should ensure that $N_\text{eff}$ is at least that large.  For more information on R-hat and $N_\text{eff}$, see the [Diagnostics Section](../../diagnostics/).
 
 In the case of our example model, we have a healthy $\hat{R}$ value very close to 1.0, and a healthy relative number of effective samples.
 
