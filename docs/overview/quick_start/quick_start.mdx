@@ -44,8 +44,6 @@ Let's say, for this example, we observed a little over a million, $1087980$, cas
 Let's write this up in Bean Machine. Using the syntax we've already seen, it's pretty simple:
 
 ```py
-num_init = 1087980
-
 @bm.random_variable
 def num_new(num_current):
     return dist.Poisson(reproduction_rate() *  num_current)
@@ -59,6 +57,8 @@ With the model fully defined, we should gather some data to learn about! In the 
 
 ```py
 from torch import tensor
+
+num_init = 1087980
 
 observations = {
     # PyTorch distributions expect tensors
