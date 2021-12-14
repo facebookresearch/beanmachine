@@ -105,8 +105,8 @@ In Bean Machine, inference using HMC can be specified as an inference method for
 
 ```py
 bm.SingleSiteHamiltonianMonteCarlo(
-    path_length=1.0,
-    step_size=0.1,
+    trajectory_length=1.0,
+    initial_step_size=0.1,
 ).infer(
     queries,
     observations,
@@ -119,9 +119,9 @@ bm.SingleSiteHamiltonianMonteCarlo(
 
 ```py
 bm.CompositionalInference({
-    x: SingleSiteHamiltonianMonteCarloProposer(
-        path_length=1.0,
-        step_size=0.1,
+    x: bm.SingleSiteHamiltonianMonteCarlo(
+        trajectory_length=1.0,
+        initial_step_size=0.1,
     ),
 }).infer(
     # Same arguments as above snippet
@@ -133,7 +133,7 @@ All the above will only update one random variable at a time per iteration. To r
 ```py
 bm.GlobalHamiltonianMonteCarlo(
     trajectory_length=1.0,
-    step_size=0.1,
+    initial_step_size=0.1,
 ).infer(
     # Same arguments as above snippet
 )
@@ -143,7 +143,7 @@ Adaptive HMC will be used automatically when no step size is specified:
 
 ```py
 bm.SingleSiteHamiltonianMonteCarlo(
-    path_length=1.0,
+    trajectory_length=1.0,
 ).infer(
     queries,
     observations,
