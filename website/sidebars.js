@@ -42,8 +42,9 @@ module.exports = {
           ],
           'Model Evaluation': [
             'framework_topics/model_evaluation/diagnostics',
-            'framework_topics/model_evaluation/posterior_predictive_checks',
-            'framework_topics/model_evaluation/model_comparison',
+            // TODO(rodrigobraz) - rewrite for clarity and completeness and check if simulate API has changed.
+            // 'framework_topics/model_evaluation/posterior_predictive_checks',
+            // 'framework_topics/model_evaluation/model_comparison',
           ],
           Development: ['framework_topics/development/logging'],
         },
