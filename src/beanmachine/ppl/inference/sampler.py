@@ -57,6 +57,16 @@ class Sampler(Generator[World, Optional[World], None]):
         self._num_adaptive_sample_remaining = num_adaptive_samples
 
     def send(self, world: Optional[World] = None) -> World:
+        """
+        At each iteration, the following is executed:
+        1. Shuffle all the proposers in the world.
+        2. For each proposer, propose a world and accept/reject it based on MH ratio.
+        3. Run adaptation method if applicable.
+        4. Update the new current world as `self.world`.
+
+        Args:
+            world: Optional World to use to propose. If none is provided, `self.world` is used.
+        """
         if world is None:
             world = self.world
 
