@@ -50,6 +50,42 @@ effectively independent samples if we sampled the tails of the posterior. The
 rule of thumb for this value is also to be greater than 100 per chain on
 average.
 
+## Diagnostics information with ArviZ
+
+We can use [ArviZ](https://arviz-devs.github.io/arviz), a third-party package for exploratory analysis of Bayesian models, to provide helpful statistics about the result of the inference algorithm, including R-hat and ESS.
+
+To do that, we wrap the result of Bean Machine inference into an [`InferenceData`](https://arviz-devs.github.io/arviz/api/generated/arviz.InferenceData.html?highlight=inferencedata#arviz.InferenceData) ArviZ object and use its methods for diagnostic information:
+
+```python
+posterior = bm.SingleSiteNewtonianMonteCarlo().infer(
+    queries,
+    observations,
+    num_samples,
+    num_chains,
+)
+
+import arviz as az
+inference_data = az.convert_to_inference_data(posterior.samples)
+az.summary(inference_data)
+```
+which in a notebook outputs something like:
+
+![ArviZ summary](arviz-summary.png)
+
+ArviZ provides many other analysis tools, including trace and autocorrelation plots:
+
+```py
+az.plot_trace(inference_data);
+```
+
+![ArviZ trace plot](arviz-trace-plot.png)
+
+```py
+az.plot_autocorr(inference_data, combined=False, max_lag=1000, grid=(2,2));
+```
+
+![ArviZ autocorrelation plot](arviz-autocorrelation-plot.png)
+
 
 [^1] Stan Reference Manual. https://mc-stan.org/docs/2_18/reference-manual/effective-sample-size-section.html
 
