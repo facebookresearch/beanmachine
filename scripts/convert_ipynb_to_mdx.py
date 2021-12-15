@@ -104,7 +104,7 @@ def transform_markdown_cell(
     return f"{new_cell_source}\n\n"
 
 
-def transform_code_cell(
+def transform_code_cell(  # noqa: C901 (flake8 too complex)
     cell: NotebookNode,
     plot_data_folder: Union[PathLike, str],
     filename: Union[PathLike, str],
