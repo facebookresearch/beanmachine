@@ -106,11 +106,13 @@ website/build/
 website/i18n/
 website/node_modules/
 
-## Generated for tutorials
-website/_tutorials/
-website/static/files/
-website/pages/tutorials/*
-!website/pages/tutorials/index.js
+# Tutorials
+docs/overview/tutorials/*/*.mdx
+docs/overview/tutorials/*/*.jsx
+docs/overview/tutorials/*/assets/*/*.json
+docs/overview/tutorials/*/assets/*/*.svg
+tutorials/archive.ics.uci.edu/*
+src/beanmachine/tutorials/utils/data/*
 
 ## Generated for Sphinx
 website/pages/api/

@@ -95,6 +95,7 @@ module.exports = {
     },
   },
   stylesheets: ['https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css'],
+  scripts: ['https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js'],
   presets: [
     [
       require.resolve('docusaurus-plugin-internaldocs-fb/docusaurus-preset'),

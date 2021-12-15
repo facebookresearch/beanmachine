@@ -8,6 +8,14 @@
  */
 
 const {fbInternalOnly} = require('internaldocs-fb-helpers');
+const tutorials = () => {
+  const allTutorialMetadata = require('./tutorials.json');
+  const tutorialPaths = ['overview/tutorials/tutorials'];
+  for (var key in allTutorialMetadata) {
+    tutorialPaths.push(allTutorialMetadata[key]['path']);
+  }
+  return tutorialPaths;
+};
 
 module.exports = {
   someSidebar: [
@@ -49,8 +57,8 @@ module.exports = {
         },
       ],
       Advanced: ['overview/beanstalk/beanstalk'],
+      Tutorials: tutorials(),
     },
-    'overview/tutorials/tutorials',
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.
     // {
     //   Packages: ['overview/packages/packages'],

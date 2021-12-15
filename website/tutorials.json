@@ -1,0 +1,10 @@
+{
+  "Coin_flipping": {
+    "title": "Coin flipping",
+    "sidebar_label": "Coin flipping",
+    "path": "overview/tutorials/Coin_flipping/CoinFlipping",
+    "nb_path": "tutorials/Coin_flipping.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb"
+  }
+}

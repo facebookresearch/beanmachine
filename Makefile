@@ -12,6 +12,9 @@ test: lint FORCE
 docs: FORCE
 	$(MAKE) -C sphinx html
 
+tutorials: FORCE
+	python scripts/convert_ipynb_to_mdx.py; wait; cd website; wait; yarn; wait; yarn build;
+
 format-notebook: FORCE
 ifndef nb
 	find tutorials -name "*.ipynb" | xargs jupyter nbconvert --to notebook \
