@@ -112,7 +112,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.do_adaptation">
 <span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.do_adaptation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Run <cite>do_adaptation</cite> for all of the proposers</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.finish_adaptation">
@@ -122,7 +123,14 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.propose">
 <span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.propose" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Computes the joint log prob of all the proposers
+for the world.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>world</strong> – World to compute joint log prob of</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
