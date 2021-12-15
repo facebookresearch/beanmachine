@@ -185,7 +185,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         samples = mh.infer(
             [foo_key],
             {bar_key: torch.tensor(4.0)},
-            num_samples=10,
+            num_samples=5,
             num_chains=2,
         )
         self.assertTrue(hasattr(samples, "log_likelihoods"))

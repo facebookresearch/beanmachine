@@ -123,7 +123,6 @@ class BaseInference(metaclass=ABCMeta):
         return MonteCarloSamples(
             chain_results,
             num_adaptive_samples,
-            True,
             chain_logll,
             observations,
         )

@@ -27,9 +27,9 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         self,
         chain_results: Union[List[RVDict], RVDict],
         num_adaptive_samples: int = 0,
-        stack_not_cat: bool = True,
         logll_results: Optional[List[RVDict]] = None,
         observations: Optional[RVDict] = None,
+        stack_not_cat: bool = True,
     ):
         if isinstance(chain_results, list):
             self.num_chains = len(chain_results)
@@ -105,11 +105,10 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             }
 
         new_mcs = MonteCarloSamples(
-            samples,
-            self.num_adaptive_samples,
-            True,
-            logll,
-            self.observations,
+            chain_results=samples,
+            num_adaptive_samples=self.num_adaptive_samples,
+            logll_results=logll,
+            observations=self.observations,
         )
         new_mcs.single_chain_view = True
 
