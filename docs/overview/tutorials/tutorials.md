@@ -20,6 +20,12 @@ This tutorial demonstrates modeling and running inference on a simple coin-flipp
 
 This tutorial demonstrates modeling and running inference on a simple univariate linear regression model in Bean Machine. This should offer an accessible introduction to models that use PyTorch tensors and Newtonian Monte Carlo inference in Bean Machine. It will also teach you effective practices for prediction on new datasets with Bean Machine.
 
+### Robust Linear Regression
+
+[Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Robust_Linear_Regression.ipynb) • [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Robust_Linear_Regression.ipynb)
+
+This tutorial illustrates a robust extension to the Linear Regression tutorial. A similar setup is employed except here the dataset is explicitly corrupted through the addition of outliers. You will learn how to modify the model such that correct inferences are recovered despite the presence of outliers.
+
 
 ### Logistic Regression
 
