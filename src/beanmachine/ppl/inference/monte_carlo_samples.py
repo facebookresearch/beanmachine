@@ -27,7 +27,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         self,
         chain_results: Union[List[RVDict], RVDict],
         num_adaptive_samples: int = 0,
-        logll_results: Optional[List[RVDict]] = None,
+        logll_results: Optional[Union[List[RVDict], RVDict]] = None,
         observations: Optional[RVDict] = None,
         stack_not_cat: bool = True,
     ):

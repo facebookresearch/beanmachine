@@ -177,6 +177,16 @@ class MonteCarloSamplesTest(unittest.TestCase):
             torch.all(samples.get_variable(model.foo(), True) == torch.arange(10))
         )
 
+    def test_get_chain(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        foo_key = model.foo()
+        mcs = mh.infer([foo_key], {}, 10)
+        self.assertEqual(mcs.num_chains, 4)
+
+        mcs = mcs.get_chain(0)
+        self.assertEqual(mcs.num_chains, 1)
+
     def test_get_log_likehoods(self):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
