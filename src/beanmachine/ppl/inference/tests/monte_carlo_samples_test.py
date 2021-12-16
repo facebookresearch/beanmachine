@@ -177,31 +177,49 @@ class MonteCarloSamplesTest(unittest.TestCase):
             torch.all(samples.get_variable(model.foo(), True) == torch.arange(10))
         )
 
-    def test_get_chain(self):
-        model = self.SampleModel()
-        mh = bm.SingleSiteAncestralMetropolisHastings()
-        foo_key = model.foo()
-        mcs = mh.infer([foo_key], {}, 10)
-        self.assertEqual(mcs.num_chains, 4)
-
-        mcs = mcs.get_chain(0)
-        self.assertEqual(mcs.num_chains, 1)
-
     def test_get_log_likehoods(self):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
-        samples = mh.infer(
+        mcs = mh.infer(
             [foo_key],
             {bar_key: torch.tensor(4.0)},
             num_samples=5,
             num_chains=2,
         )
-        self.assertTrue(hasattr(samples, "log_likelihoods"))
-        self.assertIn(bar_key, samples.log_likelihoods)
-        self.assertTrue(hasattr(samples, "adaptive_log_likelihoods"))
-        self.assertIn(bar_key, samples.adaptive_log_likelihoods)
+        self.assertTrue(hasattr(mcs, "log_likelihoods"))
+        self.assertIn(bar_key, mcs.log_likelihoods)
+        self.assertTrue(hasattr(mcs, "adaptive_log_likelihoods"))
+        self.assertIn(bar_key, mcs.adaptive_log_likelihoods)
+        self.assertEqual(mcs.log_likelihoods[bar_key].shape, torch.zeros(2, 5).shape)
+        mcs = mcs.get_chain(0)
+        self.assertEqual(mcs.log_likelihoods[bar_key].shape, torch.zeros(1, 5).shape)
+
+        mcs = mh.infer(
+            [foo_key],
+            {bar_key: torch.tensor(4.0)},
+            num_samples=5,
+            num_chains=2,
+            num_adaptive_samples=3,
+        )
+
+        self.assertEqual(
+            mcs.get_log_likelihoods(bar_key).shape, torch.zeros(2, 5).shape
+        )
+        self.assertEqual(
+            mcs.adaptive_log_likelihoods[bar_key].shape, torch.zeros(2, 3).shape
+        )
+        self.assertEqual(
+            mcs.get_chain(0).get_log_likelihoods(bar_key).shape, torch.zeros(5).shape
+        )
+        self.assertEqual(
+            mcs.get_log_likelihoods(bar_key, True).shape, torch.zeros(2, 8).shape
+        )
+        self.assertEqual(
+            mcs.get_chain(0).adaptive_log_likelihoods[bar_key].shape,
+            torch.zeros(1, 3).shape,
+        )
 
     def test_thinning(self):
         model = self.SampleModel()
