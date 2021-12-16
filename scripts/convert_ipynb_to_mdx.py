@@ -1,5 +1,6 @@
 import json
 import shutil
+import uuid
 from os import PathLike
 from pathlib import Path
 from textwrap import wrap
@@ -108,7 +109,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
     cell: NotebookNode,
     plot_data_folder: Union[PathLike, str],
     filename: Union[PathLike, str],
-) -> Dict[str, str]:
+) -> Dict[str, Union[str, bool]]:
     """Transform the given Jupyter code cell.
 
     Args:
@@ -207,17 +208,32 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                             )
                     # TODO: Handle svg images.
 
-                # Handle plotly images. We will use the png base64 encoded images that
-                # plotly generates, and not the interactive plots since those will be
-                # handled with bokeh.
+                # Handle plotly images.
                 if plotly_flag:
-                    # Ignore any HTML data objects.
-                    if data_object == "text/html":
-                        continue
-                    else:
-                        mdx_output += (
-                            f"![](data:{data_object};base64,{cell_output_data})\n\n"
-                        )
+                    cell_output_data = cell_output["data"]
+                    for key, value in cell_output_data.items():
+                        if key == "application/vnd.plotly.v1+json":
+                            # Save the plotly JSON data.
+                            file_name = "PlotlyFigure" + str(uuid.uuid4())
+                            component_name = file_name.replace("-", "")
+                            components_output += (
+                                f'import { {component_name} } from "./{filename}.jsx";\n'
+                            ).replace("'", " ")
+                            file_path = str(
+                                plot_data_folder.joinpath(f"{file_name}.json")
+                            )
+                            with open(file_path, "w") as f:
+                                json.dump(value, f, indent=2)
+                            # Add a React component to the jsx output.
+                            jsx_output += (
+                                f"export const {component_name} = () => {{\n"
+                                "  return (\n"
+                                "    <PlotlyFigure pathToData={"
+                                f'"./assets/plot_data/{file_name}.json"}} />\n'
+                                "  );\n"
+                                "};\n\n"
+                            )
+                            mdx_output += f"<{component_name} />\n\n"
 
                 # Handle bokeh images.
                 if bokeh_flag:
@@ -317,7 +333,13 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                     temp += f"{cell_output_datum}\n"
                 mdx_output += f"{temp}```\n\n"
 
-    return {"mdx": mdx_output, "jsx": jsx_output, "components": components_output}
+    return {
+        "mdx": mdx_output,
+        "jsx": jsx_output,
+        "components": components_output,
+        "bokeh": bokeh_flag,
+        "plotly": plotly_flag,
+    }
 
 
 def find_frontmatter_ending(mdx: str, stop_looking_after: int = 10) -> int:
@@ -388,6 +410,7 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
     # Define the JSX template needed to display bokeh objects in the mdx files.
     JSX_TEMPLATE = (
         'import React from "react";\n'
+        'import Loadable from "react-loadable";\n'
         'import BrowserOnly from "@docusaurus/BrowserOnly";\n'
         'import Link from "@docusaurus/Link";\n\n'
         "const BokehFigure = React.memo(({ pathToData }) => {\n"
@@ -402,6 +425,26 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
         "          }\n"
         "        }}\n"
         "      </BrowserOnly>\n"
+        "    </div>\n"
+        "  );\n"
+        "});\n\n"
+        "const Plotly = Loadable({\n"
+        "  loader: () => import(`react-plotly.js`),\n"
+        "  loading: ({ timedOut }) =>\n"
+        "    timedOut ? (\n"
+        "      <blockquote>Error: Loading Plotly timed out.</blockquote>\n"
+        "    ) : (\n"
+        "      <div>phooey</div>\n"
+        "    ),\n"
+        "  timeout: 10000,\n"
+        "});\n\n"
+        "const PlotlyFigure = React.memo(({ pathToData }) => {\n"
+        "  const plotData = React.useMemo(() => require(`${pathToData}`), []);\n"
+        '  const data = plotData["data"];\n'
+        '  const layout = plotData["layout"];\n'
+        "  return (\n"
+        '    <div className="plotly-figure">\n'
+        "      <Plotly data={data} layout={layout} />\n"
         "    </div>\n"
         "  );\n"
         "});\n\n"
@@ -463,9 +506,10 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
         # Handle code cell objects.
         if cell_type == "code":
             tx = transform_code_cell(cell, plot_data_folder, filename)
-            mdx += tx["mdx"]
-            jsx += tx["jsx"]
-            components.add(tx["components"])
+            mdx += str(tx["mdx"])
+            jsx += str(tx["jsx"])
+            for component in tx["components"].splitlines():
+                components.add(component)
 
     # Add the JSX template object to the jsx string.
     jsx = JSX_TEMPLATE + jsx

@@ -20,8 +20,11 @@
     "@docusaurus/preset-classic": "^2.0.0-beta.9",
     "clsx": "^1.1.1",
     "internaldocs-fb-helpers": "^1.7.0",
+    "plotly.js": "^2.8.1",
     "react": "^17.0.2",
     "react-dom": "^16.8.4",
+    "react-loadable": "^5.5.0",
+    "react-plotly.js": "^2.5.1",
     "rehype-katex": "^3.0.0",
     "remark-math": "^2.0.1"
   },
