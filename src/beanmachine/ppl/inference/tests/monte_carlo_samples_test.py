@@ -192,9 +192,11 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertIn(bar_key, mcs.log_likelihoods)
         self.assertTrue(hasattr(mcs, "adaptive_log_likelihoods"))
         self.assertIn(bar_key, mcs.adaptive_log_likelihoods)
-        self.assertEqual(mcs.log_likelihoods[bar_key].shape, torch.zeros(2, 5).shape)
+        self.assertEqual(
+            mcs.get_log_likelihoods(bar_key).shape, torch.zeros(2, 5).shape
+        )
         mcs = mcs.get_chain(0)
-        self.assertEqual(mcs.log_likelihoods[bar_key].shape, torch.zeros(1, 5).shape)
+        self.assertEqual(mcs.get_log_likelihoods(bar_key).shape, torch.zeros(5).shape)
 
         mcs = mh.infer(
             [foo_key],
