@@ -13,7 +13,7 @@ docs: FORCE
 	$(MAKE) -C sphinx html
 
 tutorials: FORCE
-	python scripts/convert_ipynb_to_mdx.py; wait; cd website; wait; yarn; wait; yarn build;
+	python scripts/convert_ipynb_to_mdx.py
 
 format-notebook: FORCE
 ifndef nb

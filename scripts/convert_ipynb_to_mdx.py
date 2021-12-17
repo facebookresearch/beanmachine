@@ -150,6 +150,27 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
     cell_source = cell.get("source", "")
     mdx_output += f"```python\n{cell_source}\n```\n\n"
 
+    font = (
+        "var(--ifm-code-font-size) / var(--ifm-pre-line-height) "
+        "var(--ifm-font-family-monospace)"
+    )
+    styled_cell_output = (
+        "<div\n"
+        "  style={\n"
+        "    {\n"
+        '      backgroundColor: "lightgray",\n'
+        '      marginBottom: "var(--ifm-leading)",\n'
+        '      borderRadius: "var(--ifm-global-radius)",\n'
+        '      boxShadow: "var(--ifm-global-shadow-lw)",\n'
+        '      overflow: "hidden",\n'
+        '      padding: "10px",\n'
+        f'      font: "{font}",\n'
+        "    }\n"
+        "  }\n"
+        ">\n"
+        '<span style={{color: "red"}}>Out: </span>\n'
+    )
+
     # Handle cell outputs.
     cell_outputs = cell.get("outputs", [])
     if cell_outputs:
@@ -254,9 +275,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         token = "show("
                         plot_name = plot_name[plot_name.find(token) + len(token) : -1]
                         div_name = plot_name.replace("_", "-")
-                        #  mdx_output += (
-                        #      f'<div className="bk-root" id="{div_name}"></div>\n'
-                        #  )
                         component_name = "".join(
                             [token.title() for token in plot_name.split("_")]
                         )
@@ -270,11 +288,8 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                             filter(
                                 lambda line: line.startswith(flag),
                                 [
-                                    line
-                                    for line in [
-                                        line.strip()
-                                        for line in cell_output_data.splitlines()
-                                    ]
+                                    line.strip()
+                                    for line in cell_output_data.splitlines()
                                 ],
                             )
                         )[0]
@@ -313,7 +328,9 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 if data_category == "text":
                     # Handle plain text.
                     if data_type == "plain":
-                        mdx_output += f"```python\n>>> {cell_output_data}\n```\n\n"
+                        mdx_output += (
+                            styled_cell_output + f"{cell_output_data}\n</div>\n\n"
+                        )
                     # Handle markdown.
                     if data_type == "markdown":
                         mdx_output += f"{cell_output_data}\n\n"
@@ -323,15 +340,8 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 # Ignore if the output is an error.
                 if cell_output["name"] == "stderr":
                     continue
-                cell_output_data = cell_output.get("text", "").splitlines()
-                temp = "```python\n"
-                for j, cell_output_datum in enumerate(cell_output_data):
-                    if j == 0:
-                        temp += ">>> "
-                    else:
-                        temp += "    "
-                    temp += f"{cell_output_datum}\n"
-                mdx_output += f"{temp}```\n\n"
+                cell_output_data = cell_output.get("text", "")
+                mdx_output += styled_cell_output + f"{cell_output_data}\n</div>\n\n"
 
     return {
         "mdx": mdx_output,
@@ -417,7 +427,11 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
         "  const plotData = React.useMemo(() => require(`${pathToData}`), []);\n"
         '  const targetId = plotData["target_id"];\n'
         "  return (\n"
-        '    <div className="bk-root" id={targetId}>\n'
+        "    <div\n"
+        '      className="bk-root thin-scrollbar"\n'
+        "      id={targetId}\n"
+        '      style={{overflow: "auto", width: "100%"}}\n'
+        "    >\n"
         "      <BrowserOnly fallback={<div>loading...</div>}>\n"
         "        {() => {\n"
         "          {\n"
@@ -508,11 +522,13 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
             tx = transform_code_cell(cell, plot_data_folder, filename)
             mdx += str(tx["mdx"])
             jsx += str(tx["jsx"])
-            for component in tx["components"].splitlines():
+            for component in str(tx["components"]).splitlines():
                 components.add(component)
 
     # Add the JSX template object to the jsx string.
     jsx = JSX_TEMPLATE + jsx
+    # Remove the last line since it is blank.
+    jsx = "\n".join(jsx.splitlines()[:-1])
 
     # Add the react components needed to display bokeh objects in the mdx string.
     mdx = mdx.splitlines()

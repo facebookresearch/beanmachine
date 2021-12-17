@@ -170,15 +170,15 @@ def log_plot_comparison(data: pd.Series, nbins: int = 40):
 
     # Create the plots.
     plot = figure(
-        plot_width=500,
-        plot_height=500,
+        plot_width=400,
+        plot_height=400,
         title=f"Histogram of {data.name}",
         y_axis_label="Counts",
         x_axis_label=data.name,
     )
     log_plot = figure(
-        plot_width=500,
-        plot_height=500,
+        plot_width=400,
+        plot_height=400,
         title=f"Histogram of log({data.name})",
         y_axis_label="Counts",
         x_axis_label=f"log({data.name})",
@@ -257,7 +257,6 @@ def log_plot_comparison(data: pd.Series, nbins: int = 40):
         hover_line_color="brown",
         hover_line_width=3.0,
         hover_line_alpha=1.0,
-        legend_label="Kernel density estimation",
     )
     log_density_tooltips = HoverTool(
         renderers=[log_density_glyph],
@@ -294,7 +293,6 @@ def log_plot_comparison(data: pd.Series, nbins: int = 40):
         hover_alpha=1.0,
         hover_line_color="black",
         hover_line_width=2.0,
-        legend_label="Histogram",
     )
     log_histogram_tooltips = HoverTool(
         renderers=[log_histogram_glyph],
@@ -322,7 +320,7 @@ def log_plot_comparison(data: pd.Series, nbins: int = 40):
 def floor_plot(df):
     # Create the plot.
     radon_floor_plot = figure(
-        plot_width=500,
+        plot_width=800,
         plot_height=500,
         title="log(radon) measurement vs floor",
         y_range=[-6, 6],
@@ -435,15 +433,15 @@ def sample_of_priors():
         normals.append(stats.norm(0, i).pdf(X))
 
     cauchy_plot = figure(
-        plot_width=500,
-        plot_height=500,
+        plot_width=400,
+        plot_height=400,
         title="Half Cauchy priors",
         x_range=[1e-2, 100],
         x_axis_type="log",
     )
     normal_plot = figure(
-        plot_width=500,
-        plot_height=500,
+        plot_width=400,
+        plot_height=400,
         title="Normal priors",
         x_range=[-10, 10],
     )
@@ -488,21 +486,21 @@ def plot_trace_ranks(keys, values, samples):
         trace = az.plot_trace(data, show=False, kind="rank_bars").reshape(-1)
         for i, p in enumerate(trace):
             if i == 0:
-                p.plot_width = 300
+                p.plot_width = 250
                 for j, renderer in enumerate(p.renderers):
                     renderer._property_values["glyph"].line_color = colors[j]
                     renderer._property_values["glyph"].line_dash = "solid"
                     renderer._property_values["glyph"].line_width = 2
                     renderer._property_values["glyph"].line_alpha = 0.6
             else:
-                p.plot_width = 600
-            p.plot_height = 300
+                p.plot_width = 550
+            p.plot_height = 250
             p.outline_line_color = "black"
             p.grid.grid_line_alpha = 0.2
             p.grid.grid_line_color = "grey"
             p.grid.grid_line_width = 0.2
-        plots.append(layout([[trace[0], trace[1]]]))
-    return gridplot([plots])
+        plots.append([layout([[trace[0], trace[1]]])])
+    return gridplot([*plots])
 
 
 def sample_county_trace_ranks(sample_counties: Dict[int, str], alphas) -> Figure:
@@ -561,7 +559,7 @@ def uranium(summary_df: DataFrame, df: DataFrame) -> Figure:
     )
 
     plot = figure(
-        plot_width=1000,
+        plot_width=800,
         plot_height=500,
         title="Partial-pooling with individual and group level predictors",
         x_axis_label="log(uranium)",
