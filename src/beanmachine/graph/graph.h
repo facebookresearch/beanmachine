@@ -370,6 +370,8 @@ enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
 
 enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
+// dummy change to force running tests
+
 struct DoubleMatrix {
   double _double;
   Eigen::MatrixXd _matrix;
