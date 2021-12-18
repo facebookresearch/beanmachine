@@ -89,7 +89,6 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         that was used or needs to be used to find the proposal distribution
         """
         if node not in self.proposers_:
-            # pyre-fixme
             node_distribution_support = node_var.distribution.support
             if world.get_transforms_for_node(
                 node

@@ -46,7 +46,6 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
         node_distribution = node_var.distribution
         if (
             is_constraint_eq(
-                # pyre-fixme
                 node_distribution.support,
                 dist.constraints.boolean,
             )

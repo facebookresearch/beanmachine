@@ -63,7 +63,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         if not base_args:
             base_args = {}
 
-        event_shape = target_dist.event_shape  # pyre-ignore[16]
+        event_shape = target_dist.event_shape
         # form independent product distribution of `base_dist` for `event_shape`
         if len(event_shape) == 0:
             self.base_args = base_args
@@ -105,14 +105,14 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         )
 
         # unwrap nested independents before setting transform
-        support = target_dist.support  # pyre-ignore[16]
+        support = target_dist.support
         while isinstance(support, constraints.independent):
             support = support.base_constraint
         self._transform = biject_to(support)
 
         super().__init__(
-            self.new_dist.batch_shape,  # pyre-ignore
-            self.new_dist.event_shape,  # pyre-ignore
+            self.new_dist.batch_shape,
+            self.new_dist.event_shape,
             validate_args=validate_args,
         )
 

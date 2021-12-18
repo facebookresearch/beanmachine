@@ -70,7 +70,7 @@ class SingleSiteNewtonianMonteCarlo(BaseInference):
         of NMC proposer will be chosen based on a node's support.
         """
         distribution = world.get_variable(node).distribution
-        support = distribution.support  # pyre-ignore
+        support = distribution.support
         if is_constraint_eq(support, dist.constraints.real):
             return SingleSiteRealSpaceNMCProposer(node, self.alpha, self.beta)
         elif is_constraint_eq(support, dist.constraints.greater_than):

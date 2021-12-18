@@ -44,7 +44,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
     def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """Propose a new value for self.node using the prior distribution."""
         node = world.get_variable(self.node)
-        node_support = node.distribution.support  # pyre-ignore [16]
+        node_support = node.distribution.support
 
         if is_constraint_eq(node_support, dist.constraints.real):
             return dist.Normal(node.value, self.step_size)

@@ -101,7 +101,6 @@ def get_default_transforms(distribution: Distribution) -> dist.Transform:
     :returns: a Transform that need to be applied to the distribution
         to transform it from constrained space into unconstrained space
     """
-    # pyre-fixme
     if distribution.support.is_discrete:
         return dist.transforms.identity_transform
     else:
@@ -115,11 +114,9 @@ def initialize_value(distribution: Distribution, initialize_from_prior: bool = F
     :param initialize_from_prior: if true, returns sample from prior
     :returns: the value to the set the Variable value to
     """
-    # pyre-fixme
     sample_val = distribution.sample()
     if initialize_from_prior:
         return sample_val
-    # pyre-fixme
     support = distribution.support
     if isinstance(support, dist.constraints.independent):
         support = support.base_constraint

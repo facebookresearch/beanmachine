@@ -108,7 +108,6 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         if world.get_transforms_for_node(
             node
         ).transform_type != TransformType.NONE or is_constraint_eq(
-            # pyre-fixme
             node_distribution.support,
             dist.constraints.real,
         ):

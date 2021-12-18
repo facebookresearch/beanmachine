@@ -32,7 +32,6 @@ class BaseSingleSiteMHProposer(BaseProposer):
         """
         proposal_dist = forward_dist = self.get_proposal_distribution(world)
         old_value = world[self.node]
-        # pyre-ignore[20]
         proposed_value = proposal_dist.sample()
         new_world = world.replace({self.node: proposed_value})
         backward_dist = self.get_proposal_distribution(new_world)

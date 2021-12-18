@@ -59,7 +59,6 @@ class _DefaultInference(SingleSiteNewtonianMonteCarlo):
         proposers = []
         for node in target_rvs:
             if node not in self._proposers:
-                # pyre-ignore[16]
                 support = world.get_variable(node).distribution.support
                 if any(
                     is_constraint_eq(

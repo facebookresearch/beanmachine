@@ -206,10 +206,8 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
           A tensor enumerating the support of the node.
         """
         distribution = self._variables[node].distribution
-        # pyre-ignore[16]
         if not distribution.has_enumerate_support:
             raise ValueError(str(node) + " is not enumerable")
-        # pyre-ignore[16]
         return distribution.enumerate_support()
 
     def _run_node(

@@ -67,6 +67,7 @@ class MaskedLinear(nn.Linear):
             raise ValueError("Dimension mismatches between mask and layer.")
         self.mask.data.copy_(mask.t())
 
+    # pyre-fixme[14]: `forward` overrides method defined in `Linear` inconsistently.
     def forward(self, input_: Tensor) -> Tensor:
         """
         the forward method that does the masked linear computation

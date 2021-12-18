@@ -117,6 +117,7 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         loss = -(proposal_distribution.log_prob(node_var.value))
         optimizer.zero_grad()
         loss.backward()
+        # pyre-fixme[20]: Argument `closure` expected.
         optimizer.step()
 
 
@@ -419,7 +420,6 @@ class ICInference(AbstractMHInference):
                     raise Exception("No observation embedding network found!")
 
                 obs_vec = torch.stack(obs_nodes, dim=0).flatten()
-                # pyre-fixme
                 obs_embedding = obs_embedding_net.forward(obs_vec)
 
             node_embedding_nets = self._node_embedding_nets
@@ -429,7 +429,6 @@ class ICInference(AbstractMHInference):
             mb_embedding = torch.zeros(self._MB_EMBEDDING_DIM)
             mb_nodes = list(
                 map(
-                    # pyre-fixme[29]: `Union[Tensor, nn.Module]` is not a function.
                     lambda mb_node: node_embedding_nets(mb_node).forward(
                         utils.ensure_1d(
                             world.get_node_in_world_raise_error(mb_node).value
@@ -449,15 +448,11 @@ class ICInference(AbstractMHInference):
                 mb_vec = torch.stack(mb_nodes, dim=0).unsqueeze(1)
                 # TODO: try pooling rather than just slicing out last hidden
                 mb_embedding = utils.ensure_1d(
-                    # pyre-fixme[29]: `Union[Tensor, nn.Module]` is not a function.
-                    mb_embedding_nets(node)
-                    .forward(mb_vec)[0][-1, :, :]
-                    .squeeze()
+                    mb_embedding_nets(node).forward(mb_vec)[0][-1, :, :].squeeze()
                 )
             node_proposal_param_nets = self._node_proposal_param_nets
             if node_proposal_param_nets is None:
                 raise Exception("No node proposal parameter networks found!")
-            # pyre-fixme[29]: `Union[Tensor, nn.Module]` is not a function.
             param_vec = node_proposal_param_nets(node).forward(
                 torch.cat((mb_embedding, obs_embedding))
             )
@@ -475,9 +470,7 @@ class ICInference(AbstractMHInference):
         """
         node_var = self.world_.get_node_in_world_raise_error(node)
         distribution = node_var.distribution
-        # pyre-fixme
         sample_val = distribution.sample()
-        # pyre-fixme
         support = distribution.support
 
         ndim = sample_val.dim()

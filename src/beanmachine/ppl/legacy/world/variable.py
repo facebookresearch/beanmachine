@@ -94,7 +94,6 @@ class Variable:
 
     @property
     def is_discrete(self) -> bool:
-        # pyre-fixme
         return self.distribution.support.is_discrete
 
     def __post_init__(self) -> None:

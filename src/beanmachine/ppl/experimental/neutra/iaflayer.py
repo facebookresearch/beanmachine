@@ -84,6 +84,10 @@ class InverseAutoregressiveLayer(nn.Module):
         self.loga_max_clip_ = loga_max_clip
         self.stable_ = stable
 
+    # pyre-fixme[14]: `get_parameter` overrides method defined in `Module`
+    #  inconsistently.
+    # pyre-fixme[15]: `get_parameter` overrides method defined in `Module`
+    #  inconsistently.
     def get_parameter(self, x: Tensor) -> Tuple[Tensor, Tensor]:
 
         """
