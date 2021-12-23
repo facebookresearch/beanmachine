@@ -16,30 +16,60 @@
 namespace beanmachine {
 namespace graph {
 
+// Conveniences for this compilation unit
+
+using std::get;
+using Matrix = DoubleMatrix::Matrix;
+
+template <typename T>
+inline bool has(const DoubleMatrix& dm) {
+  return std::holds_alternative<T>(dm);
+}
+
+/// DoubleProperty methods
+
 DoubleProperty::DoubleProperty(DoubleMatrix& owner) : owner(&owner) {}
 
+inline double& DoubleProperty::value() {
+  return get<double>(*owner);
+}
+
+inline const double& DoubleProperty::value() const {
+  return get<double>(*owner);
+}
+
 double& DoubleProperty::operator=(const double& d) {
-  owner->std::variant<double, Eigen::MatrixXd>::operator=(d);
-  return std::get<double>(*owner);
+  owner->VariantBaseClass::operator=(d);
+  return value();
 }
 
 DoubleProperty::operator double&() {
-  return std::get<double>(*owner);
+  return value();
 }
 
 DoubleProperty::operator const double&() const {
-  return std::get<double>(*owner);
+  return value();
 }
+
+/// MatrixProperty methods
 
 MatrixProperty::MatrixProperty(DoubleMatrix& owner) : owner(&owner) {}
 
-Eigen::MatrixXd& MatrixProperty::operator=(const Eigen::MatrixXd& m) {
-  owner->std::variant<double, Eigen::MatrixXd>::operator=(m);
-  return std::get<Eigen::MatrixXd>(*owner);
+inline Matrix& MatrixProperty::value() {
+  return get<Matrix>(*owner);
 }
 
-MatrixProperty::operator const Eigen::MatrixXd&() const {
-  return std::get<Eigen::MatrixXd>(*owner);
+inline const Matrix& MatrixProperty::value() const {
+  return get<Matrix>(*owner);
+}
+
+Matrix& MatrixProperty::operator=(const Matrix& m) {
+  owner->VariantBaseClass::operator=(m);
+  return value();
+}
+
+MatrixProperty::operator const Matrix&() const {
+  return value();
 }
 
 double MatrixProperty::coeff(Eigen::MatrixXd::Index i) const {
@@ -61,71 +91,60 @@ Eigen::MatrixXd::ColXpr MatrixProperty::col(Eigen::MatrixXd::Index i) {
 }
 
 double MatrixProperty::sum() {
-  return std::get<Eigen::MatrixXd>(*owner).sum();
+  return value().sum();
 }
 
-// template <typename Increment>
-// Eigen::MatrixXd& MatrixProperty::operator+=(const Increment& increment) {
-//   return std::get<Eigen::MatrixXd>(*owner) += increment;
-// }
-
-Eigen::MatrixXd& MatrixProperty::operator+=(const Eigen::MatrixXd& increment) {
-  return std::get<Eigen::MatrixXd>(*owner) += increment;
+Matrix& MatrixProperty::operator+=(const Matrix& increment) {
+  return value() += increment;
 }
 
-Eigen::MatrixXd& MatrixProperty::operator+=(const DoubleMatrix& increment) {
-  return std::get<Eigen::MatrixXd>(*owner) +=
-      std::get<Eigen::MatrixXd>(increment);
+Matrix& MatrixProperty::operator+=(const DoubleMatrix& increment) {
+  return value() += get<Matrix>(increment);
 }
 
-Eigen::MatrixXd& MatrixProperty::operator-=(const Eigen::MatrixXd& increment) {
-  return std::get<Eigen::MatrixXd>(*owner) -= increment;
+Matrix& MatrixProperty::operator-=(const Matrix& increment) {
+  return value() -= increment;
 }
 
-Eigen::MatrixXd MatrixProperty::operator*(const Eigen::MatrixXd& increment) {
-  return std::get<Eigen::MatrixXd>(*owner) * increment;
+Matrix MatrixProperty::operator*(const Matrix& increment) {
+  return value() * increment;
 }
 
-Eigen::MatrixXd MatrixProperty::operator*(const DoubleMatrix& increment) {
-  return std::get<Eigen::MatrixXd>(*owner) *
-      std::get<Eigen::MatrixXd>(increment);
+Matrix MatrixProperty::operator*(const DoubleMatrix& increment) {
+  return value() * get<Matrix>(increment);
 }
 
-Eigen::MatrixXd operator*(
-    const Eigen::MatrixXd& operand,
-    const MatrixProperty& mp) {
-  return operand * std::get<Eigen::MatrixXd>(*mp.owner);
+Matrix operator*(const Matrix& operand, const MatrixProperty& mp) {
+  return operand * get<Matrix>(*mp.owner);
 }
 
-Eigen::MatrixXd operator*(double operand, const MatrixProperty& mp) {
-  return operand * std::get<Eigen::MatrixXd>(*mp.owner);
+Matrix operator*(double operand, const MatrixProperty& mp) {
+  return operand * get<Matrix>(*mp.owner);
 }
 
-Eigen::MatrixXd::ColXpr operator+=(
-    Eigen::MatrixXd::ColXpr operand,
-    const MatrixProperty& mp) {
-  return operand += std::get<Eigen::MatrixXd>(*mp.owner);
+Matrix::ColXpr operator+=(Matrix::ColXpr operand, const MatrixProperty& mp) {
+  return operand += get<Matrix>(*mp.owner);
 }
 
 Eigen::MatrixXd& MatrixProperty::setZero(
     Eigen::MatrixXd::Index rows,
     Eigen::MatrixXd::Index cols) {
-  if (not std::holds_alternative<Eigen::MatrixXd>(*owner)) {
+  if (not has<Matrix>(*owner)) {
     *this = Eigen::MatrixXd();
   }
-  return std::get<Eigen::MatrixXd>(*owner).setZero(rows, cols);
+  return value().setZero(rows, cols);
 }
 
-Eigen::ArrayWrapper<Eigen::MatrixXd> MatrixProperty::array() {
-  return std::get<Eigen::MatrixXd>(*owner).array();
+Eigen::ArrayWrapper<Matrix> MatrixProperty::array() {
+  return value().array();
 }
 
-Eigen::MatrixXd::Scalar* MatrixProperty::data() {
-  return std::get<Eigen::MatrixXd>(*owner).data();
+Matrix::Scalar* MatrixProperty::data() {
+  return value().data();
 }
 
-Eigen::MatrixXd::Index MatrixProperty::size() {
-  return std::get<Eigen::MatrixXd>(*owner).size();
+Matrix::Index MatrixProperty::size() {
+  return value().size();
 }
 
 } // namespace graph
