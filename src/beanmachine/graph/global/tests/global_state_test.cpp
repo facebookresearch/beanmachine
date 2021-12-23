@@ -119,7 +119,7 @@ TEST(testglobal, global_state_no_transform) {
   grad(log_prob, sample2) <- 0.3, 0.1
   */
   EXPECT_EQ(back_grad.size(), 2);
-  EXPECT_NEAR(back_grad[0]->_double, -0.3, 1e-4);
+  EXPECT_NEAR((*back_grad[0]), -0.3, 1e-4);
   EXPECT_NEAR(back_grad[1]->_matrix(0), -0.3, 1e-4);
   EXPECT_NEAR(back_grad[1]->_matrix(1), 0.1, 1e-4);
   // test update_log_prob after unconstrained values are set
@@ -136,7 +136,7 @@ TEST(testglobal, global_state_no_transform) {
   g.test_grad(back_grad);
   state.revert_unconstrained_grads();
   // gradients should be same as before, since we have reverted them
-  EXPECT_NEAR(back_grad[0]->_double, -0.3, 1e-4);
+  EXPECT_NEAR((*back_grad[0]), -0.3, 1e-4);
   EXPECT_NEAR(back_grad[1]->_matrix(0), -0.3, 1e-4);
   EXPECT_NEAR(back_grad[1]->_matrix(1), 0.1, 1e-4);
 }

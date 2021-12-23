@@ -132,9 +132,9 @@ TEST(testdistrib, gamma) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 4);
-  EXPECT_NEAR(grad[0]->_double, 18.6667, 1e-3); // rate
-  EXPECT_NEAR(grad[1]->_double, -10.8386, 1e-3); // shape
-  EXPECT_NEAR(grad[2]->_double, 0.4167, 1e-3); // y
+  EXPECT_NEAR((*grad[0]), 18.6667, 1e-3); // rate
+  EXPECT_NEAR((*grad[1]), -10.8386, 1e-3); // shape
+  EXPECT_NEAR((*grad[2]), 0.4167, 1e-3); // y
   EXPECT_NEAR(grad[3]->_matrix.coeff(0), -0.2988, 1e-3); // y2
   EXPECT_NEAR(grad[3]->_matrix.coeff(1), 1.2283, 1e-3);
   EXPECT_NEAR(grad[3]->_matrix.coeff(2), 0.2500, 1e-3);
@@ -197,12 +197,12 @@ TEST(testdistrib, gamma) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 7);
-  EXPECT_NEAR(back_grad[0]->_double, -0.3983, 1e-3); // rate1
-  EXPECT_NEAR(back_grad[1]->_double, 2.0114, 1e-3); // shape1
-  EXPECT_NEAR(back_grad[2]->_double, 8.6768, 1e-3); // rate2
-  EXPECT_NEAR(back_grad[3]->_double, -3.0509, 1e-3); // shape2
-  EXPECT_NEAR(back_grad[4]->_double, -3.2842, 1e-3); // p
-  EXPECT_NEAR(back_grad[5]->_double, -0.5200, 1e-3); // x1
+  EXPECT_NEAR((*back_grad[0]), -0.3983, 1e-3); // rate1
+  EXPECT_NEAR((*back_grad[1]), 2.0114, 1e-3); // shape1
+  EXPECT_NEAR((*back_grad[2]), 8.6768, 1e-3); // rate2
+  EXPECT_NEAR((*back_grad[3]), -3.0509, 1e-3); // shape2
+  EXPECT_NEAR((*back_grad[4]), -3.2842, 1e-3); // p
+  EXPECT_NEAR((*back_grad[5]), -0.5200, 1e-3); // x1
   EXPECT_NEAR(back_grad[6]->_matrix.coeff(0), -3.0000, 1e-3); // x2
   EXPECT_NEAR(back_grad[6]->_matrix.coeff(1), -2.1852, 1e-3);
 }

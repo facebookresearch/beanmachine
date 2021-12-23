@@ -104,7 +104,7 @@ TEST(testdistrib, bernoulli_logit) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 5);
-  EXPECT_NEAR(grad[2]->_double, -3.0420, 1e-3);
+  EXPECT_NEAR((*grad[2]), -3.0420, 1e-3);
 
   auto two = g.add_constant((natural_t)2);
   auto var3 = g.add_operator(
@@ -115,7 +115,7 @@ TEST(testdistrib, bernoulli_logit) {
   EXPECT_NEAR(g.log_prob(logit), -11.8845, 1e-3);
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 6);
-  EXPECT_NEAR(grad[2]->_double, -12.5259, 1e-3);
+  EXPECT_NEAR((*grad[2]), -12.5259, 1e-3);
 
   // mixture of Bernoulli-Logit
   Graph g2;
@@ -164,7 +164,7 @@ TEST(testdistrib, bernoulli_logit) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 5);
-  EXPECT_NEAR(back_grad[0]->_double, 0.1308, 1e-3); // l1
-  EXPECT_NEAR(back_grad[1]->_double, 0.0666, 1e-3); // l2
-  EXPECT_NEAR(back_grad[2]->_double, 0.6271, 1e-3); // p
+  EXPECT_NEAR((*back_grad[0]), 0.1308, 1e-3); // l1
+  EXPECT_NEAR((*back_grad[1]), 0.0666, 1e-3); // l2
+  EXPECT_NEAR((*back_grad[2]), 0.6271, 1e-3); // p
 }
