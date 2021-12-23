@@ -42,7 +42,7 @@ TEST(testdistrib, backward_binomial) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 3);
-  EXPECT_NEAR(grad1[0]->_double, 18.75, 1e-3);
+  EXPECT_NEAR((*grad1[0]), 18.75, 1e-3);
 
   g.remove_observations();
   g.observe(p, 0.2);
@@ -62,7 +62,7 @@ TEST(testdistrib, backward_binomial) {
   EXPECT_NEAR(g.log_prob(k), -5.7182, 1e-3);
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_double, 6.25, 1e-3);
+  EXPECT_NEAR((*grad1[0]), 6.25, 1e-3);
 
   // Test Bimixture
   Graph g2;
@@ -114,7 +114,7 @@ TEST(testdistrib, backward_binomial) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 5);
-  EXPECT_NEAR(back_grad[0]->_double, -0.7988, 1e-3); // p1
-  EXPECT_NEAR(back_grad[1]->_double, 0.7757, 1e-3); // p2
-  EXPECT_NEAR(back_grad[2]->_double, -0.3216, 1e-3); // mix_p
+  EXPECT_NEAR((*back_grad[0]), -0.7988, 1e-3); // p1
+  EXPECT_NEAR((*back_grad[1]), 0.7757, 1e-3); // p2
+  EXPECT_NEAR((*back_grad[2]), -0.3216, 1e-3); // mix_p
 }

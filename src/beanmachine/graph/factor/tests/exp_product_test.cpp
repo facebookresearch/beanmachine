@@ -51,5 +51,5 @@ TEST(testfactor, exp_product) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 1);
-  EXPECT_NEAR(grad[0]->_double, 57.8, 1e-3);
+  EXPECT_NEAR((*grad[0]), 57.8, 1e-3);
 }
