@@ -41,7 +41,7 @@ void UnaryOperator::backward() {
   assert(in_nodes.size() == 1);
   auto node = in_nodes[0];
   if (node->needs_gradient()) {
-    node->back_grad1._double += back_grad1._double * jacobian();
+    node->back_grad1 += back_grad1 * jacobian();
   }
 }
 
@@ -99,7 +99,7 @@ double Log::jacobian() const {
 void Add::backward() {
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double += back_grad1._double;
+      node->back_grad1 += back_grad1;
     }
   }
 }
@@ -119,7 +119,7 @@ void Multiply::backward() {
     }
     if (zeros.size() == 1) {
       // if there is only one zero, only its backgrad needs update
-      zeros.front()->back_grad1._double += back_grad1._double * non_zero_prod;
+      zeros.front()->back_grad1 += back_grad1 * non_zero_prod;
       return;
     } else if (zeros.size() > 1) {
       // if multiple zeros, all grad increments are zero, no need to update
@@ -129,7 +129,7 @@ void Multiply::backward() {
   double shared_numerator = back_grad1._double * value._double;
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double += shared_numerator / node->value._double;
+      node->back_grad1 += shared_numerator / node->value._double;
     }
   }
 }
@@ -144,11 +144,11 @@ void Pow::backward() {
   if (in_nodes[0]->needs_gradient()) {
     double jacob = util::approx_zero(x0) ? x1 * std::pow(x0, x1 - 1)
                                          : value._double * x1 / x0;
-    in_nodes[0]->back_grad1._double += back_grad1._double * jacob;
+    in_nodes[0]->back_grad1 += back_grad1 * jacob;
   }
   if (in_nodes[1]->needs_gradient()) {
     double jacob = value._double * std::log(x0);
-    in_nodes[1]->back_grad1._double += back_grad1._double * jacob;
+    in_nodes[1]->back_grad1 += back_grad1 * jacob;
   }
 }
 
@@ -156,8 +156,8 @@ void Pow::backward() {
 void LogSumExp::backward() {
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double +=
-          back_grad1._double * std::exp(node->value._double - value._double);
+      node->back_grad1 +=
+          back_grad1 * std::exp(node->value._double - value._double);
     }
   }
 }
@@ -167,7 +167,7 @@ void LogSumExpVector::backward() {
   if (in_nodes[0]->needs_gradient()) {
     Eigen::MatrixXd exp =
         (in_nodes[0]->value._matrix.array() - value._double).exp();
-    in_nodes[0]->back_grad1._matrix += back_grad1._double * exp;
+    in_nodes[0]->back_grad1._matrix += back_grad1 * exp;
   }
 }
 
@@ -175,7 +175,7 @@ void IfThenElse::backward() {
   assert(in_nodes.size() == 3);
   int choice = in_nodes[0]->value._bool ? 1 : 2;
   if (in_nodes[choice]->needs_gradient()) {
-    in_nodes[choice]->back_grad1._double += back_grad1._double;
+    in_nodes[choice]->back_grad1 += back_grad1;
   }
 }
 
@@ -183,7 +183,7 @@ void Choice::backward() {
   graph::natural_t choice = in_nodes[0]->value._natural + 1;
   assert(in_nodes.size() < choice);
   if (in_nodes[choice]->needs_gradient()) {
-    in_nodes[choice]->back_grad1._double += back_grad1._double;
+    in_nodes[choice]->back_grad1 += back_grad1;
   }
 }
 
@@ -201,10 +201,10 @@ void MatrixMultiply::backward() {
   // if C = A @ B is reduced to a scalar
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._matrix += back_grad1._double * B.transpose();
+      node_a->back_grad1._matrix += back_grad1 * B.transpose();
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix += back_grad1._double * A.transpose();
+      node_b->back_grad1._matrix += back_grad1 * A.transpose();
     }
     return;
   }
@@ -235,7 +235,7 @@ void MatrixScale::backward() {
   // TODO[Walid] : Check if this case is actually ever needed
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._double += (back_grad1._double * B.transpose()).sum();
+      node_a->back_grad1 += (back_grad1 * B.transpose()).sum();
     }
     if (node_b->needs_gradient()) {
       node_b->back_grad1._matrix(0, 0) += back_grad1._double * A;
@@ -244,7 +244,7 @@ void MatrixScale::backward() {
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._double += (back_grad1._matrix * B.transpose()).sum();
+    node_a->back_grad1 += (back_grad1._matrix * B.transpose()).sum();
   }
   if (node_b->needs_gradient()) {
     node_b->back_grad1._matrix += A * back_grad1._matrix;
@@ -276,7 +276,7 @@ void ToMatrix::backward() {
     for (int i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];
       if (node->needs_gradient()) {
-        node->back_grad1._double += back_grad1._matrix(i, j);
+        node->back_grad1 += back_grad1._matrix(i, j);
       }
     }
   }
@@ -285,7 +285,7 @@ void ToMatrix::backward() {
 void BroadcastAdd::backward() {
   assert(in_nodes.size() == 2);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += back_grad1._matrix.sum();
+    in_nodes[0]->back_grad1 += back_grad1._matrix.sum();
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._matrix += back_grad1._matrix;

@@ -105,14 +105,14 @@ void Categorical::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += 0; // TODO
+    in_nodes[0]->back_grad1 += 0; // TODO
   }
 }
 
 void Categorical::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += 0; // TODO
+    in_nodes[0]->back_grad1 += 0; // TODO
   }
 }
 
@@ -121,7 +121,7 @@ void Categorical::backward_param_iid(
     Eigen::MatrixXd& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += 0; // TODO
+    in_nodes[0]->back_grad1 += 0; // TODO
   }
 }
 
