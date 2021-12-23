@@ -21,6 +21,10 @@ class DoubleProperty {
 
   explicit DoubleProperty(DoubleMatrix& owner);
 
+  double& value();
+
+  const double& value() const;
+
   double& operator=(const double& d);
 
   operator double&();
@@ -30,13 +34,19 @@ class DoubleProperty {
 
 class MatrixProperty {
  public:
+  using Matrix = Eigen::MatrixXd;
+
   DoubleMatrix* owner;
 
   explicit MatrixProperty(DoubleMatrix& owner);
 
-  Eigen::MatrixXd& operator=(const Eigen::MatrixXd& m);
+  Matrix& value();
 
-  operator const Eigen::MatrixXd&() const;
+  const Matrix& value() const;
+
+  Matrix& operator=(const Matrix& m);
+
+  operator const Matrix&() const;
 
   double coeff(Eigen::MatrixXd::Index i) const;
 
@@ -48,41 +58,41 @@ class MatrixProperty {
 
   double sum();
 
-  // template <typename Increment>
-  // Eigen::MatrixXd& operator+=(const Increment& increment);
+  Matrix& operator+=(const Matrix& increment);
 
-  Eigen::MatrixXd& operator+=(const Eigen::MatrixXd& increment);
+  Matrix& operator+=(const DoubleMatrix& increment);
 
-  Eigen::MatrixXd& operator+=(const DoubleMatrix& increment);
+  Matrix& operator-=(const Matrix& increment);
 
-  Eigen::MatrixXd& operator-=(const Eigen::MatrixXd& increment);
+  Matrix operator*(const Matrix& operand);
 
-  Eigen::MatrixXd operator*(const Eigen::MatrixXd& operand);
-
-  Eigen::MatrixXd operator*(const DoubleMatrix& operand);
+  Matrix operator*(const DoubleMatrix& operand);
 
   Eigen::MatrixXd& setZero(
       Eigen::MatrixXd::Index rows,
       Eigen::MatrixXd::Index cols);
 
-  Eigen::ArrayWrapper<Eigen::MatrixXd> array();
+  Eigen::ArrayWrapper<Matrix> array();
 
-  Eigen::MatrixXd::Scalar* data();
+  Matrix::Scalar* data();
 
-  Eigen::MatrixXd::Index size();
+  Matrix::Index size();
 };
 
-Eigen::MatrixXd operator*(
-    const Eigen::MatrixXd& operand,
+MatrixProperty::Matrix operator*(
+    const MatrixProperty::Matrix& operand,
     const MatrixProperty& mp);
 
-Eigen::MatrixXd operator*(double operand, const MatrixProperty& mp);
+MatrixProperty::Matrix operator*(double operand, const MatrixProperty& mp);
 
-Eigen::MatrixXd::ColXpr operator+=(
-    Eigen::MatrixXd::ColXpr operand,
+MatrixProperty::Matrix::ColXpr operator+=(
+    MatrixProperty::Matrix::ColXpr operand,
     const MatrixProperty& mp);
 
-struct DoubleMatrix : public std::variant<double, Eigen::MatrixXd> {
+struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
+  using Matrix = MatrixProperty::Matrix;
+  using VariantBaseClass = std::variant<double, Matrix>;
+
   DoubleProperty _double;
   MatrixProperty _matrix;
 
