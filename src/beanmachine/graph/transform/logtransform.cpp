@@ -66,7 +66,7 @@ void Log::unconstrained_gradient(
     const graph::NodeValue& /* unconstrained */) {
   assert(constrained.type.atomic_type == graph::AtomicType::POS_REAL);
   if (constrained.type.variable_type == graph::VariableType::SCALAR) {
-    back_grad._double = back_grad._double * constrained._double + 1.0;
+    back_grad = back_grad * constrained._double + 1.0;
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
     back_grad._matrix =

@@ -120,7 +120,7 @@ void Bernoulli::backward_param(const graph::NodeValue& value, double adjunct)
   if (in_nodes[0]->needs_gradient()) {
     bool x = value._bool;
     double prob = in_nodes[0]->value._double;
-    in_nodes[0]->back_grad1._double += adjunct * _grad1_log_prob_param(x, prob);
+    in_nodes[0]->back_grad1 += adjunct * _grad1_log_prob_param(x, prob);
   }
 }
 
@@ -130,7 +130,7 @@ void Bernoulli::backward_param_iid(const graph::NodeValue& value) const {
     double prob = in_nodes[0]->value._double;
     int size = static_cast<int>(value._bmatrix.size());
     int n_positive = static_cast<int>(value._bmatrix.count());
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1 +=
         (1 / prob * n_positive - 1 / (1 - prob) * (size - n_positive));
   }
 }
@@ -144,7 +144,7 @@ void Bernoulli::backward_param_iid(
     double sum_adjunct = adjunct.sum();
     double sum_pos_adjunct =
         (value._bmatrix.cast<double>().array() * adjunct.array()).sum();
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1 +=
         (1 / prob * sum_pos_adjunct -
          1 / (1 - prob) * (sum_adjunct - sum_pos_adjunct));
   }

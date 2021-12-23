@@ -123,7 +123,7 @@ void BernoulliNoisyOr::backward_param(
     double mexpm1m = -std::expm1(-param); // 1 - exp(-param)
     double val = (double)value._bool;
     double grad_param = val / mexpm1m - 1;
-    in_nodes[0]->back_grad1._double += adjunct * grad_param;
+    in_nodes[0]->back_grad1 += adjunct * grad_param;
   }
 }
 
@@ -134,7 +134,7 @@ void BernoulliNoisyOr::backward_param_iid(const graph::NodeValue& value) const {
     double mexpm1m = -std::expm1(-param); // 1 - exp(-param)
     double val_sum = (double)value._bmatrix.count();
     int size = static_cast<int>(value._bmatrix.size());
-    in_nodes[0]->back_grad1._double += val_sum / mexpm1m - size;
+    in_nodes[0]->back_grad1 += val_sum / mexpm1m - size;
   }
 }
 
@@ -148,7 +148,7 @@ void BernoulliNoisyOr::backward_param_iid(
     double sum_adjunct = adjunct.sum();
     double sum_x_adjunct =
         (value._bmatrix.cast<double>().array() * adjunct.array()).sum();
-    in_nodes[0]->back_grad1._double += sum_x_adjunct / mexpm1m - sum_adjunct;
+    in_nodes[0]->back_grad1 += sum_x_adjunct / mexpm1m - sum_adjunct;
   }
 }
 
