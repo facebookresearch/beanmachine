@@ -84,7 +84,7 @@ void ExpProduct::backward() {
   }
   if (zeros.size() == 1 and zeros.front()->needs_gradient()) {
     // if there is only one zero, only its backgrad needs update
-    zeros.front()->back_grad1._double += non_zero_prod;
+    zeros.front()->back_grad1 += non_zero_prod;
     return;
   } else if (zeros.size() > 1) {
     // if multiple zeros, all grad increments are zero, no need to update
@@ -93,7 +93,7 @@ void ExpProduct::backward() {
 
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double += non_zero_prod / node->value._double;
+      node->back_grad1 += non_zero_prod / node->value._double;
     }
   }
 }
