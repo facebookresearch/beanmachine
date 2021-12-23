@@ -7,6 +7,7 @@
 
 #pragma once
 #include <Eigen/Dense>
+#include <stdexcept>
 #include <string>
 #include <variant>
 
@@ -97,6 +98,64 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   MatrixProperty _matrix;
 
   DoubleMatrix() : _double(*this), _matrix(*this) {}
+
+  explicit DoubleMatrix(double d)
+      : VariantBaseClass(d), _double(*this), _matrix(*this) {}
+
+  explicit DoubleMatrix(Eigen::MatrixXd matrix)
+      : VariantBaseClass(matrix), _double(*this), _matrix(*this) {}
+
+  DoubleMatrix& operator=(double d);
+  DoubleMatrix& operator=(const Matrix& d);
+  DoubleMatrix& operator=(const DoubleMatrix& d);
+
+  DoubleMatrix& operator+=(double d);
+  DoubleMatrix& operator+=(const DoubleMatrix& another);
+};
+
+/// *
+
+DoubleMatrix operator*(const DoubleMatrix& double_matrix, double arg);
+
+DoubleMatrix operator*(double arg, const DoubleMatrix& double_matrix);
+
+DoubleMatrix::Matrix operator*(
+    const DoubleMatrix& double_matrix,
+    const DoubleMatrix::Matrix& arg);
+
+DoubleMatrix::Matrix operator*(
+    const DoubleMatrix::Matrix& arg,
+    const DoubleMatrix& double_matrix);
+
+DoubleMatrix operator*(
+    const DoubleMatrix& double_matrix,
+    const DoubleMatrix& arg);
+
+/// +
+
+double operator+(const DoubleMatrix& double_matrix, double arg);
+
+double operator+(double arg, const DoubleMatrix& double_matrix);
+
+DoubleMatrix::Matrix operator+(
+    const DoubleMatrix::Matrix& arg,
+    const DoubleMatrix& double_matrix);
+
+DoubleMatrix::Matrix operator+(
+    const DoubleMatrix& double_matrix,
+    const DoubleMatrix::Matrix& arg);
+
+DoubleMatrix::Matrix operator+(
+    const DoubleMatrix::Matrix& arg,
+    const DoubleMatrix& double_matrix);
+
+DoubleMatrix operator+(
+    const DoubleMatrix& double_matrix,
+    const DoubleMatrix& arg);
+
+struct DoubleMatrixError : public std::runtime_error {
+  explicit DoubleMatrixError(const char* message)
+      : std::runtime_error(message) {}
 };
 
 } // namespace graph
