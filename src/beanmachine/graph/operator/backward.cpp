@@ -126,7 +126,7 @@ void Multiply::backward() {
       return;
     } // otherwise, do the usual update
   }
-  double shared_numerator = back_grad1._double * value._double;
+  double shared_numerator = back_grad1 * value._double;
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
       node->back_grad1 += shared_numerator / node->value._double;
@@ -238,7 +238,7 @@ void MatrixScale::backward() {
       node_a->back_grad1 += (back_grad1 * B.transpose()).sum();
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix(0, 0) += back_grad1._double * A;
+      node_b->back_grad1._matrix(0, 0) += back_grad1 * A;
     }
     return;
   }
@@ -255,8 +255,7 @@ void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix(in_nodes[1]->value._natural) +=
-        back_grad1._double;
+    matrix->back_grad1._matrix(in_nodes[1]->value._natural) += back_grad1;
   }
 }
 
