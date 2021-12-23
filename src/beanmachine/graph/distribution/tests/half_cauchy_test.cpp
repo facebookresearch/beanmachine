@@ -93,8 +93,8 @@ TEST(testdistrib, half_cauchy) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, -0.0535, 1e-3);
-  EXPECT_NEAR(grad[1]->_double, -0.0161, 1e-3);
+  EXPECT_NEAR((*grad[0]), -0.0535, 1e-3);
+  EXPECT_NEAR((*grad[1]), -0.0161, 1e-3);
 
   // test vector operators
   // to verify results with pyTorch:
@@ -129,7 +129,7 @@ TEST(testdistrib, half_cauchy) {
   // test backward_value/param/ (iid):
   g2.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, -4.8711, 1e-3);
+  EXPECT_NEAR((*grad[0]), -4.8711, 1e-3);
   EXPECT_NEAR(grad[1]->_matrix.coeff(0), -0.3077, 1e-3);
   EXPECT_NEAR(grad[1]->_matrix.coeff(1), -0.8219, 1e-3);
   EXPECT_NEAR(grad[1]->_matrix.coeff(2), -0.5882, 1e-3);
@@ -182,10 +182,10 @@ TEST(testdistrib, half_cauchy) {
   std::vector<DoubleMatrix*> back_grad;
   g3.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 5);
-  EXPECT_NEAR(back_grad[0]->_double, 0.0767, 1e-3); // s1
-  EXPECT_NEAR(back_grad[1]->_double, -0.1019, 1e-3); // s2
-  EXPECT_NEAR(back_grad[2]->_double, 0.7455, 1e-3); // p
-  EXPECT_NEAR(back_grad[3]->_double, -0.3798, 1e-3); // x_
+  EXPECT_NEAR((*back_grad[0]), 0.0767, 1e-3); // s1
+  EXPECT_NEAR((*back_grad[1]), -0.1019, 1e-3); // s2
+  EXPECT_NEAR((*back_grad[2]), 0.7455, 1e-3); // p
+  EXPECT_NEAR((*back_grad[3]), -0.3798, 1e-3); // x_
   EXPECT_NEAR(back_grad[4]->_matrix.coeff(0), -0.5960, 1e-3); // xiid
   EXPECT_NEAR(back_grad[4]->_matrix.coeff(1), -0.6793, 1e-3);
 }

@@ -145,7 +145,7 @@ TEST(testdistrib, backward_normal_normal) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_double, -0.3, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -0.3, 1e-3);
   EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.4, 1e-3);
   EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.6, 1e-3);
 
@@ -197,11 +197,11 @@ TEST(testdistrib, backward_normal_normal) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 6);
-  EXPECT_NEAR(back_grad[0]->_double, 0.1794, 1e-3); // m1
-  EXPECT_NEAR(back_grad[1]->_double, -0.4410, 1e-3); // m2
-  EXPECT_NEAR(back_grad[2]->_double, -1.0964, 1e-3); // s
-  EXPECT_NEAR(back_grad[3]->_double, 0.2054, 1e-3); // p
-  EXPECT_NEAR(back_grad[4]->_double, 0.0893, 1e-3); // x
+  EXPECT_NEAR((*back_grad[0]), 0.1794, 1e-3); // m1
+  EXPECT_NEAR((*back_grad[1]), -0.4410, 1e-3); // m2
+  EXPECT_NEAR((*back_grad[2]), -1.0964, 1e-3); // s
+  EXPECT_NEAR((*back_grad[3]), 0.2054, 1e-3); // p
+  EXPECT_NEAR((*back_grad[4]), 0.0893, 1e-3); // x
   EXPECT_NEAR(back_grad[5]->_matrix.coeff(0), -0.1660, 1e-3); // xiid
   EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), 0.3381, 1e-3);
 }

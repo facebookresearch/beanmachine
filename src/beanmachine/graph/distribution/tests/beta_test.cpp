@@ -80,7 +80,7 @@ TEST(testdistrib, beta1) {
   // test backward_value
   std::vector<DoubleMatrix*> grad;
   g1.eval_and_grad(grad);
-  EXPECT_NEAR(grad[0]->_double, -4.5, 0.001);
+  EXPECT_NEAR((*grad[0]), -4.5, 0.001);
 
   // test gradients of the parameters
   // a ~ FLAT
@@ -133,8 +133,8 @@ TEST(testdistrib, beta1) {
   EXPECT_NEAR(grad2, -1.49017, 0.001);
   // test backward_param
   g2.eval_and_grad(grad);
-  EXPECT_NEAR(grad[0]->_double, -0.07819, 0.001);
-  EXPECT_NEAR(grad[1]->_double, 0.55064, 0.001);
+  EXPECT_NEAR((*grad[0]), -0.07819, 0.001);
+  EXPECT_NEAR((*grad[1]), 0.55064, 0.001);
 }
 
 TEST(testdistrib, beta2) {
@@ -200,8 +200,8 @@ TEST(testdistrib, beta2) {
   //  f_grad_x = torch.autograd.grad(f_x, x) # -> [-0.1190, -1.8750]
   std::vector<DoubleMatrix*> grad;
   g2.eval_and_grad(grad);
-  EXPECT_NEAR(grad[0]->_double, 0.7067, 0.001);
-  EXPECT_NEAR(grad[1]->_double, 0.4847, 0.001);
+  EXPECT_NEAR((*grad[0]), 0.7067, 0.001);
+  EXPECT_NEAR((*grad[1]), 0.4847, 0.001);
   EXPECT_NEAR(grad[2]->_matrix.coeff(0), -0.1190, 0.001);
   EXPECT_NEAR(grad[2]->_matrix.coeff(1), -1.8750, 0.001);
 
@@ -259,12 +259,12 @@ TEST(testdistrib, beta2) {
   std::vector<DoubleMatrix*> back_grad;
   g3.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 7);
-  EXPECT_NEAR(back_grad[0]->_double, -0.0808, 1e-3); // a1
-  EXPECT_NEAR(back_grad[1]->_double, 0.5552, 1e-3); // b1
-  EXPECT_NEAR(back_grad[2]->_double, 2.6680, 1e-3); // a2
-  EXPECT_NEAR(back_grad[3]->_double, -0.2800, 1e-3); // b2
-  EXPECT_NEAR(back_grad[4]->_double, 1.3939, 1e-3); // p
-  EXPECT_NEAR(back_grad[5]->_double, -4.3652, 1e-3); // x1
+  EXPECT_NEAR((*back_grad[0]), -0.0808, 1e-3); // a1
+  EXPECT_NEAR((*back_grad[1]), 0.5552, 1e-3); // b1
+  EXPECT_NEAR((*back_grad[2]), 2.6680, 1e-3); // a2
+  EXPECT_NEAR((*back_grad[3]), -0.2800, 1e-3); // b2
+  EXPECT_NEAR((*back_grad[4]), 1.3939, 1e-3); // p
+  EXPECT_NEAR((*back_grad[5]), -4.3652, 1e-3); // x1
   EXPECT_NEAR(back_grad[6]->_matrix.coeff(0), 0.6975, 1e-3); // x2
   EXPECT_NEAR(back_grad[6]->_matrix.coeff(1), 0.8230, 1e-3);
 }
