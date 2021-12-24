@@ -6,6 +6,7 @@
 from collections import defaultdict
 from typing import Dict, List, Optional
 
+import arviz as az
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.legacy.inference.single_site_ancestral_mh import (
@@ -37,7 +38,8 @@ class Predictive(object):
         posterior: Optional[MonteCarloSamples] = None,
         num_samples: Optional[int] = None,
         vectorized: Optional[bool] = False,
-    ) -> MonteCarloSamples:
+        return_inference_data: bool = False,
+    ) -> Union[MonteCarloSamples, az.InferenceData]:
         """
         Generates predictives from a generative model.
 
@@ -64,7 +66,7 @@ class Predictive(object):
             (posterior is not None) + (num_samples is not None)
         ) == 1, "Only one of posterior or num_samples should be set."
         sampler = SingleSiteAncestralMetropolisHastings()
-        if posterior:
+        if posterior is not None:
             n_warmup = posterior.num_adaptive_samples
             # drop the warm up samples
             obs = {k: v[:, n_warmup:] for k, v in posterior.items()}
@@ -79,7 +81,14 @@ class Predictive(object):
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
-                return MonteCarloSamples(query_dict)
+                post_pred = MonteCarloSamples(query_dict)
+                if return_inference_data:
+                    post = posterior.to_inference_data()
+                    post_pred = post_pred.to_inference_data().posterior
+                    post.add_groups({"posterior_predictive": post_pred})
+                    return post
+                else:
+                    return post_pred
             else:
                 # predictives are sequentially sampled
                 preds = []
@@ -97,7 +106,14 @@ class Predictive(object):
                         finally:
                             sampler.reset()
                     preds.append(_concat_rv_dicts(rv_dicts))
-                return MonteCarloSamples(preds)
+                post_pred = MonteCarloSamples(preds)
+                if return_inference_data:
+                    post = posterior.to_inference_data()
+                    post_pred = post_pred.to_inference_data().posterior
+                    post.add_groups({"posterior_predictive": post_pred})
+                    return post
+                else:
+                    return post_pred
         else:
             obs = {}
             predictives = []
@@ -122,7 +138,12 @@ class Predictive(object):
                 # pyre-ignore
                 rv_dict[k] = torch.cat(v, dim=1)
             # pyre-fixme
-            return MonteCarloSamples(dict(rv_dict))
+            prior_pred = MonteCarloSamples(dict(rv_dict))
+            if return_inference_data:
+                return az.from_dict(prior_predictive=prior_pred.samples)
+            else:
+                return prior_pred
+
 
     @staticmethod
     def empirical(
