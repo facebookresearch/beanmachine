@@ -168,9 +168,9 @@ void Beta::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  back_grad._matrix += ((param_a - 1) / value._matrix.array() -
-                        (param_b - 1) / (1 - value._matrix.array()))
-                           .matrix();
+  back_grad += ((param_a - 1) / value._matrix.array() -
+                (param_b - 1) / (1 - value._matrix.array()))
+                   .matrix();
 }
 
 void Beta::backward_value_iid(
@@ -180,10 +180,10 @@ void Beta::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  back_grad._matrix += (adjunct.array() *
-                        ((param_a - 1) / value._matrix.array() -
-                         (param_b - 1) / (1 - value._matrix.array())))
-                           .matrix();
+  back_grad += (adjunct.array() *
+                ((param_a - 1) / value._matrix.array() -
+                 (param_b - 1) / (1 - value._matrix.array())))
+                   .matrix();
 }
 
 void Beta::backward_param(const graph::NodeValue& value, double adjunct) const {
