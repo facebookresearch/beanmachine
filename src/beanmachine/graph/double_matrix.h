@@ -16,23 +16,6 @@ namespace graph {
 
 struct DoubleMatrix;
 
-class DoubleProperty {
- public:
-  DoubleMatrix* owner;
-
-  explicit DoubleProperty(DoubleMatrix& owner);
-
-  double& value();
-
-  const double& value() const;
-
-  double& operator=(const double& d);
-
-  operator double&();
-
-  operator const double&() const;
-};
-
 class MatrixProperty {
  public:
   using Matrix = Eigen::MatrixXd;
@@ -94,16 +77,14 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   using Matrix = MatrixProperty::Matrix;
   using VariantBaseClass = std::variant<double, Matrix>;
 
-  DoubleProperty _double;
   MatrixProperty _matrix;
 
-  DoubleMatrix() : _double(*this), _matrix(*this) {}
+  DoubleMatrix() : _matrix(*this) {}
 
-  explicit DoubleMatrix(double d)
-      : VariantBaseClass(d), _double(*this), _matrix(*this) {}
+  explicit DoubleMatrix(double d) : VariantBaseClass(d), _matrix(*this) {}
 
   explicit DoubleMatrix(Eigen::MatrixXd matrix)
-      : VariantBaseClass(matrix), _double(*this), _matrix(*this) {}
+      : VariantBaseClass(matrix), _matrix(*this) {}
 
   operator double() const;
 
