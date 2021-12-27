@@ -175,8 +175,14 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
             "Multiplying DoubleMatrix that does not hold a value.");
     }
   }
+
   Array array();
   const ArrayOfConst array() const;
+
+  double& operator()(int i);
+  double& operator()(int row, int col);
+  double operator()(int i) const;
+  double operator()(int row, int col) const;
 };
 
 /// *
