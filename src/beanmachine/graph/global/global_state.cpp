@@ -203,9 +203,9 @@ void GlobalState::get_flattened_unconstrained_grads(
       i++;
     } else {
       Eigen::VectorXd vector(Eigen::Map<Eigen::VectorXd>(
-          node->back_grad1._matrix.data(), node->back_grad1._matrix.size()));
+          node->back_grad1.data(), node->back_grad1.size()));
       flattened_grad.segment(i, vector.size()) = vector;
-      i += static_cast<int>(node->back_grad1._matrix.size());
+      i += static_cast<int>(node->back_grad1.size());
     }
   }
 }
