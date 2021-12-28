@@ -183,6 +183,10 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   double& operator()(int row, int col);
   double operator()(int i) const;
   double operator()(int row, int col) const;
+
+  /* Resizes to the given size, and sets all coefficients in this expression to
+   * zero. */
+  DoubleMatrix& setZero(int rows, int cols);
 };
 
 /// *
