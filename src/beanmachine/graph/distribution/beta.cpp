@@ -159,7 +159,7 @@ void Beta::backward_value(
   double param_b = in_nodes[1]->value._double;
   double increment = 0.0;
   _grad1_log_prob_value(increment, x, param_a, param_b);
-  back_grad._double += adjunct * increment;
+  back_grad += adjunct * increment;
 }
 
 void Beta::backward_value_iid(
@@ -194,12 +194,12 @@ void Beta::backward_param(const graph::NodeValue& value, double adjunct) const {
   double digamma_a_p_b = util::polygamma(0, param_a + param_b);
   if (in_nodes[0]->needs_gradient()) {
     double jacob = std::log(x) + digamma_a_p_b - util::polygamma(0, param_a);
-    in_nodes[0]->back_grad1._double += adjunct * jacob;
+    in_nodes[0]->back_grad1 += adjunct * jacob;
   }
   if (in_nodes[1]->needs_gradient()) {
     double jacob =
         std::log(1 - x) + digamma_a_p_b - util::polygamma(0, param_b);
-    in_nodes[1]->back_grad1._double += adjunct * jacob;
+    in_nodes[1]->back_grad1 += adjunct * jacob;
   }
 }
 
@@ -210,11 +210,11 @@ void Beta::backward_param_iid(const graph::NodeValue& value) const {
   double digamma_a_p_b = util::polygamma(0, param_a + param_b);
   int size = static_cast<int>(value._matrix.size());
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += value._matrix.array().log().sum() +
+    in_nodes[0]->back_grad1 += value._matrix.array().log().sum() +
         size * (digamma_a_p_b - util::polygamma(0, param_a));
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double += (1 - value._matrix.array()).log().sum() +
+    in_nodes[1]->back_grad1 += (1 - value._matrix.array()).log().sum() +
         size * (digamma_a_p_b - util::polygamma(0, param_b));
   }
 }
@@ -231,12 +231,12 @@ void Beta::backward_param_iid(
     adjunct_sum = adjunct.sum();
   }
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1 +=
         (adjunct.array() * value._matrix.array().log()).sum() +
         adjunct_sum * (digamma_a_p_b - util::polygamma(0, param_a));
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         (adjunct.array() * (1 - value._matrix.array()).log()).sum() +
         adjunct_sum * (digamma_a_p_b - util::polygamma(0, param_b));
   }
