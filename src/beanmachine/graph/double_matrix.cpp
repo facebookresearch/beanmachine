@@ -152,6 +152,14 @@ DoubleMatrixError error(const char* message) {
   return DoubleMatrixError(message);
 }
 
+DoubleMatrix::operator double() const {
+  if (not std::holds_alternative<double>(*this)) {
+    throw std::runtime_error(
+        "operator double() on DoubleMatrix without double");
+  }
+  return std::get<double>(*this);
+}
+
 /// =
 
 DoubleMatrix& DoubleMatrix::operator=(double d) {
