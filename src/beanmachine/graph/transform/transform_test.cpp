@@ -105,9 +105,9 @@ TEST(test_transform, log) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 4);
-  EXPECT_NEAR(back_grad[0]->_double, -54.7968, 0.001); // log rate1
-  EXPECT_NEAR(back_grad[1]->_double, 25.6, 0.001); // log shape1
-  EXPECT_NEAR(back_grad[2]->_double, 7.0, 0.001); // log x1
+  EXPECT_NEAR((*back_grad[0]), -54.7968, 0.001); // log rate1
+  EXPECT_NEAR((*back_grad[1]), 25.6, 0.001); // log shape1
+  EXPECT_NEAR((*back_grad[2]), 7.0, 0.001); // log x1
   EXPECT_NEAR(back_grad[3]->_matrix.coeff(0), 9.4, 0.001); // log x2
   EXPECT_NEAR(back_grad[3]->_matrix.coeff(1), 8.2, 0.001);
   EXPECT_NEAR(g2.full_log_prob(), -29.5648, 1e-3);
