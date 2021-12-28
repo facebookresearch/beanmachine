@@ -254,22 +254,32 @@ DoubleMatrix& DoubleMatrix::operator-=(const DoubleMatrix& another) {
   }
 }
 
-/// operator()
+/// operator() and coeff
 
-double& DoubleMatrix::operator()(Index i) {
+Matrix::Scalar& DoubleMatrix::operator()(Index i) {
   return get<Matrix>(*this)(i);
 }
 
-double& DoubleMatrix::operator()(Index row, Index col) {
+Matrix::Scalar& DoubleMatrix::operator()(Index row, Index col) {
   return get<Matrix>(*this)(row, col);
 }
 
-double DoubleMatrix::operator()(Index i) const {
+Matrix::Scalar DoubleMatrix::operator()(Index i) const {
   return get<Matrix>(*this)(i);
 }
 
-double DoubleMatrix::operator()(Index row, Index col) const {
+Matrix::Scalar DoubleMatrix::operator()(Index row, Index col) const {
   return get<Matrix>(*this)(row, col);
+}
+
+const Matrix::Scalar& DoubleMatrix::coeff(
+    Eigen::Index rolId,
+    Eigen::Index colId) const {
+  return get<Matrix>(*this).coeff(rolId, colId);
+}
+
+const Matrix::Scalar& DoubleMatrix::coeff(Eigen::Index index) const {
+  return get<Matrix>(*this).coeff(index);
 }
 
 /// setZero

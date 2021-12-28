@@ -1011,24 +1011,24 @@ produces:
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 5);
   // grad x
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(0), 0.0333, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(1), 2.8128, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(2), -4.3154, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(0), 0.0333, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(1), 2.8128, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(2), -4.3154, 1e-3);
   // grad y
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), 0.3987, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.0253, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(2), 3.4733, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(3), 0.4630, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(4), -0.8092, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(5), -0.3462, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(0), 0.3987, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(1), -1.0253, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(2), 3.4733, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(3), 0.4630, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(4), -0.8092, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(5), -0.3462, 1e-3);
   // grad z
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(0), 2.6155, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(1), -0.0434, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(2), -0.9636, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(3), -0.0881, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(0), 2.6155, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(1), -0.0434, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(2), -0.9636, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(3), -0.0881, 1e-3);
   // grad w
-  EXPECT_NEAR(grad1[3]->_matrix.coeff(0), -2.8570, 1e-3);
-  EXPECT_NEAR(grad1[3]->_matrix.coeff(1), 0.8053, 1e-3);
+  EXPECT_NEAR(grad1[3]->coeff(0), -2.8570, 1e-3);
+  EXPECT_NEAR(grad1[3]->coeff(1), 0.8053, 1e-3);
 }
 
 TEST(testoperator, matrix_scale) {
@@ -1200,23 +1200,23 @@ def f_grad(x):
   // grad x
   EXPECT_NEAR((*grad1[0]), -130.1199, 1e-3);
   // grad y
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.3, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.2, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(2), 2.6, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(3), 0.1, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(4), -0.9, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(5), -0.8, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(0), -0.3, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(1), -1.2, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(2), 2.6, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(3), 0.1, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(4), -0.9, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(5), -0.8, 1e-3);
   // grad z
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(0), 47.7895, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(1), -7.5199, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(2), -8.8199, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(3), 1.2122, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(0), 47.7895, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(1), -7.5199, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(2), -8.8199, 1e-3);
+  EXPECT_NEAR(grad1[2]->coeff(3), 1.2122, 1e-3);
   // grad v
-  EXPECT_NEAR(grad1[3]->_matrix.coeff(0), -27.1010, 1e-3);
-  EXPECT_NEAR(grad1[3]->_matrix.coeff(1), -12.4859, 1e-3);
+  EXPECT_NEAR(grad1[3]->coeff(0), -27.1010, 1e-3);
+  EXPECT_NEAR(grad1[3]->coeff(1), -12.4859, 1e-3);
   // grad w
-  EXPECT_NEAR(grad1[4]->_matrix.coeff(0), -22.5115, 1e-3);
-  EXPECT_NEAR(grad1[4]->_matrix.coeff(1), 13.9038, 1e-3);
+  EXPECT_NEAR(grad1[4]->coeff(0), -22.5115, 1e-3);
+  EXPECT_NEAR(grad1[4]->coeff(1), 13.9038, 1e-3);
 }
 
 TEST(testoperator, index) {
