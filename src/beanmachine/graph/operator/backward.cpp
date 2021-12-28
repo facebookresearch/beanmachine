@@ -235,7 +235,8 @@ void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix(in_nodes[1]->value._natural) += back_grad1;
+    matrix->back_grad1(static_cast<int>(in_nodes[1]->value._natural)) +=
+        back_grad1;
   }
 }
 
@@ -255,7 +256,7 @@ void ToMatrix::backward() {
     for (int i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];
       if (node->needs_gradient()) {
-        node->back_grad1 += back_grad1._matrix(i, j);
+        node->back_grad1 += back_grad1(i, j);
       }
     }
   }
