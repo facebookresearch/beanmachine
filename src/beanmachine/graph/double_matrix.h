@@ -76,6 +76,8 @@ MatrixProperty::Matrix::ColXpr operator+=(
 struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   using Matrix = MatrixProperty::Matrix;
   using VariantBaseClass = std::variant<double, Matrix>;
+  using Array = Eigen::ArrayWrapper<Matrix>;
+  using ArrayOfConst = Eigen::ArrayWrapper<const Matrix>;
 
   MatrixProperty _matrix;
 
@@ -95,6 +97,9 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   DoubleMatrix& operator+=(double d);
   DoubleMatrix& operator+=(const Matrix& matrix);
   DoubleMatrix& operator+=(const DoubleMatrix& another);
+
+  Array array();
+  const ArrayOfConst array() const;
 };
 
 /// *
