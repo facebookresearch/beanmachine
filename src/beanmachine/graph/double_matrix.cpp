@@ -21,31 +21,6 @@ namespace graph {
 using std::get;
 using Matrix = DoubleMatrix::Matrix;
 
-/// DoubleProperty methods
-
-DoubleProperty::DoubleProperty(DoubleMatrix& owner) : owner(&owner) {}
-
-inline double& DoubleProperty::value() {
-  return get<double>(*owner);
-}
-
-inline const double& DoubleProperty::value() const {
-  return get<double>(*owner);
-}
-
-double& DoubleProperty::operator=(const double& d) {
-  owner->VariantBaseClass::operator=(d);
-  return value();
-}
-
-DoubleProperty::operator double&() {
-  return value();
-}
-
-DoubleProperty::operator const double&() const {
-  return value();
-}
-
 /// MatrixProperty methods
 
 MatrixProperty::MatrixProperty(DoubleMatrix& owner) : owner(&owner) {}
