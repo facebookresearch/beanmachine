@@ -276,6 +276,16 @@ double DoubleMatrix::operator()(int row, int col) const {
   return get<Matrix>(*this)(row, col);
 }
 
+/// setZero
+
+DoubleMatrix& DoubleMatrix::setZero(int rows, int cols) {
+  if (not has<Matrix>(*this)) {
+    *this = Matrix();
+  }
+  get<Matrix>(*this).setZero(rows, cols);
+  return *this;
+}
+
 /// *
 
 DoubleMatrix operator*(const DoubleMatrix& double_matrix, double d) {

@@ -252,7 +252,7 @@ void Node::reset_backgrad() {
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     back_grad1 = 0;
   } else {
-    back_grad1._matrix.setZero(value.type.rows, value.type.cols);
+    back_grad1.setZero(value.type.rows, value.type.cols);
   }
 }
 
