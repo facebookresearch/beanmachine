@@ -14,79 +14,24 @@
 namespace beanmachine {
 namespace graph {
 
-struct DoubleMatrix;
-
-class MatrixProperty {
- public:
+struct DoubleMatrix : public std::variant<double, Eigen::MatrixXd> {
   using Matrix = Eigen::MatrixXd;
-  using Index = Matrix::Index;
-
-  DoubleMatrix* owner;
-
-  explicit MatrixProperty(DoubleMatrix& owner);
-
-  Matrix& value();
-
-  const Matrix& value() const;
-
-  Matrix& operator=(const Matrix& m);
-
-  operator const Matrix&() const;
-
-  double coeff(Index i) const;
-
-  double& operator()(Index i);
-
-  double& operator()(Index row, Index col);
-
-  Eigen::MatrixXd::ColXpr col(Index i);
-
-  double sum();
-
-  Matrix& operator+=(const Matrix& increment);
-
-  Matrix& operator+=(const DoubleMatrix& increment);
-
-  Matrix& operator-=(const Matrix& increment);
-
-  Matrix operator*(const Matrix& operand);
-
-  Matrix operator*(const DoubleMatrix& operand);
-
-  Eigen::MatrixXd& setZero(Index rows, Index cols);
-
-  Eigen::ArrayWrapper<Matrix> array();
-
-  Matrix::Scalar* data();
-
-  Matrix::Index size();
-};
-
-MatrixProperty::Matrix operator*(
-    const MatrixProperty::Matrix& operand,
-    const MatrixProperty& mp);
-
-MatrixProperty::Matrix operator*(double operand, const MatrixProperty& mp);
-
-MatrixProperty::Matrix::ColXpr operator+=(
-    MatrixProperty::Matrix::ColXpr operand,
-    const MatrixProperty& mp);
-
-struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
-  using Matrix = MatrixProperty::Matrix;
   using Index = Matrix::Index;
   using VariantBaseClass = std::variant<double, Matrix>;
   using Array = Eigen::ArrayWrapper<Matrix>;
   using ArrayOfConst = Eigen::ArrayWrapper<const Matrix>;
 
-  MatrixProperty _matrix;
+  DoubleMatrix() {}
 
-  DoubleMatrix() : _matrix(*this) {}
+  explicit DoubleMatrix(double d) : VariantBaseClass(d) {}
 
-  explicit DoubleMatrix(double d) : VariantBaseClass(d), _matrix(*this) {}
+  explicit DoubleMatrix(Eigen::MatrixXd matrix) : VariantBaseClass(matrix) {}
 
-  explicit DoubleMatrix(Eigen::MatrixXd matrix)
-      : VariantBaseClass(matrix), _matrix(*this) {}
+  DoubleMatrix(const DoubleMatrix& another)
+      : VariantBaseClass(static_cast<const VariantBaseClass&>(another)) {}
+
+  DoubleMatrix(DoubleMatrix&& another)
+      : VariantBaseClass(static_cast<VariantBaseClass&&>(another)) {}
 
   /* implicit */ operator double() const;
 
@@ -109,6 +54,7 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   DoubleMatrix& operator=(double d);
   DoubleMatrix& operator=(const Matrix& d);
   DoubleMatrix& operator=(const DoubleMatrix& d);
+  DoubleMatrix& operator=(DoubleMatrix&& another);
 
   DoubleMatrix& operator+=(double d);
   DoubleMatrix& operator+=(const Matrix& matrix);
