@@ -147,7 +147,7 @@ void Normal::backward_value(
   double s_sq = s * s;
   double increment = 0.0;
   _grad1_log_prob_value(increment, value._double, m, s_sq);
-  back_grad._double += adjunct * increment;
+  back_grad += adjunct * increment;
 }
 
 void Normal::backward_value_iid(
@@ -181,11 +181,10 @@ void Normal::backward_param(const graph::NodeValue& value, double adjunct)
   double jacob_0 = (value._double - m) / s_sq;
 
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += adjunct * jacob_0;
+    in_nodes[0]->back_grad1 += adjunct * jacob_0;
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
-        adjunct * (-1 / s + jacob_0 * jacob_0 * s);
+    in_nodes[1]->back_grad1 += adjunct * (-1 / s + jacob_0 * jacob_0 * s);
   }
 }
 
@@ -198,11 +197,11 @@ void Normal::backward_param_iid(const graph::NodeValue& value) const {
   int size = static_cast<int>(value._matrix.size());
   double sum_x = value._matrix.sum();
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += sum_x / s_sq - size * m / s_sq;
+    in_nodes[0]->back_grad1 += sum_x / s_sq - size * m / s_sq;
   }
   if (in_nodes[1]->needs_gradient()) {
     double sum_xsq = value._matrix.squaredNorm();
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         (-size / s + (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s_sq));
   }
 }
@@ -218,11 +217,11 @@ void Normal::backward_param_iid(
   double sum_x = (value._matrix.array() * adjunct.array()).sum();
   double sum_adjunct = adjunct.sum();
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += sum_x / s_sq - sum_adjunct * m / s_sq;
+    in_nodes[0]->back_grad1 += sum_x / s_sq - sum_adjunct * m / s_sq;
   }
   if (in_nodes[1]->needs_gradient()) {
     double sum_xsq = (value._matrix.array().pow(2) * adjunct.array()).sum();
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         (-sum_adjunct / s +
          (sum_xsq - 2 * m * sum_x + m * m * sum_adjunct) / (s * s_sq));
   }
