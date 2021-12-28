@@ -84,7 +84,7 @@ void Dirichlet::backward_value(
   Eigen::MatrixXd x = value._matrix;
   Eigen::MatrixXd param = in_nodes[0]->value._matrix;
   for (int i = 0; i < param.size(); i++) {
-    back_grad._matrix(i) += adjunct * (param(i) - 1) / x(i);
+    back_grad(i) += adjunct * (param(i) - 1) / x(i);
   }
 }
 
@@ -98,7 +98,7 @@ void Dirichlet::backward_param(const graph::NodeValue& value, double adjunct)
     for (int i = 0; i < param.size(); i++) {
       double jacob =
           std::log(x(i)) + digamma_sum - util::polygamma(0, param(i));
-      in_nodes[0]->back_grad1._matrix(i) += adjunct * jacob;
+      in_nodes[0]->back_grad1(i) += adjunct * jacob;
     }
   }
 }
