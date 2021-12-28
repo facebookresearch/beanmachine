@@ -93,48 +93,45 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   DoubleMatrix& operator=(const DoubleMatrix& d);
 
   DoubleMatrix& operator+=(double d);
+  DoubleMatrix& operator+=(const Matrix& matrix);
   DoubleMatrix& operator+=(const DoubleMatrix& another);
 };
 
 /// *
 
-DoubleMatrix operator*(const DoubleMatrix& double_matrix, double arg);
+DoubleMatrix operator*(const DoubleMatrix& double_matrix, double d);
 
-DoubleMatrix operator*(double arg, const DoubleMatrix& double_matrix);
+DoubleMatrix operator*(double d, const DoubleMatrix& double_matrix);
 
 DoubleMatrix::Matrix operator*(
     const DoubleMatrix& double_matrix,
-    const DoubleMatrix::Matrix& arg);
+    const DoubleMatrix::Matrix& matrix);
 
 DoubleMatrix::Matrix operator*(
-    const DoubleMatrix::Matrix& arg,
+    const DoubleMatrix::Matrix& matrix,
     const DoubleMatrix& double_matrix);
 
-DoubleMatrix operator*(
-    const DoubleMatrix& double_matrix,
-    const DoubleMatrix& arg);
+DoubleMatrix operator*(const DoubleMatrix& dm1, const DoubleMatrix& dm2);
 
 /// +
 
-double operator+(const DoubleMatrix& double_matrix, double arg);
+double operator+(const DoubleMatrix& double_matrix, double d);
 
-double operator+(double arg, const DoubleMatrix& double_matrix);
+double operator+(double d, const DoubleMatrix& double_matrix);
 
 DoubleMatrix::Matrix operator+(
-    const DoubleMatrix::Matrix& arg,
+    const DoubleMatrix::Matrix& matrix,
     const DoubleMatrix& double_matrix);
 
 DoubleMatrix::Matrix operator+(
     const DoubleMatrix& double_matrix,
-    const DoubleMatrix::Matrix& arg);
+    const DoubleMatrix::Matrix& matrix);
 
 DoubleMatrix::Matrix operator+(
-    const DoubleMatrix::Matrix& arg,
+    const DoubleMatrix::Matrix& matrix,
     const DoubleMatrix& double_matrix);
 
-DoubleMatrix operator+(
-    const DoubleMatrix& double_matrix,
-    const DoubleMatrix& arg);
+DoubleMatrix operator+(const DoubleMatrix& dm1, const DoubleMatrix& dm2);
 
 struct DoubleMatrixError : public std::runtime_error {
   explicit DoubleMatrixError(const char* message)
