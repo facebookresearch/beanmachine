@@ -235,8 +235,7 @@ void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1(static_cast<int>(in_nodes[1]->value._natural)) +=
-        back_grad1;
+    matrix->back_grad1(in_nodes[1]->value._natural) += back_grad1;
   }
 }
 
@@ -244,8 +243,8 @@ void ColumnIndex::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix.col(in_nodes[1]->value._natural) +=
-        back_grad1._matrix;
+    // TODO: not used in any tests; need to create some.
+    matrix->back_grad1.col(in_nodes[1]->value._natural) += back_grad1;
   }
 }
 
