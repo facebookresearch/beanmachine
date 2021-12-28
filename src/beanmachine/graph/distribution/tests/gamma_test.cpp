@@ -135,10 +135,10 @@ TEST(testdistrib, gamma) {
   EXPECT_NEAR((*grad[0]), 18.6667, 1e-3); // rate
   EXPECT_NEAR((*grad[1]), -10.8386, 1e-3); // shape
   EXPECT_NEAR((*grad[2]), 0.4167, 1e-3); // y
-  EXPECT_NEAR(grad[3]->_matrix.coeff(0), -0.2988, 1e-3); // y2
-  EXPECT_NEAR(grad[3]->_matrix.coeff(1), 1.2283, 1e-3);
-  EXPECT_NEAR(grad[3]->_matrix.coeff(2), 0.2500, 1e-3);
-  EXPECT_NEAR(grad[3]->_matrix.coeff(3), 3.4643, 1e-3);
+  EXPECT_NEAR(grad[3]->coeff(0), -0.2988, 1e-3); // y2
+  EXPECT_NEAR(grad[3]->coeff(1), 1.2283, 1e-3);
+  EXPECT_NEAR(grad[3]->coeff(2), 0.2500, 1e-3);
+  EXPECT_NEAR(grad[3]->coeff(3), 3.4643, 1e-3);
 
   // test sample/iid_sample from a mixture of gammas
   Graph g2;
@@ -203,6 +203,6 @@ TEST(testdistrib, gamma) {
   EXPECT_NEAR((*back_grad[3]), -3.0509, 1e-3); // shape2
   EXPECT_NEAR((*back_grad[4]), -3.2842, 1e-3); // p
   EXPECT_NEAR((*back_grad[5]), -0.5200, 1e-3); // x1
-  EXPECT_NEAR(back_grad[6]->_matrix.coeff(0), -3.0000, 1e-3); // x2
-  EXPECT_NEAR(back_grad[6]->_matrix.coeff(1), -2.1852, 1e-3);
+  EXPECT_NEAR(back_grad[6]->coeff(0), -3.0000, 1e-3); // x2
+  EXPECT_NEAR(back_grad[6]->coeff(1), -2.1852, 1e-3);
 }

@@ -290,8 +290,8 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
   EXPECT_NEAR((*grad1[0]), -0.0, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.5, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.5, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(0), -0.5, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(1), -1.5, 1e-3);
 
   // mixture of half_normals
   // Checking the log probability and the
@@ -394,6 +394,6 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   EXPECT_NEAR((*back_grad[2]), -1.1951, 1e-3); // s
   EXPECT_NEAR((*back_grad[3]), 0.0, 1e-3); // p
   EXPECT_NEAR((*back_grad[4]), -0.1543, 1e-3); // x
-  EXPECT_NEAR(back_grad[5]->_matrix.coeff(0), -0.1543, 1e-3); // xiid
-  EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), -0.4630, 1e-3);
+  EXPECT_NEAR(back_grad[5]->coeff(0), -0.1543, 1e-3); // xiid
+  EXPECT_NEAR(back_grad[5]->coeff(1), -0.4630, 1e-3);
 }

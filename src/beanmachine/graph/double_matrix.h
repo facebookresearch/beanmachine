@@ -184,6 +184,9 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   double operator()(Index i) const;
   double operator()(Index row, Index col) const;
 
+  const Matrix::Scalar& coeff(Index rolId, Index colId) const;
+  const Matrix::Scalar& coeff(Index index) const;
+
   /* Resizes to the given size, and sets all coefficients in this expression to
    * zero. */
   DoubleMatrix& setZero(Index rows, Index cols);
