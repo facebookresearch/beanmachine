@@ -159,6 +159,16 @@ DoubleMatrix& DoubleMatrix::operator=(const DoubleMatrix& double_matrix) {
   }
 }
 
+/// array
+
+DoubleMatrix::Array DoubleMatrix::array() {
+  return get<Matrix>(*this).array();
+}
+
+const DoubleMatrix::ArrayOfConst DoubleMatrix::array() const {
+  return get<Matrix>(*this).array();
+}
+
 /// +=
 
 DoubleMatrix& DoubleMatrix::operator+=(double d) {
