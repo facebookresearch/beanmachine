@@ -189,6 +189,12 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   DoubleMatrix& setZero(Index rows, Index cols);
 
   Matrix::ColXpr col(Index i);
+
+  Matrix::Scalar* data();
+
+  Matrix::Index size();
+
+  Matrix::Scalar sum();
 };
 
 DoubleMatrix::Matrix::ColXpr operator+=(
