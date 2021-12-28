@@ -147,7 +147,7 @@ void HalfCauchy::backward_value_iid(
   double s = in_nodes[0]->value._double;
   Eigen::MatrixXd s2_p_x2 =
       s * s + value._matrix.array() * value._matrix.array();
-  back_grad._matrix -= (2 * value._matrix.array() / s2_p_x2.array()).matrix();
+  back_grad -= (2 * value._matrix.array() / s2_p_x2.array());
 }
 
 void HalfCauchy::backward_value_iid(
@@ -158,8 +158,7 @@ void HalfCauchy::backward_value_iid(
   double s = in_nodes[0]->value._double;
   Eigen::MatrixXd s2_p_x2 =
       s * s + value._matrix.array() * value._matrix.array();
-  back_grad._matrix -=
-      (2 * adjunct.array() * value._matrix.array() / s2_p_x2.array()).matrix();
+  back_grad -= (2 * adjunct.array() * value._matrix.array() / s2_p_x2.array());
 }
 
 void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)

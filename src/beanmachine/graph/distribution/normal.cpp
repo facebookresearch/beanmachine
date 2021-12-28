@@ -157,7 +157,7 @@ void Normal::backward_value_iid(
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -= ((value._matrix.array() - m) / s_sq).matrix();
+  back_grad -= ((value._matrix.array() - m) / s_sq);
 }
 
 void Normal::backward_value_iid(
@@ -168,8 +168,7 @@ void Normal::backward_value_iid(
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -=
-      (adjunct.array() * (value._matrix.array() - m) / s_sq).matrix();
+  back_grad -= (adjunct.array() * (value._matrix.array() - m) / s_sq);
 }
 
 void Normal::backward_param(const graph::NodeValue& value, double adjunct)
