@@ -103,9 +103,9 @@ TEST(testoperator, multiply) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 4);
-  EXPECT_NEAR(grad1[0]->_double, -3.4571, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, 4.3053, 1e-3);
-  EXPECT_NEAR(grad1[2]->_double, -3.4354, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -3.4571, 1e-3);
+  EXPECT_NEAR((*grad1[1]), 4.3053, 1e-3);
+  EXPECT_NEAR((*grad1[2]), -3.4354, 1e-3);
   // test backward() with 1 zero-valued input
   g.remove_observations();
   g.observe(x1, 1.3);
@@ -113,9 +113,9 @@ TEST(testoperator, multiply) {
   g.observe(x3, 0.0);
   g.observe(y, -0.9);
   g.eval_and_grad(grad1);
-  EXPECT_NEAR(grad1[0]->_double, -1.3000, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, 0.8000, 1e-3);
-  EXPECT_NEAR(grad1[2]->_double, 0.9360, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -1.3000, 1e-3);
+  EXPECT_NEAR((*grad1[1]), 0.8000, 1e-3);
+  EXPECT_NEAR((*grad1[2]), 0.9360, 1e-3);
   // test backward() with 2 zero-valued inputs
   g.remove_observations();
   g.observe(x1, 1.3);
@@ -123,9 +123,9 @@ TEST(testoperator, multiply) {
   g.observe(x3, 0.0);
   g.observe(y, -0.9);
   g.eval_and_grad(grad1);
-  EXPECT_NEAR(grad1[0]->_double, -1.3000, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, 0.0, 1e-3);
-  EXPECT_NEAR(grad1[2]->_double, 0.0, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -1.3000, 1e-3);
+  EXPECT_NEAR((*grad1[1]), 0.0, 1e-3);
+  EXPECT_NEAR((*grad1[2]), 0.0, 1e-3);
 }
 
 TEST(testoperator, phi) {
@@ -174,7 +174,7 @@ TEST(testoperator, phi) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, 0.6458, 1e-3);
+  EXPECT_NEAR((*grad[0]), 0.6458, 1e-3);
 }
 
 TEST(testoperator, logistic) {
@@ -224,7 +224,7 @@ TEST(testoperator, logistic) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, 0.4378, 1e-3);
+  EXPECT_NEAR((*grad[0]), 0.4378, 1e-3);
 }
 
 TEST(testoperator, if_then_else) {
@@ -285,7 +285,7 @@ TEST(testoperator, if_then_else) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[1]->_double, 1240, 1e-3);
+  EXPECT_NEAR((*grad[1]), 1240, 1e-3);
 }
 
 TEST(testoperator, choice) {
@@ -389,7 +389,7 @@ TEST(testoperator, log1pexp) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, -0.4643, 1e-3);
+  EXPECT_NEAR((*grad[0]), -0.4643, 1e-3);
 }
 
 TEST(testoperator, log1mexp) {
@@ -449,7 +449,7 @@ TEST(testoperator, log1mexp) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, 5.3118, 1e-3);
+  EXPECT_NEAR((*grad[0]), 5.3118, 1e-3);
 }
 
 TEST(testoperator, logsumexp) {
@@ -521,8 +521,8 @@ TEST(testoperator, logsumexp) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 3);
-  EXPECT_NEAR(grad[0]->_double, -0.4582, 1e-3);
-  EXPECT_NEAR(grad[1]->_double, -0.2362, 1e-3);
+  EXPECT_NEAR((*grad[0]), -0.4582, 1e-3);
+  EXPECT_NEAR((*grad[1]), -0.2362, 1e-3);
 }
 
 TEST(testoperator, logsumexp_vector) {
@@ -590,8 +590,8 @@ TEST(testoperator, logsumexp_vector) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 3);
-  EXPECT_NEAR(grad[0]->_double, -0.6221, 1e-3);
-  EXPECT_NEAR(grad[1]->_double, -1.6911, 1e-3);
+  EXPECT_NEAR((*grad[0]), -0.6221, 1e-3);
+  EXPECT_NEAR((*grad[1]), -1.6911, 1e-3);
 }
 
 TEST(testoperator, log) {
@@ -645,7 +645,7 @@ TEST(testoperator, log) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
-  EXPECT_NEAR(grad[0]->_double, 5.5452, 1e-3);
+  EXPECT_NEAR((*grad[0]), 5.5452, 1e-3);
 }
 
 TEST(testoperator, pow) {
@@ -713,8 +713,8 @@ TEST(testoperator, pow) {
   std::vector<DoubleMatrix*> grad;
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 3);
-  EXPECT_NEAR(grad[0]->_double, -0.1989, 1e-3);
-  EXPECT_NEAR(grad[1]->_double, 0.0306, 1e-3);
+  EXPECT_NEAR((*grad[0]), -0.1989, 1e-3);
+  EXPECT_NEAR((*grad[1]), 0.0306, 1e-3);
 
   // test x ^ y where x is negative and y is a constant
   // Verified in PyTorch using the following code:
@@ -1198,7 +1198,7 @@ def f_grad(x):
   EXPECT_EQ(grad1.size(), 7);
 
   // grad x
-  EXPECT_NEAR(grad1[0]->_double, -130.1199, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -130.1199, 1e-3);
   // grad y
   EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.3, 1e-3);
   EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.2, 1e-3);
