@@ -132,7 +132,7 @@ void Gamma::backward_value(
   double param_b = in_nodes[1]->value._double;
   double increment = 0.0;
   _grad1_log_prob_value(increment, value._double, param_a, param_b);
-  back_grad._double += adjunct * increment;
+  back_grad += adjunct * increment;
 }
 
 void Gamma::backward_value_iid(
@@ -165,11 +165,11 @@ void Gamma::backward_param(const graph::NodeValue& value, double adjunct)
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
     double jacob = std::log(param_b) - digamma_a + std::log(value._double);
-    in_nodes[0]->back_grad1._double += adjunct * jacob;
+    in_nodes[0]->back_grad1 += adjunct * jacob;
   }
   if (in_nodes[1]->needs_gradient()) {
     double jacob = param_a / param_b - value._double;
-    in_nodes[1]->back_grad1._double += adjunct * jacob;
+    in_nodes[1]->back_grad1 += adjunct * jacob;
   }
 }
 
@@ -180,11 +180,11 @@ void Gamma::backward_param_iid(const graph::NodeValue& value) const {
   int size = static_cast<int>(value._matrix.size());
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
-    in_nodes[0]->back_grad1._double += size * (std::log(param_b) - digamma_a) +
+    in_nodes[0]->back_grad1 += size * (std::log(param_b) - digamma_a) +
         value._matrix.array().log().sum();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         size * (param_a / param_b) - value._matrix.array().sum();
   }
 }
@@ -201,12 +201,11 @@ void Gamma::backward_param_iid(
   }
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
-    in_nodes[0]->back_grad1._double +=
-        adjunct_sum * (std::log(param_b) - digamma_a) +
+    in_nodes[0]->back_grad1 += adjunct_sum * (std::log(param_b) - digamma_a) +
         (value._matrix.array().log() * adjunct.array()).sum();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double += adjunct_sum * (param_a / param_b) -
+    in_nodes[1]->back_grad1 += adjunct_sum * (param_a / param_b) -
         (value._matrix.array() * adjunct.array()).sum();
   }
 }

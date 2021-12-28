@@ -247,7 +247,7 @@ void Bimixture::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   BIMIX_PREPARE_GRAD()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += adjunct * (f1 - f2) / f;
+    in_nodes[0]->back_grad1 += adjunct * (f1 - f2) / f;
   }
   d1->backward_param(value, adjunct * p * f1 / f);
   d2->backward_param(value, adjunct * (1 - p) * f2 / f);
@@ -256,8 +256,7 @@ void Bimixture::backward_param(const graph::NodeValue& value, double adjunct)
 void Bimixture::backward_param_iid(const graph::NodeValue& value) const {
   BIMIX_PREPARE_GRAD_IID()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
-        ((f1.array() - f2.array()) / f.array()).sum();
+    in_nodes[0]->back_grad1 += ((f1.array() - f2.array()) / f.array()).sum();
   }
   f1 = p * f1.array() / f.array();
   f2 = (1 - p) * f2.array() / f.array();
@@ -270,7 +269,7 @@ void Bimixture::backward_param_iid(
     Eigen::MatrixXd& adjunct) const {
   BIMIX_PREPARE_GRAD_IID()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1 +=
         ((f1.array() - f2.array()) / f.array() * adjunct.array()).sum();
   }
   f1 = p * f1.array() / f.array() * adjunct.array();
