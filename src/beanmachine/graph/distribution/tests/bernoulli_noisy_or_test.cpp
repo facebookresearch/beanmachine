@@ -45,7 +45,7 @@ TEST(testdistrib, backward_bernoulli_noisy_or) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 3);
-  EXPECT_NEAR(grad1[0]->_double, -0.6870, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -0.6870, 1e-3);
 
   // Test Bimixture
   Graph g2;
@@ -97,7 +97,7 @@ TEST(testdistrib, backward_bernoulli_noisy_or) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 5);
-  EXPECT_NEAR(back_grad[0]->_double, 0.0633, 1e-3); // p1
-  EXPECT_NEAR(back_grad[1]->_double, 0.0041, 1e-3); // p2
-  EXPECT_NEAR(back_grad[2]->_double, -0.0769, 1e-3); // mix_p
+  EXPECT_NEAR((*back_grad[0]), 0.0633, 1e-3); // p1
+  EXPECT_NEAR((*back_grad[1]), 0.0041, 1e-3); // p2
+  EXPECT_NEAR((*back_grad[2]), -0.0769, 1e-3); // mix_p
 }

@@ -105,7 +105,7 @@ TEST(testdistrib, bimixture) {
   std::vector<DoubleMatrix*> grad;
   g1.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 1);
-  EXPECT_NEAR(grad[0]->_double, -0.3359, 1e-3);
+  EXPECT_NEAR((*grad[0]), -0.3359, 1e-3);
 
   // test gradients of the parameters
   // a ~ FLAT(REAL), b ~ FLAT(REAL), c ~ FLAT(POS_REAL)
@@ -254,13 +254,13 @@ TEST(testdistrib, bimixture_of_mixture) {
   std::vector<DoubleMatrix*> back_grad;
   g.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 8);
-  EXPECT_NEAR(back_grad[0]->_double, 0.0658, 1e-3); // m1
-  EXPECT_NEAR(back_grad[1]->_double, -0.1571, 1e-3); // m2
-  EXPECT_NEAR(back_grad[2]->_double, -0.1221, 1e-3); // m3
-  EXPECT_NEAR(back_grad[3]->_double, -1.2290, 1e-3); // s
-  EXPECT_NEAR(back_grad[4]->_double, 0.0683, 1e-3); // p
-  EXPECT_NEAR(back_grad[5]->_double, 0.2410, 1e-3); // q
-  EXPECT_NEAR(back_grad[6]->_double, 0.0716, 1e-3); // x
+  EXPECT_NEAR((*back_grad[0]), 0.0658, 1e-3); // m1
+  EXPECT_NEAR((*back_grad[1]), -0.1571, 1e-3); // m2
+  EXPECT_NEAR((*back_grad[2]), -0.1221, 1e-3); // m3
+  EXPECT_NEAR((*back_grad[3]), -1.2290, 1e-3); // s
+  EXPECT_NEAR((*back_grad[4]), 0.0683, 1e-3); // p
+  EXPECT_NEAR((*back_grad[5]), 0.2410, 1e-3); // q
+  EXPECT_NEAR((*back_grad[6]), 0.0716, 1e-3); // x
   EXPECT_NEAR(back_grad[7]->_matrix.coeff(0), -0.2170, 1e-3); // xiid
   EXPECT_NEAR(back_grad[7]->_matrix.coeff(1), 0.3589, 1e-3);
 }
