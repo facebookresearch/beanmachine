@@ -269,8 +269,8 @@ TEST(testgradient, backward_scalar_linearmodel) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 5);
-  EXPECT_NEAR(grad1[0]->_double, 0.8800, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, -1.1420, 1e-3);
+  EXPECT_NEAR((*grad1[0]), 0.8800, 1e-3);
+  EXPECT_NEAR((*grad1[1]), -1.1420, 1e-3);
 }
 
 TEST(testgradient, backward_vector_linearmodel) {
@@ -331,7 +331,7 @@ TEST(testgradient, backward_vector_linearmodel) {
   EXPECT_EQ(grad1.size(), 5);
   EXPECT_NEAR(grad1[0]->_matrix.coeff(0), 0.4000, 1e-3);
   EXPECT_NEAR(grad1[0]->_matrix.coeff(1), -0.6806, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, -2.8773, 1e-3);
+  EXPECT_NEAR((*grad1[1]), -2.8773, 1e-3);
 }
 
 TEST(testgradient, backward_unaryops) {
@@ -366,7 +366,7 @@ TEST(testgradient, backward_unaryops) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_double, 1.0648, 1e-3);
+  EXPECT_NEAR((*grad1[0]), 1.0648, 1e-3);
 }
 
 TEST(testgradient, backward_matrix_index) {
@@ -556,9 +556,9 @@ TEST(testgradient, backward_to_matrix) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 3);
-  EXPECT_NEAR(grad1[0]->_double, -0.4, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, -0.03, 1e-3);
-  EXPECT_NEAR(grad1[2]->_double, -0.1, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -0.4, 1e-3);
+  EXPECT_NEAR((*grad1[1]), -0.03, 1e-3);
+  EXPECT_NEAR((*grad1[2]), -0.1, 1e-3);
 }
 
 TEST(testgradient, forward_matrix_scale) {
@@ -712,6 +712,6 @@ TEST(testgradient, backward_broadcast_add) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_double, -6.1481, 1e-3);
-  EXPECT_NEAR(grad1[1]->_double, 3.0, 1e-3);
+  EXPECT_NEAR((*grad1[0]), -6.1481, 1e-3);
+  EXPECT_NEAR((*grad1[1]), 3.0, 1e-3);
 }
