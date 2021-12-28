@@ -303,6 +303,24 @@ Matrix::ColXpr operator+=(
   }
 }
 
+/// data
+
+Matrix::Scalar* DoubleMatrix::data() {
+  return get<Matrix>(*this).data();
+}
+
+/// size
+
+Matrix::Index DoubleMatrix::size() {
+  return get<Matrix>(*this).size();
+}
+
+/// sum
+
+Matrix::Scalar DoubleMatrix::sum() {
+  return get<Matrix>(*this).sum();
+}
+
 /// *
 
 DoubleMatrix operator*(const DoubleMatrix& double_matrix, double d) {
