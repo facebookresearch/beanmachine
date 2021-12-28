@@ -167,7 +167,7 @@ void LogSumExpVector::backward() {
   if (in_nodes[0]->needs_gradient()) {
     Eigen::MatrixXd exp =
         (in_nodes[0]->value._matrix.array() - value._double).exp();
-    in_nodes[0]->back_grad1._matrix += back_grad1 * exp;
+    in_nodes[0]->back_grad1 += back_grad1 * exp;
   }
 }
 
@@ -201,19 +201,19 @@ void MatrixMultiply::backward() {
   // if C = A @ B is reduced to a scalar
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._matrix += back_grad1 * B.transpose();
+      node_a->back_grad1 += back_grad1 * B.transpose();
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix += back_grad1 * A.transpose();
+      node_b->back_grad1 += back_grad1 * A.transpose();
     }
     return;
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._matrix += back_grad1._matrix * B.transpose();
+    node_a->back_grad1 += back_grad1._matrix * B.transpose();
   }
   if (node_b->needs_gradient()) {
-    node_b->back_grad1._matrix += A.transpose() * back_grad1._matrix;
+    node_b->back_grad1 += A.transpose() * back_grad1._matrix;
   }
 }
 
@@ -247,7 +247,7 @@ void MatrixScale::backward() {
     node_a->back_grad1 += (back_grad1._matrix * B.transpose()).sum();
   }
   if (node_b->needs_gradient()) {
-    node_b->back_grad1._matrix += A * back_grad1._matrix;
+    node_b->back_grad1 += A * back_grad1._matrix;
   }
 }
 
@@ -287,7 +287,7 @@ void BroadcastAdd::backward() {
     in_nodes[0]->back_grad1 += back_grad1._matrix.sum();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._matrix += back_grad1._matrix;
+    in_nodes[1]->back_grad1 += back_grad1;
   }
 }
 
