@@ -138,7 +138,7 @@ void Binomial::backward_param(const graph::NodeValue& value, double adjunct)
 
   if (in_nodes[1]->needs_gradient()) {
     double grad = k / p - (n - k) / (1 - p);
-    in_nodes[1]->back_grad1._double += adjunct * grad;
+    in_nodes[1]->back_grad1 += adjunct * grad;
   }
 }
 
@@ -151,7 +151,7 @@ void Binomial::backward_param_iid(const graph::NodeValue& value) const {
     int size = static_cast<int>(value._nmatrix.size());
     double sum_k = static_cast<double>(value._nmatrix.sum());
     double grad = sum_k / p - (size * n - sum_k) / (1 - p);
-    in_nodes[1]->back_grad1._double += grad;
+    in_nodes[1]->back_grad1 += grad;
   }
 }
 
@@ -169,7 +169,7 @@ void Binomial::backward_param_iid(
         (value._nmatrix.cast<double>().array() * adjunct.array()).sum();
     double grad =
         sum_k_adjunct / p - (sum_adjunct * n - sum_k_adjunct) / (1 - p);
-    in_nodes[1]->back_grad1._double += grad;
+    in_nodes[1]->back_grad1 += grad;
   }
 }
 
