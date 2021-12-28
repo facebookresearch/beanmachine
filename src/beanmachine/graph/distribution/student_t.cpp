@@ -216,7 +216,7 @@ void StudentT::backward_value(
   T_PREPARE_GRAD()
   double increment = 0.0;
   _grad1_log_prob_value(increment, x, n, l, n_s_sq_p_x_m_l_sq);
-  back_grad._double += adjunct * increment;
+  back_grad += adjunct * increment;
 }
 
 void StudentT::backward_value_iid(
@@ -248,15 +248,15 @@ void StudentT::backward_param(const graph::NodeValue& value, double adjunct)
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   T_PREPARE_GRAD()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1 +=
         adjunct * _grad1_log_prob_n(n, s, n_s_sq_p_x_m_l_sq);
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         adjunct * _grad1_log_prob_l(x, n, l, n_s_sq_p_x_m_l_sq);
   }
   if (in_nodes[2]->needs_gradient()) {
-    in_nodes[2]->back_grad1._double +=
+    in_nodes[2]->back_grad1 +=
         adjunct * _grad1_log_prob_s(n, s, n_s_sq_p_x_m_l_sq);
   }
 }
@@ -273,17 +273,17 @@ void StudentT::backward_param_iid(const graph::NodeValue& value) const {
         (0.5 * util::polygamma(0, (n + 1) / 2) -
          0.5 * util::polygamma(0, n / 2) - 0.5 / n + 0.5 * std::log(n) +
          std::log(s) + 0.5 * (n + 1) / n);
-    in_nodes[0]->back_grad1._double += jacob -
+    in_nodes[0]->back_grad1 += jacob -
         (0.5 * NSsqPXMLsq.array().log() +
          0.5 * (n + 1) * s * s / NSsqPXMLsq.array())
             .sum();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         (n + 1) * ((value._matrix.array() - l) / NSsqPXMLsq.array()).sum();
   }
   if (in_nodes[2]->needs_gradient()) {
-    in_nodes[2]->back_grad1._double +=
+    in_nodes[2]->back_grad1 +=
         size * n / s - (n + 1) * n * (s / NSsqPXMLsq.array()).sum();
   }
 }
@@ -305,20 +305,20 @@ void StudentT::backward_param_iid(
         (0.5 * util::polygamma(0, (n + 1) / 2) -
          0.5 * util::polygamma(0, n / 2) - 0.5 / n + 0.5 * std::log(n) +
          std::log(s) + 0.5 * (n + 1) / n);
-    in_nodes[0]->back_grad1._double += jacob -
+    in_nodes[0]->back_grad1 += jacob -
         (adjunct.array() *
          (0.5 * NSsqPXMLsq.array().log() +
           0.5 * (n + 1) * s * s / NSsqPXMLsq.array()))
             .sum();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1 +=
         (adjunct.array() * (n + 1) * (value._matrix.array() - l) /
          NSsqPXMLsq.array())
             .sum();
   }
   if (in_nodes[2]->needs_gradient()) {
-    in_nodes[2]->back_grad1._double += adjunct_sum * n / s -
+    in_nodes[2]->back_grad1 += adjunct_sum * n / s -
         (adjunct.array() * (n + 1) * n * (s / NSsqPXMLsq.array())).sum();
   }
 }
