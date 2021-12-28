@@ -261,6 +261,6 @@ TEST(testdistrib, bimixture_of_mixture) {
   EXPECT_NEAR((*back_grad[4]), 0.0683, 1e-3); // p
   EXPECT_NEAR((*back_grad[5]), 0.2410, 1e-3); // q
   EXPECT_NEAR((*back_grad[6]), 0.0716, 1e-3); // x
-  EXPECT_NEAR(back_grad[7]->_matrix.coeff(0), -0.2170, 1e-3); // xiid
-  EXPECT_NEAR(back_grad[7]->_matrix.coeff(1), 0.3589, 1e-3);
+  EXPECT_NEAR(back_grad[7]->coeff(0), -0.2170, 1e-3); // xiid
+  EXPECT_NEAR(back_grad[7]->coeff(1), 0.3589, 1e-3);
 }
