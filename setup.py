@@ -47,7 +47,7 @@ DEV_REQUIRES = (
 if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
 else:
-    CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
+    CPP_COMPILE_ARGS = ["-std=c++17", "-Werror"]
 
 
 # Check for python version
