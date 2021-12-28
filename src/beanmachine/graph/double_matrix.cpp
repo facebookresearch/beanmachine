@@ -258,6 +258,24 @@ DoubleMatrix& DoubleMatrix::operator-=(const DoubleMatrix& another) {
   }
 }
 
+/// operator()
+
+double& DoubleMatrix::operator()(int i) {
+  return get<Matrix>(*this)(i);
+}
+
+double& DoubleMatrix::operator()(int row, int col) {
+  return get<Matrix>(*this)(row, col);
+}
+
+double DoubleMatrix::operator()(int i) const {
+  return get<Matrix>(*this)(i);
+}
+
+double DoubleMatrix::operator()(int row, int col) const {
+  return get<Matrix>(*this)(row, col);
+}
+
 /// *
 
 DoubleMatrix operator*(const DoubleMatrix& double_matrix, double d) {
