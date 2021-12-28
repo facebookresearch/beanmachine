@@ -141,8 +141,7 @@ void Gamma::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  back_grad._matrix +=
-      ((param_a - 1.0) / value._matrix.array() - param_b).matrix();
+  back_grad += ((param_a - 1.0) / value._matrix.array() - param_b).matrix();
 }
 
 void Gamma::backward_value_iid(
@@ -152,7 +151,7 @@ void Gamma::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  back_grad._matrix +=
+  back_grad +=
       (adjunct.array() * ((param_a - 1.0) / value._matrix.array() - param_b))
           .matrix();
 }
