@@ -5,13 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "beanmachine/graph/double_matrix.h"
 #include <algorithm>
 #include <random>
 #include <sstream>
 #include <thread>
 #include <variant>
-
-#include "beanmachine/graph/double_matrix.h"
 
 namespace beanmachine {
 namespace graph {
@@ -215,6 +214,47 @@ DoubleMatrix& DoubleMatrix::operator+=(const DoubleMatrix& another) {
       return *this;
     default:
       throw double_matrix_error("In-place addition to empty DoubleMatrix");
+  }
+}
+
+/// -=
+
+DoubleMatrix& DoubleMatrix::operator-=(double d) {
+  switch (TYPE(*this)) {
+    case DOUBLE:
+      get<double>(*this) -= d;
+      return *this;
+    case MATRIX:
+      throw double_matrix_error(
+          "In-place subtraction of double to 'DoubleMatrix' containing matrix");
+    default:
+      throw double_matrix_error("In-place subtraction to empty DoubleMatrix");
+  }
+}
+
+DoubleMatrix& DoubleMatrix::operator-=(const Matrix& matrix) {
+  switch (TYPE(*this)) {
+    case DOUBLE:
+      throw double_matrix_error(
+          "In-place subtraction of matrix to 'DoubleMatrix' containing double");
+    case MATRIX:
+      get<Matrix>(*this) -= matrix;
+      return *this;
+    default:
+      throw double_matrix_error("In-place subtraction to empty DoubleMatrix");
+  }
+}
+
+DoubleMatrix& DoubleMatrix::operator-=(const DoubleMatrix& another) {
+  switch (TYPE(*this)) {
+    case DOUBLE:
+      get<double>(*this) -= get<double>(another);
+      return *this;
+    case MATRIX:
+      get<Matrix>(*this) -= get<Matrix>(another);
+      return *this;
+    default:
+      throw double_matrix_error("In-place subtraction to empty DoubleMatrix");
   }
 }
 

@@ -152,7 +152,7 @@ void Half_Normal::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -= (value._matrix.array() / s_sq).matrix();
+  back_grad -= (value._matrix.array() / s_sq);
 }
 
 void Half_Normal::backward_value_iid(
@@ -162,8 +162,7 @@ void Half_Normal::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -=
-      (adjunct.array() * value._matrix.array() / s_sq).matrix();
+  back_grad -= (adjunct.array() * value._matrix.array() / s_sq);
 }
 
 void Half_Normal::backward_param(const graph::NodeValue& value, double adjunct)

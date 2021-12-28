@@ -226,8 +226,7 @@ void StudentT::backward_value_iid(
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
-  back_grad._matrix -=
-      ((n + 1) * (value._matrix.array() - l) / NS2PXML2).matrix();
+  back_grad -= ((n + 1) * (value._matrix.array() - l) / NS2PXML2);
 }
 
 void StudentT::backward_value_iid(
@@ -238,9 +237,8 @@ void StudentT::backward_value_iid(
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
-  back_grad._matrix -=
-      (adjunct.array() * (n + 1) * (value._matrix.array() - l) / NS2PXML2)
-          .matrix();
+  back_grad -=
+      (adjunct.array() * (n + 1) * (value._matrix.array() - l) / NS2PXML2);
 }
 
 void StudentT::backward_param(const graph::NodeValue& value, double adjunct)
