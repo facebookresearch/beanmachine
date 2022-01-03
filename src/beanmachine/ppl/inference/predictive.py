@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import arviz as az
 import torch
@@ -143,7 +143,6 @@ class Predictive(object):
                 return az.from_dict(prior_predictive=prior_pred.samples)
             else:
                 return prior_pred
-
 
     @staticmethod
     def empirical(

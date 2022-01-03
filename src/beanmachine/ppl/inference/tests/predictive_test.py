@@ -157,3 +157,32 @@ class PredictiveTest(unittest.TestCase):
         assert len(empirical) == 3
         assert empirical[self.likelihood_i(0)].shape == (1, 27)
         assert empirical[self.likelihood_i(1)].shape == (1, 27)
+
+    def test_return_inference_data(self):
+        torch.manual_seed(10)
+        obs = {
+            self.likelihood_2(0): torch.tensor([[1.0, 1.0]]),
+            self.likelihood_2(1): torch.tensor([[0.0, 1.0]]),
+        }
+        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
+            [self.prior_2()], obs, num_samples=10, num_chains=2
+        )
+
+        assert post_samples[self.prior_2()].shape == (2, 10, 1, 2)
+        predictives = bm.simulate(
+            list(obs.keys()), post_samples, vectorized=True, return_inference_data=True
+        )
+        assert "posterior" in predictives
+        assert "posterior_predictive" in predictives
+        assert predictives.posterior_predictive[self.likelihood_2(0)].shape == (
+            2,
+            10,
+            1,
+            2,
+        )
+        assert predictives.posterior_predictive[self.likelihood_2(1)].shape == (
+            2,
+            10,
+            1,
+            2,
+        )
