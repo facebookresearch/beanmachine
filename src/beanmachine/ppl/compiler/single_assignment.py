@@ -81,6 +81,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     ast_compare,
     ast_dict,
     ast_dictComp,
+    ast_index,
     ast_generator,
     ast_domain,
     ast_for,
@@ -95,6 +96,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     attribute,
     binop,
     call,
+    get_value,
     expr,
     index,
     keyword,
@@ -1007,10 +1009,10 @@ class SingleAssignment:
         #
         return self._make_right_assignment_rule(
             subscript(value=name(), slice=index(value=_not_identifier)),
-            lambda original_right: original_right.slice.value,
+            lambda original_right: get_value(original_right.slice),
             lambda original_right, new_name: ast.Subscript(
                 value=original_right.value,
-                slice=ast.Index(value=new_name),
+                slice=ast_index(value=new_name),
                 ctx=original_right.ctx,
             ),
             "handle_assign_subscript_slice_index_2",
@@ -2202,10 +2204,10 @@ class SingleAssignment:
         """Rewrites like a[b.c] = z → x = b.c; a[x] = z"""
         return self._make_left_any_assignment_rule(
             subscript(value=name(), slice=index(value=_not_identifier)),
-            lambda original_left: original_left.slice.value,
+            lambda original_left: get_value(original_left.slice),
             lambda original_left, new_name: ast.Subscript(
                 value=original_left.value,
-                slice=ast.Index(
+                slice=ast_index(
                     value=new_name,
                     ctx=ast.Load(),
                 ),
@@ -2346,7 +2348,7 @@ class SingleAssignment:
                         targets=[source_term.targets[0].elts[0]],
                         value=ast.Subscript(
                             value=source_term.value,
-                            slice=ast.Index(value=ast.Num(n=0)),
+                            slice=ast_index(value=ast.Num(n=0)),
                             ctx=ast.Load(),
                         ),
                     ),
@@ -2397,7 +2399,7 @@ class SingleAssignment:
                         targets=[source_term.targets[0].elts[-1]],
                         value=ast.Subscript(
                             value=source_term.value,
-                            slice=ast.Index(value=ast.Num(n=-1)),
+                            slice=ast_index(value=ast.Num(n=-1)),
                             ctx=ast.Load(),
                         ),
                     ),

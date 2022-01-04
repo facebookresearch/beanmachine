@@ -7,6 +7,7 @@
 """Pattern matching for ASTs"""
 import ast
 import math
+from platform import python_version
 from typing import Any, Dict
 
 import torch
@@ -24,6 +25,21 @@ from beanmachine.ppl.compiler.patterns import (
     type_and_attributes,
 )
 from beanmachine.ppl.compiler.rules import RuleDomain
+
+# To support different Python versions correctly, in particular changes from 3.8 to 3.9,
+# some functionality defined in this module needs to be version dependent.
+
+_python_version = [int(i) for i in python_version().split(".")[:2]]
+_python_3_9_or_later = _python_version >= [3, 9]
+
+# Assertions about changes across versions that we address in this module
+
+if _python_3_9_or_later:
+    dummy_value = ast.Constant(1)
+    assert ast.Index(dummy_value) == dummy_value
+else:
+    dummy_value = ast.Constant(1)
+    assert ast.Index(dummy_value) != dummy_value
 
 
 def _get_children(node: Any) -> Dict[str, Any]:
@@ -309,8 +325,39 @@ def if_statement(
     return type_and_attributes(ast.If, {"test": test, "body": body, "orelse": orelse})
 
 
-def index(value: Pattern = _any) -> Pattern:
+# Note: The following pattern definition is valid only for Python
+# versions less than 3.9. As a result, it is followed by a
+# version-dependent redefinition
+
+
+def _index(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Index, {"value": value})
+
+
+def index(value: Pattern = _any):
+    if _python_3_9_or_later:
+        return match_every(value, negate(slice_pattern()))
+    else:
+        return _index(value=value)
+
+
+# The following definition should not be necessary in 3.9
+# since ast.Index should be identity in this version. It is
+# nevertheless included for clarity.
+
+
+def ast_index(value, **other):
+    if _python_3_9_or_later:
+        return value
+    else:
+        return ast.Index(value=value, **other)
+
+
+def get_value(slice_field):
+    if _python_3_9_or_later:
+        return slice_field
+    else:
+        return slice_field.value
 
 
 def slice_pattern(

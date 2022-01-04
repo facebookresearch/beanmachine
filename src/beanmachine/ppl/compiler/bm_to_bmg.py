@@ -24,6 +24,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     binary_compare,
     binop,
     call,
+    get_value,
     index,
     keyword,
     load,
@@ -196,7 +197,8 @@ def _handle_comparison(p: Pattern, s: str) -> PatternRule:
 _handle_index = PatternRule(
     assign(value=subscript(slice=index())),
     lambda a: ast.Assign(
-        a.targets, _make_bmg_call("handle_index", [a.value.value, a.value.slice.value])
+        a.targets,
+        _make_bmg_call("handle_index", [a.value.value, get_value(a.value.slice)]),
     ),
 )
 
@@ -247,7 +249,7 @@ _handle_subscript_assign_index = PatternRule(
             "handle_subscript_assign",
             [
                 a.targets[0].value,
-                a.targets[0].slice.value,
+                get_value(a.targets[0].slice),
                 _ast_none,
                 _ast_none,
                 a.value,
