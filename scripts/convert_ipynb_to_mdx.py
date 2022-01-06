@@ -124,7 +124,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
     """
     plot_data_folder = Path(plot_data_folder).resolve()
-
     # Data display priority.
     priorities = [
         "text/markdown",
@@ -144,37 +143,18 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
     mdx_output = ""
     jsx_output = ""
-    components_output = f'import {{ LinkButtons }} from "./{filename}.jsx";\n'
+    link_btn = "../../../../website/src/components/LinkButtons.jsx"
+    cell_out = "../../../../website/src/components/CellOutput.jsx"
+    components_output = f'import LinkButtons from "{link_btn}";\n'
+    components_output += f'import CellOutput from "{cell_out}";\n'
 
     # Handle cell input.
     cell_source = cell.get("source", "")
     mdx_output += f"```python\n{cell_source}\n```\n\n"
 
-    font = (
-        "var(--ifm-code-font-size) / var(--ifm-pre-line-height) "
-        "var(--ifm-font-family-monospace)"
-    )
-    styled_cell_output = (
-        "<div\n"
-        "  style={\n"
-        "    {\n"
-        '      backgroundColor: "lightgray",\n'
-        '      marginBottom: "var(--ifm-leading)",\n'
-        '      borderRadius: "var(--ifm-global-radius)",\n'
-        '      boxShadow: "var(--ifm-global-shadow-lw)",\n'
-        '      overflow: "hidden",\n'
-        '      padding: "10px",\n'
-        f'      font: "{font}",\n'
-        "    }\n"
-        "  }\n"
-        ">\n"
-        '<span style={{color: "red"}}>Out: </span>\n'
-    )
-
     # Handle cell outputs.
     cell_outputs = cell.get("outputs", [])
     if cell_outputs:
-
         # Create a list of all the data types in the outputs of the cell. These values
         # are similar to the ones in the priorities variable.
         cell_output_dtypes = [
@@ -228,7 +208,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                                 f"![](data:{data_object};base64,{cell_output_data})\n\n"
                             )
                     # TODO: Handle svg images.
-
                 # Handle plotly images.
                 if plotly_flag:
                     cell_output_data = cell_output["data"]
@@ -245,14 +224,18 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                             )
                             with open(file_path, "w") as f:
                                 json.dump(value, f, indent=2)
+
                             # Add a React component to the jsx output.
+                            path_to_data = f"./assets/plot_data/{file_name}.json"
                             jsx_output += (
                                 f"export const {component_name} = () => {{\n"
-                                "  return (\n"
-                                "    <PlotlyFigure pathToData={"
-                                f'"./assets/plot_data/{file_name}.json"}} />\n'
-                                "  );\n"
-                                "};\n\n"
+                                f'  const pathToData = "{path_to_data}";\n'
+                                "  const plotData = React.useMemo(() => "
+                                "require(`${pathToData}`), []);\n"
+                                '  const data = plotData["data"];\n'
+                                '  const layout = plotData["layout"];\n'
+                                "  return <PlotlyFigure data={data} layout={layout} />\n"
+                                f"}};\n\n"
                             )
                             mdx_output += f"<{component_name} />\n\n"
 
@@ -314,13 +297,14 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         with open(file_path, "w") as f:
                             json.dump(js, f, indent=2)
                         # Add a React component to the jsx output.
+                        path_to_data = f"./assets/plot_data/{div_name}.json"
                         jsx_output += (
                             f"export const {component_name} = () => {{\n"
-                            "  return (\n"
-                            "    <BokehFigure pathToData={"
-                            f'"./assets/plot_data/{div_name}.json"}} />\n'
-                            "  );\n"
-                            "};\n\n"
+                            f'  const pathToData = "{path_to_data}";\n'
+                            f"  const data = React.useMemo(() => "
+                            "require(`${pathToData}`), []);\n"
+                            "  return <BokehFigure data={data} />\n"
+                            f"}};\n\n"
                         )
 
             # Handle "execute_result".
@@ -328,8 +312,11 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 if data_category == "text":
                     # Handle plain text.
                     if data_type == "plain":
+                        cell_output_data = "\n".join(
+                            [line for line in cell_output_data.splitlines() if line]
+                        )
                         mdx_output += (
-                            styled_cell_output + f"{cell_output_data}\n</div>\n\n"
+                            f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
                         )
                     # Handle markdown.
                     if data_type == "markdown":
@@ -341,7 +328,12 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 if cell_output["name"] == "stderr":
                     continue
                 cell_output_data = cell_output.get("text", "")
-                mdx_output += styled_cell_output + f"{cell_output_data}\n</div>\n\n"
+                cell_output_data = "\n".join(
+                    [line for line in cell_output_data.splitlines() if line]
+                )
+                mdx_output += (
+                    f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
+                )
 
     return {
         "mdx": mdx_output,
@@ -417,73 +409,13 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
     if not plot_data_folder.exists():
         plot_data_folder.mkdir(parents=True, exist_ok=True)
 
-    # Define the JSX template needed to display bokeh objects in the mdx files.
-    JSX_TEMPLATE = (
-        'import React from "react";\n'
-        'import Loadable from "react-loadable";\n'
-        'import BrowserOnly from "@docusaurus/BrowserOnly";\n'
-        'import Link from "@docusaurus/Link";\n\n'
-        "const BokehFigure = React.memo(({ pathToData }) => {\n"
-        "  const plotData = React.useMemo(() => require(`${pathToData}`), []);\n"
-        '  const targetId = plotData["target_id"];\n'
-        "  return (\n"
-        "    <div\n"
-        '      className="bk-root thin-scrollbar"\n'
-        "      id={targetId}\n"
-        '      style={{overflow: "auto", width: "100%"}}\n'
-        "    >\n"
-        "      <BrowserOnly fallback={<div>loading...</div>}>\n"
-        "        {() => {\n"
-        "          {\n"
-        "            window.Bokeh.embed.embed_item(plotData, targetId);\n"
-        "          }\n"
-        "        }}\n"
-        "      </BrowserOnly>\n"
-        "    </div>\n"
-        "  );\n"
-        "});\n\n"
-        "const Plotly = Loadable({\n"
-        "  loader: () => import(`react-plotly.js`),\n"
-        "  loading: ({ timedOut }) =>\n"
-        "    timedOut ? (\n"
-        "      <blockquote>Error: Loading Plotly timed out.</blockquote>\n"
-        "    ) : (\n"
-        "      <div>phooey</div>\n"
-        "    ),\n"
-        "  timeout: 10000,\n"
-        "});\n\n"
-        "const PlotlyFigure = React.memo(({ pathToData }) => {\n"
-        "  const plotData = React.useMemo(() => require(`${pathToData}`), []);\n"
-        '  const data = plotData["data"];\n'
-        '  const layout = plotData["layout"];\n'
-        "  return (\n"
-        '    <div className="plotly-figure">\n'
-        "      <Plotly data={data} layout={layout} />\n"
-        "    </div>\n"
-        "  );\n"
-        "});\n\n"
-        "export const LinkButtons = ({ githubUrl, colabUrl }) => {\n"
-        "  return (\n"
-        '    <div className="link-buttons">\n'
-        "      <Link to={githubUrl}>\n"
-        "        Open in GitHub\n"
-        "      </Link>\n"
-        "      <div></div>\n"
-        "      <Link to={colabUrl}>\n"
-        "        Run in Google Colab\n"
-        "      </Link>\n"
-        "    </div>\n"
-        "  );\n"
-        "};\n\n"
-    )
-
     # Load the notebook.
     nb = load_notebook(path)
 
     # Begin to build the mdx string.
     mdx = ""
-    # Add the frontmatter to the mdx string. This is the part between the `---` lines that
-    # define the tutorial sidebar_label information.
+    # Add the frontmatter to the mdx string. This is the part between the `---` lines
+    # that define the tutorial sidebar_label information.
     frontmatter = "\n".join(
         ["---"]
         + [
@@ -510,6 +442,8 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
     components = set()
 
     # Cycle through each cell in the notebook.
+    bokeh_flags = []
+    plotly_flags = []
     for cell in nb["cells"]:
         cell_type = cell["cell_type"]
 
@@ -522,11 +456,23 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
             tx = transform_code_cell(cell, plot_data_folder, filename)
             mdx += str(tx["mdx"])
             jsx += str(tx["jsx"])
+            bokeh_flags.append(tx["bokeh"])
+            plotly_flags.append(tx["plotly"])
             for component in str(tx["components"]).splitlines():
                 components.add(component)
 
-    # Add the JSX template object to the jsx string.
-    jsx = JSX_TEMPLATE + jsx
+    # Add the JSX template object to the jsx string. Only include the plotting component
+    # that is needed.
+    bokeh_flag = any(bokeh_flags)
+    plotly_flag = any(plotly_flags)
+    plotting_fp = "../../../../website/src/components/Plotting.jsx"
+    JSX_TEMPLATE = ["import React from 'react';"]
+    if bokeh_flag:
+        JSX_TEMPLATE.append(f"import {{ BokehFigure }} from '{plotting_fp}';")
+    if plotly_flag:
+        JSX_TEMPLATE.append(f"import {{ PlotlyFigure }} from '{plotting_fp}';")
+
+    jsx = "\n".join([item for item in JSX_TEMPLATE if item]) + "\n\n" + jsx
     # Remove the last line since it is blank.
     jsx = "\n".join(jsx.splitlines()[:-1])
 
