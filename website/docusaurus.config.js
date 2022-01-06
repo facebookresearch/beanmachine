@@ -57,11 +57,6 @@ module.exports = {
         },
       ],
     },
-    googleAnalytics: {
-      trackingID: 'UA-44373548-47',
-      // Optional fields.
-      anonymizeIP: true, // Should IPs be anonymized?
-    },
     footer: {
       style: 'dark',
       links: [
@@ -126,6 +121,9 @@ module.exports = {
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
+        },
+        googleAnalytics: {
+           trackingID: 'UA-44373548-47',
         },
       },
     ],
