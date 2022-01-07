@@ -27,6 +27,8 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         self,
         chain_results: Union[List[RVDict], RVDict],
         num_adaptive_samples: int = 0,
+        logll_results: Optional[Union[List[RVDict], RVDict]] = None,
+        observations: Optional[RVDict] = None,
         stack_not_cat: bool = True,
     ):
         if isinstance(chain_results, list):
@@ -41,6 +43,22 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         for rv, val in chain_results.items():
             self.adaptive_samples[rv] = val[:, :num_adaptive_samples]
             self.samples[rv] = val[:, num_adaptive_samples:]
+
+        if logll_results is not None:
+            if isinstance(logll_results, list):
+                logll = merge_dicts(logll_results, 0, stack_not_cat)
+            else:
+                logll = logll_results
+            self.log_likelihoods = {}
+            self.adaptive_log_likelihoods = {}
+            for rv, val in logll.items():
+                self.adaptive_log_likelihoods[rv] = val[:, :num_adaptive_samples]
+                self.log_likelihoods[rv] = val[:, num_adaptive_samples:]
+        else:
+            self.log_likelihoods = None
+            self.adaptive_log_likelihoods = None
+
+        self.observations = observations
 
         # single_chain_view is only set when self.get_chain is called
         self.single_chain_view = False
@@ -77,7 +95,21 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             raise IndexError("Please specify a valid chain")
 
         samples = {rv: self.get_variable(rv, True)[[chain]] for rv in self}
-        new_mcs = MonteCarloSamples(samples, self.num_adaptive_samples)
+
+        if self.log_likelihoods is None:
+            logll = None
+        else:
+            logll = {
+                rv: self.get_log_likelihoods(rv, True)[[chain]]
+                for rv in self.log_likelihoods
+            }
+
+        new_mcs = MonteCarloSamples(
+            chain_results=samples,
+            num_adaptive_samples=self.num_adaptive_samples,
+            logll_results=logll,
+            observations=self.observations,
+        )
         new_mcs.single_chain_view = True
 
         return new_mcs
@@ -119,6 +151,30 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         if self.single_chain_view:
             samples = samples.squeeze(0)
         return samples
+
+    def get_log_likelihoods(
+        self,
+        rv: RVIdentifier,
+        include_adapt_steps: bool = False,
+    ) -> torch.Tensor:
+        """
+        :returns: log_likelihoods computed during inference for the specified variable
+        """
+
+        if not isinstance(rv, RVIdentifier):
+            raise TypeError(
+                "The key is required to be a random variable "
+                + f"but is of type {type(rv).__name__}."
+            )
+
+        logll = self.log_likelihoods[rv]
+
+        if include_adapt_steps:
+            logll = torch.cat([self.adaptive_log_likelihoods[rv], logll], dim=1)
+
+        if self.single_chain_view:
+            logll = logll.squeeze(0)
+        return logll
 
     def get(
         self,
@@ -174,10 +230,15 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         if self.num_adaptive_samples > 0:
             adaptive_samples = self.adaptive_samples
+            adaptive_logll = self.adaptive_log_likelihoods
         else:
             adaptive_samples = None
+            adaptive_logll = None
         return az.from_dict(
             posterior=self.samples,
             warmup_posterior=adaptive_samples,
             save_warmup=include_adapt_steps,
+            warmup_log_likelihood=adaptive_logll,
+            log_likelihood=self.log_likelihoods,
+            observed_data=self.observations,
         )

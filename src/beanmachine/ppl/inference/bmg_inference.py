@@ -159,9 +159,9 @@ class BMGInference:
         # we had to tweak it to support the right operator for merging
         # saumple values when num_chains!=1.
         if num_chains == 1:
-            mcsamples = MonteCarloSamples(results[0], 0, True)
+            mcsamples = MonteCarloSamples(results[0], 0, stack_not_cat=True)
         else:
-            mcsamples = MonteCarloSamples(results, 0, False)
+            mcsamples = MonteCarloSamples(results, 0, stack_not_cat=False)
 
         self._finish(prof.build_mcsamples)
 
