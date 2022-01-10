@@ -18,7 +18,6 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace graph {

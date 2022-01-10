@@ -19,7 +19,6 @@
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/from_probability_to_dirichlet_proposer_adapter.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/util.h"
 
 #include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
 

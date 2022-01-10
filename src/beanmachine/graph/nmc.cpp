@@ -24,7 +24,6 @@
 #include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepping_method.h"
 #include "beanmachine/graph/stepper/single_site/sequential_single_site_stepper.h"
 #include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
-#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace graph {

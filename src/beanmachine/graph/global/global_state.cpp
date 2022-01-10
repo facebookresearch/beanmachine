@@ -14,7 +14,6 @@
 #include "beanmachine/graph/global/global_state.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
-#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace graph {
