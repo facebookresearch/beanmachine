@@ -60,6 +60,8 @@ class Predictive(object):
         :param posterior: Optional `MonteCarloSamples` of the latent variables.
         :param num_samples: Number of prior predictive samples, defaults to 1. Should
             not be specified if `posterior` is specified.
+        :param return_inference_data: Indicate whether to return the predictives
+            as an InferenceData object
         :returns: `MonteCarloSamples` of the generated predictives.
         """
         assert (
@@ -84,7 +86,7 @@ class Predictive(object):
                 post_pred = MonteCarloSamples(query_dict)
                 if return_inference_data:
                     post = posterior.to_inference_data()
-                    post_pred = post_pred.to_inference_data().posterior
+                    post_pred = post_pred.to_inference_data()["posterior"]
                     post.add_groups({"posterior_predictive": post_pred})
                     return post
                 else:
@@ -109,7 +111,7 @@ class Predictive(object):
                 post_pred = MonteCarloSamples(preds)
                 if return_inference_data:
                     post = posterior.to_inference_data()
-                    post_pred = post_pred.to_inference_data().posterior
+                    post_pred = post_pred.to_inference_data()["posterior"]
                     post.add_groups({"posterior_predictive": post_pred})
                     return post
                 else:
