@@ -31,7 +31,7 @@ def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
     if distribution.has_enumerate_support:
         support = distribution.enumerate_support(expand=False).flatten()
         return support[torch.randint_like(sample_val, support.numel()).long()]
-    elif not distribution.support.is_discrete:
+    elif isinstance(distribution.support, constraints.interval):
         transform = dist.biject_to(distribution.support)
         return transform(torch.rand_like(transform.inv(sample_val)) * 4 - 2)
     else:
