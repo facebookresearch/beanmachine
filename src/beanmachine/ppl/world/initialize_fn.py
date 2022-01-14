@@ -8,6 +8,7 @@ from typing import Callable
 
 import torch
 import torch.distributions as dist
+import torch.distributions.constraints as constraints
 
 
 InitializeFn = Callable[[dist.Distribution], torch.Tensor]
