@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ['3.7', '3.8']  # TODO: Add python 3.10 with next PyTorch version
+        python-version: ['3.7', '3.8', '3.9']  # TODO: Add python 3.10 with next PyTorch version
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
@@ -81,7 +81,7 @@ jobs:
     container: quay.io/pypa/manylinux2014_x86_64
     strategy:
       matrix:
-        python-version: ['cp37-cp37m', 'cp38-cp38']  # TODO: Add python 3.10 with next PyTorch version
+        python-version: ['cp37-cp37m', 'cp38-cp38', 'cp39-cp39']  # TODO: Add python 3.10 with next PyTorch version
 
     steps:
     - name: Checkout
