@@ -57,6 +57,10 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: python -m build --sdist
 
+    - name: Install from sdist
+      if: matrix.os == 'macos-latest'
+      run: pip install dist/*.tar.gz
+
     - name: Install built Bean Machine dist
       run: pip install dist/*.whl
 
