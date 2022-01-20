@@ -59,7 +59,7 @@ module.exports = {
       Advanced: ['overview/beanstalk/beanstalk'],
       Tutorials: fbContent({
         internal: 'overview/tutorials/tutorials',
-        external: {Tutorials: tutorials()},
+        external: tutorials(),
       }),
     },
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.
