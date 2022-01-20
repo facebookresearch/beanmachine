@@ -7,7 +7,7 @@
  * @format
  */
 
-const {fbInternalOnly} = require('internaldocs-fb-helpers');
+const {fbInternalOnly, fbContent} = require('internaldocs-fb-helpers');
 const tutorials = () => {
   const allTutorialMetadata = require('./tutorials.json');
   const tutorialPaths = ['overview/tutorials/tutorials'];
@@ -57,7 +57,10 @@ module.exports = {
         },
       ],
       Advanced: ['overview/beanstalk/beanstalk'],
-      Tutorials: tutorials(),
+      Tutorials: fbContent({
+        internal: 'overview/tutorials/tutorials',
+        external: {Tutorials: tutorials()},
+      }),
     },
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.
     // {
