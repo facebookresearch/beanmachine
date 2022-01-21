@@ -58,7 +58,7 @@ module.exports = {
       ],
       Advanced: ['overview/beanstalk/beanstalk'],
       Tutorials: fbContent({
-        internal: 'overview/tutorials/tutorials',
+        internal: ['overview/tutorials/tutorials'],
         external: tutorials(),
       }),
     },
