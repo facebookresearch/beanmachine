@@ -1,0 +1,670 @@
+---
+title: Hierarchical regression
+sidebar_label: Hierarchical regression
+path: overview/tutorials/Hierarchical_regression/HierarchicalRegression
+nb_path: tutorials/Hierarchical_regression.ipynb
+github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
+colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
+---
+import { BetaGamma } from "./HierarchicalRegression.jsx";
+import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
+import { FloorPlot } from "./HierarchicalRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { TraceRanks } from "./HierarchicalRegression.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { SampleOfPriors } from "./HierarchicalRegression.jsx";
+import { QueryEss } from "./HierarchicalRegression.jsx";
+import { CountyPosteriors } from "./HierarchicalRegression.jsx";
+import { Uranium } from "./HierarchicalRegression.jsx";
+import { LogPlotComparison } from "./HierarchicalRegression.jsx";
+
+<LinkButtons
+  githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
+  colabUrl="https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
+/>
+
+## Tutorial: **Hierarchical regression**
+
+
+In this tutorial we will explore linear regression in combination with hierarchical
+priors. We will be using data from Gelman and Hill on radon levels found in buildings in
+Minnesota; [Hill J and Gelman A](#references). The original paper about radon
+concentrations in Minnesota can be found in [Price](#references). Measurements on radon
+activity were taken for many of the states, however, we will only focus on Minnesota in
+order to keep the tutorial simple. The observations we wish to model are the radon
+activity found in buildings, dependent on the floor the measurement was taken and the
+mean county's concentration of uranium found in the soil. The covariates, floor-level
+and uranium concentration, are predictors for the amount of radon activity found in
+buildings. Each building's floor-level will be used as individual-level predictors for
+our model and the county's uranium concentration will be used as our group-level
+predictor.
+
+
+## Learning Outcomes
+
+
+On completion of this tutorial, you should be able:
+
+* to prepare data for running a hierarchical regression with Bean Machine;
+* to execute a hierarchical regression with beanmachine;
+* to run diagnostics to understand what beanmachine is doing.
+
+
+## Problem
+
+
+Our problem is to perform posterior inference over a linear model based on a
+hierarchical prior. Our data contains individual-level predictor measurements along with
+group-level predictor measurements. We will use concepts taken from the `Hierarchical
+Model` tutorial, and apply them here.
+
+
+## Prerequisites
+
+
+We will be using the following packages within this tutorial.
+
+* [`arviz`](https://arviz-devs.github.io/arviz/) and
+  [`bokeh`](https://docs.bokeh.org/en/latest/docs/) for interactive
+  visualizations; and
+* [`pandas`](https://pandas.pydata.org/) for data manipulation.
+
+
+```python
+# Install Bean Machine in Colab if using Colab.
+import sys
+
+
+if "google.colab" in sys.modules and "beanmachine" not in sys.modules:
+    !pip install beanmachine
+```
+
+```python
+import os
+import arviz as az
+import beanmachine.ppl as bm
+import pandas as pd
+import torch
+import torch.distributions as dist
+from beanmachine.ppl.model import RVIdentifier
+from beanmachine.tutorials.utils import radon
+from bokeh.io import output_notebook
+from bokeh.plotting import gridplot, show
+from IPython.display import Markdown
+from torch import tensor
+```
+
+The next cell includes convenient configuration settings to improve the notebook
+presentation as well as setting a manual seed for `torch` for reproducibility.
+
+
+```python
+# Plotting settings
+az.rcParams["plot.backend"] = "bokeh"
+az.rcParams["plot.bokeh.figure.dpi"] = 60
+az.rcParams["stats.hdi_prob"] = 0.89
+az.rcParams["plot.max_subplots"] = 85
+
+# Manual seed for torch
+torch.manual_seed(1199)
+
+# Other settings for the notebook
+output_notebook()
+smoke_test = ('SANDCASTLE_NEXUS' in os.environ or 'CI' in os.environ)
+```
+
+## Data
+
+
+We will explore the data for the tutorial first so we can create a data story around
+them. The story will be used to inform decisions we will make about priors and sampling
+distributions. The unprocessed data consist of two different files, the `srrs2.dat` and
+the `cty.dat`, which can be found on [Gelman's website](#references). We will import a
+preprocessed version ready for our Bean Machine model here.
+
+
+```python
+df = radon.load_data()
+Markdown(df.head().set_index('county_index').to_markdown())
+```
+
+|   county_index | county   |   floor |   activity |   log_activity |     Uppm |   log_Uppm |
+|---------------:|:---------|--------:|-----------:|---------------:|---------:|-----------:|
+|              0 | AITKIN   |       1 |        2.2 |      0.832909  | 0.502054 |  -0.689048 |
+|              0 | AITKIN   |       0 |        2.2 |      0.832909  | 0.502054 |  -0.689048 |
+|              0 | AITKIN   |       0 |        2.9 |      1.09861   | 0.502054 |  -0.689048 |
+|              0 | AITKIN   |       0 |        1   |      0.0953102 | 0.502054 |  -0.689048 |
+|              1 | ANOKA    |       0 |        2.8 |      1.06471   | 0.428565 |  -0.847313 |
+
+The data consist of the following columns.
+
+| Column name  | Description                                        |
+| ------------ | -------------------------------------------------- |
+| county_index | An index associated with each county in Minnesota. |
+| county       | The name of the county in Minnesota.               |
+| floor        | The floor on which radon activity was measured.    |
+| activity     | The measured radon activity (pCi / L)              |
+| log_activity | log(activity) `individual-level predictor`         |
+| Uppm         | Mean concentration of uranium in a county's soil.  |
+| log_Uppm     | log(Uppm) `group-level predictor`                  |
+
+The activity measurement has units of pico-Curies per liter, while the uranium is
+measured in parts-per-million. We will be using the `log(activity)` and `log(Uppm)` in
+our model, not the raw `activity` or `Uppm` values. Below we plot the raw data and the
+log of the raw data.
+
+
+```python
+log_plot_comparison = radon.log_plot_comparison(df["activity"])
+show(log_plot_comparison)
+```
+
+<LogPlotComparison />
+
+Both plots show the histogram and the kernel density estimate of the radon activity
+data. The left plot shows the raw activity data, while the right plot shows the
+logarithm of the activity data. The shape of the data in the right plot appears to be
+normally distributed, and we will use this observation in our model, when we describe
+the model below.
+
+We can see how the logarithm of radon activity changes as you change your floor level in
+any particular building in our data. We plot the `log_activity` _vs_ `floor` below.
+
+The floor plot is showing all measurements within the data (the markers) for each floor.
+We have added a small amount of _horizontal jitter_ to the data to prevent all markers
+from lining up vertically. The lines show the kernel density estimate (KDE) with the
+horizontal dashed lines indicating the maximum value of the KDE. We can see from this
+plot that radon levels decrease as you move away from the basement.
+
+
+```python
+floor_plot = radon.floor_plot(df)
+show(floor_plot)
+```
+
+<FloorPlot />
+
+## Model
+
+
+Our model will estimate the effects that individual-level predictors and group-level
+predictors have on estimating radon activity. We will incorporate the individual-level
+predictors found from the floor values in the `srrs` data, and the group-level
+predictors found from the uranium values in the `cty` data. In order to do that, we
+turn our earlier observation—that the response $y$ (the logarithmic activity level) is
+approximately normally distributed—into a modeling assumption in terms of a prior over
+$y$. Thus we can state that
+
+$$
+y\sim\text{Normal}(\mu_y, \sigma_y).
+$$
+
+We will incorporate the different predictors as linear effects into our model by noting
+that any effect a predictor has on our response $y$, will effect the mean value $\mu_y$.
+Thus
+
+$$
+\mu_y=\alpha + \beta x + \gamma u + \epsilon_y,
+$$
+
+where
+
+$$
+\begin{aligned}
+  \alpha     &= \text{intercept}                                       \\
+  \beta      &= \text{coefficient for log(activity)}                   \\
+  x          &= \text{individual-level predictor (floor)}\in\mathbb{R} \\
+  \gamma     &= \text{coefficient for log(Uppm)}                        \\
+  u          &= \text{group-level predictors}\in\mathbb{R}             \\
+  \epsilon_y &= \text{residual}.
+\end{aligned}
+$$
+
+The current model description above pools all data together and assumes that parameters
+for each county $i$ $(\alpha_i, \beta_i, \gamma_i)$ are being sampled from the same
+distribution for that parameter. We know that each county will be different so we
+include a partial-pooling step in the model for just the $\alpha$ parameter. We could
+create a hierarchical level for each parameter, but we will keep the model simple.
+
+The full generative model is given below.
+
+$$
+\begin{aligned}
+  \sigma_{\alpha} &\sim \text{HalfCauchy}(5)\\
+  \mu_{\alpha}    &\sim \text{Normal}(0, 10)\\
+  \alpha_{i[n]}   &\sim \text{Normal}(\mu_{\alpha}, \sigma_{\alpha})\\
+  \beta           &\sim \text{Normal}(0, 10)\\
+  \gamma          &\sim \text{Normal}(0, 10)\\
+  \mu_{y_n}       &=    \alpha_{i[n]} + \beta x_n + \gamma u_{i[n]}\\
+  \sigma_{y_n}    &\sim \text{HalfCauchy}(5)\\
+  y_n             &\sim \text{Normal}(\mu_{y_n}, \sigma_y),
+\end{aligned}
+$$
+
+**`NOTE`** We can implement this model in Bean Machine by defining random variable
+objects with the decorators `@bm.random_variable` and `@bm.functional`. These functions
+behave differently than ordinary Python functions.
+
+
+<div
+  style={
+    {
+      background: "#daeaf3",
+      border_left: "3px solid #2980b9",
+      display: "block",
+      margin: "16px 0",
+      padding: "12px",
+    }
+  }
+>
+  Semantics for <code>@bm.random_variable</code> functions:
+  <ul>
+    <li>
+      They must return PyTorch <code>Distribution</code> objects.
+    </li>
+    <li>
+      Though they return distributions, callees actually receive <i>samples</i> from the
+      distribution. The machinery for obtaining samples from distributions is handled
+      internally by Bean Machine.
+    </li>
+    <li>
+      Inference runs the model through many iterations. During a particular inference
+      iteration, a distinct random variable will correspond to exactly one sampled
+      value: <b>calls to the same random variable function with the same arguments will
+      receive the same sampled value within one inference iteration</b>. This makes it
+      easy for multiple components of your model to refer to the same logical random
+      variable.
+    </li>
+    <li>
+      Consequently, to define distinct random variables that correspond to different
+      sampled values during a particular inference iteration, an effective practice is
+      to add a dummy "indexing" parameter to the function. Distinct random variables
+      can be referred to with different values for this index.
+    </li>
+    <li>
+      Please see the documentation for more information about this decorator.
+    </li>
+  </ul>
+  Semantics for <code>@bm.functional</code>:
+  <ul>
+    <li>
+      This decorator is used to deterministically transform the results of one or more
+      random variables.
+    </li>
+  </ul>
+</div>
+
+
+In the below Bean Machine model we are taking advantage of batching in `pytorch` by
+using the `.expand()` attribute on our distributions. In our definition of `alpha`, we
+expand the random variable to be the size of the number of counties in our data; $J=85$.
+We then use indexing on `alpha` in our definition of `alpha_hat` to create a tensor that
+is the size of our observations.
+
+
+```python
+J = df["county"].unique().shape[0]
+county_index = df["county_index"].tolist()
+floor = tensor(df["floor"].tolist())
+log_uranium = tensor(df["log_Uppm"].tolist())
+
+
+@bm.random_variable
+def mu_alpha() -> RVIdentifier:
+    return dist.Normal(0, 10)
+
+
+@bm.random_variable
+def sigma_alpha() -> RVIdentifier:
+    return dist.HalfCauchy(5)
+
+
+@bm.random_variable
+def alpha() -> RVIdentifier:
+    return dist.Normal(mu_alpha(), sigma_alpha()).expand((J,))
+
+
+@bm.random_variable
+def gamma() -> RVIdentifier:
+    return dist.Normal(0, 10)
+
+
+@bm.random_variable
+def beta() -> RVIdentifier:
+    return dist.Normal(0, 10)
+
+
+@bm.random_variable
+def sigma_y() -> RVIdentifier:
+    return dist.HalfCauchy(5)
+
+
+@bm.functional
+def alpha_hat():
+    return alpha()[county_index] + gamma() * log_uranium
+
+
+@bm.functional
+def y_hat():
+    return alpha_hat() + beta() * floor
+
+
+@bm.random_variable
+def y() -> RVIdentifier:
+    return dist.Normal(y_hat(), sigma_y())
+```
+
+Note that the $\alpha$ random variable is expanding the returned tensor so that it is
+the same size as the number of counties we have in the data (`J`). Defining the model
+in this way allows us to run inference on $y$ in _batches_.
+
+
+### Priors
+
+
+The priors we have chosen for the model consist of the Normal and HalfCauchy
+distributions. Both of these priors are weakly informative to our model. A few plots
+showing what these priors look like are shown below.
+
+
+```python
+sample_of_priors = radon.sample_of_priors()
+show(sample_of_priors)
+```
+
+<SampleOfPriors />
+
+### Inference
+
+
+We are ready to run inference on our model and observations. Bean Machine supports a
+rich library of inference algorithms that share a common infer method with the following
+arguments:
+
+| Name           | Usage                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------- |
+| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                                |
+| `observations` | A dictionary of observations, as built above.                                                            |
+| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in `queries`. |
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly.  |
+
+For this particular problem, we will use the `GlobalNoUTurnSampler` inference method.
+Bean Machine's `GlobalNoUTurnSampler` is the NUTS sampler you have probably used before
+with `stan` or `pymc3`. We have chosen to use the NUTS sampler here because it can be
+easily compared to other probabilistic tools.
+
+
+```python
+num_samples = 2 if smoke_test else 5000
+num_adaptive_samples = 0 if smoke_test else num_samples // 2
+num_chains = 4
+
+# Data for the model.
+observations = {y(): tensor(df["log_activity"].values)}
+
+# The parameters to our model are our queries.
+queries = [
+    alpha(),
+    mu_alpha(),
+    sigma_alpha(),
+    alpha_hat(),
+    beta(),
+    gamma(),
+    sigma_y(),
+    y_hat(),
+]
+
+# Run the inference.
+samples = bm.GlobalNoUTurnSampler().infer(
+    queries=queries,
+    observations=observations,
+    num_samples=num_samples,
+    num_chains=num_chains,
+    num_adaptive_samples=num_adaptive_samples,
+)
+```
+
+### Analysis
+
+
+We begin our analysis by printing out summary statistics. Two important statistics to
+take note of are the $\hat{R}$ (`r_hat`) and effective sample size (`ess`) values in the
+below dataframe, see [Vehtari _et al_](#references).
+
+
+```python
+summary_df = az.summary(samples.to_xarray(), round_to=3)
+Markdown(summary_df.sample(20).T.to_markdown())
+```
+
+|           |   alpha_hat()[668] |   y_hat()[382] |   alpha_hat()[104] |   y_hat()[797] |   alpha_hat()[83] |   alpha_hat()[509] |   alpha_hat()[313] |   alpha_hat()[705] |   y_hat()[679] |   alpha()[20] |   y_hat()[517] |   alpha_hat()[458] |   y_hat()[870] |   y_hat()[878] |   alpha()[83] |   alpha_hat()[52] |   alpha_hat()[221] |   alpha_hat()[352] |   alpha_hat()[450] |   alpha()[55] |
+|:----------|-------------------:|---------------:|-------------------:|---------------:|------------------:|-------------------:|-------------------:|-------------------:|---------------:|--------------:|---------------:|-------------------:|---------------:|---------------:|--------------:|------------------:|-------------------:|-------------------:|-------------------:|--------------:|
+| mean      |              0.963 |          0.983 |              1.558 |          1.543 |             1.809 |              1.749 |              1.396 |              0.963 |          0.963 |         1.535 |          1.631 |              1.535 |          1.369 |          1.369 |         1.578 |             0.917 |              1.696 |              1.396 |              1.535 |         1.461 |
+| sd        |              0.066 |          0.161 |              0.142 |          0.106 |             0.132 |              0.154 |              0.064 |              0.066 |          0.066 |         0.136 |          0.155 |              0.135 |          0.089 |          0.089 |         0.129 |             0.087 |              0.153 |              0.064 |              0.135 |         0.154 |
+| hdi_5.5%  |              0.862 |          0.732 |              1.327 |          1.374 |             1.607 |              1.516 |              1.296 |              0.862 |          0.862 |         1.326 |          1.376 |              1.319 |          1.223 |          1.223 |         1.373 |             0.777 |              1.461 |              1.296 |              1.319 |         1.211 |
+| hdi_94.5% |              1.073 |          1.243 |              1.78  |          1.712 |             2.023 |              2.001 |              1.5   |              1.073 |          1.073 |         1.757 |          1.868 |              1.747 |          1.506 |          1.506 |         1.783 |             1.053 |              1.944 |              1.5   |              1.747 |         1.698 |
+| mcse_mean |              0.001 |          0.001 |              0.001 |          0.001 |             0.002 |              0.002 |              0     |              0.001 |          0.001 |         0.001 |          0.001 |              0.001 |          0.001 |          0.001 |         0.001 |             0.001 |              0.001 |              0     |              0.001 |         0.001 |
+| mcse_sd   |              0.001 |          0.001 |              0.001 |          0.001 |             0.001 |              0.001 |              0     |              0.001 |          0.001 |         0.001 |          0.001 |              0.001 |          0     |          0     |         0.001 |             0     |              0.001 |              0     |              0.001 |         0.001 |
+| ess_bulk  |           5265.37  |      18875.2   |          23851.1   |      20960.4   |          5726.44  |           9906.01  |          22852.7   |           5265.37  |       5265.37  |     14907.2   |      17606.9   |          17660.8   |      25939.3   |      25939.3   |      8144.38  |         15990.9   |          21008.7   |          22852.7   |          17660.8   |     22071.5   |
+| ess_tail  |           6863.98  |      10810.7   |          11536.2   |      13975.2   |          9518.44  |           9365.52  |          13505.2   |           6863.98  |       6863.98  |     10984     |      10398.9   |          10324.7   |      12530.3   |      12530.3   |     10338.5   |         10954.8   |          10242.5   |          13505.2   |          10324.7   |     10950.3   |
+| r_hat     |              1     |          1     |              1     |          1     |             1     |              1     |              1     |              1     |          1     |         1.001 |          1     |              1     |          1.001 |          1.001 |         1     |             1     |              1     |              1     |              1     |         1.001 |
+
+#### $\hat{R}$ diagnostic
+
+
+$\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
+is a test that indicates a lack of convergence by comparing the variance between
+multiple chains to the variance within each chain. If the parameters are successfully
+exploring the full space for each chain, then $\hat{R}\approx 1$, since the
+between-chain and within-chain variance should be equal. $\hat{R}$ is calculated as
+
+$$
+\hat{R}=\frac{\hat{V}}{W}
+$$
+
+where $W$ is the within-chain variance and $\hat{V}$ is the posterior variance estimate
+for the pooled rank-traces. The take-away here is that $\hat{R}$ converges towards 1
+when each of the Markov chains approaches perfect adaptation to the true posterior
+distribution. We do not recommend using inference results if $\hat{R}>1.01$. More
+information about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
+
+
+#### Effective sample size $ess$ diagnostic
+
+
+MCMC samplers do not draw independent samples from the target distribution, which means
+that our samples are correlated. In an ideal situation all samples would be independent,
+but we do not have that luxury. We can, however, measure the number of _effectively
+independent_ samples we draw, which is called the effective sample size. You can read
+more about how this value is calculated in the [Vehtari _et al_](#references) paper,
+briefly it is a measure that combines information from the $\hat{R}$ value with the
+autocorrelation estimates within the chains. There are many ways to estimate effective
+samples sizes, however, we will be using the method defined in the [Vehtari _et
+al_](#references) paper.
+
+The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
+average. Since we ran four chains, we need `ess_bulk` to be greater than 400 for each
+parameter. The `ess_tail` is an estimate for effectively independent samples considering
+the more extreme values of the posterior. This is not the number of samples that landed
+in the tails of the posterior. It is a measure of the number of effectively independent
+samples if we sampled the tails of the posterior. The rule of thumb for this value is
+also to be greater than 100 per chain on average.
+
+We can use `arviz` to plot the evolution of the effective sample size for each of our
+parameters. The below plots show over each successive draw from our model, the estimated
+effective sample size for our parameters. The red horizontal dashed line shows the
+rule-of-thumb value needed for both the bulk and tail `ess` estimates. When the model is
+converging properly, both the bulk and tail lines should be _roughly_ linear.
+
+
+```python
+keys = ["μ_α", "σ_α", "β", "γ", "σ_y"]
+values = [mu_alpha(), sigma_alpha(), beta(), gamma(), sigma_y()]
+parameters = dict(zip(keys, values))
+plots = []
+for title, parameter in parameters.items():
+    data = {title: samples.get(parameter).numpy()}
+    f = az.plot_ess(data, kind="evolution", show=False)[0][0]
+    f.plot_width = 275
+    f.plot_height = 275
+    f.y_range.start = 0
+    f.outline_line_color = "black"
+    f.grid.grid_line_alpha = 0.2
+    f.grid.grid_line_color = "grey"
+    f.grid.grid_line_width = 0.2
+    plots.append(f)
+query_ess = gridplot([plots[:3], plots[3:]])
+show(query_ess)
+```
+
+<QueryEss />
+
+Rather than plot all effective sample size evolutions for each county's $\alpha$
+parameter, we will do so for a sample.
+
+
+```python
+sample_counties = {
+    item["county_index"]: item["county"]
+    for item in df[
+        df["county"].isin(
+            [
+                "LAC QUI PARLE",
+                "AITKIN",
+                "KOOCHICHING",
+                "DOUGLAS",
+                "CLAY",
+                "STEARNS",
+                "RAMSEY",
+                "ST. LOUIS",
+            ]
+        )
+    ][["county_index", "county"]]
+    .drop_duplicates()
+    .to_dict(orient="records")
+}
+data = {"α": samples.get(alpha()).numpy()}
+alpha_ess = az.plot_ess(data, kind="evolution", show=False).reshape(-1)
+
+plots = []
+for index, county in sample_counties.items():
+    f = alpha_ess[index]
+    f.title.text = f"α[{county}]"
+    f.plot_width = 275
+    f.plot_height = 275
+    f.y_range.start = 0
+    f.outline_line_color = "black"
+    f.grid.grid_line_alpha = 0.2
+    f.grid.grid_line_color = "grey"
+    f.grid.grid_line_width = 0.2
+    plots.append(f)
+sample_counties_ess = gridplot([plots[:3], plots[3:6], plots[6:]])
+show(sample_counties_ess)
+```
+
+<SampleCountiesEss />
+
+Combined with our above analysis, we can show the rank plots of our model parameters.
+You might be familiar with `trace plots` that show parameter posterior distributions
+along with the "fuzzy caterpillar" plots of sampled values. Rank plots perform the same
+function as trace plots in that they show problems in the mixing of the chains. Rank
+plots for our model's parameters are shown below.
+
+
+```python
+trace_ranks = radon.plot_trace_ranks(
+    keys=["μ_α", "σ_α", "β", "γ", "σ_y"],
+    values=[mu_alpha(), sigma_alpha(), beta(), gamma(), sigma_y()],
+    samples=samples,
+)
+show(trace_ranks)
+```
+
+<TraceRanks />
+
+Each of the above rank plots shows fairly uniform histograms for each parameter.
+
+Recall that $\beta$ is the coefficient for the `log_activity` data. When we plotted the
+logarithm of radon activity _vs_ the floor measurement we saw that there was a decrease
+in $log(radon)$ as we moved from the basement to the first floor of a building. From our
+initial data analysis, we expected the coefficient to be negative. Plotting the
+posterior for $\beta$ (below) we can see that it is always less than zero with a mean
+value of -0.64 and the 89% highest density interval between [-0.75, -0.54]. Similarly we
+can plot the posterior distribution for the coefficient of $log(uranium)$, which were
+our group-level predictors.
+
+Why an 89% highest density interval (HDI)? To prevent you from thinking about a 95%
+confidence interval. See [McElreath](#references) for further discussion on this
+subject.
+
+
+```python
+beta_posterior = az.plot_posterior(
+    {"β": samples.get(beta()).numpy()},
+    show=False,
+)[0][0]
+gamma_posterior = az.plot_posterior(
+    {"γ": samples.get(gamma()).numpy()},
+    show=False,
+)[0][0]
+beta_gamma = gridplot([[beta_posterior, gamma_posterior]])
+show(beta_gamma)
+```
+
+<BetaGamma />
+
+Again we only show a sampling of the $\alpha$ parameters for the different counties in
+the model.
+
+
+```python
+alphas = samples.get(alpha()).numpy()
+data = {
+    f"α[{county}]": alphas[:, :, index]
+    for index, county in sample_counties.items()
+}
+county_posteriors = gridplot([*az.plot_posterior(data, show=False)])
+show(county_posteriors)
+```
+
+<CountyPosteriors />
+
+We can inspect how the uranium concentration in a county's soil affects the intercept
+$\alpha$ by plotting our intercept estimate against the logarithm of uranium counts for
+the county. The whiskers/error-bars for each marker is its standard deviation from the
+posterior distribution.
+
+
+```python
+uranium = radon.uranium(summary_df, df)
+show(uranium)
+```
+
+<Uranium />
+
+<a id="references"></a>
+
+## References
+
+
+* Gelman's website
+  [http://www.stat.columbia.edu/~gelman/arm/examples/radon/](
+  http://www.stat.columbia.edu/~gelman/arm/examples/radon/)
+* Hill J and Gelman A (2006) **Data Analysis Using Regression and
+  Multilevel/Hierarchical Models**. United States: Cambridge University Press.
+  ISBN: 9781139460934.
+* McElreath R (2020) **Statistical Rethinking: A Bayesian Course with Examples
+  in R and Stan** 2nd edition. Chapman and Hall/CRC.
+  [doi: 10.1201/9780429029608](https://dx.doi.org/10.1201/9780429029608)
+* Price PN, Nero AV, Gelman A (1996) **Bayesian Prediction of Mean Indoor Radon
+  Concentrations for Minnesota Counties**. Health Physics 71(6).
+  [doi: 10.1097/00004032-199612000-00009](
+  https://dx.doi.org/10.1097/00004032-199612000-00009)
+* Wikipedia (Decay chain)
+  [https://en.wikipedia.org/wiki/Decay_chain#Uranium_series](
+  https://en.wikipedia.org/wiki/Decay_chain#Uranium_series)
+* Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021)
+  **Rank-Normalization, Folding, and Localization: An Improved $\hat{R}$ for
+  Assessing Convergence of MCMC (with Discussion)**. Bayesian Analysis 16(2)
+  667–718. [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
+

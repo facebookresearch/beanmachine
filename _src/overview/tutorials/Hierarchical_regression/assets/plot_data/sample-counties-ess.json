@@ -1,0 +1,7819 @@
+{
+  "target_id": "sample-counties-ess",
+  "root_id": "8901",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "children": [
+              {
+                "id": "8900"
+              },
+              {
+                "id": "8898"
+              }
+            ]
+          },
+          "id": "8901",
+          "type": "Column"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "3636",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6225",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6222"
+            },
+            "glyph": {
+              "id": "6223"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6225"
+            },
+            "nonselection_glyph": {
+              "id": "6224"
+            },
+            "view": {
+              "id": "6227"
+            }
+          },
+          "id": "6226",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "3615",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "6230"
+              },
+              {
+                "id": "6231"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "6229",
+          "type": "Legend"
+        },
+        {
+          "attributes": {},
+          "id": "3617",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8774"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8775"
+            },
+            "ticker": {
+              "id": "3626"
+            }
+          },
+          "id": "3625",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6222"
+            }
+          },
+          "id": "6227",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "6228",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8777"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8778"
+            },
+            "ticker": {
+              "id": "3622"
+            }
+          },
+          "id": "3621",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3619",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "3622",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "8853",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3621"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3624",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "6208"
+              },
+              {
+                "id": "6214"
+              }
+            ]
+          },
+          "id": "6230",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "6226"
+              },
+              {
+                "id": "6220"
+              }
+            ]
+          },
+          "id": "6231",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "8854",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "5654",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "8785",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3625"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3628",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "3626",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "8786",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[AITKIN]"
+          },
+          "id": "6232",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3637"
+            }
+          },
+          "id": "3631",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "3630",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "3629",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8882"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8883"
+            },
+            "ticker": {
+              "id": "5678"
+            }
+          },
+          "id": "5677",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "8828",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "3635",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "3632",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3638"
+            }
+          },
+          "id": "3633",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "8829",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "3634",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "5688",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "toolbars": [
+              {
+                "id": "3171"
+              },
+              {
+                "id": "3639"
+              },
+              {
+                "id": "3891"
+              },
+              {
+                "id": "4395"
+              },
+              {
+                "id": "4431"
+              },
+              {
+                "id": "5331"
+              },
+              {
+                "id": "5655"
+              },
+              {
+                "id": "5691"
+              }
+            ],
+            "tools": [
+              {
+                "id": "3161"
+              },
+              {
+                "id": "3162"
+              },
+              {
+                "id": "3163"
+              },
+              {
+                "id": "3164"
+              },
+              {
+                "id": "3165"
+              },
+              {
+                "id": "3166"
+              },
+              {
+                "id": "3167"
+              },
+              {
+                "id": "3168"
+              },
+              {
+                "id": "3629"
+              },
+              {
+                "id": "3630"
+              },
+              {
+                "id": "3631"
+              },
+              {
+                "id": "3632"
+              },
+              {
+                "id": "3633"
+              },
+              {
+                "id": "3634"
+              },
+              {
+                "id": "3635"
+              },
+              {
+                "id": "3636"
+              },
+              {
+                "id": "3881"
+              },
+              {
+                "id": "3882"
+              },
+              {
+                "id": "3883"
+              },
+              {
+                "id": "3884"
+              },
+              {
+                "id": "3885"
+              },
+              {
+                "id": "3886"
+              },
+              {
+                "id": "3887"
+              },
+              {
+                "id": "3888"
+              },
+              {
+                "id": "4385"
+              },
+              {
+                "id": "4386"
+              },
+              {
+                "id": "4387"
+              },
+              {
+                "id": "4388"
+              },
+              {
+                "id": "4389"
+              },
+              {
+                "id": "4390"
+              },
+              {
+                "id": "4391"
+              },
+              {
+                "id": "4392"
+              },
+              {
+                "id": "4421"
+              },
+              {
+                "id": "4422"
+              },
+              {
+                "id": "4423"
+              },
+              {
+                "id": "4424"
+              },
+              {
+                "id": "4425"
+              },
+              {
+                "id": "4426"
+              },
+              {
+                "id": "4427"
+              },
+              {
+                "id": "4428"
+              },
+              {
+                "id": "5321"
+              },
+              {
+                "id": "5322"
+              },
+              {
+                "id": "5323"
+              },
+              {
+                "id": "5324"
+              },
+              {
+                "id": "5325"
+              },
+              {
+                "id": "5326"
+              },
+              {
+                "id": "5327"
+              },
+              {
+                "id": "5328"
+              },
+              {
+                "id": "5645"
+              },
+              {
+                "id": "5646"
+              },
+              {
+                "id": "5647"
+              },
+              {
+                "id": "5648"
+              },
+              {
+                "id": "5649"
+              },
+              {
+                "id": "5650"
+              },
+              {
+                "id": "5651"
+              },
+              {
+                "id": "5652"
+              },
+              {
+                "id": "5681"
+              },
+              {
+                "id": "5682"
+              },
+              {
+                "id": "5683"
+              },
+              {
+                "id": "5684"
+              },
+              {
+                "id": "5685"
+              },
+              {
+                "id": "5686"
+              },
+              {
+                "id": "5687"
+              },
+              {
+                "id": "5688"
+              }
+            ]
+          },
+          "id": "8899",
+          "type": "ProxyToolbar"
+        },
+        {
+          "attributes": {},
+          "id": "8855",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "5667",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "8831",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "3637",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "8856",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "5669",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "8832",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8885"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8886"
+            },
+            "ticker": {
+              "id": "5674"
+            }
+          },
+          "id": "5673",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3613",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "5671",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "5330",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "5674",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5673"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5676",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "3638",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "8833",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8857",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5677"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5680",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "8834",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "5678",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "8858",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5689"
+            }
+          },
+          "id": "5683",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "5321"
+              },
+              {
+                "id": "5322"
+              },
+              {
+                "id": "5323"
+              },
+              {
+                "id": "5324"
+              },
+              {
+                "id": "5325"
+              },
+              {
+                "id": "5326"
+              },
+              {
+                "id": "5327"
+              },
+              {
+                "id": "5328"
+              }
+            ]
+          },
+          "id": "5331",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "8835",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "5329",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "8836",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "5690",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6205",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "5686",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {},
+          "id": "5305",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "5684",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "3151",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "3629"
+              },
+              {
+                "id": "3630"
+              },
+              {
+                "id": "3631"
+              },
+              {
+                "id": "3632"
+              },
+              {
+                "id": "3633"
+              },
+              {
+                "id": "3634"
+              },
+              {
+                "id": "3635"
+              },
+              {
+                "id": "3636"
+              }
+            ]
+          },
+          "id": "3639",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5690"
+            }
+          },
+          "id": "5685",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "5682",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "8837",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "5681",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "3149",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "5687",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "8760",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "ZlP8zNhYkkDHRA9Z9v+gQDChae1IAqZABUXiCQn+qECjaFNjNvSvQCeDilZMBbJAQwmUfbIHtkABWh9asuy1QP1NXS9/2bpAEWMFtHHJvkAlREdSc/HAQImHozLmW8JA7UaI6dOcw0BntM+z/bHCQN1ul/D6fcRAIvzlZDzFxUAEecG8PPzGQJjB90wqn8hA1ksMTU5eykAPd9Junh3NQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8798"
+            },
+            "selection_policy": {
+              "id": "8797"
+            }
+          },
+          "id": "6804",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6804"
+            },
+            "glyph": {
+              "id": "6805"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6807"
+            },
+            "nonselection_glyph": {
+              "id": "6806"
+            },
+            "view": {
+              "id": "6809"
+            }
+          },
+          "id": "6808",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6805",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8761",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6810"
+            },
+            "glyph": {
+              "id": "6811"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6813"
+            },
+            "nonselection_glyph": {
+              "id": "6812"
+            },
+            "view": {
+              "id": "6815"
+            }
+          },
+          "id": "6814",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6813",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6807",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8762",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6806",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6804"
+            }
+          },
+          "id": "6809",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6822"
+            }
+          },
+          "id": "6827",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "ZlP8zNhYkkDHRA9Z9v+gQDChae1IAqZABUXiCQn+qECjaFNjNvSvQCeDilZMBbJAQwmUfbIHtkABWh9asuy1QP1NXS9/2bpAEWMFtHHJvkAlREdSc/HAQImHozLmW8JA7UaI6dOcw0BntM+z/bHCQN1ul/D6fcRAIvzlZDzFxUAEecG8PPzGQJjB90wqn8hA1ksMTU5eykAPd9Junh3NQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8800"
+            },
+            "selection_policy": {
+              "id": "8799"
+            }
+          },
+          "id": "6810",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6810"
+            }
+          },
+          "id": "6815",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6812",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6811",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6818",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6816"
+            }
+          },
+          "id": "6821",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6822"
+            },
+            "glyph": {
+              "id": "6823"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6825"
+            },
+            "nonselection_glyph": {
+              "id": "6824"
+            },
+            "view": {
+              "id": "6827"
+            }
+          },
+          "id": "6826",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6819",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "9yCQWLDHhUCtUn4auoyUQLanZIKqwZ9AW1FMIf4ipUA2suoxw0yqQL3LgGvF+65AOWu2QjUxsUAs0IxHWLKxQDBD78Nzx7RACqXpD4pQt0Ah/ZJt3e23QO7hh0ibtbpAnlo+2jxmvEBs7Fvz6Ji/QNJbARG4isBAHWY6D6AuwUAj5pS/kCbCQP8KQMt/U8NADeQY2yRtxEC9L08VBXTFQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8804"
+            },
+            "selection_policy": {
+              "id": "8803"
+            }
+          },
+          "id": "6822",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "8763",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "6828",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6825",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8764",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6824",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "6830"
+              },
+              {
+                "id": "6831"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "6829",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "6808"
+              },
+              {
+                "id": "6814"
+              }
+            ]
+          },
+          "id": "6830",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "6826"
+              },
+              {
+                "id": "6820"
+              }
+            ]
+          },
+          "id": "6831",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[DOUGLAS]"
+          },
+          "id": "6832",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "3865",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "8765",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "3145",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "8766",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "8767",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "3890",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "8768",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "8810",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8811",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "4394",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "3169",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "toolbar": {
+              "id": "8899"
+            },
+            "toolbar_location": "above"
+          },
+          "id": "8900",
+          "type": "ToolbarBox"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "8029"
+              }
+            ],
+            "below": [
+              {
+                "id": "5313"
+              }
+            ],
+            "center": [
+              {
+                "id": "5316"
+              },
+              {
+                "id": "5320"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "5317"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "8008"
+              },
+              {
+                "id": "8014"
+              },
+              {
+                "id": "8020"
+              },
+              {
+                "id": "8026"
+              },
+              {
+                "id": "8028"
+              }
+            ],
+            "title": {
+              "id": "8032"
+            },
+            "toolbar": {
+              "id": "5331"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "5305"
+            },
+            "x_scale": {
+              "id": "5309"
+            },
+            "y_range": {
+              "id": "5307"
+            },
+            "y_scale": {
+              "id": "5311"
+            }
+          },
+          "id": "5304",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "4429"
+            }
+          },
+          "id": "4423",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "4422",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "4421",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "4427",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "4424",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "4430"
+            }
+          },
+          "id": "4425",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6216"
+            },
+            "glyph": {
+              "id": "6217"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6219"
+            },
+            "nonselection_glyph": {
+              "id": "6218"
+            },
+            "view": {
+              "id": "6221"
+            }
+          },
+          "id": "6220",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "4426",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6211",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6217",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "4418",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "4421"
+              },
+              {
+                "id": "4422"
+              },
+              {
+                "id": "4423"
+              },
+              {
+                "id": "4424"
+              },
+              {
+                "id": "4425"
+              },
+              {
+                "id": "4426"
+              },
+              {
+                "id": "4427"
+              },
+              {
+                "id": "4428"
+              }
+            ]
+          },
+          "id": "4431",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "4417"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "4420",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3153"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3156",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "XwP55XtvhUA4zSCPG76SQAshqgnrZp5AvgyWaGqhpEDFecYjayKoQGGv2/G6+a1AXpGCZtD8sUBeCwkBGvS0QCwfewjTtrVAAyvgJBIouECNklc8zOG7QBC9UnuLasBA9p5UlfxLwUDigeMm+dDCQH5p1wqezsNA4DtavtD8xEAsc2CbBrnFQE1ssVoOYcZAu4uAUvr7xkChJZZ2oxjIQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8766"
+            },
+            "selection_policy": {
+              "id": "8765"
+            }
+          },
+          "id": "6216",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8759"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8760"
+            },
+            "ticker": {
+              "id": "3154"
+            }
+          },
+          "id": "3153",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6219",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "4413"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "4416",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "XwP55XtvhUA4zSCPG76SQAshqgnrZp5AvgyWaGqhpEDFecYjayKoQGGv2/G6+a1AXpGCZtD8sUBeCwkBGvS0QCwfewjTtrVAAyvgJBIouECNklc8zOG7QBC9UnuLasBA9p5UlfxLwUDigeMm+dDCQH5p1wqezsNA4DtavtD8xEAsc2CbBrnFQE1ssVoOYcZAu4uAUvr7xkChJZZ2oxjIQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8768"
+            },
+            "selection_policy": {
+              "id": "8767"
+            }
+          },
+          "id": "6222",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "4414",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "4411",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6216"
+            }
+          },
+          "id": "6221",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8831"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8832"
+            },
+            "ticker": {
+              "id": "4414"
+            }
+          },
+          "id": "4413",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "8846",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8828"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8829"
+            },
+            "ticker": {
+              "id": "4418"
+            }
+          },
+          "id": "4417",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "4405",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "4409",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6218",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8847",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "4385"
+              },
+              {
+                "id": "4386"
+              },
+              {
+                "id": "4387"
+              },
+              {
+                "id": "4388"
+              },
+              {
+                "id": "4389"
+              },
+              {
+                "id": "4390"
+              },
+              {
+                "id": "4391"
+              },
+              {
+                "id": "4392"
+              }
+            ]
+          },
+          "id": "4395",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "3154",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6210"
+            }
+          },
+          "id": "6215",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "8849",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "4407",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "8756",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8850",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6213",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6223",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "4393",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "4428",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "8851",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "Jio2Mo3tlEAQyaOgriWkQFH6LUynWalAnlyBZaHvskDJfajcvjq5QP4yF+pMSbxAXTnoM2qzwEBW8nReVfHBQFKfn6bDH8VA90xwRkCdx0Bdf51jZ/HKQGBeIZpyfM1A/38fQvcnz0B4PHzqlp/QQAMR5sb+6dFAZ1CNeI/K0kB4ur2dTf7TQLs2zz0eKNVApQX6F5Yv1kAZJ+XsRNjWQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8764"
+            },
+            "selection_policy": {
+              "id": "8763"
+            }
+          },
+          "id": "6210",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "8757",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "8852",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6224",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6212",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8759",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "6229"
+              }
+            ],
+            "below": [
+              {
+                "id": "3153"
+              }
+            ],
+            "center": [
+              {
+                "id": "3156"
+              },
+              {
+                "id": "3160"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "3157"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "6208"
+              },
+              {
+                "id": "6214"
+              },
+              {
+                "id": "6220"
+              },
+              {
+                "id": "6226"
+              },
+              {
+                "id": "6228"
+              }
+            ],
+            "title": {
+              "id": "6232"
+            },
+            "toolbar": {
+              "id": "3171"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "3145"
+            },
+            "x_scale": {
+              "id": "3149"
+            },
+            "y_range": {
+              "id": "3147"
+            },
+            "y_scale": {
+              "id": "3151"
+            }
+          },
+          "id": "3144",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6210"
+            },
+            "glyph": {
+              "id": "6211"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6213"
+            },
+            "nonselection_glyph": {
+              "id": "6212"
+            },
+            "view": {
+              "id": "6215"
+            }
+          },
+          "id": "6214",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7233",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "a0HxRInvkUBXOOAYEWijQOJkFt9vdapAQHDJT5AzsUDgD5wzwc+0QOtaAX+2BrhAgWvEPRzRvUAynlhNwi/BQI7xks/LTcNAE9FvqpSKxUDef0S4lhLIQBt5RW8tpMpArSzrC6nIzEClc2IeozbPQLNWDyBUv9BATUqwBV0r0kCD+rxZzvHSQMHOFSokK9RAYw7fr6TN1EA1SapTfyXVQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8818"
+            },
+            "selection_policy": {
+              "id": "8817"
+            }
+          },
+          "id": "7230",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "8008"
+              },
+              {
+                "id": "8014"
+              }
+            ]
+          },
+          "id": "8030",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7242"
+            }
+          },
+          "id": "7247",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "8026"
+              },
+              {
+                "id": "8020"
+              }
+            ]
+          },
+          "id": "8031",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "8867",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "9OTRw+VphUAEIPWz9miRQIsY08Ws3JdAzLhzG2Slm0COdEl8uKKiQP21gsO44aZAOSnmr93vqkDriGMm+WKsQCCLoFRyQK9AGwIbub4xsUBAB19pBrCyQGOIMqV+e7RAnQpCWhMOtUBqp2dxmwy3QN9DQzqYmrlASfwPt2ieukDLkuU7QA+8QGJ6mzbkFb1A2rDXd3kwvkBybakUqgjAQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8838"
+            },
+            "selection_policy": {
+              "id": "8837"
+            }
+          },
+          "id": "7266",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "8868",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7230"
+            }
+          },
+          "id": "7235",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "8799",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7232",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7237",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7231",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8800",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7269",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7266"
+            },
+            "glyph": {
+              "id": "7267"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7269"
+            },
+            "nonselection_glyph": {
+              "id": "7268"
+            },
+            "view": {
+              "id": "7271"
+            }
+          },
+          "id": "7270",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7238",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "9OTRw+VphUAEIPWz9miRQIsY08Ws3JdAzLhzG2Slm0COdEl8uKKiQP21gsO44aZAOSnmr93vqkDriGMm+WKsQCCLoFRyQK9AGwIbub4xsUBAB19pBrCyQGOIMqV+e7RAnQpCWhMOtUBqp2dxmwy3QN9DQzqYmrlASfwPt2ieukDLkuU7QA+8QGJ6mzbkFb1A2rDXd3kwvkBybakUqgjAQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8840"
+            },
+            "selection_policy": {
+              "id": "8839"
+            }
+          },
+          "id": "7272",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7236"
+            }
+          },
+          "id": "7241",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7242"
+            },
+            "glyph": {
+              "id": "7243"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7245"
+            },
+            "nonselection_glyph": {
+              "id": "7244"
+            },
+            "view": {
+              "id": "7247"
+            }
+          },
+          "id": "7246",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7239",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8774",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8869",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "kF6aV1JphEAw+BZ340aQQJQNgbhsKZlAaaRtDL5PoUCMlewnBi6nQGlehsl7KqxAFkTk7EctsUAG7O5H/JizQLzZSOBq7LVApowV/iLIuECNltIcJuG4QNAtFCL3i7xAG6hXINowv0DQL0gtXhrAQAayki23AcFAbST7UnLFwUDdv1SuEJXCQPwuaT6LicNAYYyIvsquxEBAslnrJkvGQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8822"
+            },
+            "selection_policy": {
+              "id": "8821"
+            }
+          },
+          "id": "7242",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "7248",
+          "type": "Span"
+        },
+        {
+          "attributes": {},
+          "id": "8775",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "8870",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7245",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7244",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "7250"
+              },
+              {
+                "id": "7251"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "7249",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "8bnjy9oRh0AgbJAZ1UKWQExlbq+hAqBADwGljUl0pkAh4N0+f9yqQFlptX6Y87BAMxXI0fAvs0CWehbHh2u2QHTj/hyXOrZA+kslIj/KuUBRqeiOIGa9QAiBVDQzVb9AgAS4SYOGwEANf6U3iL/CQHzu21mQbMNAXBThVfDgxUCuS5/F/fbGQGPB1puHuMdAqXh+RVzIx0ChhGh7TkzJQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8856"
+            },
+            "selection_policy": {
+              "id": "8855"
+            }
+          },
+          "id": "8016",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[RAMSEY]"
+          },
+          "id": "8032",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "8801",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8777",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "7228"
+              },
+              {
+                "id": "7234"
+              }
+            ]
+          },
+          "id": "7250",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "8802",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "7246"
+              },
+              {
+                "id": "7240"
+              }
+            ]
+          },
+          "id": "7251",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8019",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8016"
+            },
+            "glyph": {
+              "id": "8017"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8019"
+            },
+            "nonselection_glyph": {
+              "id": "8018"
+            },
+            "view": {
+              "id": "8021"
+            }
+          },
+          "id": "8020",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "8778",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "+kyJgKcJgkBcaJy5ngCRQChDOdvBNpRAcZlte9w8l0CoJJ/7y4+cQN3uIokaGaBAjxrJCW0go0Ak6ihH+/ikQOn2En5RhqdA37XWUbT5qkC9/KEs0XqtQAyQC5+We7BAEB/4QQWAsUAhIwD4yj2xQOLI9twl3rJAzUvA7JrGskCGGLZvb0O0QPxfvu4QSrRAB9vFhvCttUD9xsMoLXa2QA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8834"
+            },
+            "selection_policy": {
+              "id": "8833"
+            }
+          },
+          "id": "7254",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "8bnjy9oRh0AgbJAZ1UKWQExlbq+hAqBADwGljUl0pkAh4N0+f9yqQFlptX6Y87BAMxXI0fAvs0CWehbHh2u2QHTj/hyXOrZA+kslIj/KuUBRqeiOIGa9QAiBVDQzVb9AgAS4SYOGwEANf6U3iL/CQHzu21mQbMNAXBThVfDgxUCuS5/F/fbGQGPB1puHuMdAqXh+RVzIx0ChhGh7TkzJQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8858"
+            },
+            "selection_policy": {
+              "id": "8857"
+            }
+          },
+          "id": "8022",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[KOOCHICHING]"
+          },
+          "id": "7252",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7255",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7254"
+            },
+            "glyph": {
+              "id": "7255"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7257"
+            },
+            "nonselection_glyph": {
+              "id": "7256"
+            },
+            "view": {
+              "id": "7259"
+            }
+          },
+          "id": "7258",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7260"
+            },
+            "glyph": {
+              "id": "7261"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7263"
+            },
+            "nonselection_glyph": {
+              "id": "7262"
+            },
+            "view": {
+              "id": "7265"
+            }
+          },
+          "id": "7264",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "8871",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7263",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8779",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7257",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8872",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7256",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8803",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7254"
+            }
+          },
+          "id": "7259",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "8780",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "3164",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "+kyJgKcJgkBcaJy5ngCRQChDOdvBNpRAcZlte9w8l0CoJJ/7y4+cQN3uIokaGaBAjxrJCW0go0Ak6ihH+/ikQOn2En5RhqdA37XWUbT5qkC9/KEs0XqtQAyQC5+We7BAEB/4QQWAsUAhIwD4yj2xQOLI9twl3rJAzUvA7JrGskCGGLZvb0O0QPxfvu4QSrRAB9vFhvCttUD9xsMoLXa2QA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8836"
+            },
+            "selection_policy": {
+              "id": "8835"
+            }
+          },
+          "id": "7260",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "8804",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "nk7LlIdjkUBCMtGvXiaiQPAEyLWq36lABYk2Y/+lsEDjThW9LEy1QC7CipTTp7lAoiRp0/lOvEAacEzJTF7AQAo2gOtI6MFA8nVpZKKgxED+S7PpNEzHQKw91v8gR8lAns3sWrF/y0AMCcKnpRbMQL3Qs4NW0M1AOYse8KsN0EBuS2ujr4LRQOvtc7y2bNJA036daXFK00DcgUhI8znUQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8852"
+            },
+            "selection_policy": {
+              "id": "8851"
+            }
+          },
+          "id": "8004",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "kF6aV1JphEAw+BZ340aQQJQNgbhsKZlAaaRtDL5PoUCMlewnBi6nQGlehsl7KqxAFkTk7EctsUAG7O5H/JizQLzZSOBq7LVApowV/iLIuECNltIcJuG4QNAtFCL3i7xAG6hXINowv0DQL0gtXhrAQAayki23AcFAbST7UnLFwUDdv1SuEJXCQPwuaT6LicNAYYyIvsquxEBAslnrJkvGQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8820"
+            },
+            "selection_policy": {
+              "id": "8819"
+            }
+          },
+          "id": "7236",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7260"
+            }
+          },
+          "id": "7265",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7262",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7261",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7272"
+            },
+            "glyph": {
+              "id": "7273"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7275"
+            },
+            "nonselection_glyph": {
+              "id": "7274"
+            },
+            "view": {
+              "id": "7277"
+            }
+          },
+          "id": "7276",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7273",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8005",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8004"
+            },
+            "glyph": {
+              "id": "8005"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8007"
+            },
+            "nonselection_glyph": {
+              "id": "8006"
+            },
+            "view": {
+              "id": "8009"
+            }
+          },
+          "id": "8008",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7236"
+            },
+            "glyph": {
+              "id": "7237"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7239"
+            },
+            "nonselection_glyph": {
+              "id": "7238"
+            },
+            "view": {
+              "id": "7241"
+            }
+          },
+          "id": "7240",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7266"
+            }
+          },
+          "id": "7271",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7243",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7268",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8873",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8010"
+            },
+            "glyph": {
+              "id": "8011"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8013"
+            },
+            "nonselection_glyph": {
+              "id": "8012"
+            },
+            "view": {
+              "id": "8015"
+            }
+          },
+          "id": "8014",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7267",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8013",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7272"
+            }
+          },
+          "id": "7277",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8007",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8874",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8006",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "7278",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8004"
+            }
+          },
+          "id": "8009",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7275",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8781",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7274",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "nk7LlIdjkUBCMtGvXiaiQPAEyLWq36lABYk2Y/+lsEDjThW9LEy1QC7CipTTp7lAoiRp0/lOvEAacEzJTF7AQAo2gOtI6MFA8nVpZKKgxED+S7PpNEzHQKw91v8gR8lAns3sWrF/y0AMCcKnpRbMQL3Qs4NW0M1AOYse8KsN0EBuS2ujr4LRQOvtc7y2bNJA036daXFK00DcgUhI8znUQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8854"
+            },
+            "selection_policy": {
+              "id": "8853"
+            }
+          },
+          "id": "8010",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "7280"
+              },
+              {
+                "id": "7281"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "7279",
+          "type": "Legend"
+        },
+        {
+          "attributes": {},
+          "id": "8782",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8010"
+            }
+          },
+          "id": "8015",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8012",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7227",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "7258"
+              },
+              {
+                "id": "7264"
+              }
+            ]
+          },
+          "id": "7280",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8011",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8022"
+            },
+            "glyph": {
+              "id": "8023"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8025"
+            },
+            "nonselection_glyph": {
+              "id": "8024"
+            },
+            "view": {
+              "id": "8027"
+            }
+          },
+          "id": "8026",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "7276"
+              },
+              {
+                "id": "7270"
+              }
+            ]
+          },
+          "id": "7281",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8023",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "a0HxRInvkUBXOOAYEWijQOJkFt9vdapAQHDJT5AzsUDgD5wzwc+0QOtaAX+2BrhAgWvEPRzRvUAynlhNwi/BQI7xks/LTcNAE9FvqpSKxUDef0S4lhLIQBt5RW8tpMpArSzrC6nIzEClc2IeozbPQLNWDyBUv9BATUqwBV0r0kCD+rxZzvHSQMHOFSokK9RAYw7fr6TN1EA1SapTfyXVQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8816"
+            },
+            "selection_policy": {
+              "id": "8815"
+            }
+          },
+          "id": "7224",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8016"
+            }
+          },
+          "id": "8021",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[LAC QUI PARLE]"
+          },
+          "id": "7282",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8018",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "8875",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8017",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8022"
+            }
+          },
+          "id": "8027",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "8876",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7225",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "8028",
+          "type": "Span"
+        },
+        {
+          "attributes": {},
+          "id": "8783",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7224"
+            },
+            "glyph": {
+              "id": "7225"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7227"
+            },
+            "nonselection_glyph": {
+              "id": "7226"
+            },
+            "view": {
+              "id": "7229"
+            }
+          },
+          "id": "7228",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8025",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8024",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "7230"
+            },
+            "glyph": {
+              "id": "7231"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "7233"
+            },
+            "nonselection_glyph": {
+              "id": "7232"
+            },
+            "view": {
+              "id": "7235"
+            }
+          },
+          "id": "7234",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "8784",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "7224"
+            }
+          },
+          "id": "7229",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "8030"
+              },
+              {
+                "id": "8031"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "8029",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "7226",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "8891",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8274"
+            },
+            "glyph": {
+              "id": "8275"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8277"
+            },
+            "nonselection_glyph": {
+              "id": "8276"
+            },
+            "view": {
+              "id": "8279"
+            }
+          },
+          "id": "8278",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "8892",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6204"
+            }
+          },
+          "id": "6209",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8280"
+            },
+            "glyph": {
+              "id": "8281"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8283"
+            },
+            "nonselection_glyph": {
+              "id": "8282"
+            },
+            "view": {
+              "id": "8285"
+            }
+          },
+          "id": "8284",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8283",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "5629",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8277",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8276",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8274"
+            }
+          },
+          "id": "8279",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8292"
+            }
+          },
+          "id": "8297",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "BtIGzlBchUAUB9pb9X2PQKxjXa4B8JJArPtxQH9YlEAuHQEUS7yYQFJG/MTjAqBAQSvUEoYhoUCO94xQM+ubQN0V9V5F951Ao4+fpLQzoUBWVrNR5qejQFsR4tCpJ6ZAIybaaQwUqUCmPKLYHXmqQDpsZ3OxiKxAoFb1JUW9q0DKvhlZMdKtQFYPE1+QGK9AJp7duSzMsEDOiQlOWLawQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8872"
+            },
+            "selection_policy": {
+              "id": "8871"
+            }
+          },
+          "id": "8280",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8792"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8793"
+            },
+            "ticker": {
+              "id": "3878"
+            }
+          },
+          "id": "3877",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "RzvdaUBBikDOqbCdxD6YQEa4KTmWeaBARoxPjRhRo0DG0T4S2aOpQL2ijhNXiK9ATHdEXrqmskBeaSQ6STK0QIRLSMr0XbdAiNN6QScwu0AkjadOawK9QG2fiWofR8BAZMq8+bW6wUCfNfts9onDQD9230nhqMRAyZRToI7gxUCC6ATD4R7HQE58ZQPewchAOYf/R9XZyUDoGIRp4JXKQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8892"
+            },
+            "selection_policy": {
+              "id": "8891"
+            }
+          },
+          "id": "8316",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8280"
+            }
+          },
+          "id": "8285",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "BtIGzlBchUAUB9pb9X2PQKxjXa4B8JJArPtxQH9YlEAuHQEUS7yYQFJG/MTjAqBAQSvUEoYhoUCO94xQM+ubQN0V9V5F951Ao4+fpLQzoUBWVrNR5qejQFsR4tCpJ6ZAIybaaQwUqUCmPKLYHXmqQDpsZ3OxiKxAoFb1JUW9q0DKvhlZMdKtQFYPE1+QGK9AJp7duSzMsEDOiQlOWLawQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8870"
+            },
+            "selection_policy": {
+              "id": "8869"
+            }
+          },
+          "id": "8274",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8282",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "3888",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "Jio2Mo3tlEAQyaOgriWkQFH6LUynWalAnlyBZaHvskDJfajcvjq5QP4yF+pMSbxAXTnoM2qzwEBW8nReVfHBQFKfn6bDH8VA90xwRkCdx0Bdf51jZ/HKQGBeIZpyfM1A/38fQvcnz0B4PHzqlp/QQAMR5sb+6dFAZ1CNeI/K0kB4ur2dTf7TQLs2zz0eKNVApQX6F5Yv1kAZJ+XsRNjWQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8762"
+            },
+            "selection_policy": {
+              "id": "8761"
+            }
+          },
+          "id": "6204",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8281",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8319",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "3867",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8316"
+            },
+            "glyph": {
+              "id": "8317"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8319"
+            },
+            "nonselection_glyph": {
+              "id": "8318"
+            },
+            "view": {
+              "id": "8321"
+            }
+          },
+          "id": "8320",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "8893",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8288",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "RzvdaUBBikDOqbCdxD6YQEa4KTmWeaBARoxPjRhRo0DG0T4S2aOpQL2ijhNXiK9ATHdEXrqmskBeaSQ6STK0QIRLSMr0XbdAiNN6QScwu0AkjadOawK9QG2fiWofR8BAZMq8+bW6wUCfNfts9onDQD9230nhqMRAyZRToI7gxUCC6ATD4R7HQE58ZQPewchAOYf/R9XZyUDoGIRp4JXKQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8894"
+            },
+            "selection_policy": {
+              "id": "8893"
+            }
+          },
+          "id": "8322",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8286"
+            }
+          },
+          "id": "8291",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "8894",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "3869",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8292"
+            },
+            "glyph": {
+              "id": "8293"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8295"
+            },
+            "nonselection_glyph": {
+              "id": "8294"
+            },
+            "view": {
+              "id": "8297"
+            }
+          },
+          "id": "8296",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8289",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8795"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8796"
+            },
+            "ticker": {
+              "id": "3874"
+            }
+          },
+          "id": "3873",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3871",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "86FET9zFhkAYv1KiL2WXQPdXyNpRKaBA0PXJfjZdpkBBHHhTJEyrQOySp++eyK9AedTYVgHYr0AYsA31DXCtQPFwWUogG6JACSj2TeRQpUC2UPV0vbyoQHxUbVyKq6xAoSCnij2Er0Bl0kC7PzayQFzMwXGUGrRAQV+FLE4GtECY34e6CW62QDX+uVJiHrlAYB2dKuFnuUDBCIIWJX+7QA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8876"
+            },
+            "selection_policy": {
+              "id": "8875"
+            }
+          },
+          "id": "8292",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "fbakOsXVg0DmqX/LSd+VQGzJejn9fZ1A4D08+LdcoUCMxGLffP2lQEaVxgmvl6pA41PBmUBHr0CHizNKelawQCbR3nLO+LFAleRYA6DptEAioIiId6O0QP7RsnepWLZAHKQ0uRVXuEAV5pzQtYC5QLeRvqFpBLxA3TV7Wo2pvkASZ/44rYDAQMXxKwqgE8FAI4FnXf3FwUDoO0OYh8/CQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8784"
+            },
+            "selection_policy": {
+              "id": "8783"
+            }
+          },
+          "id": "6606",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "3874",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "6618",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3873"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3876",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "8298",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6207",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8295",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6206",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8294",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "8300"
+              },
+              {
+                "id": "8301"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "8299",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3877"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3880",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6609",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6606"
+            },
+            "glyph": {
+              "id": "6607"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6609"
+            },
+            "nonselection_glyph": {
+              "id": "6608"
+            },
+            "view": {
+              "id": "6611"
+            }
+          },
+          "id": "6610",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "3878",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "5642",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3889"
+            }
+          },
+          "id": "3883",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5641"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5644",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "fbakOsXVg0DmqX/LSd+VQGzJejn9fZ1A4D08+LdcoUCMxGLffP2lQEaVxgmvl6pA41PBmUBHr0CHizNKelawQCbR3nLO+LFAleRYA6DptEAioIiId6O0QP7RsnepWLZAHKQ0uRVXuEAV5pzQtYC5QLeRvqFpBLxA3TV7Wo2pvkASZ/44rYDAQMXxKwqgE8FAI4FnXf3FwUDoO0OYh8/CQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8786"
+            },
+            "selection_policy": {
+              "id": "8785"
+            }
+          },
+          "id": "6612",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "3882",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "8278"
+              },
+              {
+                "id": "8284"
+              }
+            ]
+          },
+          "id": "8300",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "8296"
+              },
+              {
+                "id": "8290"
+              }
+            ]
+          },
+          "id": "8301",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "3881",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "kPD3ocQ5lkDmPzjWKvKiQKQdZH4LsqpAHuCgEBaYsUBO32eEJ0m2QER7Kl/xy7pA4WQPI6fivkA9Y6dvqlvBQKC3jF9excJA+y1xfKrTxEDebBRrGt/GQLYR8f6CWMlATfGEAttwzEDUih+CAJzNQFtWvY7qiNBAXAJeN9RY0UChpy4hHRvTQJKjmq9qyNNArMTY9lZA1EDqQNOG8nTVQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8888"
+            },
+            "selection_policy": {
+              "id": "8887"
+            }
+          },
+          "id": "8304",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "3887",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5653"
+            }
+          },
+          "id": "5647",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "3884",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "5646",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3890"
+            }
+          },
+          "id": "3885",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "3886",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6204"
+            },
+            "glyph": {
+              "id": "6205"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6207"
+            },
+            "nonselection_glyph": {
+              "id": "6206"
+            },
+            "view": {
+              "id": "6209"
+            }
+          },
+          "id": "6208",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[ST. LOUIS]"
+          },
+          "id": "8302",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "5665",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8305",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "5645"
+              },
+              {
+                "id": "5646"
+              },
+              {
+                "id": "5647"
+              },
+              {
+                "id": "5648"
+              },
+              {
+                "id": "5649"
+              },
+              {
+                "id": "5650"
+              },
+              {
+                "id": "5651"
+              },
+              {
+                "id": "5652"
+              }
+            ]
+          },
+          "id": "5655",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8304"
+            },
+            "glyph": {
+              "id": "8305"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8307"
+            },
+            "nonselection_glyph": {
+              "id": "8306"
+            },
+            "view": {
+              "id": "8309"
+            }
+          },
+          "id": "8308",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "5645",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8310"
+            },
+            "glyph": {
+              "id": "8311"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8313"
+            },
+            "nonselection_glyph": {
+              "id": "8312"
+            },
+            "view": {
+              "id": "8315"
+            }
+          },
+          "id": "8314",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "3889",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "5651",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8313",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "5648",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8307",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5654"
+            }
+          },
+          "id": "5649",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8306",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "tUDhhQy2jUCi0Iz4FzaVQPsb3x72aphAvXNH3bB7l0ChPOHX8p6ZQE8CNuTJwKNATDEEUtKno0CLadPDZDOlQNmsIwpRZahAdqmGa588rEAcGAZ+STivQGzA3XXfz7FA3yPMEMtGs0BGnn3kicKxQI9RUJ3xSLNAduuibo0KtEBy8OM12vC0QAMiVjkokrZAvV8wRy2HuEC0ySl+V/a4QA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8780"
+            },
+            "selection_policy": {
+              "id": "8779"
+            }
+          },
+          "id": "6594",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8304"
+            }
+          },
+          "id": "8309",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "3147",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "kPD3ocQ5lkDmPzjWKvKiQKQdZH4LsqpAHuCgEBaYsUBO32eEJ0m2QER7Kl/xy7pA4WQPI6fivkA9Y6dvqlvBQKC3jF9excJA+y1xfKrTxEDebBRrGt/GQLYR8f6CWMlATfGEAttwzEDUih+CAJzNQFtWvY7qiNBAXAJeN9RY0UChpy4hHRvTQJKjmq9qyNNArMTY9lZA1EDqQNOG8nTVQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8890"
+            },
+            "selection_policy": {
+              "id": "8889"
+            }
+          },
+          "id": "8310",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "86FET9zFhkAYv1KiL2WXQPdXyNpRKaBA0PXJfjZdpkBBHHhTJEyrQOySp++eyK9AedTYVgHYr0AYsA31DXCtQPFwWUogG6JACSj2TeRQpUC2UPV0vbyoQHxUbVyKq6xAoSCnij2Er0Bl0kC7PzayQFzMwXGUGrRAQV+FLE4GtECY34e6CW62QDX+uVJiHrlAYB2dKuFnuUDBCIIWJX+7QA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8874"
+            },
+            "selection_policy": {
+              "id": "8873"
+            }
+          },
+          "id": "8286",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8310"
+            }
+          },
+          "id": "8315",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "5689",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6595",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8312",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6594"
+            },
+            "glyph": {
+              "id": "6595"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6597"
+            },
+            "nonselection_glyph": {
+              "id": "6596"
+            },
+            "view": {
+              "id": "6599"
+            }
+          },
+          "id": "6598",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8311",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "3881"
+              },
+              {
+                "id": "3882"
+              },
+              {
+                "id": "3883"
+              },
+              {
+                "id": "3884"
+              },
+              {
+                "id": "3885"
+              },
+              {
+                "id": "3886"
+              },
+              {
+                "id": "3887"
+              },
+              {
+                "id": "3888"
+              }
+            ]
+          },
+          "id": "3891",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8322"
+            },
+            "glyph": {
+              "id": "8323"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8325"
+            },
+            "nonselection_glyph": {
+              "id": "8324"
+            },
+            "view": {
+              "id": "8327"
+            }
+          },
+          "id": "8326",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8323",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6600"
+            },
+            "glyph": {
+              "id": "6601"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6603"
+            },
+            "nonselection_glyph": {
+              "id": "6602"
+            },
+            "view": {
+              "id": "6605"
+            }
+          },
+          "id": "6604",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6603",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "8286"
+            },
+            "glyph": {
+              "id": "8287"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "8289"
+            },
+            "nonselection_glyph": {
+              "id": "8288"
+            },
+            "view": {
+              "id": "8291"
+            }
+          },
+          "id": "8290",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8864"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8865"
+            },
+            "ticker": {
+              "id": "5642"
+            }
+          },
+          "id": "5641",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6597",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6596",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8293",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8316"
+            }
+          },
+          "id": "8321",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "children": [
+              [
+                {
+                  "id": "3144"
+                },
+                0,
+                0
+              ],
+              [
+                {
+                  "id": "3612"
+                },
+                0,
+                1
+              ],
+              [
+                {
+                  "id": "3864"
+                },
+                0,
+                2
+              ],
+              [
+                {
+                  "id": "4368"
+                },
+                1,
+                0
+              ],
+              [
+                {
+                  "id": "4404"
+                },
+                1,
+                1
+              ],
+              [
+                {
+                  "id": "5304"
+                },
+                1,
+                2
+              ],
+              [
+                {
+                  "id": "5628"
+                },
+                2,
+                0
+              ],
+              [
+                {
+                  "id": "5664"
+                },
+                2,
+                1
+              ]
+            ]
+          },
+          "id": "8898",
+          "type": "GridBox"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6594"
+            }
+          },
+          "id": "6599",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8317",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8318",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "5652",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "tUDhhQy2jUCi0Iz4FzaVQPsb3x72aphAvXNH3bB7l0ChPOHX8p6ZQE8CNuTJwKNATDEEUtKno0CLadPDZDOlQNmsIwpRZahAdqmGa588rEAcGAZ+STivQGzA3XXfz7FA3yPMEMtGs0BGnn3kicKxQI9RUJ3xSLNAduuibo0KtEBy8OM12vC0QAMiVjkokrZAvV8wRy2HuEC0ySl+V/a4QA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8782"
+            },
+            "selection_policy": {
+              "id": "8781"
+            }
+          },
+          "id": "6600",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "8322"
+            }
+          },
+          "id": "8327",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5637"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5640",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "line_color": "red",
+            "line_dash": [
+              6
+            ],
+            "line_width": 3,
+            "location": 400
+          },
+          "id": "8328",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6600"
+            }
+          },
+          "id": "6605",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "5638",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8325",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "3161"
+              },
+              {
+                "id": "3162"
+              },
+              {
+                "id": "3163"
+              },
+              {
+                "id": "3164"
+              },
+              {
+                "id": "3165"
+              },
+              {
+                "id": "3166"
+              },
+              {
+                "id": "3167"
+              },
+              {
+                "id": "3168"
+              }
+            ]
+          },
+          "id": "3171",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "5635",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6602",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8867"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8868"
+            },
+            "ticker": {
+              "id": "5638"
+            }
+          },
+          "id": "5637",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "8330"
+              },
+              {
+                "id": "8331"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "8329",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6601",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8324",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "5633",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6613",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "5650",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "5653",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_color": {
+              "value": "#1f77b4"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8275",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "8308"
+              },
+              {
+                "id": "8314"
+              }
+            ]
+          },
+          "id": "8330",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6606"
+            }
+          },
+          "id": "6611",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "8287",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "8326"
+              },
+              {
+                "id": "8320"
+              }
+            ]
+          },
+          "id": "8331",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "5681"
+              },
+              {
+                "id": "5682"
+              },
+              {
+                "id": "5683"
+              },
+              {
+                "id": "5684"
+              },
+              {
+                "id": "5685"
+              },
+              {
+                "id": "5686"
+              },
+              {
+                "id": "5687"
+              },
+              {
+                "id": "5688"
+              }
+            ]
+          },
+          "id": "5691",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6608",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6607",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6612"
+            },
+            "glyph": {
+              "id": "6613"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6615"
+            },
+            "nonselection_glyph": {
+              "id": "6614"
+            },
+            "view": {
+              "id": "6617"
+            }
+          },
+          "id": "6616",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "6612"
+            }
+          },
+          "id": "6617",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[STEARNS]"
+          },
+          "id": "8332",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6615",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "5631",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6614",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "3162",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "click_policy": "hide",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "6620"
+              },
+              {
+                "id": "6621"
+              }
+            ],
+            "location": "center_right",
+            "orientation": "horizontal"
+          },
+          "id": "6619",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8810"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8811"
+            },
+            "ticker": {
+              "id": "4382"
+            }
+          },
+          "id": "4381",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "bulk"
+            },
+            "renderers": [
+              {
+                "id": "6598"
+              },
+              {
+                "id": "6604"
+              }
+            ]
+          },
+          "id": "6620",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "tail"
+            },
+            "renderers": [
+              {
+                "id": "6616"
+              },
+              {
+                "id": "6610"
+              }
+            ]
+          },
+          "id": "6621",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "3168",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b1[CLAY]"
+          },
+          "id": "6622",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "4373",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "3158",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "4392",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "4371",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3170"
+            }
+          },
+          "id": "3165",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "4429",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8813"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8814"
+            },
+            "ticker": {
+              "id": "4378"
+            }
+          },
+          "id": "4377",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "4375",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "4378",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "4430",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3157"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3160",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "6619"
+              }
+            ],
+            "below": [
+              {
+                "id": "3621"
+              }
+            ],
+            "center": [
+              {
+                "id": "3624"
+              },
+              {
+                "id": "3628"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "3625"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "6598"
+              },
+              {
+                "id": "6604"
+              },
+              {
+                "id": "6610"
+              },
+              {
+                "id": "6616"
+              },
+              {
+                "id": "6618"
+              }
+            ],
+            "title": {
+              "id": "6622"
+            },
+            "toolbar": {
+              "id": "3639"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "3613"
+            },
+            "x_scale": {
+              "id": "3617"
+            },
+            "y_range": {
+              "id": "3615"
+            },
+            "y_scale": {
+              "id": "3619"
+            }
+          },
+          "id": "3612",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "4377"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "4380",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "4381"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "4384",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3169"
+            }
+          },
+          "id": "3163",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8756"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8757"
+            },
+            "ticker": {
+              "id": "3158"
+            }
+          },
+          "id": "3157",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "8329"
+              }
+            ],
+            "below": [
+              {
+                "id": "5673"
+              }
+            ],
+            "center": [
+              {
+                "id": "5676"
+              },
+              {
+                "id": "5680"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "5677"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "8308"
+              },
+              {
+                "id": "8314"
+              },
+              {
+                "id": "8320"
+              },
+              {
+                "id": "8326"
+              },
+              {
+                "id": "8328"
+              }
+            ],
+            "title": {
+              "id": "8332"
+            },
+            "toolbar": {
+              "id": "5691"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "5665"
+            },
+            "x_scale": {
+              "id": "5669"
+            },
+            "y_range": {
+              "id": "5667"
+            },
+            "y_scale": {
+              "id": "5671"
+            }
+          },
+          "id": "5664",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "3161",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "4390",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "4394"
+            }
+          },
+          "id": "4389",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "4388",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "4391",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "3166",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {},
+          "id": "4385",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "4382",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "3167",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "4386",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "4393"
+            }
+          },
+          "id": "4387",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "8838",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "8839",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8840",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "7249"
+              }
+            ],
+            "below": [
+              {
+                "id": "4377"
+              }
+            ],
+            "center": [
+              {
+                "id": "4380"
+              },
+              {
+                "id": "4384"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "4381"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "7228"
+              },
+              {
+                "id": "7234"
+              },
+              {
+                "id": "7240"
+              },
+              {
+                "id": "7246"
+              },
+              {
+                "id": "7248"
+              }
+            ],
+            "title": {
+              "id": "7252"
+            },
+            "toolbar": {
+              "id": "4395"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "4369"
+            },
+            "x_scale": {
+              "id": "4373"
+            },
+            "y_range": {
+              "id": "4371"
+            },
+            "y_scale": {
+              "id": "4375"
+            }
+          },
+          "id": "4368",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "8882",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8883",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "8885",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8886",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "8792",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8887",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8793",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "8888",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "8795",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "7279"
+              }
+            ],
+            "below": [
+              {
+                "id": "4413"
+              }
+            ],
+            "center": [
+              {
+                "id": "4416"
+              },
+              {
+                "id": "4420"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "4417"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "7258"
+              },
+              {
+                "id": "7264"
+              },
+              {
+                "id": "7270"
+              },
+              {
+                "id": "7276"
+              },
+              {
+                "id": "7278"
+              }
+            ],
+            "title": {
+              "id": "7282"
+            },
+            "toolbar": {
+              "id": "4431"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "4405"
+            },
+            "x_scale": {
+              "id": "4409"
+            },
+            "y_range": {
+              "id": "4407"
+            },
+            "y_scale": {
+              "id": "4411"
+            }
+          },
+          "id": "4404",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "8796",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "4369",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "8889",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8797",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8890",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "8798",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "8864",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8865",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "8813",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "8814",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis_label": "ESS",
+            "coordinates": null,
+            "formatter": {
+              "id": "8846"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8847"
+            },
+            "ticker": {
+              "id": "5318"
+            }
+          },
+          "id": "5317",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "8815",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8816",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6817",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "5328",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "start": 0
+          },
+          "id": "5307",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "5309",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "8817",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8818",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "axis_label": "Total number of draws",
+            "coordinates": null,
+            "formatter": {
+              "id": "8849"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "8850"
+            },
+            "ticker": {
+              "id": "5314"
+            }
+          },
+          "id": "5313",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "5311",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "5314",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5313"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5316",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "8819",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "8820",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5317"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5320",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "3170",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "AAAAAABAj0AAAAAAAECfQAAAAAAAcKdAAAAAAABAr0AAAAAAAIizQAAAAAAAcLdAAAAAAABYu0AAAAAAAEC/QAAAAAAAlMFAAAAAAACIw0AAAAAAAHzFQAAAAAAAcMdAAAAAAABkyUAAAAAAAFjLQAAAAAAATM1AAAAAAABAz0AAAAAAAJrQQAAAAAAAlNFAAAAAAACO0kAAAAAAAIjTQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              },
+              "y": {
+                "__ndarray__": "9yCQWLDHhUCtUn4auoyUQLanZIKqwZ9AW1FMIf4ipUA2suoxw0yqQL3LgGvF+65AOWu2QjUxsUAs0IxHWLKxQDBD78Nzx7RACqXpD4pQt0Ah/ZJt3e23QO7hh0ibtbpAnlo+2jxmvEBs7Fvz6Ji/QNJbARG4isBAHWY6D6AuwUAj5pS/kCbCQP8KQMt/U8NADeQY2yRtxEC9L08VBXTFQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  20
+                ]
+              }
+            },
+            "selected": {
+              "id": "8802"
+            },
+            "selection_policy": {
+              "id": "8801"
+            }
+          },
+          "id": "6816",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "6829"
+              }
+            ],
+            "below": [
+              {
+                "id": "3873"
+              }
+            ],
+            "center": [
+              {
+                "id": "3876"
+              },
+              {
+                "id": "3880"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "3877"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "6808"
+              },
+              {
+                "id": "6814"
+              },
+              {
+                "id": "6820"
+              },
+              {
+                "id": "6826"
+              },
+              {
+                "id": "6828"
+              }
+            ],
+            "title": {
+              "id": "6832"
+            },
+            "toolbar": {
+              "id": "3891"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "3865"
+            },
+            "x_scale": {
+              "id": "3869"
+            },
+            "y_range": {
+              "id": "3867"
+            },
+            "y_scale": {
+              "id": "3871"
+            }
+          },
+          "id": "3864",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "6816"
+            },
+            "glyph": {
+              "id": "6817"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "6819"
+            },
+            "nonselection_glyph": {
+              "id": "6818"
+            },
+            "view": {
+              "id": "6821"
+            }
+          },
+          "id": "6820",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "hatch_color": {
+              "value": "orange"
+            },
+            "line_color": {
+              "value": "orange"
+            },
+            "size": {
+              "value": 6
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "6823",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "5326",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {},
+          "id": "8821",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5330"
+            }
+          },
+          "id": "5325",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "5324",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "5327",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "8822",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "above": [
+              {
+                "id": "8299"
+              }
+            ],
+            "below": [
+              {
+                "id": "5637"
+              }
+            ],
+            "center": [
+              {
+                "id": "5640"
+              },
+              {
+                "id": "5644"
+              }
+            ],
+            "height": 275,
+            "left": [
+              {
+                "id": "5641"
+              }
+            ],
+            "outline_line_color": "black",
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "8278"
+              },
+              {
+                "id": "8284"
+              },
+              {
+                "id": "8290"
+              },
+              {
+                "id": "8296"
+              },
+              {
+                "id": "8298"
+              }
+            ],
+            "title": {
+              "id": "8302"
+            },
+            "toolbar": {
+              "id": "5655"
+            },
+            "toolbar_location": null,
+            "width": 275,
+            "x_range": {
+              "id": "5629"
+            },
+            "x_scale": {
+              "id": "5633"
+            },
+            "y_range": {
+              "id": "5631"
+            },
+            "y_scale": {
+              "id": "5635"
+            }
+          },
+          "id": "5628",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "5321",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "5318",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "5322",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5329"
+            }
+          },
+          "id": "5323",
+          "type": "BoxZoomTool"
+        }
+      ],
+      "root_ids": [
+        "8901"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}
