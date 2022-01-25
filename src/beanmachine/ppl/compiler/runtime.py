@@ -1504,7 +1504,7 @@ class BMGRuntime:
                 # we are calling a functional then we check below that we got
                 # back either a graph node or a tensor that we can make into a constant.
                 if rv.is_random_variable:
-                    value = self.handle_sample(value)
+                    value = self._handle_sample(value)
             finally:
                 self.in_flight.remove(key)
             if isinstance(value, torch.Tensor):
@@ -1515,60 +1515,51 @@ class BMGRuntime:
             return value
         return self.rv_map[key]
 
-    def handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
+    def _handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
         time a model function decorated with @bm.random_variable returns; we verify that the
         returned value is a distribution that we know how to accumulate into the
         graph, and add a sample node to the graph."""
 
         if isinstance(operand, bn.DistributionNode):
-            return self._bmg.add_sample(operand)
-        if not isinstance(operand, torch.distributions.Distribution):
+            b = operand
+        elif isinstance(operand, dist.Bernoulli):
+            b = self.handle_bernoulli(operand.probs)
+        elif isinstance(operand, dist.Beta):
+            b = self.handle_beta(operand.concentration1, operand.concentration0)
+        elif isinstance(operand, dist.Binomial):
+            b = self.handle_binomial(operand.total_count, operand.probs)
+        elif isinstance(operand, dist.Categorical):
+            b = self.handle_categorical(operand.probs)
+        elif isinstance(operand, dist.Chi2):
+            b = self.handle_chi2(operand.df)
+        elif isinstance(operand, dist.Dirichlet):
+            b = self.handle_dirichlet(operand.concentration)
+        elif isinstance(operand, dist.Gamma):
+            b = self.handle_gamma(operand.concentration, operand.rate)
+        elif isinstance(operand, dist.HalfCauchy):
+            b = self.handle_halfcauchy(operand.scale)
+        elif isinstance(operand, dist.HalfNormal):
+            b = self.handle_halfnormal(operand.scale)
+        elif isinstance(operand, dist.Normal):
+            b = self.handle_normal(operand.mean, operand.stddev)
+        elif isinstance(operand, dist.Poisson):
+            b = self.handle_poisson(operand.rate)
+        elif isinstance(operand, dist.StudentT):
+            b = self.handle_studentt(operand.df, operand.loc, operand.scale)
+        elif isinstance(operand, dist.Uniform):
+            b = self.handle_uniform(operand.low, operand.high)
+        elif isinstance(operand, torch.distributions.Distribution):
+            # TODO: Better error
+            n = type(operand).__name__
+            raise TypeError(
+                f"Distribution '{n}' is not supported by Bean Machine Graph."
+            )
+        else:
             # TODO: Better error
             raise TypeError("A random_variable is required to return a distribution.")
-        if isinstance(operand, dist.Bernoulli):
-            b = self.handle_bernoulli(operand.probs)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Binomial):
-            b = self.handle_binomial(operand.total_count, operand.probs)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Categorical):
-            b = self.handle_categorical(operand.probs)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Dirichlet):
-            b = self.handle_dirichlet(operand.concentration)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Chi2):
-            b = self.handle_chi2(operand.df)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Gamma):
-            b = self.handle_gamma(operand.concentration, operand.rate)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.HalfCauchy):
-            b = self.handle_halfcauchy(operand.scale)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Normal):
-            b = self.handle_normal(operand.mean, operand.stddev)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.HalfNormal):
-            b = self.handle_halfnormal(operand.scale)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.StudentT):
-            b = self.handle_studentt(operand.df, operand.loc, operand.scale)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Uniform):
-            b = self.handle_uniform(operand.low, operand.high)
-            return self._bmg.add_sample(b)
-        # TODO: Get this into alpha order
-        if isinstance(operand, dist.Beta):
-            b = self.handle_beta(operand.concentration1, operand.concentration0)
-            return self._bmg.add_sample(b)
-        if isinstance(operand, dist.Poisson):
-            b = self.handle_poisson(operand.rate)
-            return self._bmg.add_sample(b)
-        # TODO: Better error
-        n = type(operand).__name__
-        raise TypeError(f"Distribution '{n}' is not supported by Bean Machine Graph.")
+
+        return self._bmg.add_sample(b)
 
     def handle_dot_get(self, operand: Any, name: str) -> Any:
         # If we have x = foo.bar, foo must not be a sample; we have no way of
