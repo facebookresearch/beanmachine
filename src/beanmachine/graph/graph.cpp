@@ -975,14 +975,11 @@ std::vector<std::vector<double>>& Graph::get_log_prob() {
 }
 
 void Graph::collect_sample() {
-  // construct a sample of the queried nodes
-  auto& sample_collector = (master_graph == nullptr)
-      ? this->samples
-      : master_graph->samples_allchains[thread_index];
-  auto& mean_collector = (master_graph == nullptr)
-      ? this->means
-      : master_graph->means_allchains[thread_index];
   if (agg_type == AggregationType::NONE) {
+    // construct a sample of the queried nodes
+    auto& sample_collector = (master_graph == nullptr)
+        ? this->samples
+        : master_graph->samples_allchains[thread_index];
     std::vector<NodeValue> sample;
     for (uint node_id : queries) {
       sample.push_back(nodes[node_id]->value);
@@ -992,6 +989,9 @@ void Graph::collect_sample() {
   // note: we divide each new value by agg_samples rather than directly add
   // them to the total to avoid overflow
   else if (agg_type == AggregationType::MEAN) {
+    auto& mean_collector = (master_graph == nullptr)
+        ? this->means
+        : master_graph->means_allchains[thread_index];
     assert(mean_collector.size() == queries.size());
     uint pos = 0;
     for (uint node_id : queries) {
