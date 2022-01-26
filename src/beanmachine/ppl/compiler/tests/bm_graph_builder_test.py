@@ -41,7 +41,6 @@ from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli
 
 
 def tidy(s: str) -> str:
@@ -280,24 +279,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         betas = bmg._bmg.add_sample(beta)
         b = bmg.handle_bernoulli(betas)
         self.assertTrue(isinstance(b, BernoulliNode))
-
-    def test_handle_sample(self) -> None:
-
-        bmg = BMGRuntime()
-
-        # Sample on a graph node.
-        h = bmg._bmg.add_constant_tensor(tensor(0.5))
-        b = bmg._bmg.add_bernoulli(h)
-        s1 = bmg.handle_sample(b)
-        self.assertTrue(isinstance(s1, SampleNode))
-
-        # Sample on a distribution object.
-        b = Bernoulli(0.5)
-        s2 = bmg.handle_sample(b)
-        self.assertTrue(isinstance(s2, SampleNode))
-
-        # Verify that they are not memoized; samples are always distinct.
-        self.assertFalse(s1 is s2)
 
     def test_addition(self) -> None:
         """Test addition"""
