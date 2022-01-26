@@ -83,6 +83,12 @@ class BMGNode(ABC):
     def is_leaf(self) -> bool:
         return len(self.outputs.items) == 0
 
+    def __str__(self) -> str:
+        return type(self).__name__
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 # ####
 # #### Nodes representing constant values
@@ -101,14 +107,14 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
     def __init__(self):
         BMGNode.__init__(self, [])
 
+    def __str__(self) -> str:
+        return str(self.value)
+
 
 class UntypedConstantNode(ConstantNode):
     def __init__(self, value: Any) -> None:
         self.value = value
         ConstantNode.__init__(self)
-
-    def __str__(self) -> str:
-        return str(self.value)
 
 
 class BooleanNode(ConstantNode):
@@ -120,9 +126,6 @@ class BooleanNode(ConstantNode):
         self.value = value
         ConstantNode.__init__(self)
 
-    def __str__(self) -> str:
-        return str(self.value)
-
 
 class NaturalNode(ConstantNode):
     """An integer constant restricted to non-negative values"""
@@ -132,9 +135,6 @@ class NaturalNode(ConstantNode):
     def __init__(self, value: int):
         self.value = value
         ConstantNode.__init__(self)
-
-    def __str__(self) -> str:
-        return str(self.value)
 
 
 class PositiveRealNode(ConstantNode):
@@ -146,9 +146,6 @@ class PositiveRealNode(ConstantNode):
         self.value = value
         ConstantNode.__init__(self)
 
-    def __str__(self) -> str:
-        return str(self.value)
-
 
 class NegativeRealNode(ConstantNode):
     """A real constant restricted to non-positive values"""
@@ -158,9 +155,6 @@ class NegativeRealNode(ConstantNode):
     def __init__(self, value: float):
         self.value = value
         ConstantNode.__init__(self)
-
-    def __str__(self) -> str:
-        return str(self.value)
 
 
 class ProbabilityNode(ConstantNode):
@@ -172,9 +166,6 @@ class ProbabilityNode(ConstantNode):
         self.value = value
         ConstantNode.__init__(self)
 
-    def __str__(self) -> str:
-        return str(self.value)
-
 
 class RealNode(ConstantNode):
     """An unrestricted real constant"""
@@ -185,9 +176,6 @@ class RealNode(ConstantNode):
         self.value = value
         ConstantNode.__init__(self)
 
-    def __str__(self) -> str:
-        return str(self.value)
-
 
 class ConstantTensorNode(ConstantNode):
     """A tensor constant"""
@@ -197,9 +185,6 @@ class ConstantTensorNode(ConstantNode):
     def __init__(self, value: Tensor):
         self.value = value
         ConstantNode.__init__(self)
-
-    def __str__(self) -> str:
-        return str(self.value)
 
 
 class ConstantPositiveRealMatrixNode(ConstantTensorNode):
@@ -254,9 +239,6 @@ class TensorNode(BMGNode):
         self._size = size
         BMGNode.__init__(self, items)
 
-    def __str__(self) -> str:
-        return "TensorNode"
-
 
 # ####
 # #### Nodes representing distributions
@@ -279,6 +261,9 @@ class BernoulliBase(DistributionNode):
     def probability(self) -> BMGNode:
         return self.inputs[0]
 
+    def __repr__(self) -> str:
+        return "Bernoulli(" + repr(self.probability) + ")"
+
 
 class BernoulliNode(BernoulliBase):
     """The Bernoulli distribution is a coin flip; it takes
@@ -287,9 +272,6 @@ class BernoulliNode(BernoulliBase):
     def __init__(self, probability: BMGNode):
         BernoulliBase.__init__(self, probability)
 
-    def __str__(self) -> str:
-        return "Bernoulli(" + str(self.probability) + ")"
-
 
 class BernoulliLogitNode(BernoulliBase):
     """The Bernoulli distribution is a coin flip; it takes
@@ -297,9 +279,6 @@ class BernoulliLogitNode(BernoulliBase):
 
     def __init__(self, probability: BMGNode):
         BernoulliBase.__init__(self, probability)
-
-    def __str__(self) -> str:
-        return "Bernoulli(" + str(self.probability) + ")"
 
 
 class BetaNode(DistributionNode):
@@ -317,8 +296,8 @@ class BetaNode(DistributionNode):
     def beta(self) -> BMGNode:
         return self.inputs[1]
 
-    def __str__(self) -> str:
-        return f"Beta({str(self.alpha)},{str(self.beta)})"
+    def __repr__(self) -> str:
+        return f"Beta({repr(self.alpha)},{repr(self.beta)})"
 
 
 class PoissonNode(DistributionNode):
@@ -331,8 +310,8 @@ class PoissonNode(DistributionNode):
     def rate(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return f"Poisson({str(self.rate)})"
+    def __repr__(self) -> str:
+        return f"Poisson({repr(self.rate)})"
 
 
 class BinomialNodeBase(DistributionNode):
@@ -347,8 +326,8 @@ class BinomialNodeBase(DistributionNode):
     def probability(self) -> BMGNode:
         return self.inputs[1]
 
-    def __str__(self) -> str:
-        return f"Binomial({self.count}, {self.probability})"
+    def __repr__(self) -> str:
+        return f"Binomial({repr(self.count)}, {repr(self.probability)})"
 
     def support(self) -> Iterable[Any]:
         raise ValueError("Support of binomial is not yet implemented.")
@@ -397,8 +376,8 @@ class CategoricalNodeBase(DistributionNode):
     def probability(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return "Categorical(" + str(self.probability) + ")"
+    def __repr__(self) -> str:
+        return "Categorical(" + repr(self.probability) + ")"
 
 
 class CategoricalNode(CategoricalNodeBase):
@@ -422,8 +401,8 @@ class Chi2Node(DistributionNode):
     def df(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return f"Chi2({str(self.df)})"
+    def __repr__(self) -> str:
+        return f"Chi2({repr(self.df)})"
 
 
 class DirichletNode(DistributionNode):
@@ -439,8 +418,8 @@ class DirichletNode(DistributionNode):
     def concentration(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return f"Dirichlet({str(self.concentration)})"
+    def __repr__(self) -> str:
+        return f"Dirichlet({repr(self.concentration)})"
 
 
 class FlatNode(DistributionNode):
@@ -449,9 +428,6 @@ class FlatNode(DistributionNode):
 
     def __init__(self):
         DistributionNode.__init__(self, [])
-
-    def __str__(self) -> str:
-        return "Flat()"
 
 
 class GammaNode(DistributionNode):
@@ -470,8 +446,8 @@ class GammaNode(DistributionNode):
     def rate(self) -> BMGNode:
         return self.inputs[1]
 
-    def __str__(self) -> str:
-        return f"Gamma({str(self.concentration)}, {str(self.rate)})"
+    def __repr__(self) -> str:
+        return f"Gamma({repr(self.concentration)}, {repr(self.rate)})"
 
 
 class HalfCauchyNode(DistributionNode):
@@ -494,8 +470,8 @@ class HalfCauchyNode(DistributionNode):
     def scale(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return f"HalfCauchy({str(self.scale)})"
+    def __repr__(self) -> str:
+        return f"HalfCauchy({repr(self.scale)})"
 
 
 class NormalNode(DistributionNode):
@@ -514,8 +490,8 @@ class NormalNode(DistributionNode):
     def sigma(self) -> BMGNode:
         return self.inputs[1]
 
-    def __str__(self) -> str:
-        return f"Normal({str(self.mu)},{str(self.sigma)})"
+    def __repr__(self) -> str:
+        return f"Normal({repr(self.mu)},{repr(self.sigma)})"
 
 
 class HalfNormalNode(DistributionNode):
@@ -531,8 +507,8 @@ class HalfNormalNode(DistributionNode):
     def sigma(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return f"HalfNormal({str(self.sigma)})"
+    def __repr__(self) -> str:
+        return f"HalfNormal({repr(self.sigma)})"
 
 
 class StudentTNode(DistributionNode):
@@ -559,8 +535,8 @@ class StudentTNode(DistributionNode):
     def scale(self) -> BMGNode:
         return self.inputs[2]
 
-    def __str__(self) -> str:
-        return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
+    def __repr__(self) -> str:
+        return f"StudentT({repr(self.df)},{repr(self.loc)},{repr(self.scale)})"
 
 
 class UniformNode(DistributionNode):
@@ -583,8 +559,8 @@ class UniformNode(DistributionNode):
     def high(self) -> BMGNode:
         return self.inputs[1]
 
-    def __str__(self) -> str:
-        return f"Uniform({str(self.low)},{str(self.high)})"
+    def __repr__(self) -> str:
+        return f"Uniform({repr(self.low)},{repr(self.high)})"
 
 
 # ####
@@ -613,8 +589,8 @@ class AdditionNode(OperatorNode):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
 
-    def __str__(self) -> str:
-        return "(" + "+".join([str(inp) for inp in self.inputs]) + ")"
+    def __repr__(self) -> str:
+        return "(" + "+".join([repr(inp) for inp in self.inputs]) + ")"
 
 
 class MultiplicationNode(OperatorNode):
@@ -624,8 +600,8 @@ class MultiplicationNode(OperatorNode):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
 
-    def __str__(self) -> str:
-        return "(" + "*".join([str(inp) for inp in self.inputs]) + ")"
+    def __repr__(self) -> str:
+        return "(" + "*".join([repr(inp) for inp in self.inputs]) + ")"
 
 
 # We have three kinds of logsumexp nodes.
@@ -648,9 +624,6 @@ class LogSumExpTorchNode(OperatorNode):
     def __init__(self, operand: BMGNode, dim: BMGNode, keepdim: BMGNode):
         OperatorNode.__init__(self, [operand, dim, keepdim])
 
-    def __str__(self) -> str:
-        return "LogSumExp"
-
 
 class LogSumExpNode(OperatorNode):
     """This class represents the LogSumExp operation: for values v_1, ..., v_n
@@ -659,9 +632,6 @@ class LogSumExpNode(OperatorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
-
-    def __str__(self) -> str:
-        return "LogSumExp"
 
 
 class ToMatrixNode(OperatorNode):
@@ -682,9 +652,6 @@ class ToMatrixNode(OperatorNode):
     @property
     def columns(self) -> NaturalNode:
         return self.inputs[1]  # pyre-ignore
-
-    def __str__(self) -> str:
-        return "ToMatrix"
 
 
 # ####
@@ -723,10 +690,10 @@ class IfThenElseNode(OperatorNode):
     def alternative(self) -> BMGNode:
         return self.inputs[2]
 
-    def __str__(self) -> str:
-        i = str(self.condition)
-        t = str(self.consequence)
-        e = str(self.alternative)
+    def __repr__(self) -> str:
+        i = repr(self.condition)
+        t = repr(self.consequence)
+        e = repr(self.alternative)
         return f"(if {i} then {t} else {e})"
 
 
@@ -742,9 +709,6 @@ class ChoiceNode(OperatorNode):
         assert len(items) >= 2
         c: List[BMGNode] = [condition]
         BMGNode.__init__(self, c + items)
-
-    def __str__(self) -> str:
-        return "Choice"
 
 
 # ####
@@ -778,48 +742,48 @@ class GreaterThanNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return f"({str(self.left)}>{str(self.right)})"
+    def __repr__(self) -> str:
+        return f"({repr(self.left)}>{repr(self.right)})"
 
 
 class GreaterThanEqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return f"({str(self.left)}>={str(self.right)})"
+    def __repr__(self) -> str:
+        return f"({repr(self.left)}>={repr(self.right)})"
 
 
 class LessThanNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return f"({str(self.left)}<{str(self.right)})"
+    def __repr__(self) -> str:
+        return f"({repr(self.left)}<{repr(self.right)})"
 
 
 class LessThanEqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return f"({str(self.left)}<={str(self.right)})"
+    def __repr__(self) -> str:
+        return f"({repr(self.left)}<={repr(self.right)})"
 
 
 class EqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return f"({str(self.left)}=={str(self.right)})"
+    def __repr__(self) -> str:
+        return f"({repr(self.left)}=={repr(self.right)})"
 
 
 class NotEqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return f"({str(self.left)}!={str(self.right)})"
+    def __repr__(self) -> str:
+        return f"({repr(self.left)}!={repr(self.right)})"
 
 
 class IsNode(ComparisonNode):
@@ -867,8 +831,8 @@ class DivisionNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return "(" + str(self.left) + "/" + str(self.right) + ")"
+    def __repr__(self) -> str:
+        return "(" + repr(self.left) + "/" + repr(self.right) + ")"
 
 
 class FloorDivNode(BinaryOperatorNode):
@@ -965,8 +929,8 @@ class IndexNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return str(self.left) + "[" + str(self.right) + "]"
+    def __repr__(self) -> str:
+        return repr(self.left) + "[" + repr(self.right) + "]"
 
 
 class ItemNode(OperatorNode):
@@ -975,8 +939,8 @@ class ItemNode(OperatorNode):
     def __init__(self, operand: BMGNode):
         OperatorNode.__init__(self, [operand])
 
-    def __str__(self) -> str:
-        return str(self.inputs[0]) + ".item()"
+    def __repr__(self) -> str:
+        return repr(self.inputs[0]) + ".item()"
 
 
 class VectorIndexNode(BinaryOperatorNode):
@@ -986,16 +950,13 @@ class VectorIndexNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return str(self.left) + "[" + str(self.right) + "]"
+    def __repr__(self) -> str:
+        return repr(self.left) + "[" + repr(self.right) + "]"
 
 
 class ColumnIndexNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    def __str__(self) -> str:
-        return "ColumnIndex"
 
 
 class MatrixMultiplicationNode(BinaryOperatorNode):
@@ -1006,8 +967,8 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return "(" + str(self.left) + "*" + str(self.right) + ")"
+    def __repr__(self) -> str:
+        return "(" + repr(self.left) + "*" + repr(self.right) + ")"
 
 
 class MatrixScaleNode(BinaryOperatorNode):
@@ -1016,8 +977,8 @@ class MatrixScaleNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return "(" + str(self.left) + "*" + str(self.right) + ")"
+    def __repr__(self) -> str:
+        return "(" + repr(self.left) + "*" + repr(self.right) + ")"
 
 
 class PowerNode(BinaryOperatorNode):
@@ -1026,8 +987,8 @@ class PowerNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def __str__(self) -> str:
-        return "(" + str(self.left) + "**" + str(self.right) + ")"
+    def __repr__(self) -> str:
+        return "(" + repr(self.left) + "**" + repr(self.right) + ")"
 
 
 # ####
@@ -1053,8 +1014,8 @@ class ExpNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "Exp(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "Exp(" + repr(self.operand) + ")"
 
 
 class ExpM1Node(UnaryOperatorNode):
@@ -1070,8 +1031,8 @@ class ExpM1Node(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ExpM1(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ExpM1(" + repr(self.operand) + ")"
 
 
 class LogisticNode(UnaryOperatorNode):
@@ -1081,8 +1042,8 @@ class LogisticNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "Logistic(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "Logistic(" + repr(self.operand) + ")"
 
 
 class LogNode(UnaryOperatorNode):
@@ -1092,8 +1053,8 @@ class LogNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "Log(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "Log(" + repr(self.operand) + ")"
 
 
 # TODO: replace "log" with "log1mexp" as needed below and update defs
@@ -1106,8 +1067,8 @@ class Log1mexpNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "Log1mexp(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "Log1mexp(" + repr(self.operand) + ")"
 
 
 # BMG supports three different kinds of negation:
@@ -1174,8 +1135,8 @@ class NegateNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "-" + str(self.operand)
+    def __repr__(self) -> str:
+        return "-" + repr(self.operand)
 
 
 class NotNode(UnaryOperatorNode):
@@ -1184,8 +1145,8 @@ class NotNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "not " + str(self.operand)
+    def __repr__(self) -> str:
+        return "not " + repr(self.operand)
 
 
 class ComplementNode(UnaryOperatorNode):
@@ -1197,8 +1158,8 @@ class ComplementNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "complement " + str(self.operand)
+    def __repr__(self) -> str:
+        return "complement " + repr(self.operand)
 
 
 # This operator is not supported in BMG.  We accumulate it into
@@ -1209,8 +1170,8 @@ class InvertNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "~" + str(self.operand)
+    def __repr__(self) -> str:
+        return "~" + repr(self.operand)
 
 
 class PhiNode(UnaryOperatorNode):
@@ -1220,8 +1181,8 @@ class PhiNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "Phi(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "Phi(" + repr(self.operand) + ")"
 
 
 class SampleNode(UnaryOperatorNode):
@@ -1241,16 +1202,16 @@ class SampleNode(UnaryOperatorNode):
         assert isinstance(c, DistributionNode)
         return c
 
-    def __str__(self) -> str:
-        return "Sample(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "Sample(" + repr(self.operand) + ")"
 
 
 class ToRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToReal(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToReal(" + repr(self.operand) + ")"
 
 
 class ToIntNode(UnaryOperatorNode):
@@ -1260,57 +1221,54 @@ class ToIntNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToInt(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToInt(" + repr(self.operand) + ")"
 
 
 class ToRealMatrixNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToRealMatrix(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToRealMatrix(" + repr(self.operand) + ")"
 
 
 class ToPositiveRealMatrixNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToPosRealMatrix(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToPosRealMatrix(" + repr(self.operand) + ")"
 
 
 class ToPositiveRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToPosReal(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToPosReal(" + repr(self.operand) + ")"
 
 
 class ToProbabilityNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToProb(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToProb(" + repr(self.operand) + ")"
 
 
 class ToNegativeRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def __str__(self) -> str:
-        return "ToNegReal(" + str(self.operand) + ")"
+    def __repr__(self) -> str:
+        return "ToNegReal(" + repr(self.operand) + ")"
 
 
 class LogSumExpVectorNode(UnaryOperatorNode):
     # BMG supports a log-sum-exp operator that takes a one-column tensor.
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    def __str__(self) -> str:
-        return "LogSumExpVector"
 
 
 # ####
@@ -1356,8 +1314,8 @@ class Observation(BMGNode):
     def observed(self) -> BMGNode:
         return self.inputs[0]
 
-    def __str__(self) -> str:
-        return str(self.observed) + "=" + str(self.value)
+    def __repr__(self) -> str:
+        return repr(self.observed) + "=" + repr(self.value)
 
 
 class Query(BMGNode):
@@ -1383,8 +1341,8 @@ class Query(BMGNode):
         c = self.inputs[0]
         return c
 
-    def __str__(self) -> str:
-        return "Query(" + str(self.operator) + ")"
+    def __repr__(self) -> str:
+        return "Query(" + repr(self.operator) + ")"
 
 
 # The basic idea of the Metropolis algorithm is: each possible state of
@@ -1421,9 +1379,6 @@ class ExpProductFactorNode(FactorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         FactorNode.__init__(self, inputs)
-
-    def __str__(self) -> str:
-        return "ExpProduct"
 
 
 def is_zero(n: BMGNode) -> bool:
