@@ -6,6 +6,7 @@
 import math
 
 import beanmachine.ppl as bm
+import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.base_proposer import (
@@ -79,3 +80,32 @@ def test_initialize_from_prior():
 
     assert samples_from_prior[0] != samples_from_prior[1]
     assert math.isclose(sum(samples_from_prior) / 10000.0, 0.0, abs_tol=1e-2)
+
+
+def test_initialization_resampling():
+    mh = bm.SingleSiteAncestralMetropolisHastings()
+
+    @bm.random_variable
+    def foo():
+        return dist.Uniform(3.0, 5.0)
+
+    # verify that the method re-sample as expected
+    retries = 0
+
+    def init_after_three_tries(d: dist.Distribution):
+        nonlocal retries
+        retries += 1
+        return torch.tensor(float("nan")) if retries < 3 else d.sample()
+
+    sampler = mh.sampler(
+        [foo()], {}, num_samples=10, initialize_fn=init_after_three_tries
+    )
+    for world in sampler:
+        assert not torch.isinf(world.log_prob()) and not torch.isnan(world.log_prob())
+
+    # an extreme case where the init value is always out of the support
+    def init_to_zero(d: dist.Distribution):
+        return torch.zeros_like(d.sample())
+
+    with pytest.raises(ValueError, match="Cannot find a valid initialization"):
+        mh.infer([foo()], {}, num_samples=10, initialize_fn=init_to_zero)
