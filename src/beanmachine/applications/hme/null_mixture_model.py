@@ -240,10 +240,11 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
             :, lambda df: np.logical_not(df.columns.duplicated())
         ]
 
-        pred_df = pd.DataFrame()
+        pred_rows = []
         for _, row in new_preprocessed_data.iterrows():
             pred_row = self._predict_fere_byrow(row, post_samples)
             if self.model_config.mean_mixture.use_bimodal_alternative:
                 pred_row = np.exp(pred_row)
-            pred_df = pred_df.append(pred_row, ignore_index=True)
+            pred_rows.append(pred_row)
+        pred_df = pd.concat(pred_rows, axis=1, ignore_index=True).T
         return pred_df
