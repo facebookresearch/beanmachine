@@ -16,6 +16,11 @@ from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal
 
 
 @bm.random_variable
+def bern():
+    return Bernoulli(0.5)
+
+
+@bm.random_variable
 def beta():
     return Beta(2.0, 2.0)
 
@@ -217,7 +222,53 @@ def log_7():
     return (beta() + 7.0).log()
 
 
+@bm.functional
+def to_real_1():
+    # Calling float() causes a TO_REAL node to be emitted into the graph.
+    # TODO: Is this actually a good idea? We already automatically insert
+    # TO_REAL when necessary to make the type system happy. float() could
+    # just be an identity on graph nodes instead of adding TO_REAL.
+    #
+    # Once again, a functional is required to return a tensor.
+    return torch.tensor([float(bern()), 1.0])
+
+
+@bm.functional
+def to_real_2():
+    # Similarly for the tensor float() instance method.
+    return bern().float()
+
+
 class BMGArithmeticTest(unittest.TestCase):
+    def test_bmg_arithmetic_float(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([to_real_1(), to_real_2()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=2];
+  N4[label=1];
+  N5[label=ToReal];
+  N6[label=1.0];
+  N7[label=ToMatrix];
+  N8[label=Query];
+  N9[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N5;
+  N3 -> N7;
+  N4 -> N7;
+  N5 -> N7;
+  N5 -> N9;
+  N6 -> N7;
+  N7 -> N8;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_log(self) -> None:
         self.maxDiff = None
 

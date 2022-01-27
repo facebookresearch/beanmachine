@@ -32,7 +32,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     PowerNode,
     RealNode,
     SampleNode,
-    ToRealNode,
 )
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
@@ -1297,62 +1296,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
-
-    def test_to_real(self) -> None:
-        """Test to_real"""
-
-        # This test verifies that various mechanisms for producing a to_real node
-        # in the graph -- or avoiding producing such a node -- are working as designed.
-
-        bmg = BMGRuntime()
-
-        t1 = tensor(1.0)
-
-        # Graph nodes
-        gr1 = bmg._bmg.add_real(1.0)
-        self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg._bmg.add_constant_tensor(t1)
-        self.assertTrue(isinstance(gt1, ConstantTensorNode))
-
-        # torch.float is not a function, unlike torch.log, torch.add and so on.
-
-        # torch defines an "instance" float method that takes no arguments.
-        # Calling Tensor.float(x) or x.float() should produce a to_real node.
-
-        ta1 = t1.float
-        self.assertEqual(bmg.handle_dot_get(t1, "float"), ta1)
-
-        gta1 = bmg.handle_dot_get(gt1, "float")
-
-        ta2 = torch.Tensor.float
-        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "float"), ta2)
-
-        # Make a sample node; this cannot be simplified away.
-        h = bmg._bmg.add_constant_tensor(tensor(0.5))
-        b = bmg._bmg.add_bernoulli(h)
-        s = bmg._bmg.add_sample(b)
-        self.assertTrue(isinstance(s, SampleNode))
-
-        sa = bmg.handle_dot_get(s, "float")
-
-        # Float of a value produces a value
-        self.assertEqual(bmg.handle_to_real(1.0), 1.0)
-        self.assertEqual(bmg.handle_to_real(t1), 1.0)
-        self.assertEqual(bmg.handle_function(ta1, []), 1.0)
-        self.assertEqual(bmg.handle_function(ta2, [t1]), 1.0)
-
-        # Float of a graph constant produces a value
-        self.assertEqual(bmg.handle_to_real(gr1), 1.0)
-        self.assertEqual(bmg.handle_to_real(gt1), 1.0)
-        self.assertEqual(bmg.handle_function(gta1, []), 1.0)
-        self.assertEqual(bmg.handle_function(ta2, [gr1]), 1.0)
-        self.assertEqual(bmg.handle_function(ta2, [gt1]), 1.0)
-
-        # Float of sample produces node
-        n = ToRealNode
-        self.assertTrue(isinstance(bmg.handle_to_real(s), n))
-        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_to_positive_real(self) -> None:
         """Test to_positive_real"""
