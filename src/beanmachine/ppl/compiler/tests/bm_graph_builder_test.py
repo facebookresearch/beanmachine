@@ -24,7 +24,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     LessThanEqualNode,
     LessThanNode,
     Log1mexpNode,
-    LogNode,
     MatrixMultiplicationNode,
     MultiplicationNode,
     NegateNode,
@@ -628,69 +627,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Exp of sample produces node
         n = ExpNode
         self.assertTrue(isinstance(bmg.handle_exp(s), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
-        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
-
-    def test_log(self) -> None:
-        """Test log"""
-
-        # This test verifies that various mechanisms for producing a log node
-        # in the graph -- or avoiding producing such a node -- are working as designed.
-
-        bmg = BMGRuntime()
-
-        t0 = tensor(0.0)
-        t1 = tensor(1.0)
-
-        # Graph nodes
-        gr1 = bmg._bmg.add_real(1.0)
-        self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg._bmg.add_constant_tensor(t1)
-        self.assertTrue(isinstance(gt1, ConstantTensorNode))
-
-        # torch defines a "static" log method that takes one value.
-        ta = torch.log
-        self.assertEqual(bmg.handle_dot_get(torch, "log"), ta)
-
-        # torch defines an "instance" log method that takes no arguments.
-        # Calling Tensor.log(x) or x.log() should produce a log node.
-
-        ta1 = t1.log
-        self.assertEqual(bmg.handle_dot_get(t1, "log"), ta1)
-
-        gta1 = bmg.handle_dot_get(gt1, "log")
-
-        ta2 = torch.Tensor.log
-        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "log"), ta2)
-
-        # Make a sample node; this cannot be simplified away.
-        h = bmg._bmg.add_constant_tensor(tensor(0.5))
-        b = bmg._bmg.add_bernoulli(h)
-        s = bmg._bmg.add_sample(b)
-        self.assertTrue(isinstance(s, SampleNode))
-
-        sa = bmg.handle_dot_get(s, "log")
-
-        # Log of a value produces a value
-        self.assertEqual(bmg.handle_log(1.0), 0.0)
-        self.assertEqual(bmg.handle_log(t1), t0)
-        self.assertEqual(bmg.handle_function(ta, [t1]), t0)
-        self.assertEqual(bmg.handle_function(ta1, []), t0)
-        self.assertEqual(bmg.handle_function(ta2, [t1]), t0)
-
-        # Log of a graph constant produces a value
-        self.assertEqual(bmg.handle_log(gr1), 0.0)
-        self.assertEqual(bmg.handle_log(gt1), t0)
-        self.assertEqual(bmg.handle_function(ta, [gr1]), 0.0)
-        self.assertEqual(bmg.handle_function(ta, [gt1]), t0)
-        self.assertEqual(bmg.handle_function(gta1, []), t0)
-        self.assertEqual(bmg.handle_function(ta2, [gr1]), 0.0)
-        self.assertEqual(bmg.handle_function(ta2, [gt1]), t0)
-
-        # Log of sample produces node
-        n = LogNode
-        self.assertTrue(isinstance(bmg.handle_log(s), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
         self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
