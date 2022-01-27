@@ -31,5 +31,6 @@ TEST(testrejection, beta_bernoulli) {
   g.observe(k, (natural_t)2);
   g.query(prob);
   auto& means = g.infer_mean(1000, InferenceType::REJECTION, 23891);
+  // TODO: Insert closed form formula here. -- Mootaz Elnozahy
   EXPECT_NEAR(means[0], 0.4, 1e-2);
 }
