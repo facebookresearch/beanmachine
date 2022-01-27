@@ -14,7 +14,7 @@ Bean Machine is a probabilistic programming language for inference over statisti
 Check out our [tutorials](https://beanmachine.org/docs/tutorials/) and [Quick Start](https://beanmachine.org/docs/overview/quick_start/) to get started!
 
 ## Installation
-Bean Machine supports Python 3.7, 3.8 and PyTorch 1.10.
+Bean Machine supports Python 3.7-3.9 and PyTorch 1.10.
 
 ### Install the Latest Release with Pip
 
