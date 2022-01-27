@@ -6,6 +6,7 @@
 
 # BM -> BMG compiler arithmetic tests
 
+import math
 import unittest
 
 import beanmachine.ppl as bm
@@ -170,7 +171,117 @@ def unsupported_add():
     return bino() + "foo"
 
 
+@bm.functional
+def log_1():
+    # Ordinary constant, math.log. Note that a functional is
+    # required to return a tensor. Verify that ordinary
+    # arithmetic still works in a model.
+    return torch.tensor(math.log(1.0))
+
+
+@bm.functional
+def log_2():
+    # Tensor constant, math.log; this is legal.
+    # A multi-valued tensor would be an error.
+    return torch.tensor(math.log(torch.tensor(2.0)))
+
+
+@bm.functional
+def log_3():
+    # Tensor constant, Tensor.log.
+    # An ordinary constant would be an error.
+    return torch.Tensor.log(torch.tensor(3.0))
+
+
+@bm.functional
+def log_4():
+    # Tensor constant, instance log
+    return torch.tensor([4.0, 4.0]).log()
+
+
+@bm.functional
+def log_5():
+    # Stochastic value, math.log
+    return torch.tensor(math.log(beta() + 5.0))
+
+
+@bm.functional
+def log_6():
+    # Stochastic value, Tensor.log
+    return torch.Tensor.log(beta() + 6.0)
+
+
+@bm.functional
+def log_7():
+    # Stochastic value, instance log
+    return (beta() + 7.0).log()
+
+
 class BMGArithmeticTest(unittest.TestCase):
+    def test_bmg_arithmetic_log(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                log_1(),
+                log_2(),
+                log_3(),
+                log_4(),
+                log_5(),
+                log_6(),
+                log_7(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=0.0];
+  N01[label=Query];
+  N02[label=0.6931471824645996];
+  N03[label=Query];
+  N04[label=1.0986123085021973];
+  N05[label=Query];
+  N06[label="[1.3862943649291992,1.3862943649291992]"];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=ToPosReal];
+  N12[label=5.0];
+  N13[label="+"];
+  N14[label=Log];
+  N15[label=Query];
+  N16[label=6.0];
+  N17[label="+"];
+  N18[label=Log];
+  N19[label=Query];
+  N20[label=7.0];
+  N21[label="+"];
+  N22[label=Log];
+  N23[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N13;
+  N11 -> N17;
+  N11 -> N21;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+}"""
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_expm1(self) -> None:
         self.maxDiff = None
 
