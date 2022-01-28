@@ -287,6 +287,7 @@ class BMGRuntime:
             # Math functions
             math.exp: self.handle_exp,
             math.log: self.handle_log,
+            float: self.handle_to_real,
             # Tensor instance functions
             torch.Tensor.add: self.handle_addition,
             torch.Tensor.div: self.handle_division,
