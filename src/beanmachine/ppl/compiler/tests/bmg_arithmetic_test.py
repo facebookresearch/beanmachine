@@ -223,6 +223,52 @@ def log_7():
 
 
 @bm.functional
+def exp_1():
+    # Ordinary constant, math.exp. Note that a functional is
+    # required to return a tensor. Verify that ordinary
+    # arithmetic still works in a model.
+    return torch.tensor(math.exp(1.0))
+
+
+@bm.functional
+def exp_2():
+    # Tensor constant, math.exp; this is legal.
+    # A multi-valued tensor would be an error.
+    return torch.tensor(math.exp(torch.tensor(2.0)))
+
+
+@bm.functional
+def exp_3():
+    # Tensor constant, Tensor.exp.
+    # An ordinary constant would be an error.
+    return torch.Tensor.exp(torch.tensor(3.0))
+
+
+@bm.functional
+def exp_4():
+    # Tensor constant, instance exp
+    return torch.tensor([4.0, 4.0]).exp()
+
+
+@bm.functional
+def exp_5():
+    # Stochastic value, math.exp
+    return torch.tensor(math.exp(beta() + 5.0))
+
+
+@bm.functional
+def exp_6():
+    # Stochastic value, Tensor.exp
+    return torch.Tensor.exp(beta() + 6.0)
+
+
+@bm.functional
+def exp_7():
+    # Stochastic value, instance exp
+    return (beta() + 7.0).exp()
+
+
+@bm.functional
 def to_real_1():
     # Calling float() causes a TO_REAL node to be emitted into the graph.
     # TODO: Is this actually a good idea? We already automatically insert
@@ -331,6 +377,71 @@ digraph "graph" {
   N21 -> N22;
   N22 -> N23;
 }"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_exp(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                exp_1(),
+                exp_2(),
+                exp_3(),
+                exp_4(),
+                exp_5(),
+                exp_6(),
+                exp_7(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=2.7182817459106445];
+  N01[label=Query];
+  N02[label=7.389056205749512];
+  N03[label=Query];
+  N04[label=20.08553695678711];
+  N05[label=Query];
+  N06[label="[54.598148345947266,54.598148345947266]"];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=ToPosReal];
+  N12[label=5.0];
+  N13[label="+"];
+  N14[label=Exp];
+  N15[label=Query];
+  N16[label=6.0];
+  N17[label="+"];
+  N18[label=Exp];
+  N19[label=Query];
+  N20[label=7.0];
+  N21[label="+"];
+  N22[label=Exp];
+  N23[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N13;
+  N11 -> N17;
+  N11 -> N21;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+}
+"""
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_bmg_arithmetic_expm1(self) -> None:
