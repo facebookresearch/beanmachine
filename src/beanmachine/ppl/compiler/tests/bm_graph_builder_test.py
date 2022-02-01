@@ -18,7 +18,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ConstantTensorNode,
     DivisionNode,
     EqualNode,
-    ExpNode,
     GreaterThanEqualNode,
     GreaterThanNode,
     LessThanEqualNode,
@@ -557,78 +556,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
-
-    def test_exp(self) -> None:
-        """Test exp"""
-
-        # This test verifies that various mechanisms for producing an exp node
-        # in the graph -- or avoiding producing such a node -- are working as designed.
-
-        bmg = BMGRuntime()
-
-        e = math.exp(1.0)
-        t1 = tensor(1.0)
-        te = torch.exp(t1)
-
-        # Graph nodes
-        gr1 = bmg._bmg.add_real(1.0)
-        self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg._bmg.add_constant_tensor(t1)
-        self.assertTrue(isinstance(gt1, ConstantTensorNode))
-
-        # torch defines a "static" exp method that takes one value.
-        # TODO: torch.exp(x) requires that x be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
-        # TODO: Should it?
-
-        ta = torch.exp
-        self.assertEqual(bmg.handle_dot_get(torch, "exp"), ta)
-
-        # torch defines an "instance" exp method that takes no arguments.
-        # Calling Tensor.exp(x) or x.exp() should produce an exp node.
-
-        # TODO: In Tensor.exp(x), x is required to be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
-        # TODO: Should it?
-
-        ta1 = t1.exp
-        self.assertEqual(bmg.handle_dot_get(t1, "exp"), ta1)
-
-        gta1 = bmg.handle_dot_get(gt1, "exp")
-
-        ta2 = torch.Tensor.exp
-        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "exp"), ta2)
-
-        # Make a sample node; this cannot be simplified away.
-        h = bmg._bmg.add_constant_tensor(tensor(0.5))
-        b = bmg._bmg.add_bernoulli(h)
-        s = bmg._bmg.add_sample(b)
-        self.assertTrue(isinstance(s, SampleNode))
-
-        sa = bmg.handle_dot_get(s, "exp")
-
-        # Exp of a value produces a value
-        self.assertEqual(bmg.handle_exp(1.0), e)
-        self.assertEqual(bmg.handle_exp(t1), te)
-        self.assertEqual(bmg.handle_function(ta, [t1]), te)
-        self.assertEqual(bmg.handle_function(ta1, []), te)
-        self.assertEqual(bmg.handle_function(ta2, [t1]), te)
-
-        # Exp of a graph constant produces a value
-        self.assertEqual(bmg.handle_exp(gr1), e)
-        self.assertEqual(bmg.handle_exp(gt1), te)
-        self.assertEqual(bmg.handle_function(ta, [gr1]), e)
-        self.assertEqual(bmg.handle_function(ta, [gt1]), te)
-        self.assertEqual(bmg.handle_function(gta1, []), te)
-        self.assertEqual(bmg.handle_function(ta2, [gr1]), e)
-        self.assertEqual(bmg.handle_function(ta2, [gt1]), te)
-
-        # Exp of sample produces node
-        n = ExpNode
-        self.assertTrue(isinstance(bmg.handle_exp(s), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
-        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_log1mexp(self) -> None:
         """Test log1mexp - based on test_log."""
