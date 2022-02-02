@@ -76,6 +76,14 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.memoize import MemoizationKey
 
 
+def _has_ordinary_value(x: Any) -> bool:
+    return not isinstance(x, bn.BMGNode) or isinstance(x, bn.ConstantNode)
+
+
+def _get_ordinary_value(x: Any) -> Any:
+    return x.value if isinstance(x, bn.ConstantNode) else x
+
+
 def _hashable(x: Any) -> bool:
     # Oddly enough, Python does not allow you to test for set inclusion
     # if the object is not hashable. Since it is impossible for an unhashable
@@ -350,6 +358,30 @@ class BMGRuntime:
         if pd is not None:
             pd.finish(s)
 
+    #
+    # Operators
+    #
+
+    def _possibly_stochastic_op(
+        self, normal_op: Callable, stochastic_op: Callable, values: List[Any]
+    ) -> Any:
+        # We have a bunch of values that are being passed to a function.
+        # If all the values are ordinary (non-stochastic) then just call
+        # the normal function that takes ordinary values. Otherwise,
+        # convert all the non-nodes to nodes and call the node constructor.
+
+        # TODO: This logic is duplicated with SpecialFunctionCaller; move
+        # the operator handling into there as well.
+
+        if all(_has_ordinary_value(v) for v in values):
+            return normal_op(*(_get_ordinary_value(v) for v in values))
+        return stochastic_op(
+            *(
+                v if isinstance(v, bn.BMGNode) else self._bmg.add_constant(v)
+                for v in values
+            )
+        )
+
     def handle_bernoulli(
         self, probs: Any = None, logits: Any = None
     ) -> bn.BernoulliNode:
@@ -476,237 +508,123 @@ class BMGRuntime:
         return self._bmg.add_poisson(rate)
 
     def handle_greater_than(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input > other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value > other.value
-        return self._bmg.add_greater_than(input, other)
+        return self._possibly_stochastic_op(
+            operator.gt, self._bmg.add_greater_than, [input, other]
+        )
 
     def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input >= other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value >= other.value
-        return self._bmg.add_greater_than_equal(input, other)
+        return self._possibly_stochastic_op(
+            operator.ge, self._bmg.add_greater_than_equal, [input, other]
+        )
 
     def handle_less_than(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input < other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value < other.value
-        return self._bmg.add_less_than(input, other)
+        return self._possibly_stochastic_op(
+            operator.lt, self._bmg.add_less_than, [input, other]
+        )
 
     def handle_less_than_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input <= other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value <= other.value
-        return self._bmg.add_less_than_equal(input, other)
+        return self._possibly_stochastic_op(
+            operator.le, self._bmg.add_less_than_equal, [input, other]
+        )
 
     def handle_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input == other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value == other.value
-        return self._bmg.add_equal(input, other)
+        return self._possibly_stochastic_op(
+            operator.eq, self._bmg.add_equal, [input, other]
+        )
 
     def handle_not_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input != other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value != other.value
-        return self._bmg.add_not_equal(input, other)
+        return self._possibly_stochastic_op(
+            operator.ne, self._bmg.add_not_equal, [input, other]
+        )
 
     def handle_is(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input is other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_is(input, other)
+        return self._possibly_stochastic_op(
+            operator.is_, self._bmg.add_is, [input, other]
+        )
 
     def handle_is_not(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input is not other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_is_not(input, other)
+        return self._possibly_stochastic_op(
+            operator.is_not, self._bmg.add_is_not, [input, other]
+        )
 
     def handle_in(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input in other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_in(input, other)
+        # Note that we cannot use operator.contains here because
+        # "x in y" is the same as "contains(y, x)".
+        return self._possibly_stochastic_op(
+            lambda x, y: x in y, self._bmg.add_in, [input, other]
+        )
 
     def handle_not_in(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input in other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_not_in(input, other)
+        return self._possibly_stochastic_op(
+            lambda x, y: x not in y, self._bmg.add_not_in, [input, other]
+        )
 
     def handle_multiplication(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input * other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value * other.value
-        return self._bmg.add_multiplication(input, other)
+        return self._possibly_stochastic_op(
+            operator.mul, self._bmg.add_multiplication, [input, other]
+        )
 
     def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
-        # TODO: We probably need to make a distinction between torch.mm and
+        # TODO: We need to make a distinction between torch.mm and
         # torch.matmul because they have different broadcasting behaviors.
-        if (not isinstance(input, BMGNode)) and (not isinstance(mat2, BMGNode)):
-            return torch.mm(input, mat2)
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(mat2, BMGNode):
-            mat2 = self._bmg.add_constant(mat2)
-        if isinstance(input, ConstantNode) and isinstance(mat2, ConstantNode):
-            return torch.mm(input.value, mat2.value)
-        return self._bmg.add_matrix_multiplication(input, mat2)
+        return self._possibly_stochastic_op(
+            operator.matmul, self._bmg.add_matrix_multiplication, [input, mat2]
+        )
 
     def handle_addition(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input + other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value + other.value
-        return self._bmg.add_addition(input, other)
+        return self._possibly_stochastic_op(
+            operator.add, self._bmg.add_addition, [input, other]
+        )
 
     def handle_bitand(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input & other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_bitand(input, other)
+        return self._possibly_stochastic_op(
+            operator.and_, self._bmg.add_bitand, [input, other]
+        )
 
     def handle_bitor(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input | other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_bitor(input, other)
+        return self._possibly_stochastic_op(
+            operator.or_, self._bmg.add_bitor, [input, other]
+        )
 
     def handle_bitxor(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input ^ other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_bitxor(input, other)
+        return self._possibly_stochastic_op(
+            operator.xor, self._bmg.add_bitxor, [input, other]
+        )
 
     def handle_subtraction(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input - other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value - other.value
-        return self._bmg.add_subtraction(input, other)
+        return self._possibly_stochastic_op(
+            operator.sub, self._bmg.add_subtraction, [input, other]
+        )
 
     def handle_division(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input / other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value / other.value
-        return self._bmg.add_division(input, other)
+        return self._possibly_stochastic_op(
+            operator.truediv, self._bmg.add_division, [input, other]
+        )
 
     def handle_floordiv(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input // other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_floordiv(input, other)
+        return self._possibly_stochastic_op(
+            operator.floordiv, self._bmg.add_floordiv, [input, other]
+        )
 
     def handle_lshift(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input << other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_lshift(input, other)
+        return self._possibly_stochastic_op(
+            operator.lshift, self._bmg.add_lshift, [input, other]
+        )
 
     def handle_mod(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input % other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_mod(input, other)
+        return self._possibly_stochastic_op(
+            operator.mod, self._bmg.add_mod, [input, other]
+        )
 
     def handle_power(self, input: Any, exponent: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(exponent, BMGNode)):
-            return input ** exponent
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(exponent, BMGNode):
-            exponent = self._bmg.add_constant(exponent)
-        if isinstance(input, ConstantNode) and isinstance(exponent, ConstantNode):
-            return input.value ** exponent.value
-        return self._bmg.add_power(input, exponent)
+        return self._possibly_stochastic_op(
+            operator.pow, self._bmg.add_power, [input, exponent]
+        )
 
     def handle_rshift(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input >> other
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self._bmg.add_constant(other)
-        return self._bmg.add_rshift(input, other)
+        return self._possibly_stochastic_op(
+            operator.rshift, self._bmg.add_rshift, [input, other]
+        )
 
     def _is_stochastic_tuple(self, t: Any):
         # A stochastic tuple is any tuple where any element is either a graph node
@@ -770,13 +688,9 @@ class BMGRuntime:
             return self._handle_tuple_index(left, right)
         # TODO: What if we have a non-tensor indexed with a stochastic value?
         # A list, for example?
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left[right]
-        if not isinstance(left, BMGNode):
-            left = self._bmg.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self._bmg.add_constant(right)
-        return self._bmg.add_index(left, right)
+        return self._possibly_stochastic_op(
+            lambda x, y: x[y], self._bmg.add_index, [left, right]
+        )
 
     def handle_slice(self, left: Any, lower: Any, upper: Any, step: Any) -> Any:
         if (
@@ -789,9 +703,7 @@ class BMGRuntime:
         return left[lower:upper:step]
 
     def handle_invert(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return ~input
-        return self._bmg.add_invert(input)
+        return self._possibly_stochastic_op(operator.inv, self._bmg.add_invert, [input])
 
     def handle_item(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
@@ -799,17 +711,11 @@ class BMGRuntime:
         return self._bmg.add_item(input)
 
     def handle_negate(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return -input
-        if isinstance(input, ConstantNode):
-            return -input.value
-        return self._bmg.add_negate(input)
+        return self._possibly_stochastic_op(operator.neg, self._bmg.add_negate, [input])
 
     def handle_uadd(self, input: Any) -> Any:
         # Unary plus on a graph node is an identity.
-        if not isinstance(input, BMGNode):
-            return +input
-        return input
+        return self._possibly_stochastic_op(operator.pos, lambda x: x, [input])
 
     # TODO: Remove this. We should insert TO_REAL nodes when necessary
     # to ensure compatibility with the BMG type system.
@@ -863,11 +769,7 @@ class BMGRuntime:
         return self._bmg.add_logistic(input)
 
     def handle_not(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return not input
-        if isinstance(input, ConstantNode):
-            return not input.value
-        return self._bmg.add_not(input)
+        return self._possibly_stochastic_op(operator.not_, self._bmg.add_not, [input])
 
     def handle_phi(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
