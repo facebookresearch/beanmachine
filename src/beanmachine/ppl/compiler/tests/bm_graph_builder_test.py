@@ -4,11 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 """Tests for bm_graph_builder.py"""
-import math
 import unittest
 from typing import Any
 
-import beanmachine.ppl.compiler.hint as hint
 import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import (
@@ -22,7 +20,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     GreaterThanNode,
     LessThanEqualNode,
     LessThanNode,
-    Log1mexpNode,
     MatrixMultiplicationNode,
     MultiplicationNode,
     NegateNode,
@@ -556,53 +553,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
-
-    def test_log1mexp(self) -> None:
-        """Test log1mexp - based on test_log."""
-
-        # Kicking the tires on log1mexp
-
-        bmg = BMGRuntime()
-
-        # Let's pick a pair of values such as v0 = log1mexp(v1)
-        v0 = -0.45867514538708193
-        v1 = -1.0
-
-        # Now we get the corresponding values as vectors
-        t0 = tensor(v0)
-        t1 = tensor(v1)
-
-        # Graph nodes corresponding to t1
-        gr1 = bmg._bmg.add_real(v1)
-        self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg._bmg.add_constant_tensor(t1)
-        self.assertTrue(isinstance(gt1, ConstantTensorNode))
-
-        # hint defines a "static" log1mexp method that takes one value.
-        ta = hint.log1mexp
-        self.assertEqual(bmg.handle_dot_get(hint, "log1mexp"), ta)
-
-        # Make a sample node; this cannot be simplified away.
-        h = bmg._bmg.add_constant_tensor(tensor(0.5))
-        b = bmg._bmg.add_bernoulli(h)
-        s = bmg._bmg.add_sample(b)
-        self.assertTrue(isinstance(s, SampleNode))
-
-        # Log of a value produces a value
-        self.assertEqual(bmg.handle_log1mexp(v1), v0)
-        self.assertEqual(bmg.handle_log1mexp(t1), t0)
-        self.assertEqual(bmg.handle_function(ta, [t1]), t0)
-
-        # Log of a graph constant produces a value
-        self.assertEqual(bmg.handle_log1mexp(gr1), v0)
-        self.assertEqual(bmg.handle_log1mexp(gt1), t0)
-        self.assertEqual(bmg.handle_function(ta, [gr1]), v0)
-        self.assertEqual(bmg.handle_function(ta, [gt1]), t0)
-
-        # Log of sample produces node
-        n = Log1mexpNode
-        self.assertTrue(isinstance(bmg.handle_log1mexp(s), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
 
     def test_multiplication(self) -> None:
         """Test multiplication"""
