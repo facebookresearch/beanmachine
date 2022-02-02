@@ -5,7 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <algorithm>
+#include <boost/iostreams/stream.hpp>
+#include <boost/progress.hpp>
 #include <cmath>
 #include <random>
 #include <string>
@@ -137,10 +138,17 @@ void MH::generate_sample() {
 
 void MH::collect_samples(uint num_samples, InferConfig infer_config) {
   graph->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+  boost::iostreams::stream<boost::iostreams::null_sink> nullOstream(
+      (boost::iostreams::null_sink()));
+  boost::progress_display show_progress(
+      num_samples, graph->thread_index == 0 ? std::cout : nullOstream);
   for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {
     generate_sample();
     if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
       collect_sample(infer_config);
+      if (graph->thread_index == 0) {
+        ++show_progress;
+      }
     }
   }
   graph->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
