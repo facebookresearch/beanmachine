@@ -269,6 +269,50 @@ def exp_7():
 
 
 @bm.functional
+def pow_1():
+    # Ordinary constant, power operator. Note that a functional is
+    # required to return a tensor. Verify that ordinary
+    # arithmetic still works in a model.
+    return torch.tensor(1.0 ** 10.0)
+
+
+@bm.functional
+def pow_2():
+    # Tensor constant, power operator.
+    return torch.tensor(2.0) ** 2.0
+
+
+@bm.functional
+def pow_3():
+    # Tensor constant, Tensor.pow, named argument.
+    return torch.Tensor.pow(torch.tensor(3.0), exponent=torch.tensor(3.0))
+
+
+@bm.functional
+def pow_4():
+    # Tensor constant, instance pow, named argument
+    return torch.tensor(4.0).pow(exponent=torch.tensor(4.0))
+
+
+@bm.functional
+def pow_5():
+    # Stochastic value, power operator
+    return beta() ** 5.0
+
+
+@bm.functional
+def pow_6():
+    # Stochastic value, Tensor.pow
+    return torch.Tensor.pow(torch.tensor(6.0), exponent=beta())
+
+
+@bm.functional
+def pow_7():
+    # Stochastic value, instance exp
+    return torch.tensor(7.0).pow(exponent=beta())
+
+
+@bm.functional
 def to_real_1():
     # Calling float() causes a TO_REAL node to be emitted into the graph.
     # TODO: Is this actually a good idea? We already automatically insert
@@ -285,7 +329,118 @@ def to_real_2():
     return bern().float()
 
 
+@bm.functional
+def not_1():
+    # Ordinary constant, not operator. Note that a functional is
+    # required to return a tensor. Verify that ordinary
+    # arithmetic still works in a model.
+    return torch.tensor(not 1.0)
+
+
+@bm.functional
+def not_2():
+    # Tensor constant; not operator. This is legal.
+    # A multi-valued tensor would be an error.
+    return torch.tensor(not torch.tensor(2.0))
+
+
+@bm.functional
+def not_3():
+    # Tensor constant, Tensor.logical_not.
+    # An ordinary constant would be an error.
+    return torch.Tensor.logical_not(torch.tensor(3.0))
+
+
+@bm.functional
+def not_4():
+    # Tensor constant, instance logical_not
+    return torch.tensor(4.0).logical_not()
+
+
+@bm.functional
+def not_5():
+    # Stochastic value, not operator
+    return torch.tensor(not (beta() + 5.0))
+
+
+@bm.functional
+def not_6():
+    # Stochastic value, Tensor.logical_not
+    return torch.Tensor.logical_not(beta() + 6.0)
+
+
+@bm.functional
+def not_7():
+    # Stochastic value, instance logical_not
+    return (beta() + 7.0).logical_not()
+
+
+@bm.functional
+def neg_1():
+    # Ordinary constant, - operator. Note that a functional is
+    # required to return a tensor. Verify that ordinary
+    # arithmetic still works in a model.
+    return torch.tensor(-1.0)
+
+
+@bm.functional
+def neg_2():
+    # Tensor constant; - operator.
+    return -torch.tensor(2.0)
+
+
+@bm.functional
+def neg_3():
+    # Tensor constant, Tensor.neg.
+    return torch.Tensor.neg(torch.tensor(3.0))
+
+
+@bm.functional
+def neg_4():
+    # Tensor constant, instance neg
+    return torch.tensor(4.0).neg()
+
+
+@bm.functional
+def neg_5():
+    # Stochastic value, - operator
+    return -(beta() + 5.0)
+
+
+@bm.functional
+def neg_6():
+    # Stochastic value, Tensor.neg
+    # TODO: "negative" is a synonym; make it work too.
+    return torch.Tensor.neg(beta() + 6.0)
+
+
+@bm.functional
+def neg_7():
+    # Stochastic value, instance neg
+    return (beta() + 7.0).neg()
+
+
 class BMGArithmeticTest(unittest.TestCase):
+    def test_bmg_arithmetic_logical_not(self) -> None:
+        self.maxDiff = None
+
+        # "not" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [not_1(), not_2(), not_3(), not_4(), not_5(), not_6(), not_7()]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a not operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a not operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a not operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_float(self) -> None:
         self.maxDiff = None
 
@@ -377,6 +532,130 @@ digraph "graph" {
   N21 -> N22;
   N22 -> N23;
 }"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_pow(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                pow_1(),
+                pow_2(),
+                pow_3(),
+                pow_4(),
+                pow_5(),
+                pow_6(),
+                pow_7(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=4.0];
+  N03[label=Query];
+  N04[label=27.0];
+  N05[label=Query];
+  N06[label=256.0];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=5.0];
+  N12[label="**"];
+  N13[label=Query];
+  N14[label=6.0];
+  N15[label=ToPosReal];
+  N16[label="**"];
+  N17[label=Query];
+  N18[label=7.0];
+  N19[label="**"];
+  N20[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N12;
+  N10 -> N15;
+  N11 -> N12;
+  N12 -> N13;
+  N14 -> N16;
+  N15 -> N16;
+  N15 -> N19;
+  N16 -> N17;
+  N18 -> N19;
+  N19 -> N20;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_neg(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                neg_1(),
+                neg_2(),
+                neg_3(),
+                neg_4(),
+                neg_5(),
+                neg_6(),
+                neg_7(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=-1.0];
+  N01[label=Query];
+  N02[label=-2.0];
+  N03[label=Query];
+  N04[label=-3.0];
+  N05[label=Query];
+  N06[label=-4.0];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=ToPosReal];
+  N12[label=5.0];
+  N13[label="+"];
+  N14[label="-"];
+  N15[label=Query];
+  N16[label=6.0];
+  N17[label="+"];
+  N18[label="-"];
+  N19[label=Query];
+  N20[label=7.0];
+  N21[label="+"];
+  N22[label="-"];
+  N23[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N13;
+  N11 -> N17;
+  N11 -> N21;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+}
+"""
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_bmg_arithmetic_exp(self) -> None:
