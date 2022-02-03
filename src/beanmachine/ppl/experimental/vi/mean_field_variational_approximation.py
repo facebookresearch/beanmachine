@@ -92,13 +92,12 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
 
         # TODO: This needs to be now set after self.new_dist has been instantiated
         # _tmp._init_weights = lambda layers: None
-        self.flow = flowtorch.bijectors.AffineAutoregressive(params=_tmp)
+        self.flow = flowtorch.bijectors.AffineAutoregressive(params_fn=_tmp)
 
         assert len(base_dist(**base_args).event_shape) <= 1
         self.new_dist = flowtorch.distributions.Flow(
             self.recompute_transformed_distribution(), self.flow
         )
-        self._flow_params = self.new_dist.bijector.params
         self.optim = torch.optim.Adam(
             self.parameters(),
             lr=lr,
@@ -155,7 +154,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
 
     def parameters(self):
         return itertools.chain(
-            self._flow_params.parameters(),
+            self.new_dist.parameters(),
             filter(lambda x: x.requires_grad, self.base_args.values()),
         )
 
