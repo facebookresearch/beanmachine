@@ -98,9 +98,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         assert not any(node in self.observations for node in values)
         new_world = self.copy()
         for node, value in values.items():
-            new_world._variables[node] = new_world._variables[node].replace(
-                value=value.clone()
-            )
+            new_world._variables[node] = new_world._variables[node].replace(value=value)
         # changing the value of a node can change the dependencies of its children nodes
         nodes_to_update = set().union(
             *(self._variables[node].children for node in values)
@@ -194,7 +192,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
         log_prob = torch.tensor(0.0)
         for node in set(nodes):
-            log_prob += torch.sum(self._variables[node].log_prob)
+            log_prob = log_prob + torch.sum(self._variables[node].log_prob)
         return log_prob
 
     def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:

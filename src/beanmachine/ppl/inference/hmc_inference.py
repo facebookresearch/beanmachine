@@ -30,6 +30,8 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         adapt_mass_matrix (bool): Whether to adapt the mass matrix. Defaults to True,
         target_accept_prob (float): Target accept prob. Increasing this value would lead
             to smaller step size. Defaults to 0.8.
+        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
+            inference (defaults to False).
     """
 
     def __init__(
@@ -39,12 +41,14 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.trajectory_length = trajectory_length
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
         self.target_accept_prob = target_accept_prob
+        self.nnc_compile = nnc_compile
         self._proposer = None
 
     def get_proposers(
@@ -63,6 +67,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
                 self.adapt_step_size,
                 self.adapt_mass_matrix,
                 self.target_accept_prob,
+                self.nnc_compile,
             )
         return [self._proposer]
 
@@ -91,12 +96,14 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.trajectory_length = trajectory_length
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
         self.target_accept_prob = target_accept_prob
+        self.nnc_compile = nnc_compile
         self._proposers = {}
 
     def get_proposers(
@@ -117,6 +124,7 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
                     self.adapt_step_size,
                     self.adapt_mass_matrix,
                     self.target_accept_prob,
+                    self.nnc_compile,
                 )
             proposers.append(self._proposers[node])
         return proposers

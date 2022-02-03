@@ -45,6 +45,8 @@ class HMCProposer(BaseProposer):
         adapt_step_size: Flag whether to adapt step size, defaults to True.
         adapt_mass_matrix: Flat whether to adapt mass matrix, defaults to True.
         target_accept_prob: Target accept prob, defaults to 0.8.
+        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
+            inference (defaults to False).
     """
 
     def __init__(
@@ -57,6 +59,7 @@ class HMCProposer(BaseProposer):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.world = initial_world
         self._target_rvs = target_rvs
@@ -65,6 +68,11 @@ class HMCProposer(BaseProposer):
             {node: initial_world[node] for node in self._target_rvs}
         )
         # cache pe and pe_grad to prevent re-computation
+        if nnc_compile:
+            from .nnc_utils import nnc_jit
+
+            self._potential_grads = nnc_jit(self._potential_grads)
+
         self._pe, self._pe_grad = self._potential_grads(self._positions)
         # initialize parameters
         self.trajectory_length = trajectory_length
@@ -116,7 +124,7 @@ class HMCProposer(BaseProposer):
         current values)"""
         constrained_vals = self._to_unconstrained.inv(positions)
         log_joint = self.world.replace(constrained_vals).log_prob()
-        log_joint -= self._to_unconstrained.log_abs_det_jacobian(
+        log_joint = log_joint - self._to_unconstrained.log_abs_det_jacobian(
             constrained_vals, positions
         )
         return -log_joint
