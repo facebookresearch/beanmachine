@@ -58,8 +58,6 @@ class Predictive(object):
         :param posterior: Optional `MonteCarloSamples` of the latent variables.
         :param num_samples: Number of prior predictive samples, defaults to 1. Should
             not be specified if `posterior` is specified.
-        :param return_inference_data: Indicate whether to return the predictives
-            as an InferenceData object
         :returns: `MonteCarloSamples` of the generated predictives.
         """
         assert (
@@ -131,9 +129,8 @@ class Predictive(object):
                         rv = rv.unsqueeze(0)
                     rv_dict[rvid].append(rv)
             for k, v in rv_dict.items():
-                # pyre-ignore
                 rv_dict[k] = torch.cat(v, dim=1)
-            # pyre-fixme
+            # pyre-ignore
             prior_pred = MonteCarloSamples(
                 dict(rv_dict),
                 default_namespace="prior_predictive",

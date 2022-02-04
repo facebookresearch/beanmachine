@@ -139,7 +139,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         rv: RVIdentifier,
         include_adapt_steps: bool = False,
         thinning: int = 1,
-        namespace=None,
+        namespace: Optional[str] = None,
     ) -> torch.Tensor:
         """
         Let C be the number of chains,
