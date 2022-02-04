@@ -4,9 +4,8 @@
 # LICENSE file in the root directory of this source tree.
 
 from collections import defaultdict
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
-import arviz as az
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.legacy.inference.single_site_ancestral_mh import (
