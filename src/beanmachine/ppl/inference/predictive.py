@@ -38,8 +38,7 @@ class Predictive(object):
         posterior: Optional[MonteCarloSamples] = None,
         num_samples: Optional[int] = None,
         vectorized: Optional[bool] = False,
-        return_inference_data: bool = False,
-    ) -> Union[MonteCarloSamples, az.InferenceData]:
+    ) -> MonteCarloSamples:
         """
         Generates predictives from a generative model.
 
@@ -83,14 +82,12 @@ class Predictive(object):
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
-                post_pred = MonteCarloSamples(query_dict)
-                if return_inference_data:
-                    post = posterior.to_inference_data()
-                    post_pred = post_pred.to_inference_data()["posterior"]
-                    post.add_groups({"posterior_predictive": post_pred})
-                    return post
-                else:
-                    return post_pred
+                post_pred = MonteCarloSamples(
+                    query_dict,
+                    default_namespace="posterior_predictive",
+                )
+                post_pred.add_groups(posterior)
+                return post_pred
             else:
                 # predictives are sequentially sampled
                 preds = []
@@ -108,14 +105,12 @@ class Predictive(object):
                         finally:
                             sampler.reset()
                     preds.append(_concat_rv_dicts(rv_dicts))
-                post_pred = MonteCarloSamples(preds)
-                if return_inference_data:
-                    post = posterior.to_inference_data()
-                    post_pred = post_pred.to_inference_data()["posterior"]
-                    post.add_groups({"posterior_predictive": post_pred})
-                    return post
-                else:
-                    return post_pred
+                post_pred = MonteCarloSamples(
+                    preds,
+                    default_namespace="posterior_predictive",
+                )
+                post_pred.add_groups(posterior)
+                return post_pred
         else:
             obs = {}
             predictives = []
@@ -140,11 +135,11 @@ class Predictive(object):
                 # pyre-ignore
                 rv_dict[k] = torch.cat(v, dim=1)
             # pyre-fixme
-            prior_pred = MonteCarloSamples(dict(rv_dict))
-            if return_inference_data:
-                return az.from_dict(prior_predictive=prior_pred.samples)
-            else:
-                return prior_pred
+            prior_pred = MonteCarloSamples(
+                dict(rv_dict),
+                default_namespace="prior_predictive",
+            )
+            return prior_pred
 
     @staticmethod
     def empirical(

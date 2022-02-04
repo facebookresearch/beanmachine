@@ -170,8 +170,10 @@ class PredictiveTest(unittest.TestCase):
 
         assert post_samples[self.prior_2()].shape == (2, 10, 1, 2)
         predictives = bm.simulate(
-            list(obs.keys()), post_samples, vectorized=True, return_inference_data=True
-        )
+            list(obs.keys()),
+            post_samples,
+            vectorized=True,
+        ).to_inference_data()
         assert "posterior" in predictives
         assert "posterior_predictive" in predictives
         assert predictives.posterior_predictive[self.likelihood_2(0)].shape == (
