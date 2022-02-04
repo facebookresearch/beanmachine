@@ -51,7 +51,6 @@ three, four and five.
 """
 
 import inspect
-import math
 import operator
 from types import MethodType
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
@@ -60,18 +59,11 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder, phi
-from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
-from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_nodes import BMGNode
 from beanmachine.ppl.compiler.special_function_caller import (
-    _hashable,
-    _flatten_all_lists,
-    _list_to_zeros,
-    _is_phi,
-    known_tensor_instance_functions,
-    only_ordinary_arguments,
-    KnownFunction,
+    SpecialFunctionCaller,
+    canonicalize_function,
 )
 from beanmachine.ppl.compiler.support import (
     ComputeSupport,
@@ -116,26 +108,6 @@ class BMGRuntime:
 
     _bmg: BMGraphBuilder
 
-    # As we execute the lifted program, we accumulate graph nodes in the
-    # graph builder,and the program passes around graph nodes instead of
-    # regular values. What happens when a graph node is passed to a
-    # function, or used as the receiver of a function? That function will be
-    # expecting a regular value as its argument or receiver.
-    #
-    # Certain function calls are special because they call graph nodes to
-    # be created; we have a dictionary here that maps Python function objects
-    # to the graph builder method that knows how to create the appropriate
-    # node type.
-    #
-    # There are also some functions which we know can be passed a graph node
-    # and will treat it correctly even though it is a graph node and not
-    # a value. For example, the function which constructs a dictionary
-    # or the function which constructs a list. When we encounter one of
-    # these functions in the lifted program, we do not create a graph node
-    # or call a special helper function; we simply allow it to be called normally.
-
-    function_map: Dict[Callable, Callable]
-
     # As we construct the graph we may encounter "random variable" values; these
     # refer to a function that we need to transform into the "lifted" form. This
     # map tracks those so that we do not repeat work. However, RVIDs contain a
@@ -166,6 +138,8 @@ class BMGRuntime:
 
     _pd: Optional[prof.ProfilerData]
 
+    _special_function_caller: SpecialFunctionCaller
+
     def __init__(self) -> None:
         self._bmg = BMGraphBuilder()
         self._pd = None
@@ -173,62 +147,7 @@ class BMGRuntime:
         self.lifted_map = {}
         self.in_flight = set()
         self._rv_to_query = {}
-        self.function_map = {
-            # Math functions
-            math.exp: self.handle_exp,
-            math.log: self.handle_log,
-            float: self.handle_to_real,
-            # Tensor instance functions
-            torch.Tensor.add: self.handle_addition,
-            torch.Tensor.div: self.handle_division,
-            torch.Tensor.exp: self.handle_exp,  # pyre-ignore
-            torch.Tensor.expm1: self.handle_expm1,  # pyre-ignore
-            torch.Tensor.float: self.handle_to_real,
-            torch.Tensor.item: self.handle_item,
-            torch.Tensor.int: self.handle_to_int,
-            torch.Tensor.logical_not: self.handle_not,  # pyre-ignore
-            torch.Tensor.log: self.handle_log,
-            torch.Tensor.logsumexp: self.handle_logsumexp,
-            torch.Tensor.matmul: self.handle_matrix_multiplication,
-            torch.Tensor.mm: self.handle_matrix_multiplication,  # pyre-ignore
-            torch.Tensor.mul: self.handle_multiplication,
-            torch.Tensor.neg: self.handle_negate,
-            torch.Tensor.pow: self.handle_power,
-            torch.Tensor.sigmoid: self.handle_logistic,
-            torch.Tensor.sub: self.handle_subtraction,
-            # Tensor static functions
-            torch.add: self.handle_addition,
-            torch.div: self.handle_division,
-            torch.exp: self.handle_exp,
-            torch.expm1: self.handle_expm1,
-            # Note that torch.float is not a function.
-            torch.log: self.handle_log,
-            torch.logsumexp: self.handle_logsumexp,
-            torch.logical_not: self.handle_not,
-            torch.matmul: self.handle_matrix_multiplication,
-            torch.mm: self.handle_matrix_multiplication,
-            torch.mul: self.handle_multiplication,
-            torch.neg: self.handle_negate,
-            torch.pow: self.handle_power,
-            torch.sigmoid: self.handle_logistic,
-            torch.sub: self.handle_subtraction,
-            # Distribution constructors
-            dist.Bernoulli: self.handle_bernoulli,
-            dist.Beta: self.handle_beta,
-            dist.Binomial: self.handle_binomial,
-            dist.Categorical: self.handle_categorical,
-            dist.Dirichlet: self.handle_dirichlet,
-            dist.Chi2: self.handle_chi2,
-            dist.Gamma: self.handle_gamma,
-            dist.HalfCauchy: self.handle_halfcauchy,
-            dist.Normal: self.handle_normal,
-            dist.HalfNormal: self.handle_halfnormal,
-            dist.StudentT: self.handle_studentt,
-            dist.Uniform: self.handle_uniform,
-            # Beanstalk hints
-            log1mexp: self.handle_log1mexp,
-            math_log1mexp: self.handle_log1mexp,
-        }
+        self._special_function_caller = SpecialFunctionCaller(self._bmg)
 
     def _begin(self, s: str) -> None:
         pd = self._pd
@@ -263,131 +182,6 @@ class BMGRuntime:
                 for v in values
             )
         )
-
-    def handle_bernoulli(
-        self, probs: Any = None, logits: Any = None
-    ) -> bn.BernoulliNode:
-        if (probs is None and logits is None) or (
-            probs is not None and logits is not None
-        ):
-            raise ValueError("handle_bernoulli requires exactly one of probs or logits")
-        probability = logits if probs is None else probs
-        if not isinstance(probability, BMGNode):
-            probability = self._bmg.add_constant(probability)
-        if logits is None:
-            return self._bmg.add_bernoulli(probability)
-        return self._bmg.add_bernoulli_logit(probability)
-
-    # TODO: Add a note here describing why it is important that the function
-    # signatures of the handler methods for distributions match those of
-    # the torch distribution constructors.
-
-    # TODO: Verify that they do match.
-
-    def handle_binomial(
-        self, total_count: Any, probs: Any = None, logits: Any = None
-    ) -> bn.BinomialNode:
-        if (probs is None and logits is None) or (
-            probs is not None and logits is not None
-        ):
-            raise ValueError("handle_binomial requires exactly one of probs or logits")
-        probability = logits if probs is None else probs
-        if not isinstance(total_count, BMGNode):
-            total_count = self._bmg.add_constant(total_count)
-        if not isinstance(probability, BMGNode):
-            probability = self._bmg.add_constant(probability)
-        if logits is None:
-            return self._bmg.add_binomial(total_count, probability)
-        return self._bmg.add_binomial_logit(total_count, probability)
-
-    def handle_categorical(
-        self, probs: Any = None, logits: Any = None
-    ) -> bn.CategoricalNode:
-        if (probs is None and logits is None) or (
-            probs is not None and logits is not None
-        ):
-            raise ValueError(
-                "handle_categorical requires exactly one of probs or logits"
-            )
-        probability = logits if probs is None else probs
-        if not isinstance(probability, BMGNode):
-            probability = self._bmg.add_constant(probability)
-        if logits is None:
-            return self._bmg.add_categorical(probability)
-        return self._bmg.add_categorical_logit(probability)
-
-    def handle_chi2(self, df: Any, validate_args=None) -> bn.Chi2Node:
-        if not isinstance(df, BMGNode):
-            df = self._bmg.add_constant(df)
-        return self._bmg.add_chi2(df)
-
-    def handle_gamma(
-        self, concentration: Any, rate: Any, validate_args=None
-    ) -> bn.GammaNode:
-        if not isinstance(concentration, BMGNode):
-            concentration = self._bmg.add_constant(concentration)
-        if not isinstance(rate, BMGNode):
-            rate = self._bmg.add_constant(rate)
-        return self._bmg.add_gamma(concentration, rate)
-
-    def handle_halfcauchy(self, scale: Any, validate_args=None) -> bn.HalfCauchyNode:
-        if not isinstance(scale, BMGNode):
-            scale = self._bmg.add_constant(scale)
-        return self._bmg.add_halfcauchy(scale)
-
-    def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> bn.NormalNode:
-        if not isinstance(loc, BMGNode):
-            loc = self._bmg.add_constant(loc)
-        if not isinstance(scale, BMGNode):
-            scale = self._bmg.add_constant(scale)
-        return self._bmg.add_normal(loc, scale)
-
-    def handle_halfnormal(self, scale: Any, validate_args=None) -> bn.HalfNormalNode:
-        if not isinstance(scale, BMGNode):
-            scale = self._bmg.add_constant(scale)
-        return self._bmg.add_halfnormal(scale)
-
-    def handle_dirichlet(
-        self, concentration: Any, validate_args=None
-    ) -> bn.DirichletNode:
-        if not isinstance(concentration, BMGNode):
-            concentration = self._bmg.add_constant(concentration)
-        return self._bmg.add_dirichlet(concentration)
-
-    def handle_studentt(
-        self, df: Any, loc: Any = 0.0, scale: Any = 1.0, validate_args=None
-    ) -> bn.StudentTNode:
-        if not isinstance(df, BMGNode):
-            df = self._bmg.add_constant(df)
-        if not isinstance(loc, BMGNode):
-            loc = self._bmg.add_constant(loc)
-        if not isinstance(scale, BMGNode):
-            scale = self._bmg.add_constant(scale)
-        return self._bmg.add_studentt(df, loc, scale)
-
-    def handle_uniform(self, low: Any, high: Any, validate_args=None) -> bn.UniformNode:
-        if not isinstance(low, BMGNode):
-            low = self._bmg.add_constant(low)
-        if not isinstance(high, BMGNode):
-            high = self._bmg.add_constant(high)
-        return self._bmg.add_uniform(low, high)
-
-    def handle_beta(
-        self, concentration1: Any, concentration0: Any, validate_args=None
-    ) -> bn.BetaNode:
-        if not isinstance(concentration1, BMGNode):
-            concentration1 = self._bmg.add_constant(concentration1)
-        if not isinstance(concentration0, BMGNode):
-            concentration0 = self._bmg.add_constant(concentration0)
-        return self._bmg.add_beta(concentration1, concentration0)
-
-    def handle_poisson(
-        self,
-        rate: Any,
-    ) -> bn.PoissonNode:
-        if not isinstance(rate, BMGNode):
-            rate = self._bmg.add_constant(rate)
-        return self._bmg.add_poisson(rate)
 
     def handle_greater_than(self, input: Any, other: Any) -> Any:
         return self._possibly_stochastic_op(
@@ -570,6 +364,7 @@ class BMGRuntime:
             return self._handle_tuple_index(left, right)
         # TODO: What if we have a non-tensor indexed with a stochastic value?
         # A list, for example?
+
         return self._possibly_stochastic_op(
             lambda x, y: x[y], self._bmg.add_index, [left, right]
         )
@@ -587,11 +382,6 @@ class BMGRuntime:
     def handle_invert(self, input: Any) -> Any:
         return self._possibly_stochastic_op(operator.inv, self._bmg.add_invert, [input])
 
-    def handle_item(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        return self._bmg.add_item(input)
-
     def handle_negate(self, input: Any) -> Any:
         return self._possibly_stochastic_op(operator.neg, self._bmg.add_negate, [input])
 
@@ -599,105 +389,8 @@ class BMGRuntime:
         # Unary plus on a graph node is an identity.
         return self._possibly_stochastic_op(operator.pos, lambda x: x, [input])
 
-    # TODO: Remove this. We should insert TO_REAL nodes when necessary
-    # to ensure compatibility with the BMG type system.
-    def handle_to_real(self, operand: Any) -> Any:
-        if not isinstance(operand, BMGNode):
-            return float(operand)
-        if isinstance(operand, ConstantNode):
-            return float(operand.value)
-        return self._bmg.add_to_real(operand)
-
-    def handle_to_int(self, operand: Any) -> Any:
-        if isinstance(operand, torch.Tensor):
-            return operand.int()
-        if isinstance(operand, bn.ConstantTensorNode):
-            return operand.value.int()
-        if isinstance(operand, ConstantNode):
-            return int(operand.value)
-        return self._bmg.add_to_int(operand)
-
-    def handle_exp(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.exp(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.exp(input.value)
-        if not isinstance(input, BMGNode):
-            return math.exp(input)
-        if isinstance(input, ConstantNode):
-            return math.exp(input.value)
-        return self._bmg.add_exp(input)
-
-    def handle_expm1(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.expm1(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.expm1(input.value)
-        if not isinstance(input, BMGNode):
-            return torch.expm1(input)
-        if isinstance(input, ConstantNode):
-            return torch.expm1(input.value)
-        return self._bmg.add_expm1(input)
-
-    def handle_logistic(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.sigmoid(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.sigmoid(input.value)
-        if not isinstance(input, BMGNode):
-            return torch.sigmoid(input)
-        if isinstance(input, ConstantNode):
-            return torch.sigmoid(input.value)
-        return self._bmg.add_logistic(input)
-
     def handle_not(self, input: Any) -> Any:
         return self._possibly_stochastic_op(operator.not_, self._bmg.add_not, [input])
-
-    def handle_phi(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return phi(input)
-        if isinstance(input, ConstantNode):
-            return phi(input.value)
-        return self._bmg.add_phi(input)
-
-    def handle_log(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.log(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.log(input.value)
-        if not isinstance(input, BMGNode):
-            return math.log(input)
-        if isinstance(input, ConstantNode):
-            return math.log(input.value)
-        return self._bmg.add_log(input)
-
-    def handle_log1mexp(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return log1mexp(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return log1mexp(input.value)
-        if not isinstance(input, BMGNode):
-            return math_log1mexp(input)
-        if isinstance(input, ConstantNode):
-            return math_log1mexp(input.value)
-        return self._bmg.add_log1mexp(input)
-
-    def handle_logsumexp(self, input: Any, dim: Any, keepdim: Any = False) -> Any:
-        if (
-            not isinstance(input, BMGNode)
-            and not isinstance(dim, BMGNode)
-            and not isinstance(keepdim, BMGNode)
-        ):
-            # None of them are graph nodes. Just return the tensor.
-            return torch.logsumexp(input=input, dim=dim, keepdim=keepdim)
-        # One of them is a graph node. Make them all graph nodes.
-        if not isinstance(input, BMGNode):
-            input = self._bmg.add_constant(input)
-        if not isinstance(dim, BMGNode):
-            dim = self._bmg.add_constant(dim)
-        if not isinstance(keepdim, BMGNode):
-            keepdim = self._bmg.add_constant(keepdim)
-        return self._bmg.add_logsumexp_torch(input, dim, keepdim)
 
     #
     # Augmented assignment operators
@@ -871,58 +564,6 @@ class BMGRuntime:
     # Function calls
     #
 
-    def _canonicalize_function(
-        self, function: Any, arguments: List[Any], kwargs: Optional[Dict[str, Any]]
-    ):
-        """The purpose of this helper method is to uniformly handle all
-        possibility for function calls. That is, the receiver can be stochastic,
-        normal, or missing, and the arguments can be stochastic or normal values,
-        and can be positional or named. We take in an object representing the function
-        (possibly a KnownFunction helper that is bound to a receiver), and the arguments.
-        We produce a function object that requires no receiver, and an argument list
-        that has the receiver, if any, as its first member."""
-        if kwargs is None:
-            kwargs = {}
-        if isinstance(function, KnownFunction):
-            f = function.function
-            args = [function.receiver] + arguments
-            assert isinstance(f, Callable)
-        elif (
-            isinstance(function, builtin_function_or_method)
-            and isinstance(function.__self__, torch.Tensor)
-            and function.__name__ in known_tensor_instance_functions
-        ):
-            f = getattr(torch.Tensor, function.__name__)
-            args = [function.__self__] + arguments
-            assert isinstance(f, Callable)
-        elif isinstance(function, MethodType):
-            # In Python, if we are calling a method of a class with a "self"
-            # parameter then the callable we get is already partially evaluated.
-            # That is, if we have
-            #
-            # class C:
-            #   def m(self, x):...
-            # c = C();
-            # cm = c.m
-            # cm(1)
-            #
-            # Then cm is a brand-new object with attributes __self__ and __func__,
-            # and calling cm(1) actually calls cm.__func__(cm.__self__, 1)
-            #
-            # We simulate that here.
-            f = function.__func__
-            args = [function.__self__] + arguments
-            assert isinstance(f, Callable)
-
-        elif isinstance(function, Callable):
-            f = function
-            args = arguments
-        else:
-            raise ValueError(
-                f"Function {function} is not supported by Bean Machine Graph."
-            )
-        return (f, args, kwargs)
-
     def _handle_random_variable_call_checked(
         self, function: Any, arguments: List[Any], cs: ComputeSupport
     ) -> BMGNode:
@@ -1030,11 +671,6 @@ class BMGRuntime:
             # TODO: Better error
             raise ValueError("Functional calls must not have named arguments.")
 
-        # TODO: What happens if we have a @functional that does not return
-        # TODO: a graph node? A functional that returns a constant is
-        # TODO: weird, but it should be legal.  Figure out what the
-        # TODO: right thing to do is for this scenario.
-
         # We have a call to a functional function. There are two
         # cases. Either we have only ordinary values for arguments, or
         # we have one or more graph nodes.  *Do we need to handle these
@@ -1123,52 +759,27 @@ class BMGRuntime:
         # We *could* convert that to a graph node.
         return function(*arguments, **kwargs)
 
-    def _handle_tensor_constructor(self, data: Any, kwargs: Dict[str, Any]) -> Any:
-        # TODO: Handle kwargs
-
-        # The tensor constructor is a bit tricky because it takes a single
-        # argument that is either a value or a list of values.  We need:
-        # (1) a flattened list of all the arguments, and
-        # (2) the size of the original tensor.
-
-        flattened_args = list(_flatten_all_lists(data))
-        if not any(isinstance(arg, BMGNode) for arg in flattened_args):
-            # None of the arguments are graph nodes. We can just
-            # construct the tensor normally.
-            return torch.tensor(data, **kwargs)
-        # At least one of the arguments is a graph node.
-        #
-        # If we're constructing a singleton tensor and the single value
-        # is a graph node, we can just keep it as that graph node.
-        if len(flattened_args) == 1:
-            return flattened_args[0]
-
-        # We have two or more arguments and at least one is a graph node.
-        # Convert them all to graph nodes.
-        for index, arg in enumerate(flattened_args):
-            if not isinstance(arg, BMGNode):
-                flattened_args[index] = self._bmg.add_constant(arg)
-
-        # What shape is this tensor? Rather than duplicating the logic in the
-        # tensor class, let's just construct the same shape made of entirely
-        # zeros and then ask what shape it is.
-        size = torch.tensor(_list_to_zeros(data)).size()
-        return self._bmg.add_tensor(size, *flattened_args)
-
     def handle_function(
         self,
         function: Any,
         arguments: List[Any],
         kwargs: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
-        assert isinstance(f, Callable), (
-            "_canonicalize_function should return callable "
-            + f"but got {type(f)} {str(f)}"
-        )
 
-        if _is_phi(f, args, kwargs):
-            return self.handle_phi(*(args[1:]), **kwargs)
+        if kwargs is None:
+            kwargs = {}
+
+        # Some functions we already have special-purpose handlers for,
+        # like calls to math.exp or tensor.log.
+
+        if self._special_function_caller.is_special_function(
+            function, arguments, kwargs
+        ):
+            return self._special_function_caller.do_special_call_maybe_stochastic(
+                function, arguments, kwargs
+            )
+
+        f, args = canonicalize_function(function, arguments)
 
         if _is_random_variable_call(f):
             return self._handle_random_variable_call(f, args, kwargs)
@@ -1176,51 +787,13 @@ class BMGRuntime:
         if _is_functional_call(f):
             return self._handle_functional_call(f, args, kwargs)
 
-        # If we get here, we have a function call from a module that
-        # is not already compiled, and it is not a random variable
-        # or functional.
-
-        # We have special processing if we're trying to create a tensor;
-        # if any element of the new tensor is a graph node then we'll
-        # need to create a TensorNode.
-
-        if f is torch.tensor:
-            if len(args) != 1:
-                raise TypeError(
-                    "tensor() takes 1 positional argument but"
-                    + f" {len(args)} were given"
-                )
-            return self._handle_tensor_constructor(args[0], kwargs)
-
-        if _hashable(f):
-            # Some functions are perfectly safe for a graph node.
-            # We do not need to compile them.
-            if f in allowed_functions:
-                return f(*args, **kwargs)
-
-            # Some functions we already have special-purpose handlers for,
-            # like calls to math.exp or tensor.log. If we know there are no
-            # graph nodes in the arguments we can just call the function directly
-            # and get the values. If there are graph nodes in the arguments then
-            # we can call our special handlers.
-
-            # TODO: Do a sanity check that the arguments match and give
-            # TODO: a good error if they do not. Alternatively, catch
-            # TODO: the exception if the call fails and replace it with
-            # TODO: a more informative error.
-            if f in self.function_map:
-                if only_ordinary_arguments(args, kwargs):
-                    return f(*args, **kwargs)
-                return self.function_map[f](*args, **kwargs)
-
         return self._handle_ordinary_call(f, args, kwargs)
 
     def _function_to_bmg_function(self, function: Callable) -> Callable:
         from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_function
 
-        # TODO: What happens if the function is a member of a class?
-        # TODO: Do we recompile it for different instances of the
-        # TODO: receiver? Do we recompile it on every call? Check this.
+        # This method presupposes that the function is in its "unbound" form.
+        assert not isinstance(function, MethodType)
         if function not in self.lifted_map:
             self.lifted_map[function] = _bm_function_to_bmg_function(function, self)
         return self.lifted_map[function]
@@ -1295,6 +868,7 @@ class BMGRuntime:
             if isinstance(value, torch.Tensor):
                 value = self._bmg.add_constant_tensor(value)
             if not isinstance(value, BMGNode):
+                # TODO: Improve error message
                 raise TypeError("A functional must return a tensor.")
             self.rv_map[key] = value
             return value
@@ -1307,44 +881,14 @@ class BMGRuntime:
         graph, and add a sample node to the graph."""
 
         if isinstance(operand, bn.DistributionNode):
-            b = operand
-        elif isinstance(operand, dist.Bernoulli):
-            b = self.handle_bernoulli(operand.probs)
-        elif isinstance(operand, dist.Beta):
-            b = self.handle_beta(operand.concentration1, operand.concentration0)
-        elif isinstance(operand, dist.Binomial):
-            b = self.handle_binomial(operand.total_count, operand.probs)
-        elif isinstance(operand, dist.Categorical):
-            b = self.handle_categorical(operand.probs)
-        elif isinstance(operand, dist.Chi2):
-            b = self.handle_chi2(operand.df)
-        elif isinstance(operand, dist.Dirichlet):
-            b = self.handle_dirichlet(operand.concentration)
-        elif isinstance(operand, dist.Gamma):
-            b = self.handle_gamma(operand.concentration, operand.rate)
-        elif isinstance(operand, dist.HalfCauchy):
-            b = self.handle_halfcauchy(operand.scale)
-        elif isinstance(operand, dist.HalfNormal):
-            b = self.handle_halfnormal(operand.scale)
-        elif isinstance(operand, dist.Normal):
-            b = self.handle_normal(operand.mean, operand.stddev)
-        elif isinstance(operand, dist.Poisson):
-            b = self.handle_poisson(operand.rate)
-        elif isinstance(operand, dist.StudentT):
-            b = self.handle_studentt(operand.df, operand.loc, operand.scale)
-        elif isinstance(operand, dist.Uniform):
-            b = self.handle_uniform(operand.low, operand.high)
-        elif isinstance(operand, torch.distributions.Distribution):
-            # TODO: Better error
-            n = type(operand).__name__
-            raise TypeError(
-                f"Distribution '{n}' is not supported by Bean Machine Graph."
-            )
-        else:
+            return self._bmg.add_sample(operand)
+
+        if not isinstance(operand, torch.distributions.Distribution):
             # TODO: Better error
             raise TypeError("A random_variable is required to return a distribution.")
 
-        return self._bmg.add_sample(b)
+        d = self._special_function_caller.distribution_to_node(operand)
+        return self._bmg.add_sample(d)
 
     def handle_dot_get(self, operand: Any, name: str) -> Any:
         # If we have x = foo.bar, foo must not be a sample; we have no way of
@@ -1357,20 +901,15 @@ class BMGRuntime:
         # This will require some cooperation between handling dots and handling
         # functions.
 
-        # TODO: There are a great many more pure instance functions on tensors;
-        # TODO: which do we wish to support?
-
         if isinstance(operand, BMGNode):
             # If we're invoking a function on a graph node during execution of
             # the lifted program, that graph node is almost certainly a tensor
             # in the original program; assume that it is, and see if this is
             # a function on a tensor that we know how to accumulate into the graph.
-            if name in known_tensor_instance_functions:
-                return KnownFunction(operand, getattr(torch.Tensor, name))
-            raise ValueError(
-                f"Fetching the value of attribute {name} is not "
-                + "supported in Bean Machine Graph."
+            return self._special_function_caller.bind_tensor_instance_function(
+                operand, name
             )
+
         return getattr(operand, name)
 
     def handle_dot_set(self, operand: Any, name: str, value: Any) -> None:
