@@ -3,11 +3,8 @@ title: Analysis
 sidebar_label: Analysis
 slug: '/overview/analysis'
 ---
-import {
-  PosteriorRateDynamicPlot,
-  MCMCTracePlot,
-  MCMCAutocorrPlot
-} from "./plots.jsx";
+import { BokehFigure } from "../../../website/src/components/Plotting.jsx";
+import CellOutput from "../../../website/src/components/CellOutput.jsx";
 
 Inference results are useful not only for learning posterior distributions, but for verifying that inference ran correctly. We'll cover common techniques for analyzing results in this section. As is the case for everything else in this **Overview**, the code for this section is available as a notebook on [GitHub](https://github.com/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb) and [Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/docs/overview/overview.ipynb).
 
@@ -27,9 +24,9 @@ samples = bm.CompositionalInference().infer(
 )
 samples
 ```
-```
-<beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples>
-```
+<CellOutput>
+{`<beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples>`}
+</CellOutput>
 
 ### Extracting Samples for a Specific Variable
 
@@ -38,21 +35,21 @@ In order to perform inference on the random variable `reproduction_rate()`, we a
 ```py
 list(samples.keys())
 ```
-```
-[RVIdentifier(function=<function reproduction_rate>, arguments=())]
-```
+<CellOutput>
+{`[RVIdentifier(function=<function reproduction_rate>, arguments=())]`}
+</CellOutput>
 
 To extract the inference results for `reproduction_rate()`, we can use `get_variable()`:
 
 ```py
 samples.get_variable(reproduction_rate())
 ```
-```
-tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
+<CellOutput>
+{`tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
         [0.2183, 0.2183, 0.2184,  ..., 0.2177, 0.2177, 0.2177],
         [0.2170, 0.2180, 0.2183,  ..., 0.2180, 0.2180, 0.2180],
-        [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])
-```
+        [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])`}
+</CellOutput>
 
 The result has shape $4 \times 7000$, representing the $7000$ samples that we drew in each of the four chains of inference from the posterior distribution.
 
@@ -61,12 +58,12 @@ The result has shape $4 \times 7000$, representing the $7000$ samples that we dr
 ```py
 samples[reproduction_rate()]
 ```
-```
-tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
+<CellOutput>
+{`tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
         [0.2183, 0.2183, 0.2184,  ..., 0.2177, 0.2177, 0.2177],
         [0.2170, 0.2180, 0.2183,  ..., 0.2180, 0.2180, 0.2180],
-        [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])
-```
+        [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])`}
+</CellOutput>
 
 Please note that many inference methods require a small number of samples before they start drawing samples that correctly resemble the posterior distribution. The 3000 samples that we specified in `num_adaptive_samples` were already excluded for us, so nothing needs to be done here. However, if you use no adaptive samples, we recommend you discard at least a few hundred samples before using your inference results.
 
@@ -78,18 +75,18 @@ We'll see how to make use of chains in [Diagnostics](#diagnostics); for inspecti
 chain = samples.get_chain(chain=0)
 chain
 ```
-```
-<beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples>
-```
+<CellOutput>
+{`<beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples>`}
+</CellOutput>
 
 This returns a new `MonteCarloSamples` object which is limited to the specified chain. Tensors no longer have a dimension representing the chain:
 
 ```py
 chain[reproduction_rate()]
 ```
-```
-tensor([1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193])
-```
+<CellOutput>
+{`tensor([1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193])`}
+</CellOutput>
 
 ### Visualizing Distributions
 
@@ -99,7 +96,7 @@ Visualizing the results of inference can be a great help in understanding them. 
 reproduction_rate_samples = samples.get_chain(0)[reproduction_rate()]
 ```
 
-<PosteriorRateDynamicPlot />
+<BokehFigure data={React.useMemo(() => require("./posterior_rate_dynamic.json"), [])} />
 
 ## <a name="diagnostics"></a>Diagnostics
 
@@ -149,13 +146,13 @@ az.plot_trace(
 )
 ```
 
-<MCMCTracePlot />
+<BokehFigure data={React.useMemo(() => require("./mcmc_trace.json"), [])} />
 
 ```py
 az.plot_autocorr({"Reproduction rate": samples[reproduction_rate()]})
 ```
 
-<MCMCAutocorrPlot />
+<BokehFigure data={React.useMemo(() => require("./mcmc_autocorr.json"), [])} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace plots and autocorrelation plots.
 
