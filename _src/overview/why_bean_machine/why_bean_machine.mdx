@@ -3,8 +3,8 @@ title: 'Why Bean Machine?'
 sidebar_label: 'Why Bean Machine?'
 slug: '/overview/why_bean_machine'
 ---
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import { BokehFigure } from "../../../website/src/components/Plotting.jsx";
+import CellOutput from "../../../website/src/components/CellOutput.jsx";
 
 Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient. This page describes the motivation for using [Probabilistic Programming](#probabilistic-programming) in general, and [Bean Machine advantages](#bean-machine-advantages) specifically.
 
@@ -28,7 +28,7 @@ A generative probabilistic model consists of _random variables_ and _conditional
 num_new ~ Poisson(reproduction_rate * num_init)
 ```
 
-<img src={useBaseUrl("/img/prior_poisson_intro.png")} />
+<BokehFigure data={require("./prior_poisson_intro.json")} />
 
 Let's fix for now the value of `num_init`, the initial number of infections, then the above statement gives the CPD of the random variable `num_new`, conditioned on the value of its _parent_ random variable `reproduction_rate`. Since the parameter of the Poisson distribution is also its mean, this CPD is consistent with the knowledge that we were trying to express.
 
@@ -38,7 +38,7 @@ A well-formed generative model must specify the EPD or CPD of each random variab
 reproduction_rate ~ Exponential(1 / 0.1)
 ```
 
-<img src={useBaseUrl("/img/prior_exponential.png")} />
+<BokehFigure data={require("./prior_exponential.json")} />
 
 ### Inference
 
