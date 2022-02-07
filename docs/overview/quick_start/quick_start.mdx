@@ -30,7 +30,7 @@ There are a few things to notice here!
   * Most importantly, we've decorated this function with `@bm.random_variable`. This is how you tell Bean Machine to interpret this function probabilistically. `@bm.random_variable` functions are the building blocks of Bean Machine models, and let the framework explore different values that the function represents when fitting a good distribution for observed data that you'll provide later.
   * Next, notice that the function returns a [PyTorch distribution](https://pytorch.org/docs/stable/distributions.html?highlight=distribution#module-torch.distributions). This distribution encodes your prior belief about a particular random variable. In the case of $\text{Exponential}(10.0)$, our prior has this shape:
 
-<BokehFigure data={React.useMemo(() => require("./prior_exponential.json"), [])} />
+<BokehFigure data={require("./prior_exponential.json")} />
 
   * As you can see, the prior encourages smaller values for the reproduction rate, averaging at a rate of $10\%$, but allows for the possibility of much larger spread rates.
   * Lastly, realize that although you've provided a prior distribution here, the framework will automatically "refine" this distribution, as it searches for values that represent observed data that you'll provide later. So, after we fit the model to observed data, the random variable will no longer look like the graph shown above!
@@ -39,7 +39,7 @@ The last piece of the model describes how the reproduction rate relates to the n
 
 Let's say, for this example, we observed a little over a million, $1087980$, cases today. We use such a precise number here to remind you that this is a known value and not a random one. In this case, if the disease were to happen to have a reproduction rate of $0.1$, this is what our $\text{Poisson}$ distribution for new cases would look like:
 
-<BokehFigure data={React.useMemo(() => require("./prior_poisson.json"), [])} />
+<BokehFigure data={require("./prior_poisson.json")} />
 
 Let's write this up in Bean Machine. Using the syntax we've already seen, it's pretty simple:
 
@@ -108,7 +108,7 @@ reproduction_rate_samples
 
 Let's visualize that more intuitively.
 
-<BokehFigure data={React.useMemo(() => require("./posterior_rate_static.json"), [])} />
+<BokehFigure data={require("./posterior_rate_static.json")} />
 
 This histogram represents our beliefs over the underlying reproduction rate, after observing the current day's worth of new cases. You'll note that it is balancing our prior beliefs with the rate that we would learn just from looking at the new data. It also captures the uncertainty inherent in our estimate!
 

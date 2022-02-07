@@ -96,7 +96,7 @@ Visualizing the results of inference can be a great help in understanding them. 
 reproduction_rate_samples = samples.get_chain(0)[reproduction_rate()]
 ```
 
-<BokehFigure data={React.useMemo(() => require("./posterior_rate_dynamic.json"), [])} />
+<BokehFigure data={require("./posterior_rate_dynamic.json")} />
 
 ## <a name="diagnostics"></a>Diagnostics
 
@@ -146,13 +146,13 @@ az.plot_trace(
 )
 ```
 
-<BokehFigure data={React.useMemo(() => require("./mcmc_trace.json"), [])} />
+<BokehFigure data={require("./mcmc_trace.json")} />
 
 ```py
 az.plot_autocorr({"Reproduction rate": samples[reproduction_rate()]})
 ```
 
-<BokehFigure data={React.useMemo(() => require("./mcmc_autocorr.json"), [])} />
+<BokehFigure data={require("./mcmc_autocorr.json")} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace plots and autocorrelation plots.
 

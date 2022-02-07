@@ -28,7 +28,7 @@ A generative probabilistic model consists of _random variables_ and _conditional
 num_new ~ Poisson(reproduction_rate * num_init)
 ```
 
-<BokehFigure data={React.useMemo(() => require("./prior_poisson_intro.json"), [])} />
+<BokehFigure data={require("./prior_poisson_intro.json")} />
 
 Let's fix for now the value of `num_init`, the initial number of infections, then the above statement gives the CPD of the random variable `num_new`, conditioned on the value of its _parent_ random variable `reproduction_rate`. Since the parameter of the Poisson distribution is also its mean, this CPD is consistent with the knowledge that we were trying to express.
 
@@ -38,7 +38,7 @@ A well-formed generative model must specify the EPD or CPD of each random variab
 reproduction_rate ~ Exponential(1 / 0.1)
 ```
 
-<BokehFigure data={React.useMemo(() => require("./prior_exponential.json"), [])} />
+<BokehFigure data={require("./prior_exponential.json")} />
 
 ### Inference
 
