@@ -409,7 +409,7 @@ def neg_5():
 
 @bm.functional
 def neg_6():
-    # Stochastic value, Tensor.neg
+    # Stochastic value, Tensor.neg.
     # TODO: "negative" is a synonym; make it work too.
     return torch.Tensor.neg(beta() + 6.0)
 
@@ -417,6 +417,7 @@ def neg_6():
 @bm.functional
 def neg_7():
     # Stochastic value, instance neg
+    # TODO: "negative" is a synonym; make it work too.
     return (beta() + 7.0).neg()
 
 

@@ -226,6 +226,7 @@ def math3():
 @bm.random_variable
 def math4():
     # PHI, alternative syntax
+    # TODO: Add a test where the value passed to cdf is a named argument.
     return Bernoulli(Normal.cdf(Normal(0.0, 1.0), hc(4)))
 
 
