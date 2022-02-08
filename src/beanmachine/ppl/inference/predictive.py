@@ -125,7 +125,7 @@ class Predictive(object):
             for k in predictives:
                 for rvid, rv in k.items():
                     if rvid not in rv_dict:
-                        rv_dict[rv_dict] = []
+                        rv_dict[rvid] = []
                     if rv.dim() < 2:
                         rv = rv.unsqueeze(0)
                     rv_dict[rvid].append(rv)
