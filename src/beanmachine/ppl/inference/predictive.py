@@ -122,7 +122,7 @@ class Predictive(object):
                     sampler.reset()
                 predictives.append(query_dict)
 
-            rv_dict = defaultdict(list)
+            rv_dict = defaultdict(list) # type: ignore
             for k in predictives:
                 for rvid, rv in k.items():
                     if rv.dim() < 2:
@@ -130,7 +130,6 @@ class Predictive(object):
                     rv_dict[rvid].append(rv)
             for k, v in rv_dict.items():
                 rv_dict[k] = torch.cat(v, dim=1)
-            # pyre-ignore
             prior_pred = MonteCarloSamples(
                 dict(rv_dict),
                 default_namespace="prior_predictive",

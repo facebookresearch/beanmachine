@@ -245,11 +245,9 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         inference_data = self.to_inference_data(include_adapt_steps)
         if not include_adapt_steps:
-            # pyre-ignore
             return inference_data.posterior
         else:
             return xr.concat(
-                # pyre-ignore
                 [inference_data.warmup_posterior, inference_data.posterior],
                 dim="draw",
             )
