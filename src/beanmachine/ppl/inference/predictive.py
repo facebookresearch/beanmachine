@@ -122,7 +122,7 @@ class Predictive(object):
                     sampler.reset()
                 predictives.append(query_dict)
 
-            rv_dict = defaultdict(list) # type: ignore
+            rv_dict = defaultdict(list)  # type: ignore
             for k in predictives:
                 for rvid, rv in k.items():
                     if rv.dim() < 2:
