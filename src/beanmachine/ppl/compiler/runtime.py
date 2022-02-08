@@ -235,9 +235,7 @@ class BMGRuntime:
         )
 
     def handle_multiplication(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.mul, self._bmg.add_multiplication, [input, other]
-        )
+        return self.handle_function(operator.mul, [input, other], {})
 
     def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
         # TODO: We need to make a distinction between torch.mm and
@@ -247,9 +245,7 @@ class BMGRuntime:
         )
 
     def handle_addition(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.add, self._bmg.add_addition, [input, other]
-        )
+        return self.handle_function(operator.add, [input, other], {})
 
     def handle_bitand(self, input: Any, other: Any) -> Any:
         return self._possibly_stochastic_op(
@@ -267,19 +263,13 @@ class BMGRuntime:
         )
 
     def handle_subtraction(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.sub, self._bmg.add_subtraction, [input, other]
-        )
+        return self.handle_function(operator.sub, [input, other], {})
 
     def handle_division(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.truediv, self._bmg.add_division, [input, other]
-        )
+        return self.handle_function(operator.truediv, [input, other], {})
 
     def handle_floordiv(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.floordiv, self._bmg.add_floordiv, [input, other]
-        )
+        return self.handle_function(operator.floordiv, [input, other], {})
 
     def handle_lshift(self, input: Any, other: Any) -> Any:
         return self._possibly_stochastic_op(
@@ -292,9 +282,7 @@ class BMGRuntime:
         )
 
     def handle_power(self, input: Any, exponent: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.pow, self._bmg.add_power, [input, exponent]
-        )
+        return self.handle_function(operator.pow, [input, exponent], {})
 
     def handle_rshift(self, input: Any, other: Any) -> Any:
         return self._possibly_stochastic_op(
