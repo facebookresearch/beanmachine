@@ -6,6 +6,7 @@
 
 import inspect
 import math
+import operator
 from types import MethodType
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -274,7 +275,34 @@ class SpecialFunctionCaller:
             log1mexp: self._hint_log1mexp,
             math_log1mexp: self._hint_log1mexp,
             #
-            # TODO: operator functions
+            # Operators as functions
+            #
+            operator.add: self._operator_add,
+            # TODO: operator.and_ # bitand
+            # TODO: operator.contains
+            # TODO: operator.eq
+            operator.floordiv: self._operator_floordiv,
+            # TODO: operator.ge
+            # TODO: operator.gt
+            # TODO: operator.inv
+            # TODO: operator.is_
+            # TODO: operator.is_not
+            # TODO: operator.le
+            # TODO: operator.lshift
+            # TODO: operator.lt
+            # TODO: operator.matmul
+            operator.mul: self._operator_mul,
+            # TODO: operator.ne
+            # TODO: operator.neg
+            # TODO: operator.not_
+            # TODO: operator.or_ # bitor
+            # TODO: operator.pos
+            operator.pow: self._operator_pow,
+            # TODO: operator.rshift
+            operator.sub: self._operator_sub,
+            operator.truediv: self._operator_truediv,
+            # TODO: operator.xor # bitxor
+            #
             #
             # Torch distributions
             #
@@ -344,7 +372,8 @@ class SpecialFunctionCaller:
             torch.special.expm1: self._torch_expm1,
             torch.Tensor.float: self._torch_float,
             # TODO: float_power
-            # TODO: floor_divide
+            torch.Tensor.floor_divide: self._torch_floor_divide,  # pyre-ignore
+            torch.floor_divide: self._torch_floor_divide,
             # TODO: ge
             # TODO: greater_equal
             # TODO: gt
@@ -390,7 +419,8 @@ class SpecialFunctionCaller:
             torch.sub: self._torch_sub,
             torch.Tensor.subtract: self._torch_sub,  # pyre-ignore
             torch.subtract: self._torch_sub,
-            # TODO: true_divide
+            torch.Tensor.true_divide: self._torch_div,  # pyre-ignore
+            torch.true_divide: self._torch_div,
         }
         self._special_tensor_instance_function_names = {
             f.__name__
@@ -761,6 +791,14 @@ class SpecialFunctionCaller:
         # TODO: If we do keep this, what should we do with memory_format?
         return self._bmg.add_to_real(input)
 
+    def _torch_floor_divide(
+        self,
+        input: BMGNode,
+        other: BMGNode,
+        out: Any = None,
+    ) -> BMGNode:
+        return self._bmg.add_floordiv(input, other)
+
     def _torch_int(
         self, input: BMGNode, memory_format: Optional[BMGNode] = None
     ) -> BMGNode:
@@ -819,3 +857,25 @@ class SpecialFunctionCaller:
         # TODO: tensor sub has the semantics input - alpha * other; if alpha is present
         # then we need to generate a multiply and an subtraction
         return self._bmg.add_subtraction(input, other)
+
+    #
+    # Operators as functions
+    #
+
+    def _operator_add(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_addition(a, b)
+
+    def _operator_floordiv(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_floordiv(a, b)
+
+    def _operator_mul(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_multiplication(a, b)
+
+    def _operator_pow(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_power(a, b)
+
+    def _operator_sub(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_subtraction(a, b)
+
+    def _operator_truediv(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_division(a, b)

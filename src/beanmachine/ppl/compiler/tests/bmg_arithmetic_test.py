@@ -7,6 +7,7 @@
 # BM -> BMG compiler arithmetic tests
 
 import math
+import operator
 import unittest
 
 import beanmachine.ppl as bm
@@ -147,11 +148,6 @@ def unsupported_bitor():
 @bm.functional
 def unsupported_bitxor():
     return bino() ^ bino()
-
-
-@bm.functional
-def unsupported_floordiv():
-    return bino() // bino()
 
 
 @bm.functional
@@ -313,6 +309,18 @@ def pow_7():
 
 
 @bm.functional
+def pow_8():
+    # Constant values, operator.pow
+    return operator.pow(torch.tensor(8.0), torch.tensor(2.0))
+
+
+@bm.functional
+def pow_9():
+    # Stochastic values, operator.pow
+    return operator.pow(beta(), torch.tensor(9.0))
+
+
+@bm.functional
 def to_real_1():
     # Calling float() causes a TO_REAL node to be emitted into the graph.
     # TODO: Is this actually a good idea? We already automatically insert
@@ -419,6 +427,285 @@ def neg_7():
     # Stochastic value, instance neg
     # TODO: "negative" is a synonym; make it work too.
     return (beta() + 7.0).neg()
+
+
+@bm.functional
+def add_1():
+    # Ordinary arithmetic, + operator
+    return torch.tensor(1.0 + 1.0)
+
+
+@bm.functional
+def add_2():
+    # Tensor arithmetic, + operator
+    return torch.tensor(2.0) + torch.tensor(2.0)
+
+
+@bm.functional
+def add_3():
+    # Tensor constants, Tensor.add.
+    # TODO: Tensor.add takes an optional third argument with the semantics
+    # add(a, b, c) --> a + b * c. Test that as well.
+    return torch.Tensor.add(torch.tensor(3.0), torch.tensor(3.0))
+
+
+@bm.functional
+def add_4():
+    # Tensor constant, instance add
+    # TODO: Tensor.add takes an optional third argument with the semantics
+    # a.add(b, c) --> a + b * c. Test that as well.
+    return torch.tensor(4.0).add(torch.tensor(4.0))
+
+
+@bm.functional
+def add_5():
+    # Stochastic value, + operator
+    return beta() + 5.0
+
+
+@bm.functional
+def add_6():
+    # Stochastic value, Tensor.add.
+    return torch.Tensor.add(beta(), torch.tensor(6.0))
+
+
+@bm.functional
+def add_7():
+    # Stochastic value, instance add
+    return beta().add(torch.tensor(7.0))
+
+
+@bm.functional
+def add_8():
+    # Constant values, operator.add
+    return operator.add(torch.tensor(8.0), torch.tensor(8.0))
+
+
+@bm.functional
+def add_9():
+    # Stochastic values, operator.add
+    return operator.add(beta(), torch.tensor(9.0))
+
+
+@bm.functional
+def div_1():
+    # Ordinary arithmetic, / operator
+    return torch.tensor(1.0 / 1.0)
+
+
+@bm.functional
+def div_2():
+    # Tensor arithmetic, / operator
+    return torch.tensor(4.0) / torch.tensor(2.0)
+
+
+@bm.functional
+def div_3():
+    # Tensor constants, Tensor.div.
+    # TODO: div also takes an optional rounding flag; test that.
+    return torch.Tensor.div(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def div_4():
+    # Tensor constant, instance divide (a synonym).
+    return torch.tensor(8.0).divide(torch.tensor(2.0))
+
+
+@bm.functional
+def div_5():
+    # Stochastic value, / operator
+    return beta() / 2.0
+
+
+@bm.functional
+def div_6():
+    # Stochastic value, Tensor.true_divide (a synonym)
+    return torch.Tensor.true_divide(beta(), torch.tensor(4.0))
+
+
+@bm.functional
+def div_7():
+    # Stochastic value, instance div
+    return beta().div(torch.tensor(8.0))
+
+
+@bm.functional
+def div_8():
+    # Constant values, operator.truediv
+    return operator.truediv(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def div_9():
+    # Stochastic values, operator.truediv
+    return operator.truediv(beta(), torch.tensor(16.0))
+
+
+@bm.functional
+def floordiv_1():
+    # Ordinary arithmetic, // operator
+    return torch.tensor(1.0 // 1.0)
+
+
+@bm.functional
+def floordiv_2():
+    # Tensor arithmetic, // operator
+    return torch.tensor(4.0) // torch.tensor(2.0)
+
+
+@bm.functional
+def floordiv_3():
+    # Tensor constants, Tensor.floor_divide.
+    return torch.Tensor.floor_divide(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def floordiv_4():
+    # Tensor constant, instance floor_divide
+    return torch.tensor(8.0).floor_divide(torch.tensor(2.0))
+
+
+@bm.functional
+def floordiv_5():
+    # Stochastic value, // operator
+    return beta() // 4.0
+
+
+@bm.functional
+def floordiv_6():
+    # Stochastic value, Tensor.floor_divide
+    return torch.Tensor.floor_divide(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def floordiv_7():
+    # Stochastic value, instance floor_divide
+    return beta().floor_divide(torch.tensor(16.0))
+
+
+@bm.functional
+def floordiv_8():
+    # Constant values, operator.floordiv
+    return operator.floordiv(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def floordiv_9():
+    # Stochastic values, operator.truediv
+    return operator.floordiv(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def mul_1():
+    # Ordinary arithmetic, * operator
+    return torch.tensor(1.0 * 1.0)
+
+
+@bm.functional
+def mul_2():
+    # Tensor arithmetic, * operator
+    return torch.tensor(2.0) * torch.tensor(2.0)
+
+
+@bm.functional
+def mul_3():
+    # Tensor constants, Tensor.mul.
+    return torch.Tensor.mul(torch.tensor(3.0), torch.tensor(3.0))
+
+
+@bm.functional
+def mul_4():
+    # Tensor constant, instance multiply (a synonym).
+    return torch.tensor(4.0).multiply(torch.tensor(4.0))
+
+
+@bm.functional
+def mul_5():
+    # Stochastic value, * operator
+    return beta() * 5.0
+
+
+@bm.functional
+def mul_6():
+    # Stochastic value, Tensor.multiply.
+    return torch.Tensor.multiply(beta(), torch.tensor(6.0))
+
+
+@bm.functional
+def mul_7():
+    # Stochastic value, instance mul
+    return beta().mul(torch.tensor(7.0))
+
+
+@bm.functional
+def mul_8():
+    # Constant values, operator.mul
+    return operator.mul(torch.tensor(8.0), torch.tensor(8.0))
+
+
+@bm.functional
+def mul_9():
+    # Stochastic values, operator.mul
+    return operator.mul(beta(), torch.tensor(9.0))
+
+
+@bm.functional
+def sub_1():
+    # Ordinary arithmetic, - operator
+    return torch.tensor(2.0 - 1.0)
+
+
+@bm.functional
+def sub_2():
+    # Tensor arithmetic, - operator
+    return torch.tensor(5.0) - torch.tensor(2.0)
+
+
+@bm.functional
+def sub_3():
+    # Tensor constants, Tensor.sub.
+    # TODO: Tensor.sub takes an optional third argument with the semantics
+    # sub(a, b, c) --> a - b * c. Test that as well.
+    return torch.Tensor.sub(torch.tensor(6.0), torch.tensor(3.0))
+
+
+@bm.functional
+def sub_4():
+    # Tensor constant, instance add
+    # TODO: Tensor.add takes an optional third argument with the semantics
+    # a.sub(b, c) --> a - b * c. Test that as well.
+    return torch.tensor(8.0).sub(torch.tensor(4.0))
+
+
+@bm.functional
+def sub_5():
+    # Stochastic value, - operator
+    return beta() - 5.0
+
+
+@bm.functional
+def sub_6():
+    # Stochastic value, Tensor.subtract (a synonym)
+    return torch.Tensor.subtract(beta(), torch.tensor(6.0))
+
+
+@bm.functional
+def sub_7():
+    # Stochastic value, instance sub
+    return beta().sub(torch.tensor(7.0))
+
+
+@bm.functional
+def sub_8():
+    # Constant values, operator.sub
+    return operator.sub(torch.tensor(16.0), torch.tensor(8.0))
+
+
+@bm.functional
+def sub_9():
+    # Stochastic values, operator.sub
+    return operator.sub(beta(), torch.tensor(9.0))
 
 
 class BMGArithmeticTest(unittest.TestCase):
@@ -547,6 +834,8 @@ digraph "graph" {
                 pow_5(),
                 pow_6(),
                 pow_7(),
+                pow_8(),
+                pow_9(),
             ],
             {},
         )
@@ -573,6 +862,11 @@ digraph "graph" {
   N18[label=7.0];
   N19[label="**"];
   N20[label=Query];
+  N21[label=64.0];
+  N22[label=Query];
+  N23[label=9.0];
+  N24[label="**"];
+  N25[label=Query];
   N00 -> N01;
   N02 -> N03;
   N04 -> N05;
@@ -582,6 +876,7 @@ digraph "graph" {
   N09 -> N10;
   N10 -> N12;
   N10 -> N15;
+  N10 -> N24;
   N11 -> N12;
   N12 -> N13;
   N14 -> N16;
@@ -590,6 +885,9 @@ digraph "graph" {
   N16 -> N17;
   N18 -> N19;
   N19 -> N20;
+  N21 -> N22;
+  N23 -> N24;
+  N24 -> N25;
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
@@ -653,6 +951,318 @@ digraph "graph" {
   N17 -> N18;
   N18 -> N19;
   N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_add(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                add_1(),
+                add_2(),
+                add_3(),
+                add_4(),
+                add_5(),
+                add_6(),
+                add_7(),
+                add_8(),
+                add_9(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=2.0];
+  N01[label=Query];
+  N02[label=4.0];
+  N03[label=Query];
+  N04[label=6.0];
+  N05[label=Query];
+  N06[label=8.0];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=ToPosReal];
+  N12[label=5.0];
+  N13[label="+"];
+  N14[label=Query];
+  N15[label=6.0];
+  N16[label="+"];
+  N17[label=Query];
+  N18[label=7.0];
+  N19[label="+"];
+  N20[label=Query];
+  N21[label=16.0];
+  N22[label=Query];
+  N23[label=9.0];
+  N24[label="+"];
+  N25[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N13;
+  N11 -> N16;
+  N11 -> N19;
+  N11 -> N24;
+  N12 -> N13;
+  N13 -> N14;
+  N15 -> N16;
+  N16 -> N17;
+  N18 -> N19;
+  N19 -> N20;
+  N21 -> N22;
+  N23 -> N24;
+  N24 -> N25;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_div(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                div_1(),
+                div_2(),
+                div_3(),
+                div_4(),
+                div_5(),
+                div_6(),
+                div_7(),
+                div_8(),
+                div_9(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Query];
+  N04[label=3.0];
+  N05[label=Query];
+  N06[label=4.0];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=0.5];
+  N12[label="*"];
+  N13[label=Query];
+  N14[label=0.25];
+  N15[label="*"];
+  N16[label=Query];
+  N17[label=0.125];
+  N18[label="*"];
+  N19[label=Query];
+  N20[label=8.0];
+  N21[label=Query];
+  N22[label=0.0625];
+  N23[label="*"];
+  N24[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N12;
+  N10 -> N15;
+  N10 -> N18;
+  N10 -> N23;
+  N11 -> N12;
+  N12 -> N13;
+  N14 -> N15;
+  N15 -> N16;
+  N17 -> N18;
+  N18 -> N19;
+  N20 -> N21;
+  N22 -> N23;
+  N23 -> N24;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_floordiv(self) -> None:
+
+        self.skipTest(
+            "Disabling floordiv tests; produces a deprecation warning in torch."
+        )
+
+        self.maxDiff = None
+
+        # "floordiv" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            floordiv_1(),
+            floordiv_2(),
+            floordiv_3(),
+            floordiv_4(),
+            floordiv_5(),
+            floordiv_6(),
+            floordiv_7(),
+            floordiv_8(),
+            floordiv_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a // operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a // operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a // operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a // operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_mul(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                mul_1(),
+                mul_2(),
+                mul_3(),
+                mul_4(),
+                mul_5(),
+                mul_6(),
+                mul_7(),
+                mul_8(),
+                mul_9(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=4.0];
+  N03[label=Query];
+  N04[label=9.0];
+  N05[label=Query];
+  N06[label=16.0];
+  N07[label=Query];
+  N08[label=2.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=ToPosReal];
+  N12[label=5.0];
+  N13[label="*"];
+  N14[label=Query];
+  N15[label=6.0];
+  N16[label="*"];
+  N17[label=Query];
+  N18[label=7.0];
+  N19[label="*"];
+  N20[label=Query];
+  N21[label=64.0];
+  N22[label=Query];
+  N23[label=9.0];
+  N24[label="*"];
+  N25[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N08 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N13;
+  N11 -> N16;
+  N11 -> N19;
+  N11 -> N24;
+  N12 -> N13;
+  N13 -> N14;
+  N15 -> N16;
+  N16 -> N17;
+  N18 -> N19;
+  N19 -> N20;
+  N21 -> N22;
+  N23 -> N24;
+  N24 -> N25;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_sub(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                sub_1(),
+                sub_2(),
+                sub_3(),
+                sub_4(),
+                sub_5(),
+                sub_6(),
+                sub_7(),
+                sub_8(),
+                sub_9(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=3.0];
+  N03[label=Query];
+  N04[label=4.0];
+  N05[label=Query];
+  N06[label=2.0];
+  N07[label=Beta];
+  N08[label=Sample];
+  N09[label=ToReal];
+  N10[label=-5.0];
+  N11[label="+"];
+  N12[label=Query];
+  N13[label=-6.0];
+  N14[label="+"];
+  N15[label=Query];
+  N16[label=-7.0];
+  N17[label="+"];
+  N18[label=Query];
+  N19[label=8.0];
+  N20[label=Query];
+  N21[label=-9.0];
+  N22[label="+"];
+  N23[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N06 -> N07;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N11;
+  N09 -> N14;
+  N09 -> N17;
+  N09 -> N22;
+  N10 -> N11;
+  N11 -> N12;
+  N13 -> N14;
+  N14 -> N15;
+  N16 -> N17;
+  N17 -> N18;
+  N19 -> N20;
   N21 -> N22;
   N22 -> N23;
 }
@@ -1006,15 +1616,6 @@ The unsupported node is the operator of a Query.
             BMGInference().infer([unsupported_bitxor()], {}, 1)
         expected = """
 The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_floordiv()], {}, 1)
-        expected = """
-The model uses a // operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
         """
         observed = str(ex.exception)
