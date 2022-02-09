@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from collections import defaultdict
 from typing import Dict, List, Optional
 
 import torch
@@ -64,7 +63,7 @@ class Predictive(object):
             (posterior is not None) + (num_samples is not None)
         ) == 1, "Only one of posterior or num_samples should be set."
         sampler = SingleSiteAncestralMetropolisHastings()
-        if posterior:
+        if posterior is not None:
             n_warmup = posterior.num_adaptive_samples
             # drop the warm up samples
             obs = {k: v[:, n_warmup:] for k, v in posterior.items()}
@@ -79,7 +78,12 @@ class Predictive(object):
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
-                return MonteCarloSamples(query_dict)
+                post_pred = MonteCarloSamples(
+                    query_dict,
+                    default_namespace="posterior_predictive",
+                )
+                post_pred.add_groups(posterior)
+                return post_pred
             else:
                 # predictives are sequentially sampled
                 preds = []
@@ -97,7 +101,12 @@ class Predictive(object):
                         finally:
                             sampler.reset()
                     preds.append(_concat_rv_dicts(rv_dicts))
-                return MonteCarloSamples(preds)
+                post_pred = MonteCarloSamples(
+                    preds,
+                    default_namespace="posterior_predictive",
+                )
+                post_pred.add_groups(posterior)
+                return post_pred
         else:
             obs = {}
             predictives = []
@@ -112,17 +121,21 @@ class Predictive(object):
                     sampler.reset()
                 predictives.append(query_dict)
 
-            rv_dict = defaultdict(list)
+            rv_dict = {}
             for k in predictives:
                 for rvid, rv in k.items():
+                    if rvid not in rv_dict:
+                        rv_dict[rvid] = []
                     if rv.dim() < 2:
                         rv = rv.unsqueeze(0)
                     rv_dict[rvid].append(rv)
             for k, v in rv_dict.items():
-                # pyre-ignore
                 rv_dict[k] = torch.cat(v, dim=1)
-            # pyre-fixme
-            return MonteCarloSamples(dict(rv_dict))
+            prior_pred = MonteCarloSamples(
+                rv_dict,
+                default_namespace="prior_predictive",
+            )
+            return prior_pred
 
     @staticmethod
     def empirical(

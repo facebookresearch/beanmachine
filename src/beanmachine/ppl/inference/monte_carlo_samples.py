@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
+from typing import Any, Dict, Iterator, List, Mapping, Optional, Union, NamedTuple
 
 import arviz as az
 import torch
@@ -13,6 +13,11 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
+
+
+class Samples(NamedTuple):
+    samples: RVDict
+    adaptive_samples: RVDict
 
 
 class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
@@ -30,7 +35,14 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         logll_results: Optional[Union[List[RVDict], RVDict]] = None,
         observations: Optional[RVDict] = None,
         stack_not_cat: bool = True,
+        default_namespace: str = "posterior",
     ):
+        self.namespaces = {}
+        self.default_namespace = default_namespace
+
+        if default_namespace not in self.namespaces:
+            self.namespaces[default_namespace] = {}
+
         if isinstance(chain_results, list):
             self.num_chains = len(chain_results)
             chain_results = merge_dicts(chain_results, 0, stack_not_cat)
@@ -38,8 +50,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             self.num_chains = next(iter(chain_results.values())).shape[0]
         self.num_adaptive_samples = num_adaptive_samples
 
-        self.adaptive_samples = {}
-        self.samples = {}
+        self.namespaces[default_namespace] = Samples({}, {})
         for rv, val in chain_results.items():
             self.adaptive_samples[rv] = val[:, :num_adaptive_samples]
             self.samples[rv] = val[:, num_adaptive_samples:]
@@ -62,6 +73,14 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
 
         # single_chain_view is only set when self.get_chain is called
         self.single_chain_view = False
+
+    @property
+    def samples(self):
+        return self.namespaces[self.default_namespace].samples
+
+    @property
+    def adaptive_samples(self):
+        return self.namespaces[self.default_namespace].adaptive_samples
 
     def __getitem__(self, rv: RVIdentifier) -> torch.Tensor:
         """
@@ -109,13 +128,18 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             num_adaptive_samples=self.num_adaptive_samples,
             logll_results=logll,
             observations=self.observations,
+            default_namespace=self.default_namespace,
         )
         new_mcs.single_chain_view = True
 
         return new_mcs
 
     def get_variable(
-        self, rv: RVIdentifier, include_adapt_steps: bool = False, thinning: int = 1
+        self,
+        rv: RVIdentifier,
+        include_adapt_steps: bool = False,
+        thinning: int = 1,
+        namespace: Optional[str] = None,
     ) -> torch.Tensor:
         """
         Let C be the number of chains,
@@ -141,10 +165,16 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
                 + f"but is of type {type(rv).__name__}."
             )
 
-        samples = self.samples[rv]
+        if namespace is None:
+            namespace = self.default_namespace
+
+        samples = self.namespaces[namespace].samples[rv]
 
         if include_adapt_steps:
-            samples = torch.cat([self.adaptive_samples[rv], samples], dim=1)
+            samples = torch.cat(
+                [self.namespaces[namespace].adaptive_samples[rv], samples],
+                dim=1,
+            )
 
         if thinning > 1:
             samples = samples[:, ::thinning]
@@ -215,30 +245,58 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         inference_data = self.to_inference_data(include_adapt_steps)
         if not include_adapt_steps:
-            # pyre-ignore
-            return inference_data.posterior
+            return inference_data["posterior"]
         else:
             return xr.concat(
-                # pyre-ignore
-                [inference_data.warmup_posterior, inference_data.posterior],
+                [inference_data["warmup_posterior"], inference_data["posterior"]],
                 dim="draw",
             )
+
+    def add_groups(self, mcs: "MonteCarloSamples"):
+        for n in mcs.namespaces:
+            if n not in self.namespaces:
+                self.namespaces[n] = mcs.namespaces[n]
 
     def to_inference_data(self, include_adapt_steps: bool = False) -> az.InferenceData:
         """
         Return an az.InferenceData from MonteCarloSamples.
         """
-        if self.num_adaptive_samples > 0:
-            adaptive_samples = self.adaptive_samples
-            adaptive_logll = self.adaptive_log_likelihoods
+
+        if "posterior" in self.namespaces:
+            posterior = self.namespaces["posterior"].samples
+            if self.num_adaptive_samples > 0:
+                warmup_posterior = self.namespaces["posterior"].adaptive_samples
+            else:
+                warmup_posterior = None
         else:
-            adaptive_samples = None
-            adaptive_logll = None
+            posterior = None
+            warmup_posterior = None
+
+        if "posterior_predictive" in self.namespaces:
+            posterior_predictive = self.namespaces["posterior_predictive"].samples
+            if self.num_adaptive_samples > 0:
+                warmup_posterior_predictive = self.namespaces[
+                    "posterior"
+                ].adaptive_samples
+            else:
+                warmup_posterior_predictive = None
+        else:
+            posterior_predictive = None
+            warmup_posterior_predictive = None
+
+        if "prior_predictive" in self.namespaces:
+            prior_predictive = self.namespaces["prior_predictive"].samples
+        else:
+            prior_predictive = None
+
         return az.from_dict(
-            posterior=self.samples,
-            warmup_posterior=adaptive_samples,
+            posterior=posterior,
+            warmup_posterior=warmup_posterior,
+            posterior_predictive=posterior_predictive,
+            warmup_posterior_predictive=warmup_posterior_predictive,
+            prior_predictive=prior_predictive,
             save_warmup=include_adapt_steps,
-            warmup_log_likelihood=adaptive_logll,
+            warmup_log_likelihood=self.adaptive_log_likelihoods,
             log_likelihood=self.log_likelihoods,
             observed_data=self.observations,
         )
