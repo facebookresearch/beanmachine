@@ -704,7 +704,7 @@ uint Graph::add_constant_neg_matrix(torch::Tensor& value) {
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
-uint Graph::add_constant_col_simplex_matrix(torch::Tensor& value) {
+uint Graph::add_constant_col_simplex_matrix(torch::Tensor value) {
   if ((value < 0).any().item().toBool()) {
     throw std::invalid_argument(
         "All elements in col_simplex_matrix must be >=0");

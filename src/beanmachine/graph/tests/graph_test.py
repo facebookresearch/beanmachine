@@ -13,7 +13,7 @@ from beanmachine import graph
 class TestBayesNet(unittest.TestCase):
     def test_simple_dep(self):
         g = graph.Graph()
-        c1 = g.add_constant_col_simplex_matrix(np.array([0.8, 0.2]))
+        c1 = g.add_constant_col_simplex_matrix(torch.tensor([0.8, 0.2]))
         d1 = g.add_distribution(
             graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c1]
         )
@@ -21,7 +21,7 @@ class TestBayesNet(unittest.TestCase):
 
     def test_tabular(self):
         g = graph.Graph()
-        c1 = g.add_constant_col_simplex_matrix(np.array([0.8, 0.2]))
+        c1 = g.add_constant_col_simplex_matrix(torch.tensor([0.8, 0.2]))
 
         # negative test
         with self.assertRaises(ValueError) as cm:
@@ -31,7 +31,7 @@ class TestBayesNet(unittest.TestCase):
         self.assertTrue("must be COL_SIMPLEX" in str(cm.exception))
 
         g = graph.Graph()
-        c1 = g.add_constant_col_simplex_matrix(np.array([0.8, 0.2]))
+        c1 = g.add_constant_col_simplex_matrix(torch.tensor([0.8, 0.2]))
         var1 = g.add_operator(
             graph.OperatorType.SAMPLE,
             [
@@ -64,7 +64,7 @@ class TestBayesNet(unittest.TestCase):
             )
         self.assertTrue("expected 4 dims got 1" in str(cm.exception))
 
-        c2 = g.add_constant_col_simplex_matrix(np.array([[0.6, 0.99], [0.4, 0.01]]))
+        c2 = g.add_constant_col_simplex_matrix(torch.tensor([[0.6, 0.99], [0.4, 0.01]]))
         g.add_distribution(
             graph.DistributionType.TABULAR,
             graph.AtomicType.BOOLEAN,
@@ -79,14 +79,14 @@ class TestBayesNet(unittest.TestCase):
             )
         self.assertTrue("only supports boolean parents" in str(cm.exception))
 
-        c3 = g.add_constant_real_matrix(np.array([1.1, -0.1]))
+        c3 = g.add_constant_real_matrix(torch.tensor([1.1, -0.1]))
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c3]
             )
         self.assertTrue("must be COL_SIMPLEX" in str(cm.exception))
 
-        c4 = g.add_constant_col_simplex_matrix(np.array([0.6, 0.3, 0.1]))
+        c4 = g.add_constant_col_simplex_matrix(torch.tensor([0.6, 0.3, 0.1]))
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c4]
@@ -207,7 +207,7 @@ class TestBayesNet(unittest.TestCase):
     def test_categorical(self):
         g = graph.Graph()
         simplex = [0.5, 0.25, 0.125, 0.125]
-        c1 = g.add_constant_col_simplex_matrix(np.array(simplex))
+        c1 = g.add_constant_col_simplex_matrix(torch.tensor(simplex))
         # Negative test: Number of parents must be exactly one:
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
@@ -277,10 +277,10 @@ class TestBayesNet(unittest.TestCase):
 
     def _create_graph(self):
         g = graph.Graph()
-        c1 = g.add_constant_col_simplex_matrix(np.array([0.8, 0.2]))
-        c2 = g.add_constant_col_simplex_matrix(np.array([[0.6, 0.99], [0.4, 0.01]]))
+        c1 = g.add_constant_col_simplex_matrix(torch.tensor([0.8, 0.2]))
+        c2 = g.add_constant_col_simplex_matrix(torch.tensor([[0.6, 0.99], [0.4, 0.01]]))
         c3 = g.add_constant_col_simplex_matrix(
-            np.transpose(np.array([[1, 0], [0.2, 0.8], [0.1, 0.9], [0.01, 0.99]]))
+            np.transpose(torch.tensor([[1, 0], [0.2, 0.8], [0.1, 0.9], [0.01, 0.99]]))
         )
         Rain = g.add_operator(
             graph.OperatorType.SAMPLE,

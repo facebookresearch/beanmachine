@@ -6,13 +6,13 @@
  */
 
 #include "beanmachine/graph/distribution/distribution.h"
-// #include "beanmachine/graph/distribution/bernoulli.h"
+#include "beanmachine/graph/distribution/bernoulli.h"
 // #include "beanmachine/graph/distribution/bernoulli_logit.h"
 // #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
-// #include "beanmachine/graph/distribution/beta.h"
+#include "beanmachine/graph/distribution/beta.h"
 // #include "beanmachine/graph/distribution/bimixture.h"
-// #include "beanmachine/graph/distribution/binomial.h"
-// #include "beanmachine/graph/distribution/categorical.h"
+#include "beanmachine/graph/distribution/binomial.h"
+#include "beanmachine/graph/distribution/categorical.h"
 // #include "beanmachine/graph/distribution/dirichlet.h"
 // #include "beanmachine/graph/distribution/flat.h"
 // #include "beanmachine/graph/distribution/gamma.h"
@@ -36,18 +36,18 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       // case graph::DistributionType::TABULAR: {
       //   return std::make_unique<Tabular>(atype, in_nodes);
       // }
-      // case graph::DistributionType::BERNOULLI: {
-      //   return std::make_unique<Bernoulli>(atype, in_nodes);
-      // }
+      case graph::DistributionType::BERNOULLI: {
+        return std::make_unique<Bernoulli>(atype, in_nodes);
+      }
       // case graph::DistributionType::BERNOULLI_NOISY_OR: {
       //   return std::make_unique<BernoulliNoisyOr>(atype, in_nodes);
       // }
-      // case graph::DistributionType::BETA: {
-      //   return std::make_unique<Beta>(atype, in_nodes);
-      // }
-      // case graph::DistributionType::BINOMIAL: {
-      //   return std::make_unique<Binomial>(atype, in_nodes);
-      // }
+      case graph::DistributionType::BETA: {
+        return std::make_unique<Beta>(atype, in_nodes);
+      }
+      case graph::DistributionType::BINOMIAL: {
+        return std::make_unique<Binomial>(atype, in_nodes);
+      }
       // case graph::DistributionType::FLAT: {
       //   return std::make_unique<Flat>(atype, in_nodes);
       // }
@@ -72,9 +72,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       // case graph::DistributionType::BIMIXTURE: {
       //   return std::make_unique<Bimixture>(atype, in_nodes);
       // }
-      // case graph::DistributionType::CATEGORICAL: {
-      //   return std::make_unique<Categorical>(atype, in_nodes);
-      // }
+      case graph::DistributionType::CATEGORICAL: {
+        return std::make_unique<Categorical>(atype, in_nodes);
+      }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +

@@ -39,10 +39,10 @@ graph::natural_t Categorical::_natural_sampler(std::mt19937& gen) const {
   // such methods on a Block<>; we make this seemingly unnecessary copy to
   // a vector to get around that.
 
-  const auto& c0 = matrix.col(0);
+  const auto& c0 = matrix.index({torch::indexing::Slice(),0});
   std::vector<double> v;
-  for (int i = 0; i < c0.size(); i += 1) {
-    v.push_back(c0(i));
+  for (int i = 0; i < c0.numel(); i += 1) {
+    v.push_back(c0[i].item().toDouble());
   }
   std::discrete_distribution<> distrib(v.begin(), v.end());
   return (graph::natural_t)distrib(gen);
@@ -55,7 +55,7 @@ double Categorical::log_prob(const graph::NodeValue& value) const {
   double prob = 0.0;
   graph::natural_t r = (graph::natural_t)matrix.size(0);
   if (0 <= value._natural and value._natural < r) {
-    prob = matrix(value._natural, 0);
+    prob = matrix[(int)value._natural][0].item().toDouble();
   }
   return std::log(prob);
 }
@@ -64,12 +64,12 @@ void Categorical::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  log_probs = torch::Tensor(value._matrix.size(0), value._matrix.size(1));
+  log_probs = torch::zeros({value._matrix.size(0), value._matrix.size(1)});
   uint rows = static_cast<uint>(value._matrix.size(0));
   uint cols = static_cast<uint>(value._matrix.size(1));
   for (uint r = 0; r < rows; r += 1) {
     for (uint c = 0; c < cols; c += 1) {
-      log_probs(r, c) = log_prob(graph::NodeValue(value._matrix(r, c)));
+      log_probs[r][c] = log_prob(graph::NodeValue(value._matrix[r][c].item().toDouble()));
     }
   }
 }

@@ -167,6 +167,10 @@ setup(
                         "src/beanmachine/graph/support.cpp",
                         "src/beanmachine/graph/util.cpp",
                         "src/beanmachine/graph/distribution/distribution.cpp",
+                        "src/beanmachine/graph/distribution/bernoulli.cpp",
+                        "src/beanmachine/graph/distribution/beta.cpp",
+                        "src/beanmachine/graph/distribution/binomial.cpp",
+                        "src/beanmachine/graph/distribution/categorical.cpp",
                     ])
                     | set(glob("src/beanmachine/graph/transform/*.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/factor/*.cpp", recursive=True))

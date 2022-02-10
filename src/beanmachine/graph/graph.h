@@ -540,7 +540,7 @@ struct Graph {
   uint add_constant_pos_matrix(torch::Tensor& value);
   uint add_constant_neg_matrix(torch::Tensor& value);
   uint add_constant_probability_matrix(torch::Tensor& value);
-  uint add_constant_col_simplex_matrix(torch::Tensor& value);
+  uint add_constant_col_simplex_matrix(torch::Tensor value);
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,

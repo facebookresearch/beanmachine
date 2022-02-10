@@ -85,22 +85,22 @@ PYBIND11_MODULE(graph, module) {
 //       .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL)
 //       .value("CHOICE", OperatorType::CHOICE);
 
-//   py::enum_<DistributionType>(module, "DistributionType")
-//       .value("TABULAR", DistributionType::TABULAR)
-//       .value("BERNOULLI", DistributionType::BERNOULLI)
-//       .value("BERNOULLI_NOISY_OR", DistributionType::BERNOULLI_NOISY_OR)
-//       .value("BETA", DistributionType::BETA)
-//       .value("BINOMIAL", DistributionType::BINOMIAL)
-//       .value("FLAT", DistributionType::FLAT)
-//       .value("NORMAL", DistributionType::NORMAL)
-//       .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
-//       .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
-//       .value("STUDENT_T", DistributionType::STUDENT_T)
-//       .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
-//       .value("GAMMA", DistributionType::GAMMA)
-//       .value("BIMIXTURE", DistributionType::BIMIXTURE)
-//       .value("DIRICHLET", DistributionType::DIRICHLET)
-//       .value("CATEGORICAL", DistributionType::CATEGORICAL);
+  py::enum_<DistributionType>(module, "DistributionType")
+    //   .value("TABULAR", DistributionType::TABULAR)
+      .value("BERNOULLI", DistributionType::BERNOULLI)
+    //   .value("BERNOULLI_NOISY_OR", DistributionType::BERNOULLI_NOISY_OR)
+      .value("BETA", DistributionType::BETA)
+      .value("BINOMIAL", DistributionType::BINOMIAL)
+    //   .value("FLAT", DistributionType::FLAT)
+    //   .value("NORMAL", DistributionType::NORMAL)
+    //   .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
+    //   .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
+    //   .value("STUDENT_T", DistributionType::STUDENT_T)
+    //   .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
+    //   .value("GAMMA", DistributionType::GAMMA)
+    //   .value("BIMIXTURE", DistributionType::BIMIXTURE)
+    //   .value("DIRICHLET", DistributionType::DIRICHLET)
+      .value("CATEGORICAL", DistributionType::CATEGORICAL);
 
 //   py::enum_<FactorType>(module, "FactorType")
 //       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
@@ -212,7 +212,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_constant_col_simplex_matrix",
-          (uint(Graph::*)(torch::Tensor&)) &
+          (uint(Graph::*)(torch::Tensor)) &
               Graph::add_constant_col_simplex_matrix,
           "add a Node with a constant matrix with each column a simplex",
           py::arg("value"))
@@ -238,12 +238,12 @@ PYBIND11_MODULE(graph, module) {
           py::arg("dist_type"),
           py::arg("sample_type"),
           py::arg("parents"))
-    //   .def(
-    //       "add_operator",
-    //       &Graph::add_operator,
-    //       "add an operator Node",
-    //       py::arg("op"),
-    //       py::arg("parents"))
+      .def(
+          "add_operator",
+          &Graph::add_operator,
+          "add an operator Node",
+          py::arg("op"),
+          py::arg("parents"))
     //   .def(
     //       "add_factor",
     //       &Graph::add_factor,
