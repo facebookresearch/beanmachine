@@ -21,10 +21,10 @@ PYBIND11_MODULE(graph, module) {
       .value("NONE", TransformType::NONE)
       .value("LOG", TransformType::LOG);
 
-  py::enum_<InitType>(module, "InitType")
-      .value("PRIOR", InitType::PRIOR)
-      .value("RANDOM", InitType::RANDOM)
-      .value("ZERO", InitType::ZERO);
+//   py::enum_<InitType>(module, "InitType")
+//       .value("PRIOR", InitType::PRIOR)
+//       .value("RANDOM", InitType::RANDOM)
+//       .value("ZERO", InitType::ZERO);
 
   py::enum_<VariableType>(module, "VariableType")
       .value("SCALAR", VariableType::SCALAR)
@@ -50,8 +50,8 @@ PYBIND11_MODULE(graph, module) {
       .def(py::init<bool>())
       .def(py::init<double>())
       .def(py::init<graph::natural_t>())
-      .def(py::init<Eigen::MatrixXb&>())
-      .def(py::init<Eigen::MatrixXd&>());
+      .def(py::init<torch::Tensor&>())
+      .def(py::init<torch::Tensor&>());
 
   py::enum_<OperatorType>(module, "OperatorType")
       .value("SAMPLE", OperatorType::SAMPLE)
@@ -186,39 +186,39 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_constant_real_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_real_matrix,
+          (uint(Graph::*)(torch::Tensor&)) & Graph::add_constant_real_matrix,
           "add a Node with a constant real-valued matrix",
           py::arg("value"))
       .def(
           "add_constant_bool_matrix",
-          (uint(Graph::*)(Eigen::MatrixXb&)) & Graph::add_constant_bool_matrix,
+          (uint(Graph::*)(torch::Tensor&)) & Graph::add_constant_bool_matrix,
           "add a Node with a constant Boolean-valued matrix",
           py::arg("value"))
       .def(
           "add_constant_natural_matrix",
-          (uint(Graph::*)(Eigen::MatrixXn&)) &
+          (uint(Graph::*)(torch::Tensor&)) &
               Graph::add_constant_natural_matrix,
           "add a Node with a constant natural-valued matrix",
           py::arg("value"))
       .def(
           "add_constant_pos_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_pos_matrix,
+          (uint(Graph::*)(torch::Tensor&)) & Graph::add_constant_pos_matrix,
           "add a Node with a constant element-wise positive valued matrix",
           py::arg("value"))
       .def(
           "add_constant_neg_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_neg_matrix,
+          (uint(Graph::*)(torch::Tensor&)) & Graph::add_constant_neg_matrix,
           "add a Node with a constant element-wise negative valued matrix",
           py::arg("value"))
       .def(
           "add_constant_col_simplex_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) &
+          (uint(Graph::*)(torch::Tensor&)) &
               Graph::add_constant_col_simplex_matrix,
           "add a Node with a constant matrix with each column a simplex",
           py::arg("value"))
       .def(
           "add_constant_probability_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) &
+          (uint(Graph::*)(torch::Tensor&)) &
               Graph::add_constant_probability_matrix,
           "add a Node with a constant probability-valued matrix",
           py::arg("value"))
@@ -270,19 +270,19 @@ PYBIND11_MODULE(graph, module) {
           py::arg("val"))
       .def(
           "observe",
-          (void (Graph::*)(uint, Eigen::MatrixXd&)) & Graph::observe,
+          (void (Graph::*)(uint, torch::Tensor&)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))
       .def(
           "observe",
-          (void (Graph::*)(uint, Eigen::MatrixXb&)) & Graph::observe,
+          (void (Graph::*)(uint, torch::Tensor&)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))
       .def(
           "observe",
-          (void (Graph::*)(uint, Eigen::MatrixXn&)) & Graph::observe,
+          (void (Graph::*)(uint, torch::Tensor&)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))
@@ -368,29 +368,29 @@ PYBIND11_MODULE(graph, module) {
           &Graph::performance_report,
           "performance report");
 
-  py::class_<NUTS>(module, "NUTS")
-      .def(py::init<Graph&>())
-      .def(
-          "infer",
-          &NUTS::infer,
-          "infer",
-          py::arg("num_samples"),
-          py::arg("seed"),
-          py::arg("num_warmup_samples") = 0,
-          py::arg("save_warmup") = false,
-          py::arg("init_type") = InitType::RANDOM);
+//   py::class_<NUTS>(module, "NUTS")
+//       .def(py::init<Graph&>())
+//       .def(
+//           "infer",
+//           &NUTS::infer,
+//           "infer",
+//           py::arg("num_samples"),
+//           py::arg("seed"),
+//           py::arg("num_warmup_samples") = 0,
+//           py::arg("save_warmup") = false,
+//           py::arg("init_type") = InitType::RANDOM);
 
-  py::class_<HMC>(module, "HMC")
-      .def(py::init<Graph&, double, double>())
-      .def(
-          "infer",
-          &HMC::infer,
-          "infer",
-          py::arg("num_samples"),
-          py::arg("seed"),
-          py::arg("num_warmup_samples") = 0,
-          py::arg("save_warmup") = false,
-          py::arg("init_type") = InitType::RANDOM);
+//   py::class_<HMC>(module, "HMC")
+//       .def(py::init<Graph&, double, double>())
+//       .def(
+//           "infer",
+//           &HMC::infer,
+//           "infer",
+//           py::arg("num_samples"),
+//           py::arg("seed"),
+//           py::arg("num_warmup_samples") = 0,
+//           py::arg("save_warmup") = false,
+//           py::arg("init_type") = InitType::RANDOM);
 }
 
 } // namespace graph

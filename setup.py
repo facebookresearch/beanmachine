@@ -44,10 +44,9 @@ DEV_REQUIRES = (
     ]
 )
 
+CPP_COMPILE_ARGS = ["-fPIC"]
 if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
-else:
-    CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
 # Check for python version
@@ -82,14 +81,23 @@ INCLUDE_DIRS = [os.path.join(current_dir, "src")]
 if "CONDA_PREFIX" in os.environ:
     conda_inc = "Library/include" if platform.system() == "Windows" else "include"
     conda_include_dir = os.path.join(os.environ["CONDA_PREFIX"], conda_inc)
-    INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "eigen3")])
+    INCLUDE_DIRS.extend(
+        [
+            conda_include_dir,
+            # os.path.join(conda_include_dir, "eigen3"),
+            "/root/micromamba/lib/python3.9/site-packages/torch/include/torch/csrc/api/include",
+            "/root/micromamba/lib/python3.9/site-packages/torch/include",
+            # "/workspace/libtorch/include",
+            # "/workspace/libtorch/include/torch/csrc/api/include",
+        ]
+    )  # TODO: replace with aten
     INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "boost")])
 
 if sys.platform.startswith("linux"):
     INCLUDE_DIRS.extend(
         [
             "/usr/include",
-            "/usr/include/eigen3",
+            # "/usr/include/eigen3",  # TODO: replace with aten
             "/usr/include/boost169/",
             "/usr/include/x86_64-linux-gnu",
         ]
@@ -149,11 +157,40 @@ setup(
         Pybind11Extension(
             name="beanmachine.graph",
             sources=sorted(
-                set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
-                - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
+                set([
+                    "test.cpp",
+                    # "src/beanmachine/graph/pybindings.cpp",
+                    # "src/beanmachine/graph/graph.cpp",
+                    # "src/beanmachine/graph/profiler.cpp",
+                    # "src/beanmachine/graph/distribution/beta.cpp",
+                    # "src/beanmachine/graph/distribution/binomial.cpp",
+                ])
+                # set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
+                # - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
             include_dirs=INCLUDE_DIRS,
-            extra_compile_args=CPP_COMPILE_ARGS,
+            # extra_compile_args=CPP_COMPILE_ARGS,
+            extra_compile_args=[
+                '-DUSE_C10D_GLOO', 
+                '-DUSE_DISTRIBUTED', 
+                '-DUSE_RPC', 
+                '-DUSE_TENSORPIPE', 
+                '-isystem /root/micromamba/lib/python3.9/site-packages/torch/include',
+                '-isystem /root/micromamba/lib/python3.9/site-packages/torch/include/torch/csrc/api/include',
+                '-D_GLIBCXX_USE_CXX11_ABI=0',
+                '-D_GLIBCXX_USE_CXX11_ABI=0'
+            ],
+            extra_link_args=[
+                '-D_GLIBCXX_USE_CXX11_ABI=0',
+                '-rdynamic',
+                '-Wl,-rpath,/root/micromamba/lib/python3.9/site-packages/torch/lib /root/micromamba/lib/python3.9/site-packages/torch/lib/libtorch.so /root/micromamba/lib/python3.9/site-packages/torch/lib/libc10.so',
+                '-Wl,--no-as-needed,/root/micromamba/lib/python3.9/site-packages/torch/lib/libtorch_cpu.so',
+                '-Wl,--as-needed,/root/micromamba/lib/python3.9/site-packages/torch/lib/libc10.so',
+                '-lpthread',
+                '-Wl,--no-as-needed,/root/micromamba/lib/python3.9/site-packages/torch/lib/libtorch.so',
+                '-Wl,--as-needed',
+            ],
+            cxx_std=14,
         )
     ],
     cmdclass={"build_ext": build_ext},

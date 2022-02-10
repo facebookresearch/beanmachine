@@ -109,7 +109,7 @@ TEST(testdistrib, bernoulli_logit) {
   auto two = g.add_constant((natural_t)2);
   auto var3 = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{dist2, two, two});
-  Eigen::MatrixXb m1(2, 2);
+  torch::Tensor m1(2, 2);
   m1 << true, false, false, false;
   g.observe(var3, m1);
   EXPECT_NEAR(g.log_prob(logit), -11.8845, 1e-3);
@@ -146,7 +146,7 @@ TEST(testdistrib, bernoulli_logit) {
   g2.observe(l2, -1.3);
   g2.observe(p, 0.65);
   g2.observe(x, true);
-  Eigen::MatrixXb xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << false, true;
   g2.observe(xiid, xobs);
   // To verify the results with pyTorch:

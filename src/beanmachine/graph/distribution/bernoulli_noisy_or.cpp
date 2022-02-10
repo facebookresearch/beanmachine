@@ -64,8 +64,8 @@ double BernoulliNoisyOr::log_prob(const graph::NodeValue& value) const {
     sum_x = (double)value._bool;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    size = static_cast<int>(value._bmatrix.size());
-    sum_x = static_cast<int>(value._bmatrix.count());
+    size = static_cast<int>(value._matrix.numel());
+    sum_x = static_cast<int>(value._matrix.count_nonzero().item().toInt());
   } else {
     throw std::runtime_error(
         "Normal::log_prob applied to invalid variable type");
@@ -76,12 +76,12 @@ double BernoulliNoisyOr::log_prob(const graph::NodeValue& value) const {
 
 void BernoulliNoisyOr::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   double param = in_nodes[0]->value._double;
   double logterm = log1mexpm(param);
-  Eigen::MatrixXd value_double = value._bmatrix.cast<double>();
+  torch::Tensor value_double = value._matrix;
   log_probs =
-      value_double.array() * logterm + (1 - value_double.array()) * (-param);
+      value_double * logterm + (1 - value_double) * (-param);
 }
 
 // x ~ BernoulliNoisyOr(y) = Bernoulli(1 - exp(-y))
@@ -132,22 +132,22 @@ void BernoulliNoisyOr::backward_param_iid(const graph::NodeValue& value) const {
   if (in_nodes[0]->needs_gradient()) {
     double param = in_nodes[0]->value._double;
     double mexpm1m = -std::expm1(-param); // 1 - exp(-param)
-    double val_sum = (double)value._bmatrix.count();
-    int size = static_cast<int>(value._bmatrix.size());
+    double val_sum  = value._matrix.count_nonzero().item().toDouble();
+    int size = static_cast<int>(value._matrix.numel());
     in_nodes[0]->back_grad1._double += val_sum / mexpm1m - size;
   }
 }
 
 void BernoulliNoisyOr::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     double param = in_nodes[0]->value._double;
     double mexpm1m = -std::expm1(-param); // 1 - exp(-param)
-    double sum_adjunct = adjunct.sum();
+    double sum_adjunct = adjunct.sum().item().toDouble();
     double sum_x_adjunct =
-        (value._bmatrix.cast<double>().array() * adjunct.array()).sum();
+        (value._matrix * adjunct).sum().item().toDouble();
     in_nodes[0]->back_grad1._double += sum_x_adjunct / mexpm1m - sum_adjunct;
   }
 }

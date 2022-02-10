@@ -78,7 +78,7 @@ TEST(testgraph, infer_bn) {
   graph::Graph g;
   // classic sprinkler BN, see the diagram here:
   // https://upload.wikimedia.org/wikipedia/commons/0/0e/SimpleBayesNet.svg
-  Eigen::MatrixXd matrix1(2, 1);
+  torch::Tensor matrix1(2, 1);
   matrix1 << 0.8, 0.2;
   uint c1 = g.add_constant_col_simplex_matrix(matrix1);
   uint d1 = g.add_distribution(
@@ -87,7 +87,7 @@ TEST(testgraph, infer_bn) {
       std::vector<uint>({c1}));
   uint RAIN =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
-  Eigen::MatrixXd matrix2(2, 2);
+  torch::Tensor matrix2(2, 2);
   matrix2 << 0.6, 0.99, 0.4, 0.01;
   uint c2 = g.add_constant_col_simplex_matrix(matrix2);
   uint d2 = g.add_distribution(
@@ -96,7 +96,7 @@ TEST(testgraph, infer_bn) {
       std::vector<uint>({c2, RAIN}));
   uint SPRINKLER =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
-  Eigen::MatrixXd matrix3(2, 4);
+  torch::Tensor matrix3(2, 4);
   matrix3 << 1.0, 0.2, 0.1, 0.01, 0.0, 0.8, 0.9, 0.99;
   uint c3 = g.add_constant_col_simplex_matrix(matrix3);
   uint d3 = g.add_distribution(
@@ -159,19 +159,19 @@ TEST(testgraph, clone_graph) {
   uint c_pos = g.add_constant_pos_real(2.5);
   uint c_neg = g.add_constant_neg_real(-1.5);
 
-  Eigen::MatrixXd m0 = Eigen::MatrixXd::Constant(2, 1, 0.6);
+  torch::Tensor m0 = torch::Tensor::Constant(2, 1, 0.6);
   g.add_constant_probability_matrix(m0);
-  Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(2, 2);
+  torch::Tensor m1 = torch::Tensor::Identity(2, 2);
   g.add_constant_pos_matrix(m1);
-  Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(2, 2);
+  torch::Tensor m2 = torch::Tensor::Random(2, 2);
   g.add_constant_real_matrix(m2);
-  Eigen::MatrixXd m3(2, 1);
+  torch::Tensor m3(2, 1);
   m3 << 0.2, 0.8;
   g.add_constant_col_simplex_matrix(m3);
-  Eigen::MatrixXb m4(1, 2);
+  torch::Tensor m4(1, 2);
   m4 << true, false;
   g.add_constant_bool_matrix(m4);
-  Eigen::MatrixXn m5(2, 1);
+  torch::Tensor m5(2, 1);
   m5 << 1, 2;
   g.add_constant_natural_matrix(m5);
   // distributions
@@ -343,11 +343,11 @@ TEST(testgraph, full_log_prob) {
 
 TEST(testgraph, bad_observations) {
   // Tests which demonstrate that we give errors for bad observations.
-  Eigen::MatrixXb bool_matrix(1, 2);
+  torch::Tensor bool_matrix(1, 2);
   bool_matrix << true, false;
-  Eigen::MatrixXn nat_matrix(1, 2);
+  torch::Tensor nat_matrix(1, 2);
   nat_matrix << 2, 3;
-  Eigen::MatrixXd real_matrix(1, 2);
+  torch::Tensor real_matrix(1, 2);
   real_matrix << 1.5, 2.5;
   graph::natural_t nat = 2;
 
@@ -434,7 +434,7 @@ TEST(testgraph, bad_observations) {
 TEST(testgraph, infer_runtime_error) {
   graph::Graph g;
   auto two = g.add_constant((graph::natural_t)2);
-  Eigen::MatrixXd real_matrix(1, 1);
+  torch::Tensor real_matrix(1, 1);
   real_matrix << 1.0;
   auto matrix = g.add_constant_real_matrix(real_matrix);
   // index out of bounds during runtime

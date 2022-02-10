@@ -29,13 +29,13 @@ void HmcProposer::initialize(
   }
 }
 
-double HmcProposer::compute_kinetic_energy(Eigen::VectorXd momentum) {
+double HmcProposer::compute_kinetic_energy(torch::Tensor momentum) {
   return 0.5 * momentum.dot(momentum);
 }
 
-Eigen::VectorXd HmcProposer::compute_potential_gradient(GlobalState& state) {
+torch::Tensor HmcProposer::compute_potential_gradient(GlobalState& state) {
   state.update_backgrad();
-  Eigen::VectorXd grad1;
+  torch::Tensor grad1;
   state.get_flattened_unconstrained_grads(grad1);
   return -grad1;
 }
@@ -51,10 +51,10 @@ void HmcProposer::warmup(
   }
 }
 
-Eigen::VectorXd HmcProposer::initialize_momentum(
-    Eigen::VectorXd position,
+torch::Tensor HmcProposer::initialize_momentum(
+    torch::Tensor position,
     std::mt19937& gen) {
-  Eigen::VectorXd momentum(position.size());
+  torch::Tensor momentum(position.size());
   std::normal_distribution<double> normal_dist(0.0, 1.0);
   for (int i = 0; i < momentum.size(); i++) {
     momentum[i] = normal_dist(gen);
@@ -64,12 +64,12 @@ Eigen::VectorXd HmcProposer::initialize_momentum(
 }
 
 double HmcProposer::propose(GlobalState& state, std::mt19937& gen) {
-  Eigen::VectorXd position;
+  torch::Tensor position;
   state.get_flattened_unconstrained_values(position);
   state.update_log_prob();
   double initial_U = -state.get_log_prob();
 
-  Eigen::VectorXd momentum(position.size());
+  torch::Tensor momentum(position.size());
   std::normal_distribution<double> dist(0.0, 1.0);
   for (int i = 0; i < momentum.size(); i++) {
     momentum[i] = dist(gen);
@@ -79,7 +79,7 @@ double HmcProposer::propose(GlobalState& state, std::mt19937& gen) {
   int num_steps = static_cast<int>(ceil(path_length / step_size));
 
   // momentum half-step
-  Eigen::VectorXd grad_U = compute_potential_gradient(state);
+  torch::Tensor grad_U = compute_potential_gradient(state);
   momentum = momentum - step_size * grad_U / 2;
   for (int i = 0; i < num_steps; i++) {
     // position full-step

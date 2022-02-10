@@ -22,7 +22,7 @@
   double n_s_sq_p_x_m_l_sq = n * s * s + (x - l) * (x - l);
 
 // the matrix form of n s^2 + (x - l)^2
-#define NS2PXML2 ((value._matrix.array() - l).pow(2) + n * s * s)
+#define NS2PXML2 ((value._matrix - l).pow(2) + n * s * s)
 
 namespace beanmachine {
 namespace distribution {
@@ -98,8 +98,8 @@ double StudentT::log_prob(const NodeValue& value) const {
     result -= ((n + 1) / 2) * std::log(n * s * s + (x - l) * (x - l));
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = static_cast<int>(value._matrix.size());
-    result = result * size - ((n + 1) / 2) * NS2PXML2.log().sum();
+    int size = static_cast<int>(value._matrix.numel());
+    result = result * size - ((n + 1) / 2) * NS2PXML2.log().sum().item().toDouble();
   } else {
     throw std::runtime_error(
         "StudentT::log_prob applied to invalid variable type");
@@ -109,7 +109,7 @@ double StudentT::log_prob(const NodeValue& value) const {
 
 void StudentT::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
@@ -227,19 +227,19 @@ void StudentT::backward_value_iid(
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
   back_grad._matrix -=
-      ((n + 1) * (value._matrix.array() - l) / NS2PXML2).matrix();
+      ((n + 1) * (value._matrix - l) / NS2PXML2).matrix();
 }
 
 void StudentT::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
   back_grad._matrix -=
-      (adjunct.array() * (n + 1) * (value._matrix.array() - l) / NS2PXML2)
+      (adjunct * (n + 1) * (value._matrix - l) / NS2PXML2)
           .matrix();
 }
 
@@ -266,39 +266,39 @@ void StudentT::backward_param_iid(const graph::NodeValue& value) const {
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
-  Eigen::MatrixXd NSsqPXMLsq = NS2PXML2;
-  int size = static_cast<int>(value._matrix.size());
+  torch::Tensor NSsqPXMLsq = NS2PXML2;
+  int size = static_cast<int>(value._matrix.numel());
   if (in_nodes[0]->needs_gradient()) {
     double jacob = size *
         (0.5 * util::polygamma(0, (n + 1) / 2) -
          0.5 * util::polygamma(0, n / 2) - 0.5 / n + 0.5 * std::log(n) +
          std::log(s) + 0.5 * (n + 1) / n);
     in_nodes[0]->back_grad1._double += jacob -
-        (0.5 * NSsqPXMLsq.array().log() +
-         0.5 * (n + 1) * s * s / NSsqPXMLsq.array())
-            .sum();
+        (0.5 * NSsqPXMLsq.log() +
+         0.5 * (n + 1) * s * s / NSsqPXMLsq)
+            .sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._double +=
-        (n + 1) * ((value._matrix.array() - l) / NSsqPXMLsq.array()).sum();
+        (n + 1) * ((value._matrix - l) / NSsqPXMLsq).sum().item().toDouble();
   }
   if (in_nodes[2]->needs_gradient()) {
     in_nodes[2]->back_grad1._double +=
-        size * n / s - (n + 1) * n * (s / NSsqPXMLsq.array()).sum();
+        size * n / s - (n + 1) * n * (s / NSsqPXMLsq).sum().item().toDouble();
   }
 }
 
 void StudentT::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
-  Eigen::MatrixXd NSsqPXMLsq = NS2PXML2;
+  torch::Tensor NSsqPXMLsq = NS2PXML2;
   double adjunct_sum = 1.0;
   if (in_nodes[0]->needs_gradient() or in_nodes[2]->needs_gradient()) {
-    adjunct_sum = adjunct.sum();
+    adjunct_sum = adjunct.sum().item().toDouble();
   }
   if (in_nodes[0]->needs_gradient()) {
     double jacob = adjunct_sum *
@@ -306,20 +306,20 @@ void StudentT::backward_param_iid(
          0.5 * util::polygamma(0, n / 2) - 0.5 / n + 0.5 * std::log(n) +
          std::log(s) + 0.5 * (n + 1) / n);
     in_nodes[0]->back_grad1._double += jacob -
-        (adjunct.array() *
-         (0.5 * NSsqPXMLsq.array().log() +
-          0.5 * (n + 1) * s * s / NSsqPXMLsq.array()))
-            .sum();
+        (adjunct *
+         (0.5 * NSsqPXMLsq.log() +
+          0.5 * (n + 1) * s * s / NSsqPXMLsq))
+            .sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._double +=
-        (adjunct.array() * (n + 1) * (value._matrix.array() - l) /
-         NSsqPXMLsq.array())
-            .sum();
+        (adjunct * (n + 1) * (value._matrix - l) /
+         NSsqPXMLsq)
+            .sum().item().toDouble();
   }
   if (in_nodes[2]->needs_gradient()) {
     in_nodes[2]->back_grad1._double += adjunct_sum * n / s -
-        (adjunct.array() * (n + 1) * n * (s / NSsqPXMLsq.array())).sum();
+        (adjunct * (n + 1) * n * (s / NSsqPXMLsq)).sum().item().toDouble();
   }
 }
 

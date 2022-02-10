@@ -63,9 +63,9 @@ double Gamma::log_prob(const graph::NodeValue& value) const {
         (param_a - 1.0) * std::log(value._double) - param_b * value._double;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    result *= value._matrix.size();
-    result += (param_a - 1.0) * value._matrix.array().log().sum() -
-        param_b * value._matrix.sum();
+    result *= value._matrix.numel();
+    result += (param_a - 1.0) * value._matrix.log().sum() -
+        param_b * value._matrix.sum().item().toDouble();
   } else {
     throw std::runtime_error(
         "Gamma::log_prob applied to invalid variable type");
@@ -75,13 +75,13 @@ double Gamma::log_prob(const graph::NodeValue& value) const {
 
 void Gamma::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double result = param_a * std::log(param_b) - lgamma(param_a);
-  log_probs = result + (param_a - 1.0) * value._matrix.array().log() -
-      param_b * value._matrix.array();
+  log_probs = result + (param_a - 1.0) * value._matrix.log() -
+      param_b * value._matrix;
 }
 
 void Gamma::_grad1_log_prob_value(
@@ -142,18 +142,18 @@ void Gamma::backward_value_iid(
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   back_grad._matrix +=
-      ((param_a - 1.0) / value._matrix.array() - param_b).matrix();
+      ((param_a - 1.0) / value._matrix - param_b).matrix();
 }
 
 void Gamma::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   back_grad._matrix +=
-      (adjunct.array() * ((param_a - 1.0) / value._matrix.array() - param_b))
+      (adjunct * ((param_a - 1.0) / value._matrix - param_b))
           .matrix();
 }
 
@@ -177,37 +177,37 @@ void Gamma::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  int size = static_cast<int>(value._matrix.size());
+  int size = static_cast<int>(value._matrix.numel());
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
     in_nodes[0]->back_grad1._double += size * (std::log(param_b) - digamma_a) +
-        value._matrix.array().log().sum();
+        value._matrix.log().sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._double +=
-        size * (param_a / param_b) - value._matrix.array().sum();
+        size * (param_a / param_b) - value._matrix.sum().item().toDouble();
   }
 }
 
 void Gamma::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double adjunct_sum = 1.0;
   if (in_nodes[0]->needs_gradient() or in_nodes[1]->needs_gradient()) {
-    adjunct_sum = adjunct.sum();
+    adjunct_sum = adjunct.sum().item().toDouble();
   }
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
     in_nodes[0]->back_grad1._double +=
         adjunct_sum * (std::log(param_b) - digamma_a) +
-        (value._matrix.array().log() * adjunct.array()).sum();
+        (value._matrix.log() * adjunct).sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._double += adjunct_sum * (param_a / param_b) -
-        (value._matrix.array() * adjunct.array()).sum();
+        (value._matrix * adjunct).sum().item().toDouble();
   }
 }
 

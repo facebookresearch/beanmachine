@@ -16,10 +16,10 @@ TEST(testdistrib, categorical) {
   graph::Graph g;
 
   // 50% chance of 0, 25% chance of 1, 12.5% chance of 3, 4.
-  Eigen::MatrixXd matrix(4, 1);
+  torch::Tensor matrix(4, 1);
   matrix << 0.5, 0.25, 0.125, 0.125;
   // We only support single-column simplexes.
-  Eigen::MatrixXd matrix2(4, 2);
+  torch::Tensor matrix2(4, 2);
   matrix2 << 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25;
 
   uint c0 = g.add_constant(0.0);

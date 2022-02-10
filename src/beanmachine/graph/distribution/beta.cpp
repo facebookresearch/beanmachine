@@ -10,6 +10,8 @@
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/util.h"
 
+using namespace torch::indexing;
+
 namespace beanmachine {
 namespace distribution {
 
@@ -51,9 +53,13 @@ double Beta::log_prob(const graph::NodeValue& value) const {
 
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   assert(value.type.rows * value.type.cols > 1);
-  const uint size = static_cast<uint>(value._matrix.size());
-  for (uint i = 0; i < size; i++) {
-    update_logprob(*(value._matrix.data() + i));
+  const uint size = static_cast<uint>(value._matrix.numel());
+  auto value_a = value._matrix.accessor<double, 2>();
+  for (uint i = 0; i < value_a.size(0); i++) {
+    for (uint j = 0; i < value_a.size(1); j++) {
+      update_logprob(value_a[i][j]);
+      // update_logprob(*(value._matrix.data() + i));
+    }
   }
   ret_val +=
       size * (lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b));
@@ -62,13 +68,13 @@ double Beta::log_prob(const graph::NodeValue& value) const {
 
 void Beta::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double result = lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b);
-  log_probs = result + (param_a - 1) * value._matrix.array().log() +
-      (param_b - 1) * (1 - value._matrix.array()).log();
+  log_probs = result + (param_a - 1) * value._matrix.log() +
+      (param_b - 1) * (1 - value._matrix).log();
 }
 
 // Note log_prob(x | a, b) = (a-1) log(x) + (b-1) log(1-x) + log G(a+b) - log
@@ -110,16 +116,16 @@ void Beta::gradient_log_prob_param(
     const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
-  Eigen::Matrix<double, 1, 2> jacobian;
-  Eigen::Matrix2d hessian;
+  torch::Tensor jacobian = torch::empty({1, 2});
+  torch::Tensor hessian = torch::empty({2, 2});
   compute_jacobian_hessian(value, jacobian, hessian);
   forward_gradient_scalarops(jacobian, hessian, grad1, grad2);
 }
 
 void Beta::compute_jacobian_hessian(
     const graph::NodeValue& value,
-    Eigen::Matrix<double, 1, 2>& jacobian,
-    Eigen::Matrix2d& hessian) const {
+    torch::Tensor& jacobian,
+    torch::Tensor& hessian) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double digamma_a_p_b = util::polygamma(0, param_a + param_b); // digamma(a+b)
@@ -128,23 +134,24 @@ void Beta::compute_jacobian_hessian(
   double poly1_a_p_b =
       util::polygamma(1, param_a + param_b); // polygamma(1, a+b)
 
-  *hessian.data() = poly1_a_p_b - util::polygamma(1, param_a);
-  *(hessian.data() + 1) = *(hessian.data() + 2) = poly1_a_p_b;
-  *(hessian.data() + 3) = poly1_a_p_b - util::polygamma(1, param_b);
+  hessian.index_put_({0, 0}, poly1_a_p_b - util::polygamma(1, param_a));
+  hessian.index_put_({1, 0}, poly1_a_p_b);
+  hessian.index_put_({0, 1}, poly1_a_p_b);
+  hessian.index_put_({1, 1}, poly1_a_p_b - util::polygamma(1, param_b));
 
   if (value.type.variable_type == graph::VariableType::SCALAR) {
-    *jacobian.data() = std::log(value._double) + digamma_diff_a;
-    *(jacobian.data() + 1) = std::log(1 - value._double) + digamma_diff_b;
+    jacobian.index_put_({0, 0}, std::log(value._double) + digamma_diff_a);
+    jacobian.index_put_({0, 1}, std::log(1 - value._double) + digamma_diff_b);
     return;
   }
 
-  uint size = static_cast<uint>(value._matrix.size());
+  uint size = static_cast<uint>(value._matrix.numel());
   assert(size > 1);
-  *jacobian.data() = size * digamma_diff_a;
-  *(jacobian.data() + 1) = size * digamma_diff_b;
+  jacobian[0][0] = size * digamma_diff_a;
+  jacobian[0][1] = size * digamma_diff_b;
   for (uint i = 0; i < size; i++) {
-    *jacobian.data() += std::log(*(value._matrix.data() + i));
-    *(jacobian.data() + 1) += std::log(1 - *(value._matrix.data() + i));
+    jacobian[0][0] += std::log(value._matrix[i].item().toDouble());
+    jacobian[0][1] += std::log(1 - value._matrix[i].item().toDouble());
   }
   hessian *= static_cast<double>(size);
 }
@@ -168,22 +175,20 @@ void Beta::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  back_grad._matrix += ((param_a - 1) / value._matrix.array() -
-                        (param_b - 1) / (1 - value._matrix.array()))
-                           .matrix();
+  back_grad._matrix += ((param_a - 1) / value._matrix -
+                        (param_b - 1) / (1 - value._matrix));
 }
 
 void Beta::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  back_grad._matrix += (adjunct.array() *
-                        ((param_a - 1) / value._matrix.array() -
-                         (param_b - 1) / (1 - value._matrix.array())))
-                           .matrix();
+  back_grad._matrix += (adjunct *
+                        ((param_a - 1) / value._matrix -
+                         (param_b - 1) / (1 - value._matrix)));
 }
 
 void Beta::backward_param(const graph::NodeValue& value, double adjunct) const {
@@ -208,36 +213,36 @@ void Beta::backward_param_iid(const graph::NodeValue& value) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double digamma_a_p_b = util::polygamma(0, param_a + param_b);
-  int size = static_cast<int>(value._matrix.size());
+  int size = static_cast<int>(value._matrix.numel());
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += value._matrix.array().log().sum() +
+    in_nodes[0]->back_grad1._double += value._matrix.log().sum().item().toDouble() +
         size * (digamma_a_p_b - util::polygamma(0, param_a));
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double += (1 - value._matrix.array()).log().sum() +
+    in_nodes[1]->back_grad1._double += (1 - value._matrix).log().sum().item().toDouble() +
         size * (digamma_a_p_b - util::polygamma(0, param_b));
   }
 }
 
 void Beta::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double digamma_a_p_b = util::polygamma(0, param_a + param_b);
   double adjunct_sum = 1.0;
   if (in_nodes[0]->needs_gradient() or in_nodes[1]->needs_gradient()) {
-    adjunct_sum = adjunct.sum();
+    adjunct_sum = adjunct.sum().item().toDouble();
   }
   if (in_nodes[0]->needs_gradient()) {
     in_nodes[0]->back_grad1._double +=
-        (adjunct.array() * value._matrix.array().log()).sum() +
+        (adjunct * value._matrix.log()).sum().item().toDouble() +
         adjunct_sum * (digamma_a_p_b - util::polygamma(0, param_a));
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._double +=
-        (adjunct.array() * (1 - value._matrix.array()).log()).sum() +
+        (adjunct * (1 - value._matrix).log()).sum().item().toDouble() +
         adjunct_sum * (digamma_a_p_b - util::polygamma(0, param_b));
   }
 }

@@ -28,7 +28,7 @@ TEST(testdistrib, backward_bernoulli_noisy_or) {
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, two});
   g.observe(y, 2.0);
   g.observe(x1, true);
-  Eigen::MatrixXb x2_obs(2, 1);
+  torch::Tensor x2_obs(2, 1);
   x2_obs << false, true;
   g.observe(x2, x2_obs);
 
@@ -78,7 +78,7 @@ TEST(testdistrib, backward_bernoulli_noisy_or) {
   g2.observe(y2, 2.0);
   g2.observe(mix_p, 0.7);
   g2.observe(x, false);
-  Eigen::MatrixXb xiid_obs(2, 1);
+  torch::Tensor xiid_obs(2, 1);
   xiid_obs << false, true;
   g2.observe(xiid, xiid_obs);
 

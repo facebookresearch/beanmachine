@@ -241,10 +241,10 @@ void MH::clear_gradients(Node* node) {
       break;
     case VariableType::BROADCAST_MATRIX:
     case VariableType::COL_SIMPLEX_MATRIX: {
-      auto rows = node->value._matrix.rows();
-      auto cols = node->value._matrix.cols();
-      node->Grad1 = Eigen::MatrixXd::Zero(rows, cols);
-      node->Grad2 = Eigen::MatrixXd::Zero(rows, cols);
+      auto rows = node->value._matrix.size(0);
+      auto cols = node->value._matrix.size(1);
+      node->Grad1 = torch::Tensor::Zero(rows, cols);
+      node->Grad2 = torch::Tensor::Zero(rows, cols);
       break;
     }
     default:

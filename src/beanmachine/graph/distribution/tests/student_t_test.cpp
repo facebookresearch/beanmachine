@@ -161,7 +161,7 @@ TEST(testdistrib, student_t) {
   auto two = g.add_constant((natural_t)2);
   auto y = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{x_dist, two, two});
-  Eigen::MatrixXd m(2, 2);
+  torch::Tensor m(2, 2);
   m << 7.1, 2.6, 5.8, 12.2;
   g.observe(y, m);
   EXPECT_NEAR(g.log_prob(dof), -14.0561, 1e-3);
@@ -213,7 +213,7 @@ TEST(testdistrib, student_t) {
   g2.observe(s, 1.8);
   g2.observe(p, 0.37);
   g2.observe(x1, -0.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, -1.5;
   g2.observe(x2, xobs);
   // To verify the results with pyTorch:

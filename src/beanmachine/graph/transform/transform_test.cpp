@@ -38,7 +38,7 @@ TEST(test_transform, log) {
   g1.customize_transformation(
       TransformType::LOG, std::vector<uint>{pos1, pos2});
   g1.observe(pos1, 2.5);
-  Eigen::MatrixXd pos2_obs(2, 1);
+  torch::Tensor pos2_obs(2, 1);
   pos2_obs << 0.5, 1.5;
   g1.observe(pos2, pos2_obs);
   // scalar transform
@@ -90,7 +90,7 @@ TEST(test_transform, log) {
   g2.observe(rate1, 10.0);
   g2.observe(shape1, 1.2);
   g2.observe(x1, 2.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, 1.5;
   g2.observe(x2, xobs);
 

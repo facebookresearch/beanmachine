@@ -22,7 +22,7 @@ graph::NodeValue FromProbabilityToDirichletProposerAdapter::sample(
       graph::AtomicType::PROBABILITY,
       2,
       1);
-  Eigen::MatrixXd values(2, 1);
+  torch::Tensor values(2, 1);
   values << probability, 1 - probability;
   graph::NodeValue dirichlet(value_type, values);
   return dirichlet;

@@ -121,7 +121,7 @@ TEST(testdistrib, half_cauchy) {
   auto y = g2.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{y_dist, two, two});
   g2.observe(x, 0.8);
-  Eigen::MatrixXd m_y(2, 2);
+  torch::Tensor m_y(2, 2);
   m_y << 0.1, 0.2, 0.3, 0.4;
   g2.observe(y, m_y);
   // test log_prob():
@@ -164,7 +164,7 @@ TEST(testdistrib, half_cauchy) {
   g3.observe(s2, 4.3);
   g3.observe(p, 0.65);
   g3.observe(x_, 3.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, 1.5;
   g3.observe(xiid, xobs);
   // To verify the results with pyTorch:

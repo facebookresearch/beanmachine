@@ -58,7 +58,7 @@ GlobalState::GlobalState(Graph& g) : graph(g) {
     if (unconstrained_value.type.variable_type == VariableType::SCALAR) {
       flat_size++;
     } else {
-      flat_size += static_cast<int>(unconstrained_value._matrix.size());
+      flat_size += static_cast<int>(unconstrained_value._matrix.numel());
     }
   }
 }
@@ -74,14 +74,14 @@ void GlobalState::initialize_values(InitType init_type, uint seed) {
     }
   } else {
     // Update using set_flattened_unconstrained_values
-    Eigen::VectorXd flattened_values(flat_size);
+    torch::Tensor flattened_values(flat_size);
     if (init_type == InitType::RANDOM) {
       std::uniform_real_distribution<> uniform_real_distribution(-2, 2);
       for (int i = 0; i < flat_size; i++) {
         flattened_values[i] = uniform_real_distribution(gen);
       }
     } else if (init_type == InitType::ZERO) {
-      flattened_values = Eigen::VectorXd::Zero(flat_size);
+      flattened_values = torch::Tensor::Zero(flat_size);
     }
     set_flattened_unconstrained_values(flattened_values);
   }
@@ -135,19 +135,19 @@ void GlobalState::revert_unconstrained_grads() {
 }
 
 void GlobalState::add_to_stochastic_unconstrained_nodes(
-    Eigen::VectorXd& increment) {
+    torch::Tensor& increment) {
   if (increment.size() != flat_size) {
     throw std::invalid_argument(
         "The size of increment is inconsistent with the values in the graph");
   }
-  Eigen::VectorXd flattened_values;
+  torch::Tensor flattened_values;
   get_flattened_unconstrained_values(flattened_values);
-  Eigen::VectorXd sum = flattened_values + increment;
+  torch::Tensor sum = flattened_values + increment;
   set_flattened_unconstrained_values(sum);
 }
 
 void GlobalState::get_flattened_unconstrained_values(
-    Eigen::VectorXd& flattened_values) {
+    torch::Tensor& flattened_values) {
   flattened_values.resize(flat_size);
   int i = 0;
   for (Node* node : stochastic_nodes) {
@@ -157,16 +157,16 @@ void GlobalState::get_flattened_unconstrained_values(
       flattened_values[i] = value->_double;
       i++;
     } else {
-      Eigen::VectorXd vector(Eigen::Map<Eigen::VectorXd>(
-          value->_matrix.data(), value->_matrix.size()));
+      torch::Tensor vector(Eigen::Map<torch::Tensor>(
+          value->_matrix.data(), value->_matrix.numel()));
       flattened_values.segment(i, vector.size()) = vector;
-      i += static_cast<int>(value->_matrix.size());
+      i += static_cast<int>(value->_matrix.numel());
     }
   }
 }
 
 void GlobalState::set_flattened_unconstrained_values(
-    Eigen::VectorXd& flattened_values) {
+    torch::Tensor& flattened_values) {
   if (flattened_values.size() != flat_size) {
     throw std::invalid_argument(
         "The size of flattened_values is inconsistent with the values in the graph");
@@ -181,8 +181,8 @@ void GlobalState::set_flattened_unconstrained_values(
       value->_double = flattened_values[i];
       i++;
     } else {
-      value->_matrix = flattened_values.segment(i, value->_matrix.size());
-      i += static_cast<int>(value->_matrix.size());
+      value->_matrix = flattened_values.segment(i, value->_matrix.numel());
+      i += static_cast<int>(value->_matrix.numel());
     }
 
     // sync value with unconstrained_value
@@ -193,7 +193,7 @@ void GlobalState::set_flattened_unconstrained_values(
 }
 
 void GlobalState::get_flattened_unconstrained_grads(
-    Eigen::VectorXd& flattened_grad) {
+    torch::Tensor& flattened_grad) {
   flattened_grad.resize(flat_size);
   int i = 0;
   for (Node* node : stochastic_nodes) {
@@ -201,10 +201,10 @@ void GlobalState::get_flattened_unconstrained_grads(
       flattened_grad[i] = node->back_grad1._double;
       i++;
     } else {
-      Eigen::VectorXd vector(Eigen::Map<Eigen::VectorXd>(
-          node->back_grad1._matrix.data(), node->back_grad1._matrix.size()));
+      torch::Tensor vector(Eigen::Map<torch::Tensor>(
+          node->back_grad1._matrix.data(), node->back_grad1._matrix.numel()));
       flattened_grad.segment(i, vector.size()) = vector;
-      i += static_cast<int>(node->back_grad1._matrix.size());
+      i += static_cast<int>(node->back_grad1._matrix.numel());
     }
   }
 }

@@ -21,7 +21,7 @@ void NutsProposer::initialize(
     GlobalState& state,
     std::mt19937& gen,
     int /*num_warmup_samples*/) {
-  Eigen::VectorXd position;
+  torch::Tensor position;
   state.get_flattened_unconstrained_values(position);
   find_reasonable_step_size(state, gen, position);
   step_size_adapter.initialize(step_size);
@@ -37,14 +37,14 @@ void NutsProposer::warmup(
   }
 }
 
-std::vector<Eigen::VectorXd> NutsProposer::leapfrog(
+std::vector<torch::Tensor> NutsProposer::leapfrog(
     GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum,
+    torch::Tensor position,
+    torch::Tensor momentum,
     double direction) {
   // momentum half-step
   state.set_flattened_unconstrained_values(position);
-  Eigen::VectorXd grad_U = compute_potential_gradient(state);
+  torch::Tensor grad_U = compute_potential_gradient(state);
   momentum = momentum - direction * step_size * grad_U / 2;
   // position full-step
   position = position + direction * step_size * momentum;
@@ -60,9 +60,9 @@ std::vector<Eigen::VectorXd> NutsProposer::leapfrog(
 void NutsProposer::find_reasonable_step_size(
     GlobalState& state,
     std::mt19937& gen,
-    Eigen::VectorXd position) {
+    torch::Tensor position) {
   step_size = 1.0;
-  Eigen::VectorXd momentum = initialize_momentum(position, gen);
+  torch::Tensor momentum = initialize_momentum(position, gen);
   double acceptance_log_prob =
       compute_new_step_acceptance_probability(state, position, momentum);
   int a = 1;
@@ -90,15 +90,15 @@ void NutsProposer::find_reasonable_step_size(
 
 double NutsProposer::compute_new_step_acceptance_probability(
     GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum) {
+    torch::Tensor position,
+    torch::Tensor momentum) {
   double current_H = compute_hamiltonian(state, position, momentum);
 
   double direction = 1.0;
-  std::vector<Eigen::VectorXd> leapfrog_result =
+  std::vector<torch::Tensor> leapfrog_result =
       leapfrog(state, position, momentum, direction);
-  Eigen::VectorXd position_new = leapfrog_result[0];
-  Eigen::VectorXd momentum_new = leapfrog_result[1];
+  torch::Tensor position_new = leapfrog_result[0];
+  torch::Tensor momentum_new = leapfrog_result[1];
 
   double proposed_H = compute_hamiltonian(state, position_new, momentum_new);
 
@@ -107,8 +107,8 @@ double NutsProposer::compute_new_step_acceptance_probability(
 
 double NutsProposer::compute_hamiltonian(
     GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum) {
+    torch::Tensor position,
+    torch::Tensor momentum) {
   double K = compute_kinetic_energy(momentum);
   state.set_flattened_unconstrained_values(position);
   state.update_log_prob();
@@ -117,10 +117,10 @@ double NutsProposer::compute_hamiltonian(
 }
 
 bool NutsProposer::compute_no_turn(
-    Eigen::VectorXd position_left,
-    Eigen::VectorXd momentum_left,
-    Eigen::VectorXd position_right,
-    Eigen::VectorXd momentum_right) {
+    torch::Tensor position_left,
+    torch::Tensor momentum_left,
+    torch::Tensor position_right,
+    torch::Tensor momentum_right) {
   return (
       ((position_right - position_left).dot(momentum_left) >= 0.0) and
       ((position_right - position_left).dot(momentum_right) >= 0.0));
@@ -128,17 +128,17 @@ bool NutsProposer::compute_no_turn(
 
 NutsProposer::Tree NutsProposer::build_tree_base_case(
     GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum,
+    torch::Tensor position,
+    torch::Tensor momentum,
     double slice,
     double direction,
     double hamiltonian_init) {
   Tree tree = Tree();
 
-  std::vector<Eigen::VectorXd> leapfrog_result =
+  std::vector<torch::Tensor> leapfrog_result =
       leapfrog(state, position, momentum, direction);
   tree.position_new = leapfrog_result[0];
-  Eigen::VectorXd momentum_new = leapfrog_result[1];
+  torch::Tensor momentum_new = leapfrog_result[1];
 
   tree.position_left = tree.position_new;
   tree.momentum_left = momentum_new;
@@ -174,8 +174,8 @@ NutsProposer::Tree NutsProposer::build_tree_base_case(
 NutsProposer::Tree NutsProposer::build_tree(
     GlobalState& state,
     std::mt19937& gen,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum,
+    torch::Tensor position,
+    torch::Tensor momentum,
     double slice,
     double direction,
     int tree_depth,
@@ -254,20 +254,20 @@ NutsProposer::Tree NutsProposer::build_tree(
 
 // Follows Algorithm 6 of NUTS paper
 double NutsProposer::propose(GlobalState& state, std::mt19937& gen) {
-  Eigen::VectorXd position;
+  torch::Tensor position;
   state.get_flattened_unconstrained_values(position);
 
   // sample momentum
-  Eigen::VectorXd momentum_init = initialize_momentum(position, gen);
+  torch::Tensor momentum_init = initialize_momentum(position, gen);
   // sample slice
   std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
   double hamiltonian_init = compute_hamiltonian(state, position, momentum_init);
   double slice = std::log(uniform_dist(gen)) - hamiltonian_init;
 
-  Eigen::VectorXd position_left = position;
-  Eigen::VectorXd position_right = position;
-  Eigen::VectorXd momentum_left = momentum_init;
-  Eigen::VectorXd momentum_right = momentum_init;
+  torch::Tensor position_left = position;
+  torch::Tensor position_right = position;
+  torch::Tensor momentum_left = momentum_init;
+  torch::Tensor momentum_right = momentum_init;
 
   double valid_nodes = 1;
   double acceptance_sum = 0.0;

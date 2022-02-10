@@ -39,22 +39,22 @@ Dirichlet::Dirichlet(
   }
 }
 
-Eigen::MatrixXd Dirichlet::_matrix_sampler(std::mt19937& gen) const {
-  int n_rows = static_cast<int>(in_nodes[0]->value._matrix.rows());
-  Eigen::MatrixXd sample(n_rows, 1);
+torch::Tensor Dirichlet::_matrix_sampler(std::mt19937& gen) const {
+  int n_rows = static_cast<int>(in_nodes[0]->value._matrix.size(0));
+  torch::Tensor sample(n_rows, 1);
 
-  Eigen::MatrixXd param = in_nodes[0]->value._matrix;
+  torch::Tensor param = in_nodes[0]->value._matrix;
   for (int i = 0; i < n_rows; i++) {
     std::gamma_distribution<double> gamma_dist(param(i), 1);
     sample(i) = gamma_dist(gen);
   }
-  return sample / sample.sum();
+  return sample / sample.sum().item().toDouble();
 }
 
 double Dirichlet::log_prob(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
   assert(value.type.cols == 1);
-  Eigen::MatrixXd param = in_nodes[0]->value._matrix;
+  torch::Tensor param = in_nodes[0]->value._matrix;
 
   double log_prob = 0.0;
   for (int i = 0; i < param.size(); i++) {
@@ -69,7 +69,7 @@ double Dirichlet::log_prob(const graph::NodeValue& value) const {
 
 void Dirichlet::log_prob_iid(
     const graph::NodeValue& /* value */,
-    Eigen::MatrixXd& /* log_probs */) const {}
+    torch::Tensor& /* log_probs */) const {}
 
 // log_prob(x | a) =
 // log G(\sum(a_i)) - \sum(log G(a_i)) + \sum(log(x_i) * (a_i - 1))
@@ -81,8 +81,8 @@ void Dirichlet::backward_value(
     graph::DoubleMatrix& back_grad,
     double adjunct) const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
-  Eigen::MatrixXd x = value._matrix;
-  Eigen::MatrixXd param = in_nodes[0]->value._matrix;
+  torch::Tensor x = value._matrix;
+  torch::Tensor param = in_nodes[0]->value._matrix;
   for (int i = 0; i < param.size(); i++) {
     back_grad._matrix(i) += adjunct * (param(i) - 1) / x(i);
   }
@@ -91,8 +91,8 @@ void Dirichlet::backward_value(
 void Dirichlet::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
-  Eigen::MatrixXd x = value._matrix;
-  Eigen::MatrixXd param = in_nodes[0]->value._matrix;
+  torch::Tensor x = value._matrix;
+  torch::Tensor param = in_nodes[0]->value._matrix;
   double digamma_sum = util::polygamma(0, param.sum());
   if (in_nodes[0]->needs_gradient()) {
     for (int i = 0; i < param.size(); i++) {

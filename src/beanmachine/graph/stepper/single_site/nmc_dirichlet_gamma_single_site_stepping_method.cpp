@@ -48,10 +48,10 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
   auto dirichlet_distribution_node = sto_tgt_node->in_nodes[0];
   auto param_node = dirichlet_distribution_node->in_nodes[0];
 
-  uint K = static_cast<uint>(tgt_node->value._matrix.size());
+  uint K = static_cast<uint>(tgt_node->value._matrix.numel());
   for (uint k = 0; k < K; k++) {
     double param_a_k = param_node->value._matrix.coeff(k);
-    double x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
+    double x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
 
     // save old values
     mh->save_old_values(det_affected_nodes);
@@ -70,9 +70,9 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     // set new value
     *(sto_tgt_node->unconstrained_value._matrix.data() + k) =
         new_x_k_value._double;
-    x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
+    x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
     sto_tgt_node->value._matrix =
-        sto_tgt_node->unconstrained_value._matrix.array() / x_sum;
+        sto_tgt_node->unconstrained_value._matrix / x_sum;
 
     // propagate new value
     mh->eval(det_affected_nodes);
@@ -95,9 +95,9 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
       // revert
       mh->restore_old_values(det_affected_nodes);
       *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_x_k;
-      x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
+      x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
       sto_tgt_node->value._matrix =
-          sto_tgt_node->unconstrained_value._matrix.array() / x_sum;
+          sto_tgt_node->unconstrained_value._matrix / x_sum;
     }
 
     // Gradients are must be cleared (equal to 0)
@@ -153,7 +153,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   // where d2Y_k/dX2_k = -2 * (x_sum(X) - X_k)/x_sum(X)^3
   //       d2Y_j/dX2_k = -2 * X_j/x_sum(X)^3
   sto_tgt_node->Grad1 =
-      -sto_tgt_node->unconstrained_value._matrix.array() / (x_sum * x_sum);
+      -sto_tgt_node->unconstrained_value._matrix / (x_sum * x_sum);
   *(sto_tgt_node->Grad1.data() + k) += 1 / x_sum;
   sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / x_sum;
 

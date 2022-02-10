@@ -194,7 +194,7 @@ void Index::eval(std::mt19937& /* gen */) {
   }
   graph::AtomicType matrix_type = matrix.type.atomic_type;
   if (matrix_type == graph::AtomicType::BOOLEAN) {
-    value._bool = matrix._bmatrix(matrix_index);
+    value._bool = matrix._matrix(matrix_index);
   } else if (
       matrix_type == graph::AtomicType::REAL or
       matrix_type == graph::AtomicType::POS_REAL or
@@ -202,7 +202,7 @@ void Index::eval(std::mt19937& /* gen */) {
       matrix_type == graph::AtomicType::PROBABILITY) {
     value._double = matrix._matrix(matrix_index);
   } else if (matrix_type == graph::AtomicType::NATURAL) {
-    value._natural = matrix._nmatrix(matrix_index);
+    value._natural = matrix._matrix(matrix_index);
   } else {
     throw std::runtime_error(
         "invalid parent type " + matrix.type.to_string() +
@@ -241,7 +241,7 @@ void ColumnIndex::eval(std::mt19937& /* gen */) {
   }
   graph::AtomicType matrix_type = matrix.type.atomic_type;
   if (matrix_type == graph::AtomicType::BOOLEAN) {
-    value._bmatrix = matrix._bmatrix.col(matrix_index);
+    value._matrix = matrix._matrix.col(matrix_index);
   } else if (
       matrix_type == graph::AtomicType::REAL or
       matrix_type == graph::AtomicType::POS_REAL or
@@ -249,7 +249,7 @@ void ColumnIndex::eval(std::mt19937& /* gen */) {
       matrix_type == graph::AtomicType::PROBABILITY) {
     value._matrix = matrix._matrix.col(matrix_index);
   } else if (matrix_type == graph::AtomicType::NATURAL) {
-    value._nmatrix = matrix._nmatrix.col(matrix_index);
+    value._matrix = matrix._matrix.col(matrix_index);
   } else {
     throw std::runtime_error(
         "invalid parent type " + matrix.type.to_string() +
@@ -285,7 +285,7 @@ BroadcastAdd::BroadcastAdd(const std::vector<graph::Node*>& in_nodes)
 void BroadcastAdd::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
   value._matrix =
-      in_nodes[0]->value._double + in_nodes[1]->value._matrix.array();
+      in_nodes[0]->value._double + in_nodes[1]->value._matrix;
 }
 
 } // namespace oper

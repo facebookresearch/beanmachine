@@ -293,10 +293,10 @@ TEST(testgradient, backward_vector_linearmodel) {
   uint betas = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two});
   uint sd = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{hc_dist});
-  Eigen::MatrixXd Xmat(3, 2);
+  torch::Tensor Xmat(3, 2);
   Xmat << 1.0, 0.5, 1.0, -1.5, 1.0, 2.1;
   for (uint i = 0; i < 3; ++i) {
-    Eigen::MatrixXd x = Xmat.row(i);
+    torch::Tensor x = Xmat.row(i);
     uint x_i = g.add_constant_real_matrix(x);
     uint mu_i = g.add_operator(
         OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x_i, betas});
@@ -307,7 +307,7 @@ TEST(testgradient, backward_vector_linearmodel) {
     uint y_i = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist_i});
     g.observe(y_i, 0.5);
   }
-  Eigen::MatrixXd betas_mat(2, 1);
+  torch::Tensor betas_mat(2, 1);
   betas_mat << 0.1, 0.2;
   g.observe(betas, betas_mat);
   g.observe(sd, 1.4);
@@ -372,7 +372,7 @@ TEST(testgradient, backward_unaryops) {
 TEST(testgradient, backward_matrix_index) {
   Graph g;
 
-  Eigen::MatrixXd m1(3, 1);
+  torch::Tensor m1(3, 1);
   m1 << 2.0, 0.5, 3.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
   uint one = g.add_constant((natural_t)1);
@@ -385,7 +385,7 @@ TEST(testgradient, backward_matrix_index) {
       std::vector<uint>{cm1});
   uint diri_sample = g.add_operator(OperatorType::SAMPLE, {diri_dist});
 
-  Eigen::MatrixXd obs(3, 1);
+  torch::Tensor obs(3, 1);
   obs << 0.4, 0.1, 0.5;
   g.observe(diri_sample, obs);
 
@@ -419,7 +419,7 @@ TEST(testgradient, backward_matrix_index) {
 TEST(testgradient, backward_column_index) {
   Graph g;
 
-  Eigen::MatrixXd m1(3, 2);
+  torch::Tensor m1(3, 2);
   m1 << 2.0, 1.0, 0.5, 3.0, 3.0, 2.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
   uint zero = g.add_constant((natural_t)0);
@@ -436,7 +436,7 @@ TEST(testgradient, backward_column_index) {
       std::vector<uint>{first_column});
   uint diri_sample = g.add_operator(OperatorType::SAMPLE, {diri_dist});
 
-  Eigen::MatrixXd obs(3, 1);
+  torch::Tensor obs(3, 1);
   obs << 0.4, 0.1, 0.5;
   g.observe(diri_sample, obs);
 
@@ -636,7 +636,7 @@ TEST(testgradient, forward_broadcast_add) {
 
   auto nat_zero = g.add_constant((natural_t)0);
   auto nat_one = g.add_constant((natural_t)1);
-  Eigen::MatrixXd m(2, 1);
+  torch::Tensor m(2, 1);
   m << 1.0, 2.0;
   auto matrix = g.add_constant_real_matrix(m);
   auto sum_matrix =
@@ -680,7 +680,7 @@ TEST(testgradient, backward_broadcast_add) {
   auto stu_sample = g.add_operator(OperatorType::SAMPLE, {stu_dist});
   g.observe(stu_sample, 0.5);
 
-  Eigen::MatrixXd m(2, 1);
+  torch::Tensor m(2, 1);
   m << -1.0, 3.0;
   auto matrix = g.add_constant_real_matrix(m);
   auto sum_matrix =

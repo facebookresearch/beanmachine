@@ -157,7 +157,7 @@ TEST(testdistrib, beta2) {
   auto x = g1.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{beta_dist, two});
   g1.query(x);
-  Eigen::MatrixXd matrix1(2, 1);
+  torch::Tensor matrix1(2, 1);
   matrix1 << 0.6, 0.5;
   g1.observe(x, matrix1);
   EXPECT_NEAR(g1.log_prob(x), -2.8965, 0.001);
@@ -188,7 +188,7 @@ TEST(testdistrib, beta2) {
               AtomicType::PROBABILITY,
               std::vector<uint>{a_sq, b_sq}),
           nat_node});
-  Eigen::MatrixXd matrix2(2, 1);
+  torch::Tensor matrix2(2, 1);
   matrix2 << 0.3, 0.4;
   g2.observe(y, matrix2);
   //  a = torch.tensor([1.5], requires_grad=True)
@@ -238,7 +238,7 @@ TEST(testdistrib, beta2) {
   g3.observe(b2, 1.8);
   g3.observe(p, 0.37);
   g3.observe(x1, 0.15);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, 0.8;
   g3.observe(x2, xobs);
   // To verify the results with pyTorch:

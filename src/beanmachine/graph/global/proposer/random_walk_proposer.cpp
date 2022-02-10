@@ -17,7 +17,7 @@ RandomWalkProposer::RandomWalkProposer(double step_size) : GlobalProposer() {
 double RandomWalkProposer::propose(GlobalState& state, std::mt19937& gen) {
   double initial_log_prob = state.get_log_prob();
 
-  Eigen::VectorXd flattened_values;
+  torch::Tensor flattened_values;
   state.get_flattened_unconstrained_values(flattened_values);
 
   std::normal_distribution<double> dist(0.0, 1.0);

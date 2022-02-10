@@ -6,7 +6,6 @@
  */
 
 #pragma once
-#include <Eigen/Dense>
 #include <algorithm>
 #include <list>
 #include <map>
@@ -14,18 +13,21 @@
 #include <random>
 #include <set>
 #include <string>
+#include <torch/torch.h>
 #include <tuple>
 #include <vector>
 #include "beanmachine/graph/profiler.h"
 
-#define NATURAL_TYPE unsigned long long int
+//#define NATURAL_TYPE unsigned long long int
+#define NATURAL_TYPE int
 #ifdef _MSC_VER
 #define uint unsigned int
 #endif
 
 namespace Eigen {
-typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
-typedef Matrix<NATURAL_TYPE, Dynamic, Dynamic> MatrixXn;
+typedef torch::Tensor MatrixXb;
+typedef torch::Tensor MatrixXd;
+typedef torch::Tensor MatrixXn;
 } // namespace Eigen
 
 namespace beanmachine {
@@ -127,23 +129,8 @@ class NodeValue {
     double _double;
     natural_t _natural;
   };
-  // In principle, the following fields should be in the above union.
-  // However, because they have non-trivial destructors,
-  // the programmer needs to explicitly define a destructor for the union
-  // (one that knows which field is actually used so it can destruct only that).
-  // However, anonymous unions cannot have member functions, including
-  // destructors. One could make it a named union external to this class but
-  // this would require redirecting all usage to the named union's fields,
-  // which does not seem worth it.
-  // See https://en.cppreference.com/w/cpp/language/union: "If a union
-  // contains a non-static data member with a non-trivial special member
-  // function (copy/move constructor, copy/move assignment, or destructor), that
-  // function is deleted by default in the union and needs to be defined
-  // explicitly by the programmer." Because anonymous unions cannot declare
-  // destructors, we would have to move this move it
-  Eigen::MatrixXd _matrix;
-  Eigen::MatrixXb _bmatrix;
-  Eigen::MatrixXn _nmatrix;
+  // typing of tensor (".dtype") is at runtime
+  torch::Tensor _matrix;
 
   NodeValue() : type(AtomicType::UNKNOWN) {}
   explicit NodeValue(AtomicType type);
@@ -152,27 +139,13 @@ class NodeValue {
   explicit NodeValue(double value) : type(AtomicType::REAL), _double(value) {}
   explicit NodeValue(natural_t value)
       : type(AtomicType::NATURAL), _natural(value) {}
-  explicit NodeValue(Eigen::MatrixXd& value)
+  explicit NodeValue(torch::Tensor& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::REAL,
-            static_cast<int>(value.rows()),
-            static_cast<int>(value.cols()))),
+            static_cast<int>(value.size(0)),
+            static_cast<int>(value.size(1)))),
         _matrix(value) {}
-  explicit NodeValue(Eigen::MatrixXb& value)
-      : type(ValueType(
-            VariableType::BROADCAST_MATRIX,
-            AtomicType::BOOLEAN,
-            static_cast<int>(value.rows()),
-            static_cast<int>(value.cols()))),
-        _bmatrix(value) {}
-  explicit NodeValue(Eigen::MatrixXn& value)
-      : type(ValueType(
-            VariableType::BROADCAST_MATRIX,
-            AtomicType::NATURAL,
-            static_cast<int>(value.rows()),
-            static_cast<int>(value.cols()))),
-        _nmatrix(value) {}
 
   NodeValue(AtomicType type, bool value) : type(type), _bool(value) {
     assert(type == AtomicType::BOOLEAN);
@@ -180,43 +153,50 @@ class NodeValue {
   NodeValue(AtomicType type, natural_t value) : type(type), _natural(value) {
     assert(type == AtomicType::NATURAL);
   }
-  NodeValue(AtomicType type, Eigen::MatrixXd& value)
+  NodeValue(AtomicType type, torch::Tensor& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             type,
-            static_cast<int>(value.rows()),
-            static_cast<int>(value.cols()))),
+            static_cast<int>(value.size(0)),
+            static_cast<int>(value.size(1)))),
         _matrix(value) {
     assert(
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::NEG_REAL or type == AtomicType::PROBABILITY);
   }
-  NodeValue(AtomicType /* type */, Eigen::MatrixXb& value) : NodeValue(value) {}
-  NodeValue(AtomicType /* type */, Eigen::MatrixXn& value) : NodeValue(value) {}
-  NodeValue(ValueType type, Eigen::MatrixXd& value)
-      : type(type), _matrix(value) {
+  // NodeValue(AtomicType /* type */, torch::Tensor& value) : NodeValue(value) {}
+  NodeValue(ValueType type, torch::Tensor& value)
+         : type(type), _matrix(value) {
     assert(
         type.variable_type == VariableType::BROADCAST_MATRIX or
         type.variable_type == VariableType::COL_SIMPLEX_MATRIX);
-    assert(
-        type.atomic_type == AtomicType::REAL or
-        type.atomic_type == AtomicType::POS_REAL or
-        type.atomic_type == AtomicType::NEG_REAL or
-        type.atomic_type == AtomicType::PROBABILITY);
-    assert(type.rows == value.rows() and type.cols == value.cols());
+    // TODO: assert tensor.dtype matches type.atomic_type
+    assert(type.rows == value.size(0) and type.cols == value.size(1));
   }
-  NodeValue(ValueType type, Eigen::MatrixXb& value)
-      : type(type), _bmatrix(value) {
-    assert(type.variable_type == VariableType::BROADCAST_MATRIX);
-    assert(type.atomic_type == AtomicType::BOOLEAN);
-    assert(type.rows == value.rows() and type.cols == value.cols());
-  }
-  NodeValue(ValueType type, Eigen::MatrixXn& value)
-      : type(type), _nmatrix(value) {
-    assert(type.variable_type == VariableType::BROADCAST_MATRIX);
-    assert(type.atomic_type == AtomicType::NATURAL);
-    assert(type.rows == value.rows() and type.cols == value.cols());
-  }
+  // NodeValue(ValueType type, torch::Tensor& value)
+  //     : type(type), _matrix(value) {
+  //   assert(
+  //       type.variable_type == VariableType::BROADCAST_MATRIX or
+  //       type.variable_type == VariableType::COL_SIMPLEX_MATRIX);
+  //   assert(
+  //       type.atomic_type == AtomicType::REAL or
+  //       type.atomic_type == AtomicType::POS_REAL or
+  //       type.atomic_type == AtomicType::NEG_REAL or
+  //       type.atomic_type == AtomicType::PROBABILITY);
+  //   assert(type.rows == value.size(0) and type.cols == value.size(1));
+  // }
+  // NodeValue(ValueType type, torch::Tensor& value)
+  //     : type(type), _matrix(value) {
+  //   assert(type.variable_type == VariableType::BROADCAST_MATRIX);
+  //   assert(type.atomic_type == AtomicType::BOOLEAN);
+  //   assert(type.rows == value.size(0) and type.cols == value.size(1));
+  // }
+  // NodeValue(ValueType type, torch::Tensor& value)
+  //     : type(type), _matrix(value) {
+  //   assert(type.variable_type == VariableType::BROADCAST_MATRIX);
+  //   assert(type.atomic_type == AtomicType::NATURAL);
+  //   assert(type.rows == value.size(0) and type.cols == value.size(1));
+  // }
   NodeValue(AtomicType type, double value);
 
   NodeValue(const NodeValue& other) : type(other.type) {
@@ -242,16 +222,12 @@ class NodeValue {
     } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
       switch (type.atomic_type) {
         case AtomicType::BOOLEAN:
-          _bmatrix = other._bmatrix;
-          break;
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
         case AtomicType::NEG_REAL:
         case AtomicType::PROBABILITY:
-          _matrix = other._matrix;
-          break;
         case AtomicType::NATURAL:
-          _nmatrix = other._nmatrix;
+          _matrix = other._matrix;
           break;
         default:
           throw std::invalid_argument(
@@ -280,15 +256,15 @@ class NodeValue {
            type.atomic_type == AtomicType::POS_REAL or
            type.atomic_type == AtomicType::NEG_REAL or
            type.atomic_type == AtomicType::PROBABILITY) and
-          _matrix.isApprox(other._matrix)) or
+          _matrix.allclose(other._matrix)) or
          (type.variable_type == VariableType::BROADCAST_MATRIX and
           type.atomic_type == AtomicType::BOOLEAN and
-          _bmatrix == other._bmatrix) or
+          _matrix.equal(other._matrix)) or
          (type.variable_type == VariableType::BROADCAST_MATRIX and
           type.atomic_type == AtomicType::NATURAL and
-          _nmatrix == other._nmatrix) or
+          _matrix.equal(other._matrix)) or
          (type.variable_type == VariableType::COL_SIMPLEX_MATRIX and
-          _matrix.isApprox(other._matrix)));
+          _matrix.allclose(other._matrix)));
   }
   bool operator!=(const NodeValue& other) const {
     return not(*this == other);
@@ -372,7 +348,7 @@ enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
 struct DoubleMatrix {
   double _double;
-  Eigen::MatrixXd _matrix;
+  torch::Tensor _matrix;
 };
 
 struct InferConfig {
@@ -462,8 +438,8 @@ class Node {
   NodeValue value;
   double grad1;
   double grad2;
-  Eigen::MatrixXd Grad1;
-  Eigen::MatrixXd Grad2;
+  torch::Tensor Grad1;
+  torch::Tensor Grad2;
   DoubleMatrix back_grad1;
 
   virtual bool is_stochastic() const {
@@ -485,8 +461,8 @@ class Node {
       double& /* grad1 */,
       double& /* grad2 */) const {}
   virtual void gradient_log_prob(
-      Eigen::MatrixXd& /* grad1 */,
-      Eigen::MatrixXd& /* grad2_diag */) const {}
+      torch::Tensor& /* grad1 */,
+      torch::Tensor& /* grad2_diag */) const {}
   Node() {}
   explicit Node(NodeType node_type)
       : node_type(node_type), grad1(0), grad2(0) {}
@@ -515,10 +491,9 @@ class Node {
   :param d_grad1: The double type 1st order gradient
   :param d_grad2: The double type 2nd order gradient
   */
-  template <class T1, class T2>
   void forward_gradient_scalarops(
-      T1& jacobian,
-      T2& hessian,
+      torch::Tensor& jacobian,
+      torch::Tensor& hessian,
       double& d_grad1,
       double& d_grad2) const;
   // Converts the 1x1 matrix value to a scalar value.
@@ -559,13 +534,13 @@ struct Graph {
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
   uint add_constant_neg_real(double value);
-  uint add_constant_bool_matrix(Eigen::MatrixXb& value);
-  uint add_constant_real_matrix(Eigen::MatrixXd& value);
-  uint add_constant_natural_matrix(Eigen::MatrixXn& value);
-  uint add_constant_pos_matrix(Eigen::MatrixXd& value);
-  uint add_constant_neg_matrix(Eigen::MatrixXd& value);
-  uint add_constant_probability_matrix(Eigen::MatrixXd& value);
-  uint add_constant_col_simplex_matrix(Eigen::MatrixXd& value);
+  uint add_constant_bool_matrix(torch::Tensor& value);
+  uint add_constant_real_matrix(torch::Tensor& value);
+  uint add_constant_natural_matrix(torch::Tensor& value);
+  uint add_constant_pos_matrix(torch::Tensor& value);
+  uint add_constant_neg_matrix(torch::Tensor& value);
+  uint add_constant_probability_matrix(torch::Tensor& value);
+  uint add_constant_col_simplex_matrix(torch::Tensor& value);
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,
@@ -580,9 +555,7 @@ struct Graph {
   void observe(uint var, bool val);
   void observe(uint var, double val);
   void observe(uint var, natural_t val);
-  void observe(uint var, Eigen::MatrixXb& val);
-  void observe(uint var, Eigen::MatrixXd& val);
-  void observe(uint var, Eigen::MatrixXn& val);
+  void observe(uint var, torch::Tensor& val);
   void observe(uint var, NodeValue val);
   /*
   Customize the type of transformation applied to a (set of)
@@ -770,9 +743,9 @@ struct Graph {
   :param src_idx: The index of the node to evaluate the gradients w.r.t., must
                   be a vector valued node.
   :param grad1: Output value of first gradient (double), or gradient vector
-                (Eigen::MatrixXd)
+                (torch::Tensor)
   :param grad2: Output value of the second gradient (double), or the diagonal
-                terms of the gradient matrix (Eigen::MatrixXd).
+                terms of the gradient matrix (torch::Tensor).
   */
   template <class T>
   void gradient_log_prob(uint src_idx, T& grad1, T& grad2);

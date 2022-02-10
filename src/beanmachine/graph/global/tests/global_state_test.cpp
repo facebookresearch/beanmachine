@@ -44,13 +44,13 @@ TEST(testglobal, global_state_no_transform) {
 
   GlobalState state = GlobalState(g);
 
-  Eigen::VectorXd unconstrained_values(3);
-  Eigen::VectorXd get_flattened_values;
+  torch::Tensor unconstrained_values(3);
+  torch::Tensor get_flattened_values;
 
   // negative test for set_flattened_unconstrained_values
   // with invalid dimensions
   // (model has 3 values but we are passing in vector with only 2)
-  Eigen::VectorXd incorrect_flattened_values(2);
+  torch::Tensor incorrect_flattened_values(2);
   incorrect_flattened_values << 1.0, 2.0;
   EXPECT_THROW(
       state.set_flattened_unconstrained_values(incorrect_flattened_values),
@@ -61,7 +61,7 @@ TEST(testglobal, global_state_no_transform) {
   // nodes in the graph
   // and get_flattened_unconstrained_values,
   // which reads these values from the nodes in graph
-  Eigen::VectorXd flattened_values(3);
+  torch::Tensor flattened_values(3);
   flattened_values << 1.0, 2.0, 3.0;
   state.set_flattened_unconstrained_values(flattened_values);
   state.get_flattened_unconstrained_values(get_flattened_values);
@@ -72,7 +72,7 @@ TEST(testglobal, global_state_no_transform) {
 
   // negative test for add_to_stochastic_unconstrained_nodes
   // where the vector has an incorrect shape
-  Eigen::VectorXd incorrect_addition(1);
+  torch::Tensor incorrect_addition(1);
   incorrect_addition << 1.0;
   EXPECT_THROW(
       state.add_to_stochastic_unconstrained_nodes(incorrect_addition),
@@ -80,11 +80,11 @@ TEST(testglobal, global_state_no_transform) {
 
   // test add_to_stochastic_unconstrained_nodes
   // changes the values appropriately
-  Eigen::VectorXd addition(3);
+  torch::Tensor addition(3);
   addition << 2.0, 4.0, 6.0;
   state.add_to_stochastic_unconstrained_nodes(addition);
   state.get_flattened_unconstrained_values(get_flattened_values);
-  Eigen::VectorXd incremented_values = flattened_values + addition;
+  torch::Tensor incremented_values = flattened_values + addition;
   EXPECT_EQ(get_flattened_values.size(), 3);
   EXPECT_EQ(get_flattened_values[0], incremented_values[0]);
   EXPECT_EQ(get_flattened_values[1], incremented_values[1]);
@@ -160,7 +160,7 @@ TEST(testglobal, global_state_transform) {
 
   GlobalState state = GlobalState(g);
 
-  Eigen::VectorXd unconstrained_values(4);
+  torch::Tensor unconstrained_values(4);
   unconstrained_values << -1.2, -2.0, -0.4, -0.8;
   state.set_flattened_unconstrained_values(unconstrained_values);
   /*
@@ -171,7 +171,7 @@ TEST(testglobal, global_state_transform) {
   */
   EXPECT_NEAR(g.full_log_prob(), -4.6741, 1e-3);
 
-  Eigen::VectorXd increment(4);
+  torch::Tensor increment(4);
   increment << -0.1, -0.1, -0.1, -0.1;
   /*
   unconstrained_value = tensor([-1.3, -2.1, -0.5, -0.9])
@@ -214,12 +214,12 @@ TEST(testglobal, global_state_gamma_transform_obs) {
 
   GlobalState state = GlobalState(g);
 
-  Eigen::VectorXd unconstrained_values(1);
+  torch::Tensor unconstrained_values(1);
   unconstrained_values << -0.5;
   state.set_flattened_unconstrained_values(unconstrained_values);
 
   state.update_backgrad();
-  Eigen::VectorXd grads1;
+  torch::Tensor grads1;
   state.get_flattened_unconstrained_grads(grads1);
   /*
   log_transform = dist.ExpTransform().inv
@@ -265,12 +265,12 @@ TEST(testglobal, global_state_gamma_transform) {
 
   GlobalState state = GlobalState(g);
 
-  Eigen::VectorXd unconstrained_values(2);
+  torch::Tensor unconstrained_values(2);
   unconstrained_values << -0.5, -0.2231;
   state.set_flattened_unconstrained_values(unconstrained_values);
 
   state.update_backgrad();
-  Eigen::VectorXd grads1;
+  torch::Tensor grads1;
   state.get_flattened_unconstrained_grads(grads1);
   /*
   log_transform = dist.ExpTransform().inv
@@ -305,7 +305,7 @@ TEST(testglobal, global_state_initialization) {
 
   // check all values = 0.0
   state.initialize_values(InitType::ZERO, seed);
-  Eigen::VectorXd flattened_values;
+  torch::Tensor flattened_values;
   state.get_flattened_unconstrained_values(flattened_values);
   for (int i = 0; i < flattened_values.size(); i++) {
     EXPECT_NEAR(flattened_values[i], 0.0, 1e-4);
@@ -349,7 +349,7 @@ TEST(testglobal, global_state_transform_initialization) {
 
   // check all values = 0.0
   state.initialize_values(InitType::ZERO, seed);
-  Eigen::VectorXd flattened_values;
+  torch::Tensor flattened_values;
   state.get_flattened_unconstrained_values(flattened_values);
   for (int i = 0; i < flattened_values.size(); i++) {
     EXPECT_NEAR(flattened_values[i], 0.0, 1e-4);

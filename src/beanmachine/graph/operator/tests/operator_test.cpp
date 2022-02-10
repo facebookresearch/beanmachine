@@ -291,7 +291,7 @@ TEST(testoperator, if_then_else) {
 TEST(testoperator, choice) {
   Graph g;
 
-  Eigen::MatrixXd matrix(3, 1);
+  torch::Tensor matrix(3, 1);
   matrix << 0.25, 0.25, 0.5;
   uint simplex = g.add_constant_col_simplex_matrix(matrix);
 
@@ -552,7 +552,7 @@ TEST(testoperator, logsumexp_vector) {
           OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{pos1, neg1}),
       std::invalid_argument);
 
-  Eigen::MatrixXd m123(3, 1);
+  torch::Tensor m123(3, 1);
   m123 << 1.0, 2.0, 3.0;
   auto matrix123 = g.add_constant_real_matrix(m123);
   auto logsumexp123 = g.add_operator(
@@ -842,7 +842,7 @@ TEST(testoperator, iid_sample) {
   EXPECT_TRUE(bernoulli_samples.value.type == vtype2);
 
   // test log_prob
-  Eigen::MatrixXd matrix1(2, 1);
+  torch::Tensor matrix1(2, 1);
   matrix1 << 0.6, 0.5;
   auto matrix_value = NodeValue(vtype, matrix1);
   beta_samples.value = matrix_value;
@@ -868,10 +868,10 @@ TEST(testoperator, iid_sample) {
   EXPECT_NEAR(mean_x0sq - mean_x0 * mean_x0, 1.0 / 20.0, 0.001);
   EXPECT_NEAR(mean_x1sq - mean_x1 * mean_x1, 1.0 / 20.0, 0.001);
 
-  Eigen::Matrix2i m0 = Eigen::Matrix2i::Zero();
+  torch::Tensor m0 = torch::Tensor::Zero();
   for (uint i = 0; i < n_samples; i++) {
     bernoulli_samples.eval(generator);
-    m0 = m0.array() + bernoulli_samples.value._bmatrix.cast<int>().array();
+    m0 = m0 + bernoulli_samples.value._matrix.cast<int>();
   }
   EXPECT_NEAR(m0.coeff(0, 0) / (double)n_samples, 0.1, 0.01);
   EXPECT_NEAR(m0.coeff(0, 1) / (double)n_samples, 0.1, 0.01);
@@ -887,7 +887,7 @@ TEST(testoperator, matrix_multiply) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{}),
       std::invalid_argument);
-  Eigen::MatrixXd m0(2, 2);
+  torch::Tensor m0(2, 2);
   m0 << 0.3, -0.1, 1.2, 0.9;
   auto cm0 = g.add_constant_real_matrix(m0);
   EXPECT_THROW(
@@ -904,10 +904,10 @@ TEST(testoperator, matrix_multiply) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1, cm0}),
       std::invalid_argument);
-  Eigen::MatrixXd m1(3, 2);
+  torch::Tensor m1(3, 2);
   m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
   auto cm1 = g.add_constant_real_matrix(m1);
-  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
+  torch::Tensor m2 = torch::Tensor::Random(1, 2);
   auto cm2 = g.add_constant_bool_matrix(m2);
   // requires real/pos_real/neg_real/probability types
   EXPECT_THROW(
@@ -940,14 +940,14 @@ TEST(testoperator, matrix_multiply) {
   auto w = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two});
 
-  Eigen::MatrixXd mx(1, 3);
+  torch::Tensor mx(1, 3);
   mx << 0.4, 0.1, 0.5;
   g.observe(x, mx);
   g.observe(y, m1);
-  Eigen::MatrixXd mz(2, 2);
+  torch::Tensor mz(2, 2);
   mz << -1.1, 0.7, -0.6, 0.2;
   g.observe(z, mz);
-  Eigen::MatrixXd mw(2, 1);
+  torch::Tensor mw(2, 1);
   mw << 2.3, -0.4;
   g.observe(w, mw);
 
@@ -955,8 +955,8 @@ TEST(testoperator, matrix_multiply) {
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x, y});
   g.query(xy);
   const auto& xy_eval = g.infer(1, InferenceType::NMC);
-  EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
-  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 1);
+  EXPECT_EQ(xy_eval[0][0]._matrix.size(1), 2);
+  EXPECT_EQ(xy_eval[0][0]._matrix.size(0), 1);
   // result should be simply mx * m1
   EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(0), -1.0600, 0.001);
   EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(1), 0.4500, 0.001);
@@ -1046,7 +1046,7 @@ TEST(testoperator, matrix_scale) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{c1, c1}),
       std::invalid_argument);
-  Eigen::MatrixXd m1(3, 2);
+  torch::Tensor m1(3, 2);
   m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
   auto cm1 = g.add_constant_real_matrix(m1);
   EXPECT_THROW(
@@ -1058,7 +1058,7 @@ TEST(testoperator, matrix_scale) {
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cm1, c1}),
       std::invalid_argument);
   // Arguments should have same atomic type
-  Eigen::MatrixXd mp1(3, 2);
+  torch::Tensor mp1(3, 2);
   mp1 << 0.3, 0.1, 1.2, 0.9, 2.6, 0.8;
   auto cmp1 = g.add_constant_pos_matrix(mp1);
   EXPECT_THROW(
@@ -1066,7 +1066,7 @@ TEST(testoperator, matrix_scale) {
       std::invalid_argument);
   // requires real/pos_real/probability types
   auto cb2 = g.add_constant(false);
-  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
+  torch::Tensor m2 = torch::Tensor::Random(1, 2);
   auto cmb2 = g.add_constant_bool_matrix(m2);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cb2, cmb2}),
@@ -1096,23 +1096,23 @@ TEST(testoperator, matrix_scale) {
   auto vx = 0.4;
   g.observe(x, vx);
   g.observe(y, m1);
-  Eigen::MatrixXd mz(2, 2);
+  torch::Tensor mz(2, 2);
   mz << -1.1, 0.7, -0.6, 0.2;
   g.observe(z, mz);
-  Eigen::MatrixXd mv(1, 2);
+  torch::Tensor mv(1, 2);
   mv << 2.3, -0.4;
   g.observe(v, mv);
-  Eigen::MatrixXd mw(2, 1);
+  torch::Tensor mw(2, 1);
   mw << 2.3, -0.4;
   g.observe(w, mw);
 
   auto xy = g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{x, y});
   g.query(xy);
   const auto& xy_eval = g.infer(1, InferenceType::NMC);
-  Eigen::MatrixXd mxy(3, 2);
+  torch::Tensor mxy(3, 2);
   mxy = vx * m1;
-  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 3);
-  EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
+  EXPECT_EQ(xy_eval[0][0]._matrix.size(0), 3);
+  EXPECT_EQ(xy_eval[0][0]._matrix.size(1), 2);
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 2; j++) {
       EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(i + 3 * j), mxy(i, j), 0.001);
@@ -1225,7 +1225,7 @@ TEST(testoperator, index) {
   EXPECT_THROW(
       g.add_operator(OperatorType::INDEX, std::vector<uint>{}),
       std::invalid_argument);
-  Eigen::MatrixXd m1(2, 1);
+  torch::Tensor m1(2, 1);
   m1 << 2.0, -1.0;
   auto cm1 = g.add_constant_real_matrix(m1);
   EXPECT_THROW(
@@ -1258,7 +1258,7 @@ TEST(testoperator, column_index) {
   EXPECT_THROW(
       g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{}),
       std::invalid_argument);
-  Eigen::MatrixXd m1(2, 1);
+  torch::Tensor m1(2, 1);
   m1 << 2.0, -1.0;
   auto cm1 = g.add_constant_real_matrix(m1);
   EXPECT_THROW(
@@ -1270,7 +1270,7 @@ TEST(testoperator, column_index) {
       g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm1, real}),
       std::invalid_argument);
 
-  Eigen::MatrixXd m2(2, 2);
+  torch::Tensor m2(2, 2);
   m2 << 1.0, 2.0, 3.0, 4.0;
   uint cm2 = g.add_constant_real_matrix(m2);
   uint zero = g.add_constant((natural_t)0);
@@ -1370,7 +1370,7 @@ TEST(testoperator, to_matrix) {
       std::invalid_argument);
   // requires scalar parents
   uint three = g.add_constant(3.0);
-  Eigen::MatrixXd m1(2, 1);
+  torch::Tensor m1(2, 1);
   m1 << 2.0, -1.0;
   uint cm1 = g.add_constant_real_matrix(m1);
   EXPECT_THROW(
@@ -1421,10 +1421,10 @@ TEST(testoperator, to_matrix) {
       {nat_two, nat_two, nat_two, nat_zero, nat_three, nat_four});
   g1.query(nat_matrix);
   const auto& eval1 = g1.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval1[0][0]._nmatrix(0, 0), 2);
-  EXPECT_EQ(eval1[0][0]._nmatrix(1, 0), 0);
-  EXPECT_EQ(eval1[0][0]._nmatrix(0, 1), 3);
-  EXPECT_EQ(eval1[0][0]._nmatrix(1, 1), 4);
+  EXPECT_EQ(eval1[0][0]._matrix(0, 0), 2);
+  EXPECT_EQ(eval1[0][0]._matrix(1, 0), 0);
+  EXPECT_EQ(eval1[0][0]._matrix(0, 1), 3);
+  EXPECT_EQ(eval1[0][0]._matrix(1, 1), 4);
 
   // 3x1 stochastic boolean samples
   Graph g2;
@@ -1443,16 +1443,16 @@ TEST(testoperator, to_matrix) {
       OperatorType::TO_MATRIX, {nat_three, nat_one, bern1, bern2, bern3});
   g2.query(bool_matrix);
   const auto& eval2 = g2.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval2[0][0]._bmatrix.coeff(0), false);
-  EXPECT_EQ(eval2[0][0]._bmatrix.coeff(1), true);
-  EXPECT_EQ(eval2[0][0]._bmatrix.coeff(2), false);
+  EXPECT_EQ(eval2[0][0]._matrix.coeff(0), false);
+  EXPECT_EQ(eval2[0][0]._matrix.coeff(1), true);
+  EXPECT_EQ(eval2[0][0]._matrix.coeff(2), false);
 }
 
 TEST(testoperator, broadcast_add) {
   Graph g1;
   auto c1 = g1.add_constant(1.5);
   auto bool1 = g1.add_constant(true);
-  Eigen::MatrixXd m1(2, 1);
+  torch::Tensor m1(2, 1);
   m1 << 2.0, -1.0;
   auto matrix1 = g1.add_constant_real_matrix(m1);
   // negative tests:
@@ -1488,7 +1488,7 @@ TEST(testoperator, broadcast_add) {
 
   Graph g2;
   auto c2 = g2.add_constant(-1.0);
-  Eigen::MatrixXd m2(2, 2);
+  torch::Tensor m2(2, 2);
   m2 << 0.0, 1.0, 2.0, 3.0;
   auto matrix2 = g2.add_constant_real_matrix(m2);
   auto sum_matrix2 = g2.add_operator(

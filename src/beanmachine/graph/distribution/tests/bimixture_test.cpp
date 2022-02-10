@@ -230,7 +230,7 @@ TEST(testdistrib, bimixture_of_mixture) {
   g.observe(p, 0.37);
   g.observe(q, 0.62);
   g.observe(x, -0.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, -1.5;
   g.observe(xiid, xobs);
   // To verify the results with pyTorch:

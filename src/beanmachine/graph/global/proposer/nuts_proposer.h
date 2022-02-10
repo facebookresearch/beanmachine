@@ -25,11 +25,11 @@ class NutsProposer : public HmcProposer {
 
  private:
   struct Tree {
-    Eigen::VectorXd position_left;
-    Eigen::VectorXd momentum_left;
-    Eigen::VectorXd position_right;
-    Eigen::VectorXd momentum_right;
-    Eigen::VectorXd position_new;
+    torch::Tensor position_left;
+    torch::Tensor momentum_left;
+    torch::Tensor position_right;
+    torch::Tensor momentum_right;
+    torch::Tensor position_new;
     double valid_nodes;
     bool no_turn;
     double acceptance_sum;
@@ -42,41 +42,41 @@ class NutsProposer : public HmcProposer {
   void find_reasonable_step_size(
       GlobalState& state,
       std::mt19937& gen,
-      Eigen::VectorXd position);
+      torch::Tensor position);
   double compute_new_step_acceptance_probability(
       GlobalState& state,
-      Eigen::VectorXd position,
-      Eigen::VectorXd momentum);
-  std::vector<Eigen::VectorXd> leapfrog(
+      torch::Tensor position,
+      torch::Tensor momentum);
+  std::vector<torch::Tensor> leapfrog(
       GlobalState& state,
-      Eigen::VectorXd theta,
-      Eigen::VectorXd r,
+      torch::Tensor theta,
+      torch::Tensor r,
       double v);
   Tree build_tree_base_case(
       GlobalState& state,
-      Eigen::VectorXd position,
-      Eigen::VectorXd momentum,
+      torch::Tensor position,
+      torch::Tensor momentum,
       double slice,
       double direction,
       double hamiltonian_init);
   Tree build_tree(
       GlobalState& state,
       std::mt19937& gen,
-      Eigen::VectorXd position,
-      Eigen::VectorXd momentum,
+      torch::Tensor position,
+      torch::Tensor momentum,
       double slice,
       double direction,
       int tree_depth,
       double hamiltonian_init);
   double compute_hamiltonian(
       GlobalState& state,
-      Eigen::VectorXd theta,
-      Eigen::VectorXd r);
+      torch::Tensor theta,
+      torch::Tensor r);
   bool compute_no_turn(
-      Eigen::VectorXd position_left,
-      Eigen::VectorXd momentum_left,
-      Eigen::VectorXd position_right,
-      Eigen::VectorXd momentum_right);
+      torch::Tensor position_left,
+      torch::Tensor momentum_left,
+      torch::Tensor position_right,
+      torch::Tensor momentum_right);
 };
 
 } // namespace graph

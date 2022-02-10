@@ -43,8 +43,8 @@ double Bernoulli::log_prob(const graph::NodeValue& value) const {
     return value._bool ? std::log(prob) : std::log(1 - prob);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = static_cast<int>(value._bmatrix.size());
-    int n_positive = static_cast<int>(value._bmatrix.count());
+    int size = static_cast<int>(value._matrix.numel());
+    int n_positive = static_cast<int>(value._matrix.count_nonzero().item().toInt());
     return std::log(prob) * n_positive +
         std::log(1 - prob) * (size - n_positive);
   } else {
@@ -55,14 +55,14 @@ double Bernoulli::log_prob(const graph::NodeValue& value) const {
 
 void Bernoulli::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double prob = in_nodes[0]->value._double;
   double pos_val = std::log(prob);
   double neg_val = std::log(1 - prob);
-  log_probs = Eigen::MatrixXd::Constant(
-      value._bmatrix.rows(), value._bmatrix.cols(), neg_val);
-  log_probs = value._bmatrix.select(pos_val, log_probs);
+  log_probs = torch::full_like(value._matrix, neg_val);
+  log_probs = torch::full_like(value._matrix, pos_val).where(value._matrix, log_probs);
+  // log_probs = value._matrix.select(pos_val, log_probs);
 }
 
 // The likelihood L(x|p) where x is the outcome and p is the parameter of
@@ -128,8 +128,8 @@ void Bernoulli::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     double prob = in_nodes[0]->value._double;
-    int size = static_cast<int>(value._bmatrix.size());
-    int n_positive = static_cast<int>(value._bmatrix.count());
+    int size = static_cast<int>(value._matrix.numel());
+    int n_positive = static_cast<int>(value._matrix.count_nonzero().item().toInt());
     in_nodes[0]->back_grad1._double +=
         (1 / prob * n_positive - 1 / (1 - prob) * (size - n_positive));
   }
@@ -137,13 +137,13 @@ void Bernoulli::backward_param_iid(const graph::NodeValue& value) const {
 
 void Bernoulli::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     double prob = in_nodes[0]->value._double;
-    double sum_adjunct = adjunct.sum();
+    double sum_adjunct = adjunct.sum().item().toDouble();
     double sum_pos_adjunct =
-        (value._bmatrix.cast<double>().array() * adjunct.array()).sum();
+        (value._matrix * adjunct).sum().item().toDouble();
     in_nodes[0]->back_grad1._double +=
         (1 / prob * sum_pos_adjunct -
          1 / (1 - prob) * (sum_adjunct - sum_pos_adjunct));

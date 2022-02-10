@@ -21,7 +21,7 @@ class Flat : public Distribution {
   bool _bool_sampler(std::mt19937& gen) const override;
   double _double_sampler(std::mt19937& gen) const override;
   graph::natural_t _natural_sampler(std::mt19937& gen) const override;
-  Eigen::MatrixXd _matrix_sampler(std::mt19937& gen) const override;
+  torch::Tensor _matrix_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::NodeValue& value) const override;
   void gradient_log_prob_value(
       const graph::NodeValue& value,

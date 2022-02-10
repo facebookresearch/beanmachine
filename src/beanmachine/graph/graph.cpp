@@ -10,12 +10,12 @@
 #include <sstream>
 #include <thread>
 
-#include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/factor/factor.h"
+// #include "beanmachine/graph/distribution/distribution.h"
+// #include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/operator/operator.h"
-#include "beanmachine/graph/operator/stochasticop.h"
-#include "beanmachine/graph/transform/transform.h"
+// #include "beanmachine/graph/operator/operator.h"
+// #include "beanmachine/graph/operator/stochasticop.h"
+// #include "beanmachine/graph/transform/transform.h"
 
 namespace beanmachine {
 namespace graph {
@@ -119,27 +119,27 @@ NodeValue::NodeValue(ValueType type) : type(type) {
   if (type.variable_type == VariableType::BROADCAST_MATRIX) {
     switch (type.atomic_type) {
       case AtomicType::BOOLEAN:
-        _bmatrix = Eigen::MatrixXb::Constant(type.rows, type.cols, false);
+        _matrix = torch::full({type.rows, type.cols}, false);
         break;
       case AtomicType::REAL:
-        _matrix = Eigen::MatrixXd::Zero(type.rows, type.cols);
+        _matrix = torch::zeros({type.rows, type.cols});
         break;
       case AtomicType::POS_REAL:
       case AtomicType::PROBABILITY:
-        _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, PRECISION);
+        _matrix = torch::full({type.rows, type.cols}, PRECISION);
         break;
       case AtomicType::NEG_REAL:
-        _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, -PRECISION);
+        _matrix = torch::full({type.rows, type.cols}, -PRECISION);
         break;
       case AtomicType::NATURAL:
-        _nmatrix =
-            Eigen::MatrixXn::Constant(type.rows, type.cols, (natural_t)0);
+        _matrix =
+            torch::full({type.rows, type.cols}, 0);
         break;
       default:
         throw std::invalid_argument("Unsupported types for BROADCAST_MATRIX.");
     }
   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-    _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) / type.rows;
+    _matrix = torch::ones({type.rows, type.cols}) / (double)type.rows;
   } else if (type.variable_type == VariableType::SCALAR) {
     this->init_scalar(type.atomic_type);
   } else {
@@ -183,10 +183,10 @@ std::string NodeValue::to_string() const {
         os << type_str << _matrix;
         break;
       case AtomicType::BOOLEAN:
-        os << type_str << _bmatrix;
+        os << type_str << _matrix;
         break;
       case AtomicType::NATURAL:
-        os << type_str << _nmatrix;
+        os << type_str << _matrix;
         break;
 
         break;
@@ -210,70 +210,58 @@ std::string NodeValue::to_string() const {
   return os.str();
 }
 
-// TODO: the following is used in beta.cpp only. Does it really need to be here?
-// Why is it used there only, given the name sounds pretty generic?
-// Are other classes using different versions of the same idea?
-// Can it be de-duplicated?
-template <class T1, class T2>
 void Node::forward_gradient_scalarops(
-    T1& jacobian,
-    T2& hessian,
+    torch::Tensor& jacobian,
+    torch::Tensor& hessian,
     double& d_grad1,
     double& d_grad2) const {
   uint in_degree = static_cast<uint>(in_nodes.size());
-  assert(jacobian.cols() == in_degree);
-  assert(hessian.cols() == in_degree and hessian.rows() == in_degree);
+  assert(jacobian.size(1) == in_degree);
+  assert(hessian.size(1) == in_degree and hessian.size(0) == in_degree);
 
-  T1 Grad1_old = T1::Zero();
-  T1 Grad2_old = T1::Zero();
+  torch::Tensor Grad1_old = torch::zeros({1, in_degree});
+  torch::Tensor Grad2_old = torch::zeros({1, in_degree});
   for (uint i = 0; i < in_degree; i++) {
-    *(Grad1_old.data() + i) = in_nodes[i]->grad1;
-    *(Grad2_old.data() + i) = in_nodes[i]->grad2;
+    Grad1_old[i] = in_nodes[i]->grad1;
+    Grad2_old[i] = in_nodes[i]->grad2;
   }
-  double grad1_update = jacobian * Grad1_old.transpose();
+  double grad1_update = (jacobian * Grad1_old.transpose(0,1)).item().toDouble();
   double grad2_update =
-      ((Grad1_old * hessian).array() * Grad1_old.array()).sum();
-  grad2_update += jacobian * Grad2_old.transpose();
+      ((Grad1_old * hessian) * Grad1_old).sum().item().toDouble();
+  grad2_update += (jacobian * Grad2_old.transpose(1, 2)).item().toDouble();
 
   d_grad1 += grad1_update;
   d_grad2 += grad2_update;
 }
-
-template void
-Node::forward_gradient_scalarops<Eigen::Matrix<double, 1, 2>, Eigen::Matrix2d>(
-    Eigen::Matrix<double, 1, 2>& jacobian,
-    Eigen::Matrix2d& hessian,
-    double& d_grad1,
-    double& d_grad2) const;
 
 void Node::reset_backgrad() {
   assert(value.type.variable_type != graph::VariableType::UNKNOWN);
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     back_grad1._double = 0;
   } else {
-    back_grad1._matrix.setZero(value.type.rows, value.type.cols);
+    back_grad1._matrix.new_zeros({value.type.rows, value.type.cols});
   }
 }
 
 void Node::to_scalar() {
   switch (value.type.atomic_type) {
     case graph::AtomicType::BOOLEAN:
-      assert(value._bmatrix.size() == 1);
-      value._bool = *(value._bmatrix.data());
-      value._bmatrix.setZero(0, 0);
+      assert(value._matrix.numel() == 1);
+      value._bool = value._matrix[0][0].item().toBool();
+      value._matrix.new_zeros({0, 0});
       break;
     case graph::AtomicType::NATURAL:
-      assert(value._nmatrix.size() == 1);
-      value._natural = *(value._nmatrix.data());
-      value._nmatrix.setZero(0, 0);
+      assert(value._matrix.numel() == 1);
+      value._natural = value._matrix[0][0].item().toInt();
+      value._matrix.new_zeros({0, 0});
       break;
     case graph::AtomicType::REAL:
     case graph::AtomicType::POS_REAL:
     case graph::AtomicType::NEG_REAL:
     case graph::AtomicType::PROBABILITY:
-      assert(value._matrix.size() == 1);
-      value._double = *(value._matrix.data());
-      value._matrix.setZero(0, 0);
+      assert(value._matrix.numel() == 1);
+      value._double = value._matrix[0][0].item().toDouble();
+      value._matrix.new_zeros({0, 0});
       break;
     default:
       throw std::runtime_error("unsupported AtomicType to cast to scalar");
@@ -297,28 +285,28 @@ std::string Graph::to_string() const {
   return os.str();
 }
 
-void Graph::update_backgrad(std::vector<Node*>& ordered_supp) {
-  for (auto node : ordered_supp) {
-    node->reset_backgrad();
-  }
-  for (auto it = ordered_supp.rbegin(); it != ordered_supp.rend(); ++it) {
-    Node* node = *it;
-    if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
-      auto sto_node = static_cast<oper::StochasticOperator*>(node);
-      // TODO: Investigate the semantics of _backward(skip_observed),
-      // understand when/why it is appropriate to pass true or false,,
-      // and provide a correctness argument.
-      sto_node->_backward(false);
-      if (sto_node->transform_type != TransformType::NONE) {
-        // sync value with unconstrained_value
-        sto_node->get_original_value(true);
-        sto_node->get_unconstrained_gradient();
-      }
-    } else {
-      node->backward();
-    }
-  }
-}
+// void Graph::update_backgrad(std::vector<Node*>& ordered_supp) {
+//   for (auto node : ordered_supp) {
+//     node->reset_backgrad();
+//   }
+//   for (auto it = ordered_supp.rbegin(); it != ordered_supp.rend(); ++it) {
+//     Node* node = *it;
+//     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
+//       auto sto_node = static_cast<oper::StochasticOperator*>(node);
+//       // TODO: Investigate the semantics of _backward(skip_observed),
+//       // understand when/why it is appropriate to pass true or false,,
+//       // and provide a correctness argument.
+//       sto_node->_backward(false);
+//       if (sto_node->transform_type != TransformType::NONE) {
+//         // sync value with unconstrained_value
+//         sto_node->get_original_value(true);
+//         sto_node->get_unconstrained_gradient();
+//       }
+//     } else {
+//       node->backward();
+//     }
+//   }
+// }
 
 void Graph::eval_and_grad(
     uint tgt_idx,
@@ -357,30 +345,30 @@ void Graph::eval_and_grad(
   }
 }
 
-void Graph::_test_backgrad(
-    std::set<uint>& supp,
-    std::vector<DoubleMatrix*>& grad1) {
-  for (auto it = supp.begin(); it != supp.end(); ++it) {
-    Node* node = nodes[*it].get();
-    node->reset_backgrad();
-  }
-  grad1.clear();
-  for (auto it = supp.rbegin(); it != supp.rend(); ++it) {
-    Node* node = nodes[*it].get();
-    if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
-      auto sto_node = static_cast<oper::StochasticOperator*>(node);
-      sto_node->_backward(false);
-      if (sto_node->transform_type != TransformType::NONE) {
-        sto_node->get_unconstrained_value(true);
-        sto_node->get_unconstrained_gradient();
-      }
-      grad1.push_back(&node->back_grad1);
-    } else {
-      node->backward();
-    }
-  }
-  std::reverse(grad1.begin(), grad1.end());
-}
+// void Graph::_test_backgrad(
+//     std::set<uint>& supp,
+//     std::vector<DoubleMatrix*>& grad1) {
+//   for (auto it = supp.begin(); it != supp.end(); ++it) {
+//     Node* node = nodes[*it].get();
+//     node->reset_backgrad();
+//   }
+//   grad1.clear();
+//   for (auto it = supp.rbegin(); it != supp.rend(); ++it) {
+//     Node* node = nodes[*it].get();
+//     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
+//       auto sto_node = static_cast<oper::StochasticOperator*>(node);
+//       sto_node->_backward(false);
+//       if (sto_node->transform_type != TransformType::NONE) {
+//         sto_node->get_unconstrained_value(true);
+//         sto_node->get_unconstrained_gradient();
+//       }
+//       grad1.push_back(&node->back_grad1);
+//     } else {
+//       node->backward();
+//     }
+//   }
+//   std::reverse(grad1.begin(), grad1.end());
+// }
 
 void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
   std::set<uint> supp = compute_support();
@@ -399,8 +387,8 @@ void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
   _test_backgrad(supp, grad1);
 }
 
-void set_value(Eigen::MatrixXd& variable, double value) {
-  variable.setConstant(value);
+void set_value(torch::Tensor& variable, double value) {
+  variable.fill_(value);
 }
 void set_value(double& variable, double value) {
   variable = value;
@@ -423,8 +411,8 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   bool is_src_scalar = (size == 0);
   // start gradient
   if (!is_src_scalar) {
-    src_node->Grad1 = Eigen::MatrixXd::Ones(size, 1);
-    src_node->Grad2 = Eigen::MatrixXd::Zero(size, 1);
+    src_node->Grad1 = torch::ones({size, 1});
+    src_node->Grad2 = torch::zeros({size, 1});
   }
   src_node->grad1 = 1;
   src_node->grad2 = 0;
@@ -459,14 +447,14 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 
   // end gradient computation reset grads
   if (!is_src_scalar) {
-    src_node->Grad1.setZero();
+    src_node->Grad1.zero_();
   }
   src_node->grad1 = 0;
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     if (!is_src_scalar) {
-      node->Grad1.setZero(1, 1);
-      node->Grad2.setZero(1, 1);
+      node->Grad1.new_zeros({1, 1});
+      node->Grad2.new_zeros({1, 1});
     } else {
       node->grad1 = node->grad2 = 0;
     }
@@ -501,38 +489,38 @@ double Graph::log_prob(uint src_idx) {
 
 // TODO: this is the one actually used in code (as opposed to full_log_prob used
 // in testing only, so why the _?)
-double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
-  double sum_log_prob = 0.0;
-  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
-  for (auto node : ordered_supp) {
-    if (node->is_stochastic()) {
-      sum_log_prob += node->log_prob();
-      if (node->node_type == NodeType::OPERATOR) {
-        auto sto_node = static_cast<oper::StochasticOperator*>(node);
-        if (sto_node->transform_type != TransformType::NONE) {
-          // If y = g(x), then by Change of Variables as using in statistics
-          // (see references below),
-          // then the density f_Y of Y can be computed from
-          // the density f_X of X as
-          // f_Y(y) = f_X(g^{-1}(y)) * |d/dy g^{-1}(y)|
-          // log(f_Y(y)) = log(f_X(x)) + log(|d/dy f^{-1}(y)|)
-          //   = node->log_prob() + log_abs_jacobian_determinant()
-          // TODO: rename log_abs_jacobian_determinant
-          // to log_abs_jacobian_detesrminant_of_inverse_transform
-          //
-          // References on Change of Variables in statistics:
-          // https://online.stat.psu.edu/stat414/lesson/22/22.2
-          // Stan reference:
-          // https://mc-stan.org/docs/2_27/reference-manual/change-of-variables-section.html
-          sum_log_prob += sto_node->log_abs_jacobian_determinant();
-        }
-      }
-    } else {
-      node->eval(generator);
-    }
-  }
-  return sum_log_prob;
-}
+// double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
+//   double sum_log_prob = 0.0;
+//   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+//   for (auto node : ordered_supp) {
+//     if (node->is_stochastic()) {
+//       sum_log_prob += node->log_prob();
+//       if (node->node_type == NodeType::OPERATOR) {
+//         auto sto_node = static_cast<oper::StochasticOperator*>(node);
+//         if (sto_node->transform_type != TransformType::NONE) {
+//           // If y = g(x), then by Change of Variables as using in statistics
+//           // (see references below),
+//           // then the density f_Y of Y can be computed from
+//           // the density f_X of X as
+//           // f_Y(y) = f_X(g^{-1}(y)) * |d/dy g^{-1}(y)|
+//           // log(f_Y(y)) = log(f_X(x)) + log(|d/dy f^{-1}(y)|)
+//           //   = node->log_prob() + log_abs_jacobian_determinant()
+//           // TODO: rename log_abs_jacobian_determinant
+//           // to log_abs_jacobian_detesrminant_of_inverse_transform
+//           //
+//           // References on Change of Variables in statistics:
+//           // https://online.stat.psu.edu/stat414/lesson/22/22.2
+//           // Stan reference:
+//           // https://mc-stan.org/docs/2_27/reference-manual/change-of-variables-section.html
+//           sum_log_prob += sto_node->log_abs_jacobian_determinant();
+//         }
+//       }
+//     } else {
+//       node->eval(generator);
+//     }
+//   }
+//   return sum_log_prob;
+// }
 
 /* TODO: used in testing only; it looks like there has not been a need for it in
  * actual code so far; notheless we can leave it here as it is a natural
@@ -619,37 +607,37 @@ Node* Graph::check_node(uint node_id, NodeType node_type) {
   return node;
 }
 
-Node* Graph::check_observed_node(uint node_id, bool is_scalar) {
-  Node* node = get_node(node_id);
-  if (node->node_type != NodeType::OPERATOR) {
-    throw std::invalid_argument(
-        "only SAMPLE and IID_SAMPLE nodes may be observed");
-  }
-  oper::Operator* op = static_cast<oper::Operator*>(node);
-  if (op->op_type != OperatorType::SAMPLE and
-      op->op_type != OperatorType::IID_SAMPLE) {
-    throw std::invalid_argument(
-        "only SAMPLE and IID_SAMPLE nodes may be observed");
-  }
-  if (observed.find(node_id) != observed.end()) {
-    throw std::invalid_argument(
-        "duplicate observe for node_id " + std::to_string(node_id));
-  }
+// Node* Graph::check_observed_node(uint node_id, bool is_scalar) {
+//   Node* node = get_node(node_id);
+//   if (node->node_type != NodeType::OPERATOR) {
+//     throw std::invalid_argument(
+//         "only SAMPLE and IID_SAMPLE nodes may be observed");
+//   }
+//   oper::Operator* op = static_cast<oper::Operator*>(node);
+//   if (op->op_type != OperatorType::SAMPLE and
+//       op->op_type != OperatorType::IID_SAMPLE) {
+//     throw std::invalid_argument(
+//         "only SAMPLE and IID_SAMPLE nodes may be observed");
+//   }
+//   if (observed.find(node_id) != observed.end()) {
+//     throw std::invalid_argument(
+//         "duplicate observe for node_id " + std::to_string(node_id));
+//   }
 
-  if (is_scalar && node->value.type.variable_type != VariableType::SCALAR) {
-    throw std::invalid_argument(
-        "a matrix-valued sample may not be observed with a single value");
-  }
+//   if (is_scalar && node->value.type.variable_type != VariableType::SCALAR) {
+//     throw std::invalid_argument(
+//         "a matrix-valued sample may not be observed with a single value");
+//   }
 
-  if (!is_scalar &&
-      node->value.type.variable_type != VariableType::BROADCAST_MATRIX &&
-      node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX) {
-    throw std::invalid_argument(
-        "a scalar-valued sample may not be observed with a matrix value");
-  }
+//   if (!is_scalar &&
+//       node->value.type.variable_type != VariableType::BROADCAST_MATRIX &&
+//       node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX) {
+//     throw std::invalid_argument(
+//         "a scalar-valued sample may not be observed with a matrix value");
+//   }
 
-  return node;
-}
+//   return node;
+// }
 
 uint Graph::add_constant(bool value) {
   return add_constant(NodeValue(value));
@@ -690,40 +678,40 @@ uint Graph::add_constant_neg_real(double value) {
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
-uint Graph::add_constant_bool_matrix(Eigen::MatrixXb& value) {
+uint Graph::add_constant_bool_matrix(torch::Tensor& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_real_matrix(Eigen::MatrixXd& value) {
+uint Graph::add_constant_real_matrix(torch::Tensor& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_natural_matrix(Eigen::MatrixXn& value) {
+uint Graph::add_constant_natural_matrix(torch::Tensor& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
-  if ((value.array() < 0).any()) {
+uint Graph::add_constant_pos_matrix(torch::Tensor& value) {
+  if ((value < 0).any().item().toBool()) {
     throw std::invalid_argument("All elements in pos_matrix must be >=0");
   }
   return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
-uint Graph::add_constant_neg_matrix(Eigen::MatrixXd& value) {
-  if ((value.array() > 0).any()) {
+uint Graph::add_constant_neg_matrix(torch::Tensor& value) {
+  if ((value > 0).any().item().toBool()) {
     throw std::invalid_argument("All elements in neg_matrix must be <=0");
   }
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
-uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
-  if ((value.array() < 0).any()) {
+uint Graph::add_constant_col_simplex_matrix(torch::Tensor& value) {
+  if ((value < 0).any().item().toBool()) {
     throw std::invalid_argument(
         "All elements in col_simplex_matrix must be >=0");
   }
   bool invalid_colsum =
-      ((value.colwise().sum().array() - 1.0).abs() > PRECISION * value.rows())
-          .any();
+      ((value.sum(0) - 1.0).abs() > PRECISION * value.size(0))
+          .any().item().toBool();
   if (invalid_colsum) {
     throw std::invalid_argument("All cols in col_simplex_matrix must sum to 1");
   }
@@ -731,61 +719,61 @@ uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
       ValueType(
           VariableType::COL_SIMPLEX_MATRIX,
           AtomicType::PROBABILITY,
-          static_cast<uint>(value.rows()),
-          static_cast<uint>(value.cols())),
+          static_cast<uint>(value.size(0)),
+          static_cast<uint>(value.size(1))),
       value));
 }
 
-uint Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
-  if ((value.array() < 0).any() or (value.array() > 1).any()) {
+uint Graph::add_constant_probability_matrix(torch::Tensor& value) {
+  if ((value < 0).any().item().toBool() or (value > 1).any().item().toBool()) {
     throw std::invalid_argument(
         "All elements in probability_matrix must be between 0 and 1");
   }
   return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
-uint Graph::add_distribution(
-    DistributionType dist_type,
-    AtomicType sample_type,
-    std::vector<uint> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  // create a distribution node
-  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
-      dist_type, ValueType(sample_type), parent_nodes);
-  // and add the node to the graph
-  return add_node(std::move(node), parent_ids);
-}
+// uint Graph::add_distribution(
+//     DistributionType dist_type,
+//     AtomicType sample_type,
+//     std::vector<uint> parent_ids) {
+//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+//   // create a distribution node
+//   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+//       dist_type, ValueType(sample_type), parent_nodes);
+//   // and add the node to the graph
+//   return add_node(std::move(node), parent_ids);
+// }
 
-uint Graph::add_distribution(
-    DistributionType dist_type,
-    ValueType sample_type,
-    std::vector<uint> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  // create a distribution node
-  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
-      dist_type, sample_type, parent_nodes);
-  // and add the node to the graph
-  return add_node(std::move(node), parent_ids);
-}
+// uint Graph::add_distribution(
+//     DistributionType dist_type,
+//     ValueType sample_type,
+//     std::vector<uint> parent_ids) {
+//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+//   // create a distribution node
+//   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+//       dist_type, sample_type, parent_nodes);
+//   // and add the node to the graph
+//   return add_node(std::move(node), parent_ids);
+// }
 
-uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  std::unique_ptr<Node> node =
-      oper::OperatorFactory::create_op(op_type, parent_nodes);
-  return add_node(std::move(node), parent_ids);
-}
+// uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
+//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+//   std::unique_ptr<Node> node =
+//       oper::OperatorFactory::create_op(op_type, parent_nodes);
+//   return add_node(std::move(node), parent_ids);
+// }
 
-uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  std::unique_ptr<Node> node =
-      factor::Factor::new_factor(fac_type, parent_nodes);
-  uint node_id = add_node(std::move(node), parent_ids);
-  // factors are both stochastic nodes and observed nodes
-  Node* node2 = check_node(node_id, NodeType::FACTOR);
-  node2->is_observed = true;
-  observed.insert(node_id);
-  return node_id;
-}
+// uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
+//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+//   std::unique_ptr<Node> node =
+//       factor::Factor::new_factor(fac_type, parent_nodes);
+//   uint node_id = add_node(std::move(node), parent_ids);
+//   // factors are both stochastic nodes and observed nodes
+//   Node* node2 = check_node(node_id, NodeType::FACTOR);
+//   node2->is_observed = true;
+//   observed.insert(node_id);
+//   return node_id;
+// }
 
 void Graph::observe(uint node_id, bool value) {
   // A bool can only be a bool NodeValue, so we can just pass it along.
@@ -815,11 +803,11 @@ void Graph::observe(uint node_id, natural_t value) {
   observe(node_id, NodeValue(value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXd& value) {
+void Graph::observe(uint node_id, torch::Tensor& value) {
   Node* node = check_observed_node(node_id, false);
   // We know that we have a matrix value; is it the right shape?
-  if (value.rows() != node->value.type.rows or
-      value.cols() != node->value.type.cols) {
+  if (value.size(0) != node->value.type.rows or
+      value.size(1) != node->value.type.cols) {
     throw std::invalid_argument(
         "observe expected " + node->value.type.to_string());
   }
@@ -841,28 +829,28 @@ void Graph::observe(uint node_id, Eigen::MatrixXd& value) {
   add_observe(node, NodeValue(node->value.type, value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXb& value) {
-  Node* node = check_observed_node(node_id, false);
-  if (value.rows() != node->value.type.rows or
-      value.cols() != node->value.type.cols or
-      node->value.type.atomic_type != AtomicType::BOOLEAN) {
-    throw std::invalid_argument(
-        "observe expected a " + node->value.type.to_string());
-  }
-  add_observe(node, NodeValue(node->value.type, value));
-}
+// void Graph::observe(uint node_id, torch::Tensor& value) {
+//   Node* node = check_observed_node(node_id, false);
+//   if (value.size(0) != node->value.type.rows or
+//       value.size(1) != node->value.type.cols or
+//       node->value.type.atomic_type != AtomicType::BOOLEAN) {
+//     throw std::invalid_argument(
+//         "observe expected a " + node->value.type.to_string());
+//   }
+//   add_observe(node, NodeValue(node->value.type, value));
+// }
 
-void Graph::observe(uint node_id, Eigen::MatrixXn& value) {
-  Node* node = check_observed_node(node_id, false);
-  // We know that we have a matrix value; is it the right shape?
-  if (value.rows() != node->value.type.rows or
-      value.cols() != node->value.type.cols or
-      node->value.type.atomic_type != AtomicType::NATURAL) {
-    throw std::invalid_argument(
-        "observe expected a " + node->value.type.to_string());
-  }
-  add_observe(node, NodeValue(node->value.type, value));
-}
+// void Graph::observe(uint node_id, torch::Tensor& value) {
+//   Node* node = check_observed_node(node_id, false);
+//   // We know that we have a matrix value; is it the right shape?
+//   if (value.size(0) != node->value.type.rows or
+//       value.size(1) != node->value.type.cols or
+//       node->value.type.atomic_type != AtomicType::NATURAL) {
+//     throw std::invalid_argument(
+//         "observe expected a " + node->value.type.to_string());
+//   }
+//   add_observe(node, NodeValue(node->value.type, value));
+// }
 
 void Graph::observe(uint node_id, NodeValue value) {
   Node* node = check_observed_node(
@@ -883,40 +871,40 @@ void Graph::add_observe(Node* node, NodeValue value) {
   observed.insert(node->index);
 }
 
-void Graph::customize_transformation(
-    TransformType customized_type,
-    std::vector<uint> node_ids) {
-  if (common_transformations.empty()) {
-    common_transformations[TransformType::LOG] =
-        std::make_unique<transform::Log>();
-  }
-  auto iter = common_transformations.find(customized_type);
-  if (iter == common_transformations.end()) {
-    throw std::invalid_argument("Unsupported transformation type.");
-  }
-  Transformation* transform_ptr = common_transformations[customized_type].get();
-  for (auto node_id : node_ids) {
-    auto node = check_node(node_id, NodeType::OPERATOR);
-    if (not node->is_stochastic()) {
-      throw std::invalid_argument(
-          "Transformation only applies to Stochastic Operators.");
-    }
-    auto sto_node = static_cast<oper::StochasticOperator*>(node);
+// void Graph::customize_transformation(
+//     TransformType customized_type,
+//     std::vector<uint> node_ids) {
+//   if (common_transformations.empty()) {
+//     common_transformations[TransformType::LOG] =
+//         std::make_unique<transform::Log>();
+//   }
+//   auto iter = common_transformations.find(customized_type);
+//   if (iter == common_transformations.end()) {
+//     throw std::invalid_argument("Unsupported transformation type.");
+//   }
+//   Transformation* transform_ptr = common_transformations[customized_type].get();
+//   for (auto node_id : node_ids) {
+//     auto node = check_node(node_id, NodeType::OPERATOR);
+//     if (not node->is_stochastic()) {
+//       throw std::invalid_argument(
+//           "Transformation only applies to Stochastic Operators.");
+//     }
+//     auto sto_node = static_cast<oper::StochasticOperator*>(node);
 
-    switch (customized_type) {
-      case TransformType::LOG:
-        if (sto_node->value.type.atomic_type != AtomicType::POS_REAL) {
-          throw std::invalid_argument(
-              "Log transformation requires POS_REAL value.");
-        }
-        break;
-      default:
-        throw std::invalid_argument("Unsupported transformation type.");
-    }
-    sto_node->transform = transform_ptr;
-    sto_node->transform_type = customized_type;
-  }
-}
+//     switch (customized_type) {
+//       case TransformType::LOG:
+//         if (sto_node->value.type.atomic_type != AtomicType::POS_REAL) {
+//           throw std::invalid_argument(
+//               "Log transformation requires POS_REAL value.");
+//         }
+//         break;
+//       default:
+//         throw std::invalid_argument("Unsupported transformation type.");
+//     }
+//     sto_node->transform = transform_ptr;
+//     sto_node->transform_type = customized_type;
+//   }
+// }
 
 void Graph::remove_observations() {
   // note that Factor nodes although technically observations are not
@@ -1209,23 +1197,23 @@ Graph::Graph(const Graph& other) {
         add_constant(value_copy);
         break;
       }
-      case NodeType::DISTRIBUTION: {
-        distribution::Distribution* dist =
-            static_cast<distribution::Distribution*>(node);
-        add_distribution(dist->dist_type, dist->sample_type, parent_ids);
-        break;
-      }
-      case NodeType::OPERATOR: {
-        add_operator(static_cast<oper::Operator*>(node)->op_type, parent_ids);
-        if (node->is_observed) {
-          observe(node->index, NodeValue(node->value));
-        }
-        break;
-      }
-      case NodeType::FACTOR: {
-        add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
-        break;
-      }
+      // case NodeType::DISTRIBUTION: {
+      //   distribution::Distribution* dist =
+      //       static_cast<distribution::Distribution*>(node);
+      //   add_distribution(dist->dist_type, dist->sample_type, parent_ids);
+      //   break;
+      // }
+      // case NodeType::OPERATOR: {
+      //   add_operator(static_cast<oper::Operator*>(node)->op_type, parent_ids);
+      //   if (node->is_observed) {
+      //     observe(node->index, NodeValue(node->value));
+      //   }
+      //   break;
+      // }
+      // case NodeType::FACTOR: {
+      //   add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
+      //   break;
+      // }
       default: {
         throw std::invalid_argument("Trying to copy a node of unknown type.");
       }

@@ -68,10 +68,10 @@ natural_t Flat::_natural_sampler(std::mt19937& gen) const {
   return (natural_t)dist(gen);
 }
 
-Eigen::MatrixXd Flat::_matrix_sampler(std::mt19937& gen) const {
+torch::Tensor Flat::_matrix_sampler(std::mt19937& gen) const {
   int rows = static_cast<int>(sample_type.rows);
   int cols = static_cast<int>(sample_type.cols);
-  Eigen::MatrixXd result(rows, cols);
+  torch::Tensor result(rows, cols);
   std::uniform_real_distribution<double> dist =
       _get_uniform_real_distribution();
   for (int j = 0; j < cols; j++) {

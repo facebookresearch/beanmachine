@@ -165,8 +165,8 @@ void LogSumExp::backward() {
 // dg(x1,...xn)/dxi = exp(xi) / sum_j^n exp(xj) = exp(xi - g)
 void LogSumExpVector::backward() {
   if (in_nodes[0]->needs_gradient()) {
-    Eigen::MatrixXd exp =
-        (in_nodes[0]->value._matrix.array() - value._double).exp();
+    torch::Tensor exp =
+        (in_nodes[0]->value._matrix - value._double).exp();
     in_nodes[0]->back_grad1._matrix += back_grad1._double * exp;
   }
 }
@@ -196,8 +196,8 @@ void MatrixMultiply::backward() {
   assert(in_nodes.size() == 2);
   auto node_a = in_nodes[0];
   auto node_b = in_nodes[1];
-  Eigen::MatrixXd& A = node_a->value._matrix;
-  Eigen::MatrixXd& B = node_b->value._matrix;
+  torch::Tensor& A = node_a->value._matrix;
+  torch::Tensor& B = node_b->value._matrix;
   // if C = A @ B is reduced to a scalar
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
@@ -230,12 +230,12 @@ void MatrixScale::backward() {
   auto node_a = in_nodes[0];
   auto node_b = in_nodes[1];
   double A = node_a->value._double;
-  Eigen::MatrixXd& B = node_b->value._matrix;
+  torch::Tensor& B = node_b->value._matrix;
   // if C = A @ B is reduced to a scalar
   // TODO[Walid] : Check if this case is actually ever needed
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._double += (back_grad1._double * B.transpose()).sum();
+      node_a->back_grad1._double += (back_grad1._double * B.transpose()).sum().item().toDouble();
     }
     if (node_b->needs_gradient()) {
       node_b->back_grad1._matrix(0, 0) += back_grad1._double * A;
@@ -244,7 +244,7 @@ void MatrixScale::backward() {
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._double += (back_grad1._matrix * B.transpose()).sum();
+    node_a->back_grad1._double += (back_grad1._matrix * B.transpose()).sum().item().toDouble();
   }
   if (node_b->needs_gradient()) {
     node_b->back_grad1._matrix += A * back_grad1._matrix;
@@ -285,7 +285,7 @@ void ToMatrix::backward() {
 void BroadcastAdd::backward() {
   assert(in_nodes.size() == 2);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += back_grad1._matrix.sum();
+    in_nodes[0]->back_grad1._double += back_grad1._matrix.sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
     in_nodes[1]->back_grad1._matrix += back_grad1._matrix;

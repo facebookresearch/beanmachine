@@ -6,7 +6,6 @@
  */
 
 #include <cmath>
-#include <unsupported/Eigen/SpecialFunctions>
 
 #include "beanmachine/graph/distribution/binomial.h"
 
@@ -40,7 +39,7 @@ graph::natural_t Binomial::_natural_sampler(std::mt19937& gen) const {
 }
 
 double Binomial::log_prob(const graph::NodeValue& value) const {
-  graph::natural_t n = in_nodes[0]->value._natural;
+  double n = (double)in_nodes[0]->value._natural;
   double p = in_nodes[1]->value._double;
   double ret_val = 0;
   if (value.type.variable_type == graph::VariableType::SCALAR) {
@@ -59,24 +58,24 @@ double Binomial::log_prob(const graph::NodeValue& value) const {
     ret_val += std::lgamma(n + 1) - std::lgamma(k + 1) - std::lgamma(n - k + 1);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    if ((value._nmatrix.array() > n).any()) {
+    if ((value._matrix > n).any().item().toBool()) {
       return -std::numeric_limits<double>::infinity();
     }
-    int size = static_cast<int>(value._nmatrix.size());
-    double sum_k = static_cast<double>(value._nmatrix.sum());
+    int size = static_cast<int>(value._matrix.numel());
+    double sum_k = static_cast<double>(value._matrix.sum().item().toDouble());
 
     // we will try not to evaluate log(p) or log(1-p) unless needed
-    if ((value._nmatrix.array() > 0).any()) {
+    if ((value._matrix > 0).any().item().toBool()) {
       ret_val += sum_k * log(p);
     }
-    if ((value._nmatrix.array() < n).any()) {
+    if ((value._matrix < n).any().item().toBool()) {
       ret_val += (n * size - sum_k) * log(1 - p);
     }
 
     // note: Gamma(n+1) = n!
-    Eigen::MatrixXd value_double = value._nmatrix.cast<double>();
-    double k_factorial_sum = (value_double.array() + 1).lgamma().sum();
-    double n_k_factorial_sum = (n - value_double.array() + 1).lgamma().sum();
+    torch::Tensor value_double = value._matrix;
+    double k_factorial_sum = (value_double + 1).lgamma().sum().item().toDouble();
+    double n_k_factorial_sum = (n - value_double + 1).lgamma().sum().item().toDouble();
     ret_val += std::lgamma(n + 1) * size - k_factorial_sum - n_k_factorial_sum;
   }
   return ret_val;
@@ -84,14 +83,14 @@ double Binomial::log_prob(const graph::NodeValue& value) const {
 
 void Binomial::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
-  graph::natural_t n = in_nodes[0]->value._natural;
+    torch::Tensor& log_probs) const {
+  double n = (double)in_nodes[0]->value._natural;
   double p = in_nodes[1]->value._double;
-  Eigen::MatrixXd value_double = value._nmatrix.cast<double>();
-  log_probs = value_double.array() * log(p) +
-      (n - value_double.array()) * log(1 - p) + std::lgamma(n + 1) -
-      (value_double.array() + 1).lgamma() -
-      (n - value_double.array() + 1).lgamma();
+  torch::Tensor value_double = value._matrix;
+  log_probs = value_double * log(p) +
+      (n - value_double) * log(1 - p) + std::lgamma(n + 1) -
+      (value_double + 1).lgamma() -
+      (n - value_double + 1).lgamma();
 }
 
 // log_prob is k log(p) + (n-k) log(1-p) as a function of k
@@ -148,8 +147,8 @@ void Binomial::backward_param_iid(const graph::NodeValue& value) const {
   if (in_nodes[1]->needs_gradient()) {
     double n = (double)in_nodes[0]->value._natural;
     double p = in_nodes[1]->value._double;
-    int size = static_cast<int>(value._nmatrix.size());
-    double sum_k = static_cast<double>(value._nmatrix.sum());
+    int size = static_cast<int>(value._matrix.numel());
+    double sum_k = static_cast<double>(value._matrix.sum().item().toDouble());
     double grad = sum_k / p - (size * n - sum_k) / (1 - p);
     in_nodes[1]->back_grad1._double += grad;
   }
@@ -157,16 +156,16 @@ void Binomial::backward_param_iid(const graph::NodeValue& value) const {
 
 void Binomial::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
 
   if (in_nodes[1]->needs_gradient()) {
     double n = (double)in_nodes[0]->value._natural;
     double p = in_nodes[1]->value._double;
 
-    double sum_adjunct = adjunct.sum();
+    double sum_adjunct = adjunct.sum().item().toDouble();
     double sum_k_adjunct =
-        (value._nmatrix.cast<double>().array() * adjunct.array()).sum();
+        (value._matrix * adjunct).sum().item().toDouble();
     double grad =
         sum_k_adjunct / p - (sum_adjunct * n - sum_k_adjunct) / (1 - p);
     in_nodes[1]->back_grad1._double += grad;

@@ -27,9 +27,9 @@ class HmcProposer : public GlobalProposer {
   StepSizeAdapter step_size_adapter;
   double path_length;
   double step_size;
-  double compute_kinetic_energy(Eigen::VectorXd momentum);
-  Eigen::VectorXd compute_potential_gradient(GlobalState& state);
-  Eigen::VectorXd initialize_momentum(Eigen::VectorXd theta, std::mt19937& gen);
+  double compute_kinetic_energy(torch::Tensor momentum);
+  torch::Tensor compute_potential_gradient(GlobalState& state);
+  torch::Tensor initialize_momentum(torch::Tensor theta, std::mt19937& gen);
 };
 
 } // namespace graph

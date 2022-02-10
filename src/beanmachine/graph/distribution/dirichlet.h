@@ -17,11 +17,11 @@ class Dirichlet : public Distribution {
       graph::ValueType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Dirichlet() override {}
-  Eigen::MatrixXd _matrix_sampler(std::mt19937& gen) const override;
+  torch::Tensor _matrix_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::NodeValue& value) const override;
   void log_prob_iid(
       const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* log_probs */) const override;
+      torch::Tensor& /* log_probs */) const override;
   void gradient_log_prob_value(
       const graph::NodeValue& /*value*/,
       double& /*grad1*/,

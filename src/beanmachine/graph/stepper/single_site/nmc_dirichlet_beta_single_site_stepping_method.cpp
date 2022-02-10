@@ -40,7 +40,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_step_profiler_event() {
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
     Node* tgt_node) {
-  assert(static_cast<uint>(tgt_node->value._matrix.size()) == 2);
+  assert(static_cast<uint>(tgt_node->value._matrix.numel()) == 2);
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   double x = sto_tgt_node->value._matrix.coeff(0);
@@ -55,10 +55,10 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   // Grad2 = ( (d/dX_1)^2 Y_1, (d/dX_1)^2 Y_2 )
   // where (d/dX_1)^2 Y_1 = 0
   //       (d/dX_1)^2 Y_2 = 0
-  Eigen::MatrixXd Grad1(2, 1);
+  torch::Tensor Grad1(2, 1);
   Grad1 << 1, -1;
   sto_tgt_node->Grad1 = Grad1;
-  sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+  sto_tgt_node->Grad2 = torch::Tensor::Zero(2, 1);
   mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
 
   // Use gradients to obtain NMC proposal

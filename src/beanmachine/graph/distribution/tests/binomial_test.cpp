@@ -48,7 +48,7 @@ TEST(testdistrib, backward_binomial) {
   g.observe(p, 0.2);
   uint k = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{bin_dist, two, two});
-  Eigen::MatrixXn k_obs(2, 2);
+  torch::Tensor k_obs(2, 2);
   k_obs << (natural_t)2, (natural_t)1, (natural_t)3, (natural_t)3;
   g.observe(k, k_obs);
 
@@ -96,7 +96,7 @@ TEST(testdistrib, backward_binomial) {
   g2.observe(prob2, 0.1);
   g2.observe(mix_p, 0.7);
   g2.observe(k, (natural_t)4);
-  Eigen::MatrixXn kiid_obs(2, 1);
+  torch::Tensor kiid_obs(2, 1);
   kiid_obs << (natural_t)6, (natural_t)1;
   g2.observe(kiid, kiid_obs);
 

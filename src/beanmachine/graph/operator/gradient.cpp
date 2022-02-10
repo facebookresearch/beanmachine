@@ -320,13 +320,13 @@ void LogSumExpVector::compute_gradients() {
   // where d(df/dgi)/dx = exp(gi - f) * (dgi/dx - df/dx)
   // therefore, grad2 = sum_i^n{exp(gi - f) * [(dgi/dx - grad1)*dgi/dx +
   // d(dgi/dx)/dx]}
-  Eigen::MatrixXd f_grad =
-      (in_nodes[0]->value._matrix.array() - value._double).exp();
-  grad1 = (f_grad.array() * in_nodes[0]->Grad1.array()).sum();
-  grad2 = (f_grad.array() *
-           (in_nodes[0]->Grad1.array() * (in_nodes[0]->Grad1.array() - grad1) +
-            in_nodes[0]->Grad2.array()))
-              .sum();
+  torch::Tensor f_grad =
+      (in_nodes[0]->value._matrix - value._double).exp();
+  grad1 = (f_grad * in_nodes[0]->Grad1).sum().item().toDouble();
+  grad2 = (f_grad *
+           (in_nodes[0]->Grad1 * (in_nodes[0]->Grad1 - grad1) +
+            in_nodes[0]->Grad2))
+              .sum().item().toDouble();
 }
 
 void IfThenElse::compute_gradients() {
@@ -351,7 +351,7 @@ void Index::compute_gradients() {
 
 void ColumnIndex::compute_gradients() {
   assert(in_nodes.size() == 2);
-  int rows = static_cast<int>(in_nodes[0]->Grad1.rows());
+  int rows = static_cast<int>(in_nodes[0]->Grad1.size(0));
   Grad1.resize(rows, 1);
   Grad2.resize(rows, 1);
   Grad1 = in_nodes[0]->Grad1.col(in_nodes[1]->value._natural);

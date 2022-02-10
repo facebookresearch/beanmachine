@@ -126,7 +126,7 @@ TEST(testdistrib, gamma) {
   auto two = g.add_constant((natural_t)2);
   auto y2 = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{y_dist, two, two});
-  Eigen::MatrixXd m_y(2, 2);
+  torch::Tensor m_y(2, 2);
   m_y << 4.1, 3.2, 2.3, 1.4;
   g.observe(y2, m_y);
   std::vector<DoubleMatrix*> grad;
@@ -177,7 +177,7 @@ TEST(testdistrib, gamma) {
   g2.observe(shape2, 1.8);
   g2.observe(p, 0.37);
   g2.observe(x1, 2.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, 1.5;
   g2.observe(x2, xobs);
   // To verify the results with pyTorch:

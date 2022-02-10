@@ -29,20 +29,20 @@ Tabular::Tabular(
     throw std::invalid_argument(
         "Tabular distribution's first arg must be COL_SIMPLEX_MATRIX");
   }
-  const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;
+  const torch::Tensor& matrix = in_nodes[0]->value._matrix;
   // the matrix must have num rows = 2, since we only support BOOLEAN
   // sample_type
-  if (matrix.rows() != 2) {
+  if (matrix.size(0) != 2) {
     throw std::invalid_argument(
         "Tabular distribution's first arg must have two rows.");
   }
   // the n_cols should be equal to 2^{num_parents}, since all parents are
   // boolean
-  if (matrix.cols() != std::pow(2.0, (float)(in_nodes.size() - 1))) {
+  if (matrix.size(1) != std::pow(2.0, (float)(in_nodes.size() - 1))) {
     throw std::invalid_argument(
         "Tabular distribution's first arg expected " +
         std::to_string((uint)std::pow(2.0, (float)(in_nodes.size() - 1))) +
-        " dims got " + std::to_string(matrix.cols()));
+        " dims got " + std::to_string(matrix.size(1)));
   }
   // go through each of the parents other than the matrix and verify its type
   for (uint paridx = 1; paridx < static_cast<uint>(in_nodes.size()); paridx++) {
@@ -73,9 +73,9 @@ double Tabular::get_probability() const {
   assert(
       in_nodes[0]->value.type.variable_type ==
       graph::VariableType::COL_SIMPLEX_MATRIX);
-  const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;
-  assert(col_id < matrix.cols());
-  assert(row_id < matrix.rows());
+  const torch::Tensor& matrix = in_nodes[0]->value._matrix;
+  assert(col_id < matrix.size(1));
+  assert(row_id < matrix.size(0));
   double prob = matrix.coeff(row_id, col_id);
   if (prob < 0 or prob > 1) {
     throw std::runtime_error(

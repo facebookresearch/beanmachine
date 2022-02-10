@@ -147,7 +147,7 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
     switch (sample_value.type.atomic_type) {
       case graph::AtomicType::BOOLEAN:
         for (uint i = 0; i < size; i++) {
-          *(sample_value._bmatrix.data() + i) = _bool_sampler(gen);
+          *(sample_value._matrix.data() + i) = _bool_sampler(gen);
         }
         break;
       case graph::AtomicType::REAL:
@@ -159,7 +159,7 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
         break;
       case graph::AtomicType::NATURAL:
         for (uint i = 0; i < size; i++) {
-          *(sample_value._nmatrix.data() + i) = _natural_sampler(gen);
+          *(sample_value._matrix.data() + i) = _natural_sampler(gen);
         }
         break;
       default:

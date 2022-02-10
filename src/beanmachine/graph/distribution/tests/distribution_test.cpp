@@ -70,7 +70,7 @@ TEST(testdistrib, bernoulli) {
       graph::OperatorType::IID_SAMPLE, std::vector<uint>{bern_dist, two, two});
   g.observe(prob, 0.23);
   g.observe(y1, false);
-  Eigen::MatrixXb mat(2, 2);
+  torch::Tensor mat(2, 2);
   mat << true, true, false, true;
   g.observe(y2, mat);
   // test log_prob:
@@ -119,7 +119,7 @@ TEST(testdistrib, bernoulli) {
   g2.observe(prob2, 0.7);
   g2.observe(p, 0.65);
   g2.observe(x, true);
-  Eigen::MatrixXb xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << false, true;
   g2.observe(xiid, xobs);
   // To verify the results with pyTorch:
@@ -172,14 +172,14 @@ TEST(testdistrib, bernoulli_noisy_or) {
 }
 
 TEST(testdistrib, tabular) {
-  Eigen::MatrixXd matrix(2, 2);
+  torch::Tensor matrix(2, 2);
   matrix << 0.9, 0.1, 0.1, 0.9;
   graph::ConstNode cnode1(graph::NodeValue(
       graph::ValueType(
           graph::VariableType::COL_SIMPLEX_MATRIX,
           graph::AtomicType::PROBABILITY,
-          matrix.rows(),
-          matrix.cols()),
+          matrix.size(0),
+          matrix.size(1)),
       matrix));
   graph::ConstNode cnode2(graph::NodeValue{true});
   distribution::Tabular dnode1(

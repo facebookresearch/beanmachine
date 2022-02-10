@@ -241,7 +241,7 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   uint y =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
   g.observe(mu, 0.0); // TODO[Walid]: Would need to be non-zero to serve as s
-  Eigen::MatrixXd yobs(2, 1);
+  torch::Tensor yobs(2, 1);
   yobs << 0.5, 1.5;
   g.observe(y, yobs);
 
@@ -329,7 +329,7 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   g2.observe(s, 1.8);
   g2.observe(p, 0.37);
   g2.observe(x, 0.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, 1.5;
   g2.observe(xiid, xobs);
   // First, the checking the log-probabilities

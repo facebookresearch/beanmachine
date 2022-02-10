@@ -124,7 +124,7 @@ TEST(testdistrib, backward_normal_normal) {
   uint y =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
   g.observe(mu, 0.1);
-  Eigen::MatrixXd yobs(2, 1);
+  torch::Tensor yobs(2, 1);
   yobs << 0.5, -0.5;
   g.observe(y, yobs);
 
@@ -178,7 +178,7 @@ TEST(testdistrib, backward_normal_normal) {
   g2.observe(s, 1.8);
   g2.observe(p, 0.37);
   g2.observe(x, -0.5);
-  Eigen::MatrixXd xobs(2, 1);
+  torch::Tensor xobs(2, 1);
   xobs << 0.5, -1.5;
   g2.observe(xiid, xobs);
   // To verify the results with pyTorch:

@@ -222,23 +222,23 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
   const graph::ValueType& parent_type = in_nodes[2]->value.type;
 
   if (parent_type == graph::AtomicType::BOOLEAN) {
-    Eigen::MatrixXb result(rows, cols);
+    torch::Tensor result(rows, cols);
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
         result(i, j) = in_nodes[2 + j * rows + i]->value._bool;
       }
     }
-    value._bmatrix = result;
+    value._matrix = result;
   } else if (parent_type == graph::AtomicType::NATURAL) {
-    Eigen::MatrixXn result(rows, cols);
+    torch::Tensor result(rows, cols);
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
         result(i, j) = in_nodes[2 + j * rows + i]->value._natural;
       }
     }
-    value._nmatrix = result;
+    value._matrix = result;
   } else { // real
-    Eigen::MatrixXd result(rows, cols);
+    torch::Tensor result(rows, cols);
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
         result(i, j) = in_nodes[2 + j * rows + i]->value._double;

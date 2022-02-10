@@ -20,10 +20,10 @@ class GlobalState {
   void backup_unconstrained_grads();
   void revert_unconstrained_values();
   void revert_unconstrained_grads();
-  void add_to_stochastic_unconstrained_nodes(Eigen::VectorXd& increment);
-  void get_flattened_unconstrained_values(Eigen::VectorXd& flattened_values);
-  void set_flattened_unconstrained_values(Eigen::VectorXd& flattened_values);
-  void get_flattened_unconstrained_grads(Eigen::VectorXd& flattened_grad);
+  void add_to_stochastic_unconstrained_nodes(torch::Tensor& increment);
+  void get_flattened_unconstrained_values(torch::Tensor& flattened_values);
+  void set_flattened_unconstrained_values(torch::Tensor& flattened_values);
+  void get_flattened_unconstrained_grads(torch::Tensor& flattened_grad);
   double get_log_prob();
   void update_log_prob();
   void update_backgrad();

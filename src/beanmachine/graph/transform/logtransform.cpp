@@ -19,7 +19,7 @@ void Log::operator()(
     unconstrained._double = std::log(constrained._double);
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    unconstrained._matrix = constrained._matrix.array().log();
+    unconstrained._matrix = constrained._matrix.log();
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
@@ -34,7 +34,7 @@ void Log::inverse(
     constrained._double = std::exp(unconstrained._double);
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    constrained._matrix = unconstrained._matrix.array().exp();
+    constrained._matrix = unconstrained._matrix.exp();
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
@@ -50,7 +50,7 @@ double Log::log_abs_jacobian_determinant(
     return unconstrained._double;
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    return unconstrained._matrix.sum();
+    return unconstrained._matrix.sum().item().toDouble();
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
@@ -70,7 +70,7 @@ void Log::unconstrained_gradient(
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
     back_grad._matrix =
-        back_grad._matrix.array() * constrained._matrix.array() + 1.0;
+        back_grad._matrix * constrained._matrix + 1.0;
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }

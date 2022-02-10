@@ -16,7 +16,7 @@ using namespace beanmachine::graph;
 TEST(testdistrib, dirichlet_negative) {
   Graph g;
 
-  Eigen::MatrixXd m1(3, 1);
+  torch::Tensor m1(3, 1);
   m1 << 1.5, 1.0, 2.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
   uint two = g.add_constant((natural_t)2);
@@ -43,7 +43,7 @@ TEST(testdistrib, dirichlet_negative) {
           std::vector<uint>{cm1}),
       std::invalid_argument);
 
-  Eigen::MatrixXd m2(2, 2);
+  torch::Tensor m2(2, 2);
   m2 << 1.5, 1.0, 2.0, 1.5;
   uint cm2 = g.add_constant_pos_matrix(m2);
   EXPECT_THROW(
@@ -58,7 +58,7 @@ TEST(testdistrib, dirichlet_negative) {
 TEST(testdistrib, dirichlet) {
   Graph g;
 
-  Eigen::MatrixXd m1(3, 1);
+  torch::Tensor m1(3, 1);
   m1 << 1.5, 1.0, 2.0;
 
   uint flat_dist = g.add_distribution(
@@ -76,7 +76,7 @@ TEST(testdistrib, dirichlet) {
 
   // test log prob
   uint diri_sample = g.add_operator(OperatorType::SAMPLE, {diri_dist});
-  Eigen::MatrixXd obs(3, 1);
+  torch::Tensor obs(3, 1);
   obs << 0.6, 0.06, 0.34;
   g.observe(diri_sample, obs);
   EXPECT_NEAR(g.full_log_prob(), 1.2403, 0.01);
@@ -114,11 +114,11 @@ TEST(testdistrib, dirichlet) {
       std::vector<uint>{p1});
   uint x = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{d1});
 
-  Eigen::MatrixXd p1_obs(4, 1);
+  torch::Tensor p1_obs(4, 1);
   p1_obs << 2., 1., 3., 2.;
   g2.observe(p1, p1_obs);
-  Eigen::MatrixXd p2_obs(4, 1);
-  Eigen::MatrixXd x_obs(4, 1);
+  torch::Tensor p2_obs(4, 1);
+  torch::Tensor x_obs(4, 1);
   x_obs << 0.05, 0.05, 0.8, 0.12;
   g2.observe(x, x_obs);
 
@@ -147,7 +147,7 @@ TEST(testdistrib, dirichlet) {
 
 TEST(testdistrib, dirichlet_sample) {
   Graph g;
-  Eigen::MatrixXd m1(3, 1);
+  torch::Tensor m1(3, 1);
   m1 << 1.5, 1.0, 2.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
   uint diri_dist = g.add_distribution(
@@ -161,7 +161,7 @@ TEST(testdistrib, dirichlet_sample) {
   g.query(x);
   std::vector<std::vector<NodeValue>> samples =
       g.infer(100000, InferenceType::REJECTION);
-  Eigen::MatrixXd mean(3, 1);
+  torch::Tensor mean(3, 1);
   Eigen::ArrayXd std(3, 1);
   for (int i = 0; i < samples.size(); i++) {
     mean += samples[i][0]._matrix;
@@ -171,7 +171,7 @@ TEST(testdistrib, dirichlet_sample) {
   EXPECT_NEAR(mean(1), 0.22, 0.01);
   EXPECT_NEAR(mean(2), 0.44, 0.01);
   for (int i = 0; i < samples.size(); i++) {
-    std += (samples[i][0]._matrix - mean).array().pow(2);
+    std += (samples[i][0]._matrix - mean).pow(2);
   }
   std = (std / (100000 - 1)).cwiseSqrt();
   EXPECT_NEAR(std(0), 0.201, 0.01);

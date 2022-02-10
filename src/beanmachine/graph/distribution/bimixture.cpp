@@ -44,14 +44,14 @@ a bi-mixture distribution.
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);     \
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);     \
   double p = in_nodes[0]->value._double;                                     \
-  Eigen::MatrixXd logf1;                                                     \
-  Eigen::MatrixXd logf2;                                                     \
+  torch::Tensor logf1;                                                     \
+  torch::Tensor logf2;                                                     \
   d1->log_prob_iid(value, logf1);                                            \
   d2->log_prob_iid(value, logf2);                                            \
-  Eigen::MatrixXd max_logfi = logf1.cwiseMax(logf2);                         \
-  Eigen::MatrixXd f1 = (logf1.array() - max_logfi.array()).exp();            \
-  Eigen::MatrixXd f2 = (logf2.array() - max_logfi.array()).exp();            \
-  Eigen::MatrixXd f = p * f1 + (1.0 - p) * f2;
+  torch::Tensor max_logfi = logf1.max(logf2);                         \
+  torch::Tensor f1 = (logf1 - max_logfi).exp();            \
+  torch::Tensor f2 = (logf2 - max_logfi).exp();            \
+  torch::Tensor f = p * f1 + (1.0 - p) * f2;
 
 namespace beanmachine {
 namespace distribution {
@@ -109,9 +109,9 @@ double Bimixture::log_prob(const graph::NodeValue& value) const {
     return util::log_sum_exp(std::vector<double>{z1, z2});
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    Eigen::MatrixXd log_probs;
+    torch::Tensor log_probs;
     log_prob_iid(value, log_probs);
-    return log_probs.sum();
+    return log_probs.sum().item().toDouble();
   } else {
     throw std::runtime_error(
         "Bimixture::log_prob applied to invalid variable type");
@@ -120,17 +120,17 @@ double Bimixture::log_prob(const graph::NodeValue& value) const {
 
 void Bimixture::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double p = in_nodes[0]->value._double;
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);
-  Eigen::MatrixXd logf1;
-  Eigen::MatrixXd logf2;
+  torch::Tensor logf1;
+  torch::Tensor logf2;
   d1->log_prob_iid(value, logf1);
   d2->log_prob_iid(value, logf2);
-  logf1.array() += std::log(p);
-  logf2.array() += std::log(1.0 - p);
+  logf1 += std::log(p);
+  logf2 += std::log(1.0 - p);
   log_probs = logf1.binaryExpr(logf2, util::BinaryLogSumExp());
 }
 
@@ -174,10 +174,10 @@ void Bimixture::gradient_log_prob_param(
     double& grad2) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   BIMIX_PREPARE_GRAD()
-  Eigen::Matrix<double, 1, 3> Jacob_F;
+  torch::Tensor Jacob_F;
   double Jf0 = (f1 - f2) / f, Jf1 = p * f1 / f, Jf2 = (1 - p) * f2 / f;
   Jacob_F << Jf0, Jf1, Jf2;
-  Eigen::Matrix<double, 3, 3> Hess_F;
+  torch::Tensor Hess_F;
   // only need to compute the upper triangle, Hess_F is symmetric
   Hess_F << -Jf0 * Jf0, f1 / f - Jf0 * Jf1, -f2 / f - Jf0 * Jf2, 0.0,
       Jf1 - Jf1 * Jf1, -Jf1 * Jf2, 0.0, 0.0, Jf2 - Jf2 * Jf2;
@@ -185,9 +185,9 @@ void Bimixture::gradient_log_prob_param(
   double J2g0 = in_nodes[0]->grad2, J2g1 = 0.0, J2g2 = 0.0;
   d1->gradient_log_prob_param(value, Jg1, J2g1);
   d2->gradient_log_prob_param(value, Jg2, J2g2);
-  Eigen::Matrix<double, 1, 3> Jacob_G;
+  torch::Tensor Jacob_G;
   Jacob_G << Jg0, Jg1, Jg2;
-  Eigen::Matrix<double, 1, 3> Grad2_G;
+  torch::Tensor Grad2_G;
   Grad2_G << J2g0, J2g1, J2g2;
 
   grad1 += (Jacob_F * Jacob_G.transpose()).coeff(0, 0);
@@ -220,8 +220,8 @@ void Bimixture::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad) const {
   BIMIX_PREPARE_GRAD_IID()
-  f1 = p * f1.array() / f.array();
-  f2 = (1 - p) * f2.array() / f.array();
+  f1 = p * f1 / f;
+  f2 = (1 - p) * f2 / f;
   d1->backward_value_iid(value, back_grad, f1);
   d2->backward_value_iid(value, back_grad, f2);
 }
@@ -229,10 +229,10 @@ void Bimixture::backward_value_iid(
 void Bimixture::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   BIMIX_PREPARE_GRAD_IID()
-  f1 = p * f1.array() / f.array() * adjunct.array();
-  f2 = (1 - p) * f2.array() / f.array() * adjunct.array();
+  f1 = p * f1 / f * adjunct;
+  f2 = (1 - p) * f2 / f * adjunct;
   d1->backward_value_iid(value, back_grad, f1);
   d2->backward_value_iid(value, back_grad, f2);
 }
@@ -257,24 +257,24 @@ void Bimixture::backward_param_iid(const graph::NodeValue& value) const {
   BIMIX_PREPARE_GRAD_IID()
   if (in_nodes[0]->needs_gradient()) {
     in_nodes[0]->back_grad1._double +=
-        ((f1.array() - f2.array()) / f.array()).sum();
+        ((f1 - f2) / f).sum().item().toDouble();
   }
-  f1 = p * f1.array() / f.array();
-  f2 = (1 - p) * f2.array() / f.array();
+  f1 = p * f1 / f;
+  f2 = (1 - p) * f2 / f;
   d1->backward_param_iid(value, f1);
   d2->backward_param_iid(value, f2);
 }
 
 void Bimixture::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   BIMIX_PREPARE_GRAD_IID()
   if (in_nodes[0]->needs_gradient()) {
     in_nodes[0]->back_grad1._double +=
-        ((f1.array() - f2.array()) / f.array() * adjunct.array()).sum();
+        ((f1 - f2) / f * adjunct).sum().item().toDouble();
   }
-  f1 = p * f1.array() / f.array() * adjunct.array();
-  f2 = (1 - p) * f2.array() / f.array() * adjunct.array();
+  f1 = p * f1 / f * adjunct;
+  f2 = (1 - p) * f2 / f * adjunct;
   d1->backward_param_iid(value, f1);
   d2->backward_param_iid(value, f2);
 }

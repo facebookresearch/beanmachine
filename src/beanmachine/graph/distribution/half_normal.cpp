@@ -72,7 +72,7 @@ double Half_Normal::log_prob(const NodeValue& value) const {
     sum_xsq = value._double * value._double;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    size = static_cast<int>(value._matrix.size());
+    size = static_cast<int>(value._matrix.numel());
     sum_xsq = value._matrix.squaredNorm();
   } else {
     throw std::runtime_error(
@@ -88,12 +88,12 @@ double Half_Normal::log_prob(const NodeValue& value) const {
 
 void Half_Normal::log_prob_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& log_probs) const {
+    torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   /// TODO[Walid]: Need to figure out how to do constants and conditionals here
   log_probs = (-std::log(s) - 0.5 * std::log(M_PI / 2)) -
-      0.5 * (value._matrix.array()).pow(2) / (s * s);
+      0.5 * (value._matrix).pow(2) / (s * s);
 }
 
 /// TODO[Walid]: This function can be inlined (it has only two uses)
@@ -152,18 +152,18 @@ void Half_Normal::backward_value_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -= (value._matrix.array() / s_sq).matrix();
+  back_grad._matrix -= (value._matrix / s_sq).matrix();
 }
 
 void Half_Normal::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
   back_grad._matrix -=
-      (adjunct.array() * value._matrix.array() / s_sq).matrix();
+      (adjunct * value._matrix / s_sq).matrix();
 }
 
 void Half_Normal::backward_param(const graph::NodeValue& value, double adjunct)
@@ -188,7 +188,7 @@ void Half_Normal::backward_param_iid(const graph::NodeValue& value) const {
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
 
-  int size = static_cast<int>(value._matrix.size());
+  int size = static_cast<int>(value._matrix.numel());
   /// The following should be deleted
   ///  if (in_nodes[0]->needs_gradient()) {
   ///    in_nodes[0]->back_grad1._double += sum_x / s_sq - size * m / s_sq;
@@ -201,18 +201,18 @@ void Half_Normal::backward_param_iid(const graph::NodeValue& value) const {
 
 void Half_Normal::backward_param_iid(
     const graph::NodeValue& value,
-    Eigen::MatrixXd& adjunct) const {
+    torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
 
-  double sum_adjunct = adjunct.sum();
+  double sum_adjunct = adjunct.sum().item().toDouble();
   /// The following should be deleted
   /// if (in_nodes[0]->needs_gradient()) {
   ///  in_nodes[0]->back_grad1._double += sum_x / s_sq - sum_adjunct * m / s_sq;
   /// }
   if (in_nodes[0]->needs_gradient()) {
-    double sum_xsq = (value._matrix.array().pow(2) * adjunct.array()).sum();
+    double sum_xsq = (value._matrix.pow(2) * adjunct).sum().item().toDouble();
     in_nodes[0]->back_grad1._double +=
         (-sum_adjunct / s + sum_xsq / (s * s_sq));
   }

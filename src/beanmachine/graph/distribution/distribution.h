@@ -39,7 +39,7 @@ class Distribution : public graph::Node {
   virtual double log_prob(const graph::NodeValue& value) const = 0;
   virtual void log_prob_iid(
       const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* log_probs */) const {}
+      torch::Tensor& /* log_probs */) const {}
   // these function add the gradients to the passed in gradients
   virtual void gradient_log_prob_value(
       const graph::NodeValue& value,
@@ -75,7 +75,7 @@ class Distribution : public graph::Node {
   virtual void backward_value_iid(
       const graph::NodeValue& /* value */,
       graph::DoubleMatrix& /* back_grad */,
-      Eigen::MatrixXd& /* adjunct */) const {}
+      torch::Tensor& /* adjunct */) const {}
   /*
   In backward gradient propagation, increments the back_grad1 of each parent
   node w.r.t. the log prob of the distribution, evaluated at the given value.
@@ -96,7 +96,7 @@ class Distribution : public graph::Node {
   virtual void backward_param_iid(const graph::NodeValue& /* value */) const {}
   virtual void backward_param_iid(
       const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* adjunct */) const {}
+      torch::Tensor& /* adjunct */) const {}
   graph::DistributionType dist_type;
   graph::ValueType sample_type;
 
@@ -112,7 +112,7 @@ class Distribution : public graph::Node {
     throw std::runtime_error(
         "_natural_sampler has not been implemented for this distribution.");
   }
-  virtual Eigen::MatrixXd _matrix_sampler(std::mt19937& /* gen */) const {
+  virtual torch::Tensor _matrix_sampler(std::mt19937& /* gen */) const {
     throw std::runtime_error(
         "_matrix_sampler has not been implemented for this distribution.");
   }
