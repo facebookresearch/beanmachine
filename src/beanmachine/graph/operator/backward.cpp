@@ -201,19 +201,19 @@ void MatrixMultiply::backward() {
   // if C = A @ B is reduced to a scalar
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._matrix += back_grad1._double * B.transpose();
+      node_a->back_grad1._matrix += back_grad1._double * B.transpose(0, 1);
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix += back_grad1._double * A.transpose();
+      node_b->back_grad1._matrix += back_grad1._double * A.transpose(0, 1);
     }
     return;
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._matrix += back_grad1._matrix * B.transpose();
+    node_a->back_grad1._matrix += back_grad1._matrix * B.transpose(0, 1);
   }
   if (node_b->needs_gradient()) {
-    node_b->back_grad1._matrix += A.transpose() * back_grad1._matrix;
+    node_b->back_grad1._matrix += A.transpose(0, 1) * back_grad1._matrix;
   }
 }
 
@@ -235,16 +235,16 @@ void MatrixScale::backward() {
   // TODO[Walid] : Check if this case is actually ever needed
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._double += (back_grad1._double * B.transpose()).sum().item().toDouble();
+      node_a->back_grad1._double += (back_grad1._double * B.transpose(0, 1)).sum().item().toDouble();
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix(0, 0) += back_grad1._double * A;
+      node_b->back_grad1._matrix[0][0] += back_grad1._double * A;
     }
     return;
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._double += (back_grad1._matrix * B.transpose()).sum().item().toDouble();
+    node_a->back_grad1._double += (back_grad1._matrix * B.transpose(0, 1)).sum().item().toDouble();
   }
   if (node_b->needs_gradient()) {
     node_b->back_grad1._matrix += A * back_grad1._matrix;
@@ -255,7 +255,7 @@ void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix(in_nodes[1]->value._natural) +=
+    matrix->back_grad1._matrix[in_nodes[1]->value._natural] +=
         back_grad1._double;
   }
 }
@@ -264,8 +264,12 @@ void ColumnIndex::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix.col(in_nodes[1]->value._natural) +=
-        back_grad1._matrix;
+    matrix->back_grad1._matrix.index_put_(
+      {torch::indexing::Slice(),(int)in_nodes[1]->value._natural},
+      matrix->back_grad1._matrix.index(
+        {torch::indexing::Slice(),(int)in_nodes[1]->value._natural}
+      ) + back_grad1._matrix
+    );
   }
 }
 
@@ -276,7 +280,7 @@ void ToMatrix::backward() {
     for (int i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];
       if (node->needs_gradient()) {
-        node->back_grad1._double += back_grad1._matrix(i, j);
+        node->back_grad1._double += back_grad1._matrix[i][j].item().toDouble();
       }
     }
   }

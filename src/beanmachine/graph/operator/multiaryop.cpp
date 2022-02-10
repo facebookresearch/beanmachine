@@ -225,7 +225,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
     torch::Tensor result(rows, cols);
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = in_nodes[2 + j * rows + i]->value._bool;
+        result[i][j] = in_nodes[2 + j * rows + i]->value._bool;
       }
     }
     value._matrix = result;
@@ -233,7 +233,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
     torch::Tensor result(rows, cols);
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = in_nodes[2 + j * rows + i]->value._natural;
+        result[i][j] = in_nodes[2 + j * rows + i]->value._natural;
       }
     }
     value._matrix = result;
@@ -241,7 +241,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
     torch::Tensor result(rows, cols);
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = in_nodes[2 + j * rows + i]->value._double;
+        result[i][j] = in_nodes[2 + j * rows + i]->value._double;
       }
     }
     value._matrix = result;

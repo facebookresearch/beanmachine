@@ -6,10 +6,10 @@
  */
 
 #include "beanmachine/graph/operator/operator.h"
-#include "beanmachine/graph/operator/controlop.h"
-#include "beanmachine/graph/operator/multiaryop.h"
+// #include "beanmachine/graph/operator/controlop.h"
+// #include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/stochasticop.h"
-#include "beanmachine/graph/operator/unaryop.h"
+// #include "beanmachine/graph/operator/unaryop.h"
 
 namespace beanmachine {
 namespace oper {

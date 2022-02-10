@@ -10,12 +10,12 @@
 #include <sstream>
 #include <thread>
 
-// #include "beanmachine/graph/distribution/distribution.h"
-// #include "beanmachine/graph/factor/factor.h"
+#include "beanmachine/graph/distribution/distribution.h"
+#include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/graph.h"
 // #include "beanmachine/graph/operator/operator.h"
 // #include "beanmachine/graph/operator/stochasticop.h"
-// #include "beanmachine/graph/transform/transform.h"
+#include "beanmachine/graph/transform/transform.h"
 
 namespace beanmachine {
 namespace graph {
@@ -370,22 +370,22 @@ void Graph::eval_and_grad(
 //   std::reverse(grad1.begin(), grad1.end());
 // }
 
-void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
-  std::set<uint> supp = compute_support();
-  _test_backgrad(supp, grad1);
-}
+// void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
+//   std::set<uint> supp = compute_support();
+//   _test_backgrad(supp, grad1);
+// }
 
-void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
-  std::mt19937 generator(seed);
-  std::set<uint> supp = compute_support();
-  for (auto it = supp.begin(); it != supp.end(); ++it) {
-    Node* node = nodes[*it].get();
-    if (!node->is_observed) {
-      node->eval(generator);
-    }
-  }
-  _test_backgrad(supp, grad1);
-}
+// void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
+//   std::mt19937 generator(seed);
+//   std::set<uint> supp = compute_support();
+//   for (auto it = supp.begin(); it != supp.end(); ++it) {
+//     Node* node = nodes[*it].get();
+//     if (!node->is_observed) {
+//       node->eval(generator);
+//     }
+//   }
+//   _test_backgrad(supp, grad1);
+// }
 
 void set_value(torch::Tensor& variable, double value) {
   variable.fill_(value);
@@ -525,14 +525,14 @@ double Graph::log_prob(uint src_idx) {
 /* TODO: used in testing only; it looks like there has not been a need for it in
  * actual code so far; notheless we can leave it here as it is a natural
  * operation */
-double Graph::full_log_prob() {
-  std::set<uint> supp = compute_support();
-  std::vector<Node*> ordered_supp;
-  for (uint node_id : supp) {
-    ordered_supp.push_back(nodes[node_id].get());
-  }
-  return _full_log_prob(ordered_supp);
-}
+// double Graph::full_log_prob() {
+//   std::set<uint> supp = compute_support();
+//   std::vector<Node*> ordered_supp;
+//   for (uint node_id : supp) {
+//     ordered_supp.push_back(nodes[node_id].get());
+//   }
+//   return _full_log_prob(ordered_supp);
+// }
 
 // TODO: from now on, we have methods for adding nodes, checking validity,
 // inference and a copy constructor Those are essentially as they should be.
@@ -732,29 +732,29 @@ uint Graph::add_constant_probability_matrix(torch::Tensor& value) {
   return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
-// uint Graph::add_distribution(
-//     DistributionType dist_type,
-//     AtomicType sample_type,
-//     std::vector<uint> parent_ids) {
-//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-//   // create a distribution node
-//   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
-//       dist_type, ValueType(sample_type), parent_nodes);
-//   // and add the node to the graph
-//   return add_node(std::move(node), parent_ids);
-// }
+uint Graph::add_distribution(
+    DistributionType dist_type,
+    AtomicType sample_type,
+    std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  // create a distribution node
+  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+      dist_type, ValueType(sample_type), parent_nodes);
+  // and add the node to the graph
+  return add_node(std::move(node), parent_ids);
+}
 
-// uint Graph::add_distribution(
-//     DistributionType dist_type,
-//     ValueType sample_type,
-//     std::vector<uint> parent_ids) {
-//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-//   // create a distribution node
-//   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
-//       dist_type, sample_type, parent_nodes);
-//   // and add the node to the graph
-//   return add_node(std::move(node), parent_ids);
-// }
+uint Graph::add_distribution(
+    DistributionType dist_type,
+    ValueType sample_type,
+    std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  // create a distribution node
+  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+      dist_type, sample_type, parent_nodes);
+  // and add the node to the graph
+  return add_node(std::move(node), parent_ids);
+}
 
 // uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
 //   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
@@ -775,59 +775,59 @@ uint Graph::add_constant_probability_matrix(torch::Tensor& value) {
 //   return node_id;
 // }
 
-void Graph::observe(uint node_id, bool value) {
-  // A bool can only be a bool NodeValue, so we can just pass it along.
-  observe(node_id, NodeValue(value));
-}
+// void Graph::observe(uint node_id, bool value) {
+//   // A bool can only be a bool NodeValue, so we can just pass it along.
+//   observe(node_id, NodeValue(value));
+// }
 
-void Graph::observe(uint node_id, double value) {
-  Node* node = check_observed_node(node_id, true);
-  switch (node->value.type.atomic_type) {
-    case AtomicType::REAL:
-      // The double is automatically in range
-      break;
-    case AtomicType::PROBABILITY:
-    case AtomicType::POS_REAL:
-    case AtomicType::NEG_REAL:
-      // TODO: Add checks that the observed value is in range.
-      break;
-    default:
-      throw std::invalid_argument(
-          "observe expected " + node->value.type.to_string());
-  }
-  add_observe(node, NodeValue(node->value.type.atomic_type, value));
-}
+// void Graph::observe(uint node_id, double value) {
+//   Node* node = check_observed_node(node_id, true);
+//   switch (node->value.type.atomic_type) {
+//     case AtomicType::REAL:
+//       // The double is automatically in range
+//       break;
+//     case AtomicType::PROBABILITY:
+//     case AtomicType::POS_REAL:
+//     case AtomicType::NEG_REAL:
+//       // TODO: Add checks that the observed value is in range.
+//       break;
+//     default:
+//       throw std::invalid_argument(
+//           "observe expected " + node->value.type.to_string());
+//   }
+//   add_observe(node, NodeValue(node->value.type.atomic_type, value));
+// }
 
-void Graph::observe(uint node_id, natural_t value) {
-  // A natural can only be a natural NodeValue, so we can just pass it along.
-  observe(node_id, NodeValue(value));
-}
+// void Graph::observe(uint node_id, natural_t value) {
+//   // A natural can only be a natural NodeValue, so we can just pass it along.
+//   observe(node_id, NodeValue(value));
+// }
 
-void Graph::observe(uint node_id, torch::Tensor& value) {
-  Node* node = check_observed_node(node_id, false);
-  // We know that we have a matrix value; is it the right shape?
-  if (value.size(0) != node->value.type.rows or
-      value.size(1) != node->value.type.cols) {
-    throw std::invalid_argument(
-        "observe expected " + node->value.type.to_string());
-  }
-  switch (node->value.type.atomic_type) {
-    case AtomicType::REAL:
-      // The double is automatically in range
-      break;
-    case AtomicType::PROBABILITY:
-    case AtomicType::POS_REAL:
-    case AtomicType::NEG_REAL:
-      // TODO: Add checks that the observed values are in range.
-      // TODO: Check that an observed simplex is given a simplex.
-      break;
-    default:
-      throw std::invalid_argument(
-          "observe expected " + node->value.type.to_string());
-  }
+// void Graph::observe(uint node_id, torch::Tensor& value) {
+//   Node* node = check_observed_node(node_id, false);
+//   // We know that we have a matrix value; is it the right shape?
+//   if (value.size(0) != node->value.type.rows or
+//       value.size(1) != node->value.type.cols) {
+//     throw std::invalid_argument(
+//         "observe expected " + node->value.type.to_string());
+//   }
+//   switch (node->value.type.atomic_type) {
+//     case AtomicType::REAL:
+//       // The double is automatically in range
+//       break;
+//     case AtomicType::PROBABILITY:
+//     case AtomicType::POS_REAL:
+//     case AtomicType::NEG_REAL:
+//       // TODO: Add checks that the observed values are in range.
+//       // TODO: Check that an observed simplex is given a simplex.
+//       break;
+//     default:
+//       throw std::invalid_argument(
+//           "observe expected " + node->value.type.to_string());
+//   }
 
-  add_observe(node, NodeValue(node->value.type, value));
-}
+//   add_observe(node, NodeValue(node->value.type, value));
+// }
 
 // void Graph::observe(uint node_id, torch::Tensor& value) {
 //   Node* node = check_observed_node(node_id, false);
@@ -852,24 +852,24 @@ void Graph::observe(uint node_id, torch::Tensor& value) {
 //   add_observe(node, NodeValue(node->value.type, value));
 // }
 
-void Graph::observe(uint node_id, NodeValue value) {
-  Node* node = check_observed_node(
-      node_id, value.type.variable_type == VariableType::SCALAR);
-  if (node->value.type != value.type) {
-    throw std::invalid_argument(
-        "observe expected " + node->value.type.to_string() + " but got " +
-        value.type.to_string());
-  }
-  add_observe(node, value);
-}
+// void Graph::observe(uint node_id, NodeValue value) {
+//   Node* node = check_observed_node(
+//       node_id, value.type.variable_type == VariableType::SCALAR);
+//   if (node->value.type != value.type) {
+//     throw std::invalid_argument(
+//         "observe expected " + node->value.type.to_string() + " but got " +
+//         value.type.to_string());
+//   }
+//   add_observe(node, value);
+// }
 
-void Graph::add_observe(Node* node, NodeValue value) {
-  // Precondition: node_id and value have already been checked
-  // for validity.
-  node->value = value;
-  node->is_observed = true;
-  observed.insert(node->index);
-}
+// void Graph::add_observe(Node* node, NodeValue value) {
+//   // Precondition: node_id and value have already been checked
+//   // for validity.
+//   node->value = value;
+//   node->is_observed = true;
+//   observed.insert(node->index);
+// }
 
 // void Graph::customize_transformation(
 //     TransformType customized_type,
@@ -1006,175 +1006,175 @@ void Graph::collect_sample() {
   }
 }
 
-void Graph::_infer(
-    uint num_samples,
-    InferenceType algorithm,
-    uint seed,
-    InferConfig infer_config) {
-  if (queries.size() == 0) {
-    throw std::runtime_error("no nodes queried for inference");
-  }
-  if (num_samples < 1) {
-    throw std::runtime_error("num_samples can't be zero");
-  }
-  if (algorithm == InferenceType::REJECTION) {
-    rejection(num_samples, seed, infer_config);
-  } else if (algorithm == InferenceType::GIBBS) {
-    gibbs(num_samples, seed, infer_config);
-  } else if (algorithm == InferenceType::NMC) {
-    nmc(num_samples, seed, infer_config);
-  }
-}
+// void Graph::_infer(
+//     uint num_samples,
+//     InferenceType algorithm,
+//     uint seed,
+//     InferConfig infer_config) {
+//   if (queries.size() == 0) {
+//     throw std::runtime_error("no nodes queried for inference");
+//   }
+//   if (num_samples < 1) {
+//     throw std::runtime_error("num_samples can't be zero");
+//   }
+//   if (algorithm == InferenceType::REJECTION) {
+//     rejection(num_samples, seed, infer_config);
+//   } else if (algorithm == InferenceType::GIBBS) {
+//     gibbs(num_samples, seed, infer_config);
+//   } else if (algorithm == InferenceType::NMC) {
+//     nmc(num_samples, seed, infer_config);
+//   }
+// }
 
-std::vector<std::vector<NodeValue>>&
-Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
-  InferConfig infer_config = InferConfig();
-  // TODO: why don't the initialization below to be done for _infer?
-  // If they do, move them there.
-  // Not clear why we have infer and _infer instead of just infer with
-  // a default infer_config.
-  agg_type = AggregationType::NONE;
-  samples.clear();
-  log_prob_vals.clear();
-  log_prob_allchains.clear();
-  _infer(num_samples, algorithm, seed, infer_config);
-  _produce_performance_report(num_samples, algorithm, seed);
-  return samples;
-}
+// std::vector<std::vector<NodeValue>>&
+// Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
+//   InferConfig infer_config = InferConfig();
+//   // TODO: why don't the initialization below to be done for _infer?
+//   // If they do, move them there.
+//   // Not clear why we have infer and _infer instead of just infer with
+//   // a default infer_config.
+//   agg_type = AggregationType::NONE;
+//   samples.clear();
+//   log_prob_vals.clear();
+//   log_prob_allchains.clear();
+//   _infer(num_samples, algorithm, seed, infer_config);
+//   _produce_performance_report(num_samples, algorithm, seed);
+//   return samples;
+// }
 
-std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
-    uint num_samples,
-    InferenceType algorithm,
-    uint seed,
-    uint n_chains,
-    InferConfig infer_config) {
-  agg_type = AggregationType::NONE;
-  samples.clear();
-  samples_allchains.clear();
-  samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
-  log_prob_vals.clear();
-  log_prob_allchains.clear();
-  log_prob_allchains.resize(n_chains, std::vector<double>());
-  _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
-  _produce_performance_report(num_samples, algorithm, seed);
-  return samples_allchains;
-}
+// std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
+//     uint num_samples,
+//     InferenceType algorithm,
+//     uint seed,
+//     uint n_chains,
+//     InferConfig infer_config) {
+//   agg_type = AggregationType::NONE;
+//   samples.clear();
+//   samples_allchains.clear();
+//   samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
+//   log_prob_vals.clear();
+//   log_prob_allchains.clear();
+//   log_prob_allchains.resize(n_chains, std::vector<double>());
+//   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
+//   _produce_performance_report(num_samples, algorithm, seed);
+//   return samples_allchains;
+// }
 
-void Graph::_infer_parallel(
-    uint num_samples,
-    InferenceType algorithm,
-    uint seed,
-    uint n_chains,
-    InferConfig infer_config) {
-  if (n_chains < 1) {
-    throw std::runtime_error("n_chains can't be zero");
-  }
-  master_graph = this;
-  thread_index = 0;
-  // clone graphs
-  std::vector<Graph*> graph_copies;
-  std::vector<uint> seedvec;
-  for (uint i = 0; i < n_chains; i++) {
-    if (i > 0) {
-      Graph* g_ptr = new Graph(*this);
-      g_ptr->thread_index = i;
-      graph_copies.push_back(g_ptr);
-    } else {
-      graph_copies.push_back(this);
-    }
-    seedvec.push_back(seed + 13 * static_cast<uint>(i));
-  }
-  assert(graph_copies.size() == n_chains);
-  assert(seedvec.size() == n_chains);
-  // start threads
-  std::vector<std::thread> threads;
-  std::exception_ptr e = nullptr;
-  for (uint i = 0; i < n_chains; i++) {
-    std::thread infer_thread([&e,
-                              &graph_copies,
-                              i,
-                              num_samples,
-                              algorithm,
-                              &seedvec,
-                              infer_config]() {
-      try {
-        graph_copies[i]->_infer(
-            num_samples, algorithm, seedvec[i], infer_config);
-      } catch (...) {
-        e = std::current_exception();
-      }
-    });
-    threads.push_back(std::move(infer_thread));
-  }
-  assert(threads.size() == n_chains);
-  // join threads
-  for (uint i = 0; i < n_chains; i++) {
-    threads[i].join();
-    if (i > 0) {
-      delete graph_copies[i];
-    }
-  }
-  graph_copies.clear();
-  threads.clear();
-  master_graph = nullptr;
-  if (e != nullptr) {
-    std::rethrow_exception(e);
-  }
-}
+// void Graph::_infer_parallel(
+//     uint num_samples,
+//     InferenceType algorithm,
+//     uint seed,
+//     uint n_chains,
+//     InferConfig infer_config) {
+//   if (n_chains < 1) {
+//     throw std::runtime_error("n_chains can't be zero");
+//   }
+//   master_graph = this;
+//   thread_index = 0;
+//   // clone graphs
+//   std::vector<Graph*> graph_copies;
+//   std::vector<uint> seedvec;
+//   for (uint i = 0; i < n_chains; i++) {
+//     if (i > 0) {
+//       Graph* g_ptr = new Graph(*this);
+//       g_ptr->thread_index = i;
+//       graph_copies.push_back(g_ptr);
+//     } else {
+//       graph_copies.push_back(this);
+//     }
+//     seedvec.push_back(seed + 13 * static_cast<uint>(i));
+//   }
+//   assert(graph_copies.size() == n_chains);
+//   assert(seedvec.size() == n_chains);
+//   // start threads
+//   std::vector<std::thread> threads;
+//   std::exception_ptr e = nullptr;
+//   for (uint i = 0; i < n_chains; i++) {
+//     std::thread infer_thread([&e,
+//                               &graph_copies,
+//                               i,
+//                               num_samples,
+//                               algorithm,
+//                               &seedvec,
+//                               infer_config]() {
+//       try {
+//         graph_copies[i]->_infer(
+//             num_samples, algorithm, seedvec[i], infer_config);
+//       } catch (...) {
+//         e = std::current_exception();
+//       }
+//     });
+//     threads.push_back(std::move(infer_thread));
+//   }
+//   assert(threads.size() == n_chains);
+//   // join threads
+//   for (uint i = 0; i < n_chains; i++) {
+//     threads[i].join();
+//     if (i > 0) {
+//       delete graph_copies[i];
+//     }
+//   }
+//   graph_copies.clear();
+//   threads.clear();
+//   master_graph = nullptr;
+//   if (e != nullptr) {
+//     std::rethrow_exception(e);
+//   }
+// }
 
-std::vector<double>&
-Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
-  InferConfig infer_config = InferConfig();
-  agg_type = AggregationType::MEAN;
-  agg_samples = num_samples;
-  means.clear();
-  means.resize(queries.size(), 0.0);
-  log_prob_vals.clear();
-  log_prob_allchains.clear();
-  _infer(num_samples, algorithm, seed, infer_config);
-  return means;
-}
+// std::vector<double>&
+// Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
+//   InferConfig infer_config = InferConfig();
+//   agg_type = AggregationType::MEAN;
+//   agg_samples = num_samples;
+//   means.clear();
+//   means.resize(queries.size(), 0.0);
+//   log_prob_vals.clear();
+//   log_prob_allchains.clear();
+//   _infer(num_samples, algorithm, seed, infer_config);
+//   return means;
+// }
 
-std::vector<std::vector<double>>& Graph::infer_mean(
-    uint num_samples,
-    InferenceType algorithm,
-    uint seed,
-    uint n_chains,
-    InferConfig infer_config) {
-  agg_type = AggregationType::MEAN;
-  agg_samples = num_samples;
-  means.clear();
-  means.resize(queries.size(), 0.0);
-  means_allchains.clear();
-  means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
-  log_prob_vals.clear();
-  log_prob_allchains.clear();
-  _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
-  return means_allchains;
-}
+// std::vector<std::vector<double>>& Graph::infer_mean(
+//     uint num_samples,
+//     InferenceType algorithm,
+//     uint seed,
+//     uint n_chains,
+//     InferConfig infer_config) {
+//   agg_type = AggregationType::MEAN;
+//   agg_samples = num_samples;
+//   means.clear();
+//   means.resize(queries.size(), 0.0);
+//   means_allchains.clear();
+//   means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
+//   log_prob_vals.clear();
+//   log_prob_allchains.clear();
+//   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
+//   return means_allchains;
+// }
 
-std::vector<std::vector<double>>& Graph::variational(
-    uint num_iters,
-    uint steps_per_iter,
-    uint seed,
-    uint elbo_samples) {
-  if (queries.size() == 0) {
-    throw std::runtime_error("no nodes queried for inference");
-  }
-  for (uint node_id : queries) {
-    Node* node = nodes[node_id].get();
-    if (not node->is_stochastic()) {
-      throw std::invalid_argument(
-          "only sample nodes may be queried in "
-          "variational inference");
-    }
-  }
-  elbo_vals.clear();
-  std::mt19937 generator(seed);
-  cavi(num_iters, steps_per_iter, generator, elbo_samples);
-  return variational_params; // TODO: this should have been defined as a field,
-                             // but a value returned by cavi.
-}
+// std::vector<std::vector<double>>& Graph::variational(
+//     uint num_iters,
+//     uint steps_per_iter,
+//     uint seed,
+//     uint elbo_samples) {
+//   if (queries.size() == 0) {
+//     throw std::runtime_error("no nodes queried for inference");
+//   }
+//   for (uint node_id : queries) {
+//     Node* node = nodes[node_id].get();
+//     if (not node->is_stochastic()) {
+//       throw std::invalid_argument(
+//           "only sample nodes may be queried in "
+//           "variational inference");
+//     }
+//   }
+//   elbo_vals.clear();
+//   std::mt19937 generator(seed);
+//   cavi(num_iters, steps_per_iter, generator, elbo_samples);
+//   return variational_params; // TODO: this should have been defined as a field,
+//                              // but a value returned by cavi.
+// }
 
 std::vector<uint> Graph::get_parent_ids(
     const std::vector<Node*>& parent_nodes) const {

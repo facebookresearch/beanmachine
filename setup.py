@@ -157,16 +157,28 @@ setup(
         Pybind11Extension(
             name="beanmachine.graph",
             sources=sorted(
-                set([
-                    "test.cpp",
-                    # "src/beanmachine/graph/pybindings.cpp",
-                    # "src/beanmachine/graph/graph.cpp",
-                    # "src/beanmachine/graph/profiler.cpp",
-                    # "src/beanmachine/graph/distribution/beta.cpp",
-                    # "src/beanmachine/graph/distribution/binomial.cpp",
-                ])
+                (
+                    set([
+                        "src/beanmachine/graph/pybindings.cpp",
+                        "src/beanmachine/graph/graph.cpp",
+                        "src/beanmachine/graph/profiler.cpp",
+                        "src/beanmachine/graph/to_dot.cpp",
+                        "src/beanmachine/graph/perf_report.cpp",
+                        "src/beanmachine/graph/support.cpp",
+                        "src/beanmachine/graph/util.cpp",
+                        "src/beanmachine/graph/distribution/distribution.cpp",
+                    ])
+                    | set(glob("src/beanmachine/graph/transform/*.cpp", recursive=True))
+                    | set(glob("src/beanmachine/graph/factor/*.cpp", recursive=True))
+                )
                 # set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
-                # - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
+                - set([
+                    "src/beanmachine/graph/operator/gradient.cpp",
+                    "src/beanmachine/graph/operator/linalgop.cpp",
+                    "src/beanmachine/graph/operator/multiaryop.cpp",
+                    "src/beanmachine/graph/operator/unaryop.cpp",
+                ])
+                - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
             include_dirs=INCLUDE_DIRS,
             # extra_compile_args=CPP_COMPILE_ARGS,

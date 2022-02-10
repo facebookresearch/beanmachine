@@ -345,28 +345,32 @@ void Choice::compute_gradients() {
 
 void Index::compute_gradients() {
   assert(in_nodes.size() == 2);
-  grad1 = in_nodes[0]->Grad1.coeff(in_nodes[1]->value._natural);
-  grad2 = in_nodes[0]->Grad2.coeff(in_nodes[1]->value._natural);
+  grad1 = in_nodes[0]->Grad1[(int)in_nodes[1]->value._natural];
+  grad2 = in_nodes[0]->Grad2[(int)in_nodes[1]->value._natural];
 }
 
 void ColumnIndex::compute_gradients() {
   assert(in_nodes.size() == 2);
   int rows = static_cast<int>(in_nodes[0]->Grad1.size(0));
-  Grad1.resize(rows, 1);
-  Grad2.resize(rows, 1);
-  Grad1 = in_nodes[0]->Grad1.col(in_nodes[1]->value._natural);
-  Grad2 = in_nodes[0]->Grad2.col(in_nodes[1]->value._natural);
+  Grad1.resize_({rows, 1});
+  Grad2.resize_({rows, 1});
+  Grad1 = in_nodes[0]->Grad1.index(
+    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural]}
+  );
+  Grad2 = in_nodes[0]->Grad2.index(
+    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural]}
+  );
 }
 
 void ToMatrix::compute_gradients() {
   int rows = static_cast<int>(in_nodes[0]->value._natural);
   int cols = static_cast<int>(in_nodes[1]->value._natural);
-  Grad1.resize(rows, cols);
-  Grad2.resize(rows, cols);
+  Grad1.resize_({rows, cols});
+  Grad2.resize_({rows, cols});
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
-      Grad1(i, j) = in_nodes[2 + j * rows + i]->grad1;
-      Grad2(i, j) = in_nodes[2 + j * rows + i]->grad2;
+      Grad1[i][j] = in_nodes[2 + j * rows + i]->grad1;
+      Grad2[i][j] = in_nodes[2 + j * rows + i]->grad2;
     }
   }
 }
@@ -375,15 +379,15 @@ void BroadcastAdd::compute_gradients() {
   assert(in_nodes.size() == 2);
   auto rows = in_nodes[1]->value.type.rows;
   auto cols = in_nodes[1]->value.type.cols;
-  Grad1.setConstant(rows, cols, in_nodes[0]->grad1);
-  Grad2.setConstant(rows, cols, in_nodes[0]->grad2);
+  Grad1.new_full({rows, cols}, in_nodes[0]->grad1);
+  Grad2.new_full({rows, cols}, in_nodes[0]->grad2);
 
   // in_nodes[1] can be a constant matrix that does not have Grad1/Grad2
   // initialized
-  if (in_nodes[1]->Grad1.size() != 0) {
+  if (in_nodes[1]->Grad1.numel() != 0) {
     Grad1 += in_nodes[1]->Grad1;
   }
-  if (in_nodes[1]->Grad2.size() != 0) {
+  if (in_nodes[1]->Grad2.numel() != 0) {
     Grad2 += in_nodes[1]->Grad2;
   }
 }
