@@ -251,40 +251,40 @@ PYBIND11_MODULE(graph, module) {
     //       "add a factor Node",
     //       py::arg("fac_type"),
     //       py::arg("parents"))
-    //   .def(
-    //       "observe",
-    //       (void (Graph::*)(uint, bool)) & Graph::observe,
-    //       "observe a node",
-    //       py::arg("node_id"),
-    //       py::arg("val"))
-    //   .def(
-    //       "observe",
-    //       (void (Graph::*)(uint, double)) & Graph::observe,
-    //       "observe a node",
-    //       py::arg("node_id"),
-    //       py::arg("val"))
-    //   .def(
-    //       "observe",
-    //       (void (Graph::*)(uint, natural_t)) & Graph::observe,
-    //       "observe a node",
-    //       py::arg("node_id"),
-    //       py::arg("val"))
-    //   .def(
-    //       "observe",
-    //       (void (Graph::*)(uint, torch::Tensor&)) & Graph::observe,
-    //       "observe a node",
-    //       py::arg("node_id"),
-    //       py::arg("val"))
-    //   .def(
-    //       "observe",
-    //       (void (Graph::*)(uint, NodeValue)) & Graph::observe,
-    //       "observe a node",
-    //       py::arg("node_id"),
-    //       py::arg("val"))
-    //   .def(
-    //       "remove_observations",
-    //       (void (Graph::*)()) & Graph::remove_observations,
-    //       "remove all observations from the graph")
+      .def(
+          "observe",
+          (void (Graph::*)(uint, bool)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, double)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, natural_t)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, torch::Tensor&)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, NodeValue)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "remove_observations",
+          (void (Graph::*)()) & Graph::remove_observations,
+          "remove all observations from the graph")
       .def("query", &Graph::query, "query a node", py::arg("node_id"))
       .def(
           "infer_mean",
