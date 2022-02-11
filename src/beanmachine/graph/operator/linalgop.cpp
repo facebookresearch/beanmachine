@@ -137,8 +137,8 @@ void MatrixScale::compute_gradients() {
   assert(in_nodes.size() == 2);
   int rows = static_cast<int>(in_nodes[1]->value.type.rows);
   int cols = static_cast<int>(in_nodes[1]->value.type.cols);
-  Grad1.resize(rows, cols);
-  Grad2.resize(rows, cols);
+  Grad1.resize_({rows, cols});
+  Grad2.resize_({rows, cols});
   // The code currently has a convention that constant values may have
   // zero size Grad1 and Grad2. The purpose of the follow two variables
   // (and their uses) is to accommodate this convention.
@@ -147,17 +147,17 @@ void MatrixScale::compute_gradients() {
   // to make this idea more explicit in the code. For example, explicit
   // flags to indicate whether those derivatives are zero (or a proper
   // union type) would help.
-  bool hasGrad1 = (in_nodes[1]->Grad1.size() != 0);
-  bool hasGrad2 = (in_nodes[1]->Grad2.size() != 0);
+  bool hasGrad1 = (in_nodes[1]->Grad1.numel() != 0);
+  bool hasGrad2 = (in_nodes[1]->Grad2.numel() != 0);
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
-      Grad1(i, j) = in_nodes[0]->grad1 * in_nodes[1]->value._matrix(i, j);
+      Grad1[i][j] = in_nodes[0]->grad1 * in_nodes[1]->value._matrix[i][j];
       if (hasGrad1) {
-        Grad1(i, j) += in_nodes[0]->value._double * in_nodes[1]->Grad1(i, j);
-        Grad2(i, j) = in_nodes[0]->grad2 * in_nodes[1]->Grad1(i, j);
+        Grad1[i][j] += in_nodes[0]->value._double * in_nodes[1]->Grad1[i][j];
+        Grad2[i][j] = in_nodes[0]->grad2 * in_nodes[1]->Grad1[i][j];
       }
       if (hasGrad2) {
-        Grad2(i, j) += in_nodes[0]->grad1 * in_nodes[1]->Grad2(i, j);
+        Grad2[i][j] += in_nodes[0]->grad1 * in_nodes[1]->Grad2[i][j];
       }
     }
   }
@@ -194,15 +194,15 @@ void Index::eval(std::mt19937& /* gen */) {
   }
   graph::AtomicType matrix_type = matrix.type.atomic_type;
   if (matrix_type == graph::AtomicType::BOOLEAN) {
-    value._bool = matrix._matrix(matrix_index);
+    value._bool = matrix._matrix[matrix_index].item().toBool();
   } else if (
       matrix_type == graph::AtomicType::REAL or
       matrix_type == graph::AtomicType::POS_REAL or
       matrix_type == graph::AtomicType::NEG_REAL or
       matrix_type == graph::AtomicType::PROBABILITY) {
-    value._double = matrix._matrix(matrix_index);
+    value._double = matrix._matrix[matrix_index].item().toDouble();
   } else if (matrix_type == graph::AtomicType::NATURAL) {
-    value._natural = matrix._matrix(matrix_index);
+    value._natural = matrix._matrix[matrix_index].item().toInt();
   } else {
     throw std::runtime_error(
         "invalid parent type " + matrix.type.to_string() +
@@ -241,15 +241,15 @@ void ColumnIndex::eval(std::mt19937& /* gen */) {
   }
   graph::AtomicType matrix_type = matrix.type.atomic_type;
   if (matrix_type == graph::AtomicType::BOOLEAN) {
-    value._matrix = matrix._matrix.col(matrix_index);
+    value._matrix = matrix._matrix.index({torch::indexing::Slice(), matrix_index});
   } else if (
       matrix_type == graph::AtomicType::REAL or
       matrix_type == graph::AtomicType::POS_REAL or
       matrix_type == graph::AtomicType::NEG_REAL or
       matrix_type == graph::AtomicType::PROBABILITY) {
-    value._matrix = matrix._matrix.col(matrix_index);
+    value._matrix = matrix._matrix.index({torch::indexing::Slice(), matrix_index});
   } else if (matrix_type == graph::AtomicType::NATURAL) {
-    value._matrix = matrix._matrix.col(matrix_index);
+    value._matrix = matrix._matrix.index({torch::indexing::Slice(), matrix_index});
   } else {
     throw std::runtime_error(
         "invalid parent type " + matrix.type.to_string() +

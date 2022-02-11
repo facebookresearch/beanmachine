@@ -125,18 +125,18 @@ void ToRealMatrix::eval(std::mt19937& /* gen */) {
   const int cols = static_cast<int>(parent_type.cols);
 
   if (element_type == graph::AtomicType::BOOLEAN) {
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = parent_value._matrix(i, j) ? 1.0 : 0.0;
+        result[i][j] = parent_value._matrix[i][j].item().toBool() ? 1.0 : 0.0;
       }
     }
     value._matrix = result;
   } else if (element_type == graph::AtomicType::NATURAL) {
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = (double)parent_value._matrix(i, j);
+        result[i][j] = (double)parent_value._matrix[i][j].item().toDouble();
       }
     }
     value._matrix = result;
@@ -236,18 +236,18 @@ void ToPosRealMatrix::eval(std::mt19937& /* gen */) {
   const int cols = static_cast<int>(parent_type.cols);
 
   if (element_type == graph::AtomicType::BOOLEAN) {
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = parent_value._matrix(i, j) ? 1.0 : 0.0;
+        result[i][j] = parent_value._matrix[i][j].item().toBool() ? 1.0 : 0.0;
       }
     }
     value._matrix = result;
   } else if (element_type == graph::AtomicType::NATURAL) {
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result(i, j) = (double)parent_value._matrix(i, j);
+        result[i][j] = (double)parent_value._matrix[i][j].item().toDouble();
       }
     }
     value._matrix = result;
@@ -544,9 +544,9 @@ void LogSumExpVector::eval(std::mt19937& /* gen */) {
   if (parent.type.atomic_type == graph::AtomicType::REAL or
       parent.type.atomic_type == graph::AtomicType::NEG_REAL or
       parent.type.atomic_type == graph::AtomicType::POS_REAL) {
-    double max_val = parent._matrix(0);
+    double max_val = parent._matrix[0].item().toDouble();
     for (uint i = 1; i < parent._matrix.numel(); i++) {
-      double valuei = parent._matrix(i);
+      double valuei = parent._matrix[i].item().toDouble();
       if (valuei > max_val) {
         max_val = valuei;
       }

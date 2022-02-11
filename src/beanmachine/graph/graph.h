@@ -827,14 +827,14 @@ struct Graph {
   std::vector<std::vector<double>> variational_params;
   std::vector<double> elbo_vals;
   void collect_sample();
-  // void rejection(uint num_samples, uint seed, InferConfig infer_config);
-  // void gibbs(uint num_samples, uint seed, InferConfig infer_config);
-  // void nmc(uint num_samples, uint seed, InferConfig infer_config);
-  // void cavi(
-  //     uint num_iters,
-  //     uint steps_per_iter,
-  //     std::mt19937& gen,
-  //     uint elbo_samples);
+  void rejection(uint num_samples, uint seed, InferConfig infer_config);
+  void gibbs(uint num_samples, uint seed, InferConfig infer_config);
+  void nmc(uint num_samples, uint seed, InferConfig infer_config);
+  void cavi(
+      uint num_iters,
+      uint steps_per_iter,
+      std::mt19937& gen,
+      uint elbo_samples);
   /*
   Evaluate the full log probability over the support of the graph.
   :param ordered_supp: node pointers in the support in topological order.
@@ -843,7 +843,7 @@ struct Graph {
 
   // TODO: Review what members of this class can be made static.
 
-  // static double _full_log_prob(std::vector<Node*>& ordered_supp);
+  static double _full_log_prob(std::vector<Node*>& ordered_supp);
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;

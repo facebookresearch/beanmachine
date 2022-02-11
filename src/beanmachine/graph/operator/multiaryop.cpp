@@ -222,7 +222,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
   const graph::ValueType& parent_type = in_nodes[2]->value.type;
 
   if (parent_type == graph::AtomicType::BOOLEAN) {
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
         result[i][j] = in_nodes[2 + j * rows + i]->value._bool;
@@ -230,7 +230,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
     }
     value._matrix = result;
   } else if (parent_type == graph::AtomicType::NATURAL) {
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
         result[i][j] = in_nodes[2 + j * rows + i]->value._natural;
@@ -238,7 +238,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
     }
     value._matrix = result;
   } else { // real
-    torch::Tensor result(rows, cols);
+    torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
         result[i][j] = in_nodes[2 + j * rows + i]->value._double;

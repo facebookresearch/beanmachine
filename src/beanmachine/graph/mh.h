@@ -6,7 +6,6 @@
  */
 
 #pragma once
-#include <Eigen/Dense>
 #include <algorithm>
 #include <list>
 #include <map>

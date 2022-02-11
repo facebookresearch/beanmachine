@@ -13,8 +13,8 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/graph.h"
-// #include "beanmachine/graph/operator/operator.h"
-// #include "beanmachine/graph/operator/stochasticop.h"
+#include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/transform/transform.h"
 
 namespace beanmachine {
@@ -489,38 +489,38 @@ double Graph::log_prob(uint src_idx) {
 
 // TODO: this is the one actually used in code (as opposed to full_log_prob used
 // in testing only, so why the _?)
-// double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
-//   double sum_log_prob = 0.0;
-//   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
-//   for (auto node : ordered_supp) {
-//     if (node->is_stochastic()) {
-//       sum_log_prob += node->log_prob();
-//       if (node->node_type == NodeType::OPERATOR) {
-//         auto sto_node = static_cast<oper::StochasticOperator*>(node);
-//         if (sto_node->transform_type != TransformType::NONE) {
-//           // If y = g(x), then by Change of Variables as using in statistics
-//           // (see references below),
-//           // then the density f_Y of Y can be computed from
-//           // the density f_X of X as
-//           // f_Y(y) = f_X(g^{-1}(y)) * |d/dy g^{-1}(y)|
-//           // log(f_Y(y)) = log(f_X(x)) + log(|d/dy f^{-1}(y)|)
-//           //   = node->log_prob() + log_abs_jacobian_determinant()
-//           // TODO: rename log_abs_jacobian_determinant
-//           // to log_abs_jacobian_detesrminant_of_inverse_transform
-//           //
-//           // References on Change of Variables in statistics:
-//           // https://online.stat.psu.edu/stat414/lesson/22/22.2
-//           // Stan reference:
-//           // https://mc-stan.org/docs/2_27/reference-manual/change-of-variables-section.html
-//           sum_log_prob += sto_node->log_abs_jacobian_determinant();
-//         }
-//       }
-//     } else {
-//       node->eval(generator);
-//     }
-//   }
-//   return sum_log_prob;
-// }
+double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
+  double sum_log_prob = 0.0;
+  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+  for (auto node : ordered_supp) {
+    if (node->is_stochastic()) {
+      sum_log_prob += node->log_prob();
+      if (node->node_type == NodeType::OPERATOR) {
+        auto sto_node = static_cast<oper::StochasticOperator*>(node);
+        if (sto_node->transform_type != TransformType::NONE) {
+          // If y = g(x), then by Change of Variables as using in statistics
+          // (see references below),
+          // then the density f_Y of Y can be computed from
+          // the density f_X of X as
+          // f_Y(y) = f_X(g^{-1}(y)) * |d/dy g^{-1}(y)|
+          // log(f_Y(y)) = log(f_X(x)) + log(|d/dy f^{-1}(y)|)
+          //   = node->log_prob() + log_abs_jacobian_determinant()
+          // TODO: rename log_abs_jacobian_determinant
+          // to log_abs_jacobian_detesrminant_of_inverse_transform
+          //
+          // References on Change of Variables in statistics:
+          // https://online.stat.psu.edu/stat414/lesson/22/22.2
+          // Stan reference:
+          // https://mc-stan.org/docs/2_27/reference-manual/change-of-variables-section.html
+          sum_log_prob += sto_node->log_abs_jacobian_determinant();
+        }
+      }
+    } else {
+      node->eval(generator);
+    }
+  }
+  return sum_log_prob;
+}
 
 /* TODO: used in testing only; it looks like there has not been a need for it in
  * actual code so far; notheless we can leave it here as it is a natural
@@ -756,12 +756,12 @@ uint Graph::add_distribution(
   return add_node(std::move(node), parent_ids);
 }
 
-// uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
-//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-//   std::unique_ptr<Node> node =
-//       oper::OperatorFactory::create_op(op_type, parent_nodes);
-//   return add_node(std::move(node), parent_ids);
-// }
+uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  std::unique_ptr<Node> node =
+      oper::OperatorFactory::create_op(op_type, parent_nodes);
+  return add_node(std::move(node), parent_ids);
+}
 
 // uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
 //   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
@@ -1006,152 +1006,152 @@ void Graph::collect_sample() {
   }
 }
 
-// void Graph::_infer(
-//     uint num_samples,
-//     InferenceType algorithm,
-//     uint seed,
-//     InferConfig infer_config) {
-//   if (queries.size() == 0) {
-//     throw std::runtime_error("no nodes queried for inference");
-//   }
-//   if (num_samples < 1) {
-//     throw std::runtime_error("num_samples can't be zero");
-//   }
-//   if (algorithm == InferenceType::REJECTION) {
-//     rejection(num_samples, seed, infer_config);
-//   } else if (algorithm == InferenceType::GIBBS) {
-//     gibbs(num_samples, seed, infer_config);
-//   } else if (algorithm == InferenceType::NMC) {
-//     nmc(num_samples, seed, infer_config);
-//   }
-// }
+void Graph::_infer(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    InferConfig infer_config) {
+  if (queries.size() == 0) {
+    throw std::runtime_error("no nodes queried for inference");
+  }
+  if (num_samples < 1) {
+    throw std::runtime_error("num_samples can't be zero");
+  }
+  if (algorithm == InferenceType::REJECTION) {
+    rejection(num_samples, seed, infer_config);
+  // } else if (algorithm == InferenceType::GIBBS) {
+  //   gibbs(num_samples, seed, infer_config);
+  } else if (algorithm == InferenceType::NMC) {
+    nmc(num_samples, seed, infer_config);
+  }
+}
 
-// std::vector<std::vector<NodeValue>>&
-// Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
-//   InferConfig infer_config = InferConfig();
-//   // TODO: why don't the initialization below to be done for _infer?
-//   // If they do, move them there.
-//   // Not clear why we have infer and _infer instead of just infer with
-//   // a default infer_config.
-//   agg_type = AggregationType::NONE;
-//   samples.clear();
-//   log_prob_vals.clear();
-//   log_prob_allchains.clear();
-//   _infer(num_samples, algorithm, seed, infer_config);
-//   _produce_performance_report(num_samples, algorithm, seed);
-//   return samples;
-// }
+std::vector<std::vector<NodeValue>>&
+Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
+  InferConfig infer_config = InferConfig();
+  // TODO: why don't the initialization below to be done for _infer?
+  // If they do, move them there.
+  // Not clear why we have infer and _infer instead of just infer with
+  // a default infer_config.
+  agg_type = AggregationType::NONE;
+  samples.clear();
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
+  _infer(num_samples, algorithm, seed, infer_config);
+  _produce_performance_report(num_samples, algorithm, seed);
+  return samples;
+}
 
-// std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
-//     uint num_samples,
-//     InferenceType algorithm,
-//     uint seed,
-//     uint n_chains,
-//     InferConfig infer_config) {
-//   agg_type = AggregationType::NONE;
-//   samples.clear();
-//   samples_allchains.clear();
-//   samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
-//   log_prob_vals.clear();
-//   log_prob_allchains.clear();
-//   log_prob_allchains.resize(n_chains, std::vector<double>());
-//   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
-//   _produce_performance_report(num_samples, algorithm, seed);
-//   return samples_allchains;
-// }
+std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    uint n_chains,
+    InferConfig infer_config) {
+  agg_type = AggregationType::NONE;
+  samples.clear();
+  samples_allchains.clear();
+  samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
+  log_prob_allchains.resize(n_chains, std::vector<double>());
+  _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
+  _produce_performance_report(num_samples, algorithm, seed);
+  return samples_allchains;
+}
 
-// void Graph::_infer_parallel(
-//     uint num_samples,
-//     InferenceType algorithm,
-//     uint seed,
-//     uint n_chains,
-//     InferConfig infer_config) {
-//   if (n_chains < 1) {
-//     throw std::runtime_error("n_chains can't be zero");
-//   }
-//   master_graph = this;
-//   thread_index = 0;
-//   // clone graphs
-//   std::vector<Graph*> graph_copies;
-//   std::vector<uint> seedvec;
-//   for (uint i = 0; i < n_chains; i++) {
-//     if (i > 0) {
-//       Graph* g_ptr = new Graph(*this);
-//       g_ptr->thread_index = i;
-//       graph_copies.push_back(g_ptr);
-//     } else {
-//       graph_copies.push_back(this);
-//     }
-//     seedvec.push_back(seed + 13 * static_cast<uint>(i));
-//   }
-//   assert(graph_copies.size() == n_chains);
-//   assert(seedvec.size() == n_chains);
-//   // start threads
-//   std::vector<std::thread> threads;
-//   std::exception_ptr e = nullptr;
-//   for (uint i = 0; i < n_chains; i++) {
-//     std::thread infer_thread([&e,
-//                               &graph_copies,
-//                               i,
-//                               num_samples,
-//                               algorithm,
-//                               &seedvec,
-//                               infer_config]() {
-//       try {
-//         graph_copies[i]->_infer(
-//             num_samples, algorithm, seedvec[i], infer_config);
-//       } catch (...) {
-//         e = std::current_exception();
-//       }
-//     });
-//     threads.push_back(std::move(infer_thread));
-//   }
-//   assert(threads.size() == n_chains);
-//   // join threads
-//   for (uint i = 0; i < n_chains; i++) {
-//     threads[i].join();
-//     if (i > 0) {
-//       delete graph_copies[i];
-//     }
-//   }
-//   graph_copies.clear();
-//   threads.clear();
-//   master_graph = nullptr;
-//   if (e != nullptr) {
-//     std::rethrow_exception(e);
-//   }
-// }
+void Graph::_infer_parallel(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    uint n_chains,
+    InferConfig infer_config) {
+  if (n_chains < 1) {
+    throw std::runtime_error("n_chains can't be zero");
+  }
+  master_graph = this;
+  thread_index = 0;
+  // clone graphs
+  std::vector<Graph*> graph_copies;
+  std::vector<uint> seedvec;
+  for (uint i = 0; i < n_chains; i++) {
+    if (i > 0) {
+      Graph* g_ptr = new Graph(*this);
+      g_ptr->thread_index = i;
+      graph_copies.push_back(g_ptr);
+    } else {
+      graph_copies.push_back(this);
+    }
+    seedvec.push_back(seed + 13 * static_cast<uint>(i));
+  }
+  assert(graph_copies.size() == n_chains);
+  assert(seedvec.size() == n_chains);
+  // start threads
+  std::vector<std::thread> threads;
+  std::exception_ptr e = nullptr;
+  for (uint i = 0; i < n_chains; i++) {
+    std::thread infer_thread([&e,
+                              &graph_copies,
+                              i,
+                              num_samples,
+                              algorithm,
+                              &seedvec,
+                              infer_config]() {
+      try {
+        graph_copies[i]->_infer(
+            num_samples, algorithm, seedvec[i], infer_config);
+      } catch (...) {
+        e = std::current_exception();
+      }
+    });
+    threads.push_back(std::move(infer_thread));
+  }
+  assert(threads.size() == n_chains);
+  // join threads
+  for (uint i = 0; i < n_chains; i++) {
+    threads[i].join();
+    if (i > 0) {
+      delete graph_copies[i];
+    }
+  }
+  graph_copies.clear();
+  threads.clear();
+  master_graph = nullptr;
+  if (e != nullptr) {
+    std::rethrow_exception(e);
+  }
+}
 
-// std::vector<double>&
-// Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
-//   InferConfig infer_config = InferConfig();
-//   agg_type = AggregationType::MEAN;
-//   agg_samples = num_samples;
-//   means.clear();
-//   means.resize(queries.size(), 0.0);
-//   log_prob_vals.clear();
-//   log_prob_allchains.clear();
-//   _infer(num_samples, algorithm, seed, infer_config);
-//   return means;
-// }
+std::vector<double>&
+Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
+  InferConfig infer_config = InferConfig();
+  agg_type = AggregationType::MEAN;
+  agg_samples = num_samples;
+  means.clear();
+  means.resize(queries.size(), 0.0);
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
+  _infer(num_samples, algorithm, seed, infer_config);
+  return means;
+}
 
-// std::vector<std::vector<double>>& Graph::infer_mean(
-//     uint num_samples,
-//     InferenceType algorithm,
-//     uint seed,
-//     uint n_chains,
-//     InferConfig infer_config) {
-//   agg_type = AggregationType::MEAN;
-//   agg_samples = num_samples;
-//   means.clear();
-//   means.resize(queries.size(), 0.0);
-//   means_allchains.clear();
-//   means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
-//   log_prob_vals.clear();
-//   log_prob_allchains.clear();
-//   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
-//   return means_allchains;
-// }
+std::vector<std::vector<double>>& Graph::infer_mean(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    uint n_chains,
+    InferConfig infer_config) {
+  agg_type = AggregationType::MEAN;
+  agg_samples = num_samples;
+  means.clear();
+  means.resize(queries.size(), 0.0);
+  means_allchains.clear();
+  means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
+  _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
+  return means_allchains;
+}
 
 // std::vector<std::vector<double>>& Graph::variational(
 //     uint num_iters,

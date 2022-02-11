@@ -50,12 +50,12 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
 
   uint K = static_cast<uint>(tgt_node->value._matrix.numel());
   for (uint k = 0; k < K; k++) {
-    double param_a_k = param_node->value._matrix.coeff(k);
+    double param_a_k = param_node->value._matrix[k].item().toDouble();
     double x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
 
     // save old values
     mh->save_old_values(det_affected_nodes);
-    double old_x_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
+    double old_x_k = sto_tgt_node->unconstrained_value._matrix[k].item().toDouble();
     NodeValue old_x_k_value(AtomicType::POS_REAL, old_x_k);
     double old_sto_affected_nodes_log_prob =
         compute_sto_affected_nodes_log_prob(tgt_node, param_a_k, old_x_k_value);
@@ -68,7 +68,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     NodeValue new_x_k_value = mh->sample(proposal_given_old_value);
 
     // set new value
-    *(sto_tgt_node->unconstrained_value._matrix.data() + k) =
+    sto_tgt_node->unconstrained_value._matrix[k] =
         new_x_k_value._double;
     x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
     sto_tgt_node->value._matrix =
@@ -94,7 +94,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     if (!accepted) {
       // revert
       mh->restore_old_values(det_affected_nodes);
-      *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_x_k;
+      sto_tgt_node->unconstrained_value._matrix[k] = old_x_k;
       x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
       sto_tgt_node->value._matrix =
           sto_tgt_node->unconstrained_value._matrix / x_sum;
@@ -154,7 +154,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   //       d2Y_j/dX2_k = -2 * X_j/x_sum(X)^3
   sto_tgt_node->Grad1 =
       -sto_tgt_node->unconstrained_value._matrix / (x_sum * x_sum);
-  *(sto_tgt_node->Grad1.data() + k) += 1 / x_sum;
+  sto_tgt_node->Grad1[k] += 1 / x_sum;
   sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / x_sum;
 
   // Propagate gradients

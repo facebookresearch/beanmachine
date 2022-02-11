@@ -43,7 +43,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   assert(static_cast<uint>(tgt_node->value._matrix.numel()) == 2);
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
-  double x = sto_tgt_node->value._matrix.coeff(0);
+  double x = sto_tgt_node->value._matrix[0].item().toDouble();
 
   // Propagate gradients
   // Prepare gradients of Dirichlet values wrt Beta value.
@@ -55,10 +55,11 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   // Grad2 = ( (d/dX_1)^2 Y_1, (d/dX_1)^2 Y_2 )
   // where (d/dX_1)^2 Y_1 = 0
   //       (d/dX_1)^2 Y_2 = 0
-  torch::Tensor Grad1(2, 1);
-  Grad1 << 1, -1;
+  torch::Tensor Grad1 = torch::empty({2, 1});
+  Grad1[0] = 1;
+  Grad1[1] = -1;
   sto_tgt_node->Grad1 = Grad1;
-  sto_tgt_node->Grad2 = torch::Tensor::Zero(2, 1);
+  sto_tgt_node->Grad2 = torch::zeros({2, 1});
   mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
 
   // Use gradients to obtain NMC proposal
@@ -66,8 +67,8 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   auto dirichlet_distribution = sto_tgt_node->in_nodes[0];
   auto dirichlet_parameters_node = dirichlet_distribution->in_nodes[0];
   auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._matrix;
-  auto param_a = dirichlet_parameters_matrix.coeff(0);
-  auto param_b = dirichlet_parameters_matrix.coeff(1);
+  auto param_a = dirichlet_parameters_matrix[0].item().toDouble();
+  auto param_b = dirichlet_parameters_matrix[1].item().toDouble();
 
   double grad1 = 0;
   double grad2 = 0;

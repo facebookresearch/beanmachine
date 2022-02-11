@@ -53,37 +53,37 @@ PYBIND11_MODULE(graph, module) {
       .def(py::init<torch::Tensor&>())
       .def(py::init<torch::Tensor&>());
 
-//   py::enum_<OperatorType>(module, "OperatorType")
-//       .value("SAMPLE", OperatorType::SAMPLE)
-//       .value("TO_INT", OperatorType::TO_INT)
-//       .value("TO_REAL", OperatorType::TO_REAL)
-//       .value("TO_POS_REAL", OperatorType::TO_POS_REAL)
-//       .value("COMPLEMENT", OperatorType::COMPLEMENT)
-//       .value("NEGATE", OperatorType::NEGATE)
-//       .value("EXP", OperatorType::EXP)
-//       .value("EXPM1", OperatorType::EXPM1)
-//       .value("MULTIPLY", OperatorType::MULTIPLY)
-//       .value("ADD", OperatorType::ADD)
-//       .value("PHI", OperatorType::PHI)
-//       .value("LOGISTIC", OperatorType::LOGISTIC)
-//       .value("LOG1PEXP", OperatorType::LOG1PEXP)
-//       .value("LOG1MEXP", OperatorType::LOG1MEXP)
-//       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
-//       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
-//       .value("LOG", OperatorType::LOG)
-//       .value("POW", OperatorType::POW)
-//       .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
-//       .value("MATRIX_SCALE", OperatorType::MATRIX_SCALE)
-//       .value("TO_PROBABILITY", OperatorType::TO_PROBABILITY)
-//       .value("INDEX", OperatorType::INDEX)
-//       .value("BROADCAST_ADD", OperatorType::BROADCAST_ADD)
-//       .value("TO_MATRIX", OperatorType::TO_MATRIX)
-//       .value("LOGSUMEXP_VECTOR", OperatorType::LOGSUMEXP_VECTOR)
-//       .value("COLUMN_INDEX", OperatorType::COLUMN_INDEX)
-//       .value("TO_REAL_MATRIX", OperatorType::TO_REAL_MATRIX)
-//       .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX)
-//       .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL)
-//       .value("CHOICE", OperatorType::CHOICE);
+  py::enum_<OperatorType>(module, "OperatorType")
+      .value("SAMPLE", OperatorType::SAMPLE)
+      .value("TO_INT", OperatorType::TO_INT)
+      .value("TO_REAL", OperatorType::TO_REAL)
+      .value("TO_POS_REAL", OperatorType::TO_POS_REAL)
+      .value("COMPLEMENT", OperatorType::COMPLEMENT)
+      .value("NEGATE", OperatorType::NEGATE)
+      .value("EXP", OperatorType::EXP)
+      .value("EXPM1", OperatorType::EXPM1)
+      .value("MULTIPLY", OperatorType::MULTIPLY)
+      .value("ADD", OperatorType::ADD)
+      .value("PHI", OperatorType::PHI)
+      .value("LOGISTIC", OperatorType::LOGISTIC)
+      .value("LOG1PEXP", OperatorType::LOG1PEXP)
+      .value("LOG1MEXP", OperatorType::LOG1MEXP)
+      .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
+      .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
+      .value("LOG", OperatorType::LOG)
+      .value("POW", OperatorType::POW)
+      .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
+      .value("MATRIX_SCALE", OperatorType::MATRIX_SCALE)
+      .value("TO_PROBABILITY", OperatorType::TO_PROBABILITY)
+      .value("INDEX", OperatorType::INDEX)
+      .value("BROADCAST_ADD", OperatorType::BROADCAST_ADD)
+      .value("TO_MATRIX", OperatorType::TO_MATRIX)
+      .value("LOGSUMEXP_VECTOR", OperatorType::LOGSUMEXP_VECTOR)
+      .value("COLUMN_INDEX", OperatorType::COLUMN_INDEX)
+      .value("TO_REAL_MATRIX", OperatorType::TO_REAL_MATRIX)
+      .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX)
+      .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL)
+      .value("CHOICE", OperatorType::CHOICE);
 
   py::enum_<DistributionType>(module, "DistributionType")
     //   .value("TABULAR", DistributionType::TABULAR)
@@ -111,21 +111,21 @@ PYBIND11_MODULE(graph, module) {
       .value("OPERATOR", NodeType::OPERATOR)
       .value("FACTOR", NodeType::FACTOR);
 
-//   py::enum_<InferenceType>(module, "InferenceType")
-//       .value("REJECTION", InferenceType::REJECTION)
-//       .value("GIBBS", InferenceType::GIBBS)
-//       .value("NMC", InferenceType::NMC);
+  py::enum_<InferenceType>(module, "InferenceType")
+      .value("REJECTION", InferenceType::REJECTION)
+      .value("GIBBS", InferenceType::GIBBS)
+      .value("NMC", InferenceType::NMC);
 
   py::class_<Node>(module, "Node");
 
-//   py::class_<InferConfig>(module, "InferConfig")
-//       .def(py::init())
-//       .def(py::init<bool, double, double, uint, bool>())
-//       .def_readwrite("keep_log_prob", &InferConfig::keep_log_prob)
-//       .def_readwrite("path_length", &InferConfig::path_length)
-//       .def_readwrite("step_size", &InferConfig::step_size)
-//       .def_readwrite("num_warmup", &InferConfig::num_warmup)
-//       .def_readwrite("keep_warmup", &InferConfig::keep_warmup);
+  py::class_<InferConfig>(module, "InferConfig")
+      .def(py::init())
+      .def(py::init<bool, double, double, uint, bool>())
+      .def_readwrite("keep_log_prob", &InferConfig::keep_log_prob)
+      .def_readwrite("path_length", &InferConfig::path_length)
+      .def_readwrite("step_size", &InferConfig::step_size)
+      .def_readwrite("num_warmup", &InferConfig::num_warmup)
+      .def_readwrite("keep_warmup", &InferConfig::keep_warmup);
 
   // CONSIDER: Remove the overloaded add_constant APIs; the overloaded API's
   // binding behaviour is a little confusing. For example,
@@ -284,46 +284,46 @@ PYBIND11_MODULE(graph, module) {
     //       "remove_observations",
     //       (void (Graph::*)()) & Graph::remove_observations,
     //       "remove all observations from the graph")
-    //   .def("query", &Graph::query, "query a node", py::arg("node_id"))
-    //   .def(
-    //       "infer_mean",
-    //       (std::vector<double> & (Graph::*)(uint, InferenceType, uint)) &
-    //           Graph::infer_mean,
-    //       "infer the posterior mean of the queried nodes",
-    //       py::arg("num_samples"),
-    //       py::arg("algorithm") = InferenceType::GIBBS,
-    //       py::arg("seed") = 5123401)
-    //   .def(
-    //       "infer_mean",
-    //       (std::vector<std::vector<double>> &
-    //        (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
-    //           Graph::infer_mean,
-    //       "infer the posterior mean of the queried nodes using multiple chains",
-    //       py::arg("num_samples"),
-    //       py::arg("algorithm") = InferenceType::GIBBS,
-    //       py::arg("seed") = 5123401,
-    //       py::arg("n_chains") = 4,
-    //       py::arg("infer_config") = InferConfig())
-    //   .def(
-    //       "infer",
-    //       (std::vector<std::vector<NodeValue>> &
-    //        (Graph::*)(uint, InferenceType, uint)) &
-    //           Graph::infer,
-    //       "infer the empirical distribution of the queried nodes",
-    //       py::arg("num_samples"),
-    //       py::arg("algorithm") = InferenceType::GIBBS,
-    //       py::arg("seed") = 5123401)
-    //   .def(
-    //       "infer",
-    //       (std::vector<std::vector<std::vector<NodeValue>>> &
-    //        (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
-    //           Graph::infer,
-    //       "infer the empirical distribution of the queried nodes using multiple chains",
-    //       py::arg("num_samples"),
-    //       py::arg("algorithm") = InferenceType::GIBBS,
-    //       py::arg("seed") = 5123401,
-    //       py::arg("n_chains") = 4,
-    //       py::arg("infer_config") = InferConfig())
+      .def("query", &Graph::query, "query a node", py::arg("node_id"))
+      .def(
+          "infer_mean",
+          (std::vector<double> & (Graph::*)(uint, InferenceType, uint)) &
+              Graph::infer_mean,
+          "infer the posterior mean of the queried nodes",
+          py::arg("num_samples"),
+          py::arg("algorithm") = InferenceType::GIBBS,
+          py::arg("seed") = 5123401)
+      .def(
+          "infer_mean",
+          (std::vector<std::vector<double>> &
+           (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
+              Graph::infer_mean,
+          "infer the posterior mean of the queried nodes using multiple chains",
+          py::arg("num_samples"),
+          py::arg("algorithm") = InferenceType::GIBBS,
+          py::arg("seed") = 5123401,
+          py::arg("n_chains") = 4,
+          py::arg("infer_config") = InferConfig())
+      .def(
+          "infer",
+          (std::vector<std::vector<NodeValue>> &
+           (Graph::*)(uint, InferenceType, uint)) &
+              Graph::infer,
+          "infer the empirical distribution of the queried nodes",
+          py::arg("num_samples"),
+          py::arg("algorithm") = InferenceType::GIBBS,
+          py::arg("seed") = 5123401)
+      .def(
+          "infer",
+          (std::vector<std::vector<std::vector<NodeValue>>> &
+           (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
+              Graph::infer,
+          "infer the empirical distribution of the queried nodes using multiple chains",
+          py::arg("num_samples"),
+          py::arg("algorithm") = InferenceType::GIBBS,
+          py::arg("seed") = 5123401,
+          py::arg("n_chains") = 4,
+          py::arg("infer_config") = InferConfig())
     //   .def(
     //       "variational",
     //       &Graph::variational,

@@ -345,8 +345,8 @@ void Choice::compute_gradients() {
 
 void Index::compute_gradients() {
   assert(in_nodes.size() == 2);
-  grad1 = in_nodes[0]->Grad1[(int)in_nodes[1]->value._natural];
-  grad2 = in_nodes[0]->Grad2[(int)in_nodes[1]->value._natural];
+  grad1 = in_nodes[0]->Grad1[(int)in_nodes[1]->value._natural].item().toDouble();
+  grad2 = in_nodes[0]->Grad2[(int)in_nodes[1]->value._natural].item().toDouble();
 }
 
 void ColumnIndex::compute_gradients() {
@@ -355,10 +355,10 @@ void ColumnIndex::compute_gradients() {
   Grad1.resize_({rows, 1});
   Grad2.resize_({rows, 1});
   Grad1 = in_nodes[0]->Grad1.index(
-    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural]}
+    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural}
   );
   Grad2 = in_nodes[0]->Grad2.index(
-    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural]}
+    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural}
   );
 }
 
