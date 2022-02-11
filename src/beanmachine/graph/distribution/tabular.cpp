@@ -76,7 +76,7 @@ double Tabular::get_probability() const {
   const torch::Tensor& matrix = in_nodes[0]->value._matrix;
   assert(col_id < matrix.size(1));
   assert(row_id < matrix.size(0));
-  double prob = matrix.coeff(row_id, col_id);
+  double prob = matrix[row_id][col_id].item().toDouble();
   if (prob < 0 or prob > 1) {
     throw std::runtime_error(
         "unexpected probability " + std::to_string(prob) +

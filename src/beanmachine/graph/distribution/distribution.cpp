@@ -20,7 +20,7 @@
 // #include "beanmachine/graph/distribution/half_normal.h"
 // #include "beanmachine/graph/distribution/normal.h"
 // #include "beanmachine/graph/distribution/student_t.h"
-// #include "beanmachine/graph/distribution/tabular.h"
+#include "beanmachine/graph/distribution/tabular.h"
 
 namespace beanmachine {
 namespace distribution {
