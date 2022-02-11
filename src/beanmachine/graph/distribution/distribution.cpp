@@ -33,9 +33,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   if (sample_type.variable_type == graph::VariableType::SCALAR) {
     auto atype = sample_type.atomic_type;
     switch (dist_type) {
-      // case graph::DistributionType::TABULAR: {
-      //   return std::make_unique<Tabular>(atype, in_nodes);
-      // }
+      case graph::DistributionType::TABULAR: {
+        return std::make_unique<Tabular>(atype, in_nodes);
+      }
       case graph::DistributionType::BERNOULLI: {
         return std::make_unique<Bernoulli>(atype, in_nodes);
       }

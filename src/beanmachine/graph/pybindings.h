@@ -11,6 +11,9 @@
 // #include "beanmachine/graph/global/hmc.h"
 // #include "beanmachine/graph/global/nuts.h"
 #include <pybind11/pybind11.h>
+// #include <torch/csrc/THP.h>
+#include <torch/csrc/autograd/python_variable.h>
+#include <torch/extension.h>
 #include "beanmachine/graph/graph.h"
 
 // to keep the linter happy this template specialization has been declared here
@@ -59,22 +62,17 @@ struct type_caster<NodeValue> : public type_caster_base<NodeValue> {
     } else if (src.type.variable_type == VariableType::BROADCAST_MATRIX) {
       switch (src.type.atomic_type) {
         case AtomicType::BOOLEAN:
-          return type_caster<torch::Tensor>::cast(
-              src._matrix, policy, parent);
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
         case AtomicType::NEG_REAL:
         case AtomicType::PROBABILITY:
-          return type_caster<torch::Tensor>::cast(
-              src._matrix, policy, parent);
         case AtomicType::NATURAL:
-          return type_caster<torch::Tensor>::cast(
-              src._matrix, policy, parent);
+          return THPVariable_Wrap(src._matrix);
         default:
           throw std::runtime_error("unexpected type for NodeValue");
       }
     } else if (src.type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-      return type_caster<torch::Tensor>::cast(src._matrix, policy, parent);
+        return THPVariable_Wrap(src._matrix);
     } else {
       throw std::runtime_error("unexpected type for NodeValue");
     }

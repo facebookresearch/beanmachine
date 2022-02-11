@@ -8,6 +8,7 @@
 #include "beanmachine/graph/pybindings.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <torch/extension.h>
 
 namespace beanmachine {
 namespace graph {
@@ -86,7 +87,7 @@ PYBIND11_MODULE(graph, module) {
       .value("CHOICE", OperatorType::CHOICE);
 
   py::enum_<DistributionType>(module, "DistributionType")
-    //   .value("TABULAR", DistributionType::TABULAR)
+      .value("TABULAR", DistributionType::TABULAR)
       .value("BERNOULLI", DistributionType::BERNOULLI)
     //   .value("BERNOULLI_NOISY_OR", DistributionType::BERNOULLI_NOISY_OR)
       .value("BETA", DistributionType::BETA)
@@ -212,7 +213,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_constant_col_simplex_matrix",
-          (uint(Graph::*)(torch::Tensor)) &
+          (uint(Graph::*)(torch::Tensor&)) &
               Graph::add_constant_col_simplex_matrix,
           "add a Node with a constant matrix with each column a simplex",
           py::arg("value"))
