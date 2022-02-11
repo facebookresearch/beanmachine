@@ -1183,19 +1183,19 @@ Graph::Graph(const Graph& other) {
         add_constant(value_copy);
         break;
       }
-      // case NodeType::DISTRIBUTION: {
-      //   distribution::Distribution* dist =
-      //       static_cast<distribution::Distribution*>(node);
-      //   add_distribution(dist->dist_type, dist->sample_type, parent_ids);
-      //   break;
-      // }
-      // case NodeType::OPERATOR: {
-      //   add_operator(static_cast<oper::Operator*>(node)->op_type, parent_ids);
-      //   if (node->is_observed) {
-      //     observe(node->index, NodeValue(node->value));
-      //   }
-      //   break;
-      // }
+      case NodeType::DISTRIBUTION: {
+        distribution::Distribution* dist =
+            static_cast<distribution::Distribution*>(node);
+        add_distribution(dist->dist_type, dist->sample_type, parent_ids);
+        break;
+      }
+      case NodeType::OPERATOR: {
+        add_operator(static_cast<oper::Operator*>(node)->op_type, parent_ids);
+        if (node->is_observed) {
+          observe(node->index, NodeValue(node->value));
+        }
+        break;
+      }
       // case NodeType::FACTOR: {
       //   add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
       //   break;
