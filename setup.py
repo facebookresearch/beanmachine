@@ -206,6 +206,8 @@ setup(
                 '-lpthread',
                 '-Wl,--no-as-needed,/root/micromamba/lib/python3.9/site-packages/torch/lib/libtorch.so',
                 '-Wl,--as-needed',
+                # https://github.com/pytorch/pytorch/issues/38122#issuecomment-891431455
+                '-Wl,--no-as-needed,/root/micromamba/lib/python3.9/site-packages/torch/lib/libtorch_python.so',
             ],
             cxx_std=14,
         )
