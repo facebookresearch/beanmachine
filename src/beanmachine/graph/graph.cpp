@@ -1019,8 +1019,8 @@ void Graph::_infer(
   }
   if (algorithm == InferenceType::REJECTION) {
     rejection(num_samples, seed, infer_config);
-  // } else if (algorithm == InferenceType::GIBBS) {
-  //   gibbs(num_samples, seed, infer_config);
+  } else if (algorithm == InferenceType::GIBBS) {
+    gibbs(num_samples, seed, infer_config);
   } else if (algorithm == InferenceType::NMC) {
     nmc(num_samples, seed, infer_config);
   }

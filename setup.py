@@ -160,6 +160,7 @@ setup(
                 (
                     set([
                         "src/beanmachine/graph/rejection.cpp",
+                        "src/beanmachine/graph/gibbs.cpp",
                         "src/beanmachine/graph/nmc.cpp",
                         "src/beanmachine/graph/pybindings.cpp",
                         "src/beanmachine/graph/graph.cpp",
