@@ -96,7 +96,9 @@ def safe_log_prob_sum(distrib, value: torch.Tensor) -> torch.Tensor:
             raise e
 
 
-def merge_dicts(dicts: List[RVDict], dim: int = 0, stack_not_cat=True) -> RVDict:
+def merge_dicts(
+    dicts: List[RVDict], dim: int = 0, stack_not_cat: bool = True
+) -> RVDict:
     """
     A helper function that merge multiple dicts of samples into a single dictionary,
     stacking across a new dimension

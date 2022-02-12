@@ -59,7 +59,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
 }
 
 
-def _requirements_valid(node: bn.BMGNode, reqs: List[bt.Requirement]):
+def _requirements_valid(node: bn.BMGNode, reqs: List[bt.Requirement]) -> bool:
     return len(reqs) == len(node.inputs) and not any(
         r in bt._invalid_requirement_types for r in reqs
     )

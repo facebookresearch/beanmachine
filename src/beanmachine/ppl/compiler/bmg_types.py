@@ -257,7 +257,7 @@ PositiveReal = PositiveRealMatrix(1, 1)
 NegativeReal = NegativeRealMatrix(1, 1)
 Real = RealMatrix(1, 1)
 Tensor = BMGLatticeType("T", "tensor")
-top = Tensor
+top: BMGLatticeType = Tensor
 # This is not a real lattice type; rather, this is a marker to indicate
 # that the node cannot have a lattice type assigned to it in the first
 # place because we lack BMG typing rules for it.

@@ -26,7 +26,7 @@ def mean_equality_hypothesis_test(
     true_mean: torch.Tensor,
     true_std: torch.Tensor,
     sample_size: torch.Tensor,
-    p_value,
+    p_value: int,
 ):
     """Test for the null hypothesis that the mean of a Gaussian
     distribution is within the central 1 - alpha confidence
@@ -54,7 +54,10 @@ def mean_equality_hypothesis_test(
 # This provides an alternative way for performing the hypothesis test,
 # but which also makes reporting test failures easier.
 def mean_equality_hypothesis_confidence_interval(
-    true_mean: torch.Tensor, true_std: torch.Tensor, sample_size: torch.Tensor, p_value
+    true_mean: torch.Tensor,
+    true_std: torch.Tensor,
+    sample_size: torch.Tensor,
+    p_value: int,
 ):
     """Computes the central 1 - p_value confidence interval in which the sample mean
     can fall without causing us to reject the null hypothesis that the mean of
@@ -89,7 +92,7 @@ def variance_equality_hypothesis_test(
     sample_std: torch.Tensor,
     true_std: torch.Tensor,
     degrees_of_freedom: torch.Tensor,
-    alpha,
+    alpha: int,
 ):
     """Test for the null hypothesis that the variance of a Gaussian
     distribution is within the central 1 - alpha confidence
@@ -120,7 +123,7 @@ def variance_equality_hypothesis_test(
 # This provides an alternative way for performing the hypothesis test,
 # but which also makes reporting test failures easier.
 def variance_equality_hypothesis_confidence_interval(
-    true_std: torch.Tensor, degrees_of_freedom: torch.Tensor, alpha
+    true_std: torch.Tensor, degrees_of_freedom: torch.Tensor, alpha: int
 ):
     """Computes the central 1 - alpha confidence interval in which the sample
     variance can fall without causing us to reject the null hypothesis that the variance

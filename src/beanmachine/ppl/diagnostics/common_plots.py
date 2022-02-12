@@ -17,7 +17,7 @@ class SamplesSummary(NamedTuple):
     single_sample_sz: Tensor
 
 
-def _samples_info(query_samples: Tensor):
+def _samples_info(query_samples: Tensor) -> SamplesSummary:
     return SamplesSummary(
         num_chain=query_samples.size(0),
         num_samples=query_samples.size(1),

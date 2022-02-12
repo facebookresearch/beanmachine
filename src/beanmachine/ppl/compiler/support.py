@@ -57,7 +57,7 @@ Unknown = SetOfTensors([])
 positive_infinity = float("inf")
 
 
-def _prod(x):
+def _prod(x) -> int:
     """Compute the product of a sequence of values of arbitrary length"""
     return functools.reduce(operator.mul, x, 1)
 

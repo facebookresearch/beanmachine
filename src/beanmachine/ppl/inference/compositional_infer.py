@@ -44,7 +44,7 @@ if TYPE_CHECKING:
         def __iter__(self):
             pass
 
-    Ellipsis = EllipsisClass.Ellipsis
+    Ellipsis: EllipsisClass = EllipsisClass.Ellipsis
 else:
     EllipsisClass = type(Ellipsis)
 

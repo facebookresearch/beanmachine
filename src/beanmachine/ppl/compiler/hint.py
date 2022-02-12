@@ -10,7 +10,7 @@ import math
 import torch
 
 
-def math_log1mexp(x):
+def math_log1mexp(x) -> float:
     return math.log(1.0 - math.exp(x))
 
 

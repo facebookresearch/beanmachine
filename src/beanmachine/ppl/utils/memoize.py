@@ -74,7 +74,7 @@ count_calls = False
 function_calls = ItemCounter()
 
 
-def memoizer_report():
+def memoizer_report() -> str:
     call_report = [
         f"{item.__name__}: {count}\n" for (item, count) in function_calls.items.items()
     ]

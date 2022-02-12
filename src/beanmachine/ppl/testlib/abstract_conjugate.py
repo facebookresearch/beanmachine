@@ -222,7 +222,11 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             )
             # Second, let us check the means using confidence intervals:
             lower_bound, upper_bound = mean_equality_hypothesis_confidence_interval(
-                expected_mean, expected_std, n_eff, alpha
+                expected_mean,
+                expected_std,
+                n_eff,
+                # pyre-fixme[6]: For 4th param expected `int` but got `float`.
+                alpha,
             )
             below_upper = torch.min(lower_bound <= mean).item()
             above_lower = torch.min(mean <= upper_bound).item()
@@ -259,7 +263,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             self.assertTrue(accept_interval, msg=message)
             # Third, let us check the variance using confidence intervals:
             lower_bound, upper_bound = variance_equality_hypothesis_confidence_interval(
-                expected_std, n_eff - 1, alpha
+                expected_std,
+                n_eff - 1,
+                # pyre-fixme[6]: For 3rd param expected `int` but got `float`.
+                alpha,
             )
             below_upper = torch.min(lower_bound <= std).item()
             above_lower = torch.min(std <= upper_bound).item()
