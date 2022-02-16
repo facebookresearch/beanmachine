@@ -238,29 +238,19 @@ class BMGRuntime:
         return self.handle_function(operator.mul, [input, other], {})
 
     def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
-        # TODO: We need to make a distinction between torch.mm and
-        # torch.matmul because they have different broadcasting behaviors.
-        return self._possibly_stochastic_op(
-            operator.matmul, self._bmg.add_matrix_multiplication, [input, mat2]
-        )
+        return self.handle_function(operator.matmul, [input, mat2], {})
 
     def handle_addition(self, input: Any, other: Any) -> Any:
         return self.handle_function(operator.add, [input, other], {})
 
     def handle_bitand(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.and_, self._bmg.add_bitand, [input, other]
-        )
+        return self.handle_function(operator.and_, [input, other], {})
 
     def handle_bitor(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.or_, self._bmg.add_bitor, [input, other]
-        )
+        return self.handle_function(operator.or_, [input, other], {})
 
     def handle_bitxor(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.xor, self._bmg.add_bitxor, [input, other]
-        )
+        return self.handle_function(operator.xor, [input, other], {})
 
     def handle_subtraction(self, input: Any, other: Any) -> Any:
         return self.handle_function(operator.sub, [input, other], {})
@@ -272,22 +262,16 @@ class BMGRuntime:
         return self.handle_function(operator.floordiv, [input, other], {})
 
     def handle_lshift(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.lshift, self._bmg.add_lshift, [input, other]
-        )
+        return self.handle_function(operator.lshift, [input, other], {})
 
     def handle_mod(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.mod, self._bmg.add_mod, [input, other]
-        )
+        return self.handle_function(operator.mod, [input, other], {})
 
     def handle_power(self, input: Any, exponent: Any) -> Any:
         return self.handle_function(operator.pow, [input, exponent], {})
 
     def handle_rshift(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.rshift, self._bmg.add_rshift, [input, other]
-        )
+        return self.handle_function(operator.rshift, [input, other], {})
 
     def _is_stochastic_tuple(self, t: Any):
         # A stochastic tuple is any tuple where any element is either a graph node
@@ -367,17 +351,16 @@ class BMGRuntime:
         return left[lower:upper:step]
 
     def handle_invert(self, input: Any) -> Any:
-        return self._possibly_stochastic_op(operator.inv, self._bmg.add_invert, [input])
+        return self.handle_function(operator.inv, [input], {})
 
     def handle_negate(self, input: Any) -> Any:
-        return self._possibly_stochastic_op(operator.neg, self._bmg.add_negate, [input])
+        return self.handle_function(operator.neg, [input], {})
 
     def handle_uadd(self, input: Any) -> Any:
-        # Unary plus on a graph node is an identity.
-        return self._possibly_stochastic_op(operator.pos, lambda x: x, [input])
+        return self.handle_function(operator.pos, [input], {})
 
     def handle_not(self, input: Any) -> Any:
-        return self._possibly_stochastic_op(operator.not_, self._bmg.add_not, [input])
+        return self.handle_function(operator.not_, [input], {})
 
     #
     # Augmented assignment operators

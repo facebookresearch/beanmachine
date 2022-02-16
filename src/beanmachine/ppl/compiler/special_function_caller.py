@@ -278,30 +278,31 @@ class SpecialFunctionCaller:
             # Operators as functions
             #
             operator.add: self._operator_add,
-            # TODO: operator.and_ # bitand
+            operator.and_: self._operator_and,
             # TODO: operator.contains
             # TODO: operator.eq
             operator.floordiv: self._operator_floordiv,
             # TODO: operator.ge
             # TODO: operator.gt
-            # TODO: operator.inv
+            operator.inv: self._operator_inv,
             # TODO: operator.is_
             # TODO: operator.is_not
             # TODO: operator.le
-            # TODO: operator.lshift
+            operator.lshift: self._operator_lshift,
             # TODO: operator.lt
-            # TODO: operator.matmul
+            operator.matmul: self._operator_matmul,
+            operator.mod: self._operator_mod,
             operator.mul: self._operator_mul,
             # TODO: operator.ne
-            # TODO: operator.neg
-            # TODO: operator.not_
-            # TODO: operator.or_ # bitor
-            # TODO: operator.pos
+            operator.neg: self._operator_neg,
+            operator.not_: self._operator_not,
+            operator.or_: self._operator_or,
+            operator.pos: self._operator_pos,
             operator.pow: self._operator_pow,
-            # TODO: operator.rshift
+            operator.rshift: self._operator_rshift,
             operator.sub: self._operator_sub,
             operator.truediv: self._operator_truediv,
-            # TODO: operator.xor # bitxor
+            operator.xor: self._operator_xor,
             #
             #
             # Torch distributions
@@ -351,12 +352,18 @@ class SpecialFunctionCaller:
             #
             torch.Tensor.add: self._torch_add,
             torch.add: self._torch_add,
-            # TODO: bitwise_and
-            # TODO: bitwise_not
-            # TODO: bitwise_or
-            # TODO: bitwise_xor
-            # TODO: bitwise_left_shift
-            # TODO: bitwise_right_shift
+            torch.Tensor.bitwise_and: self._torch_bitwise_and,  # pyre-ignore
+            torch.bitwise_and: self._torch_bitwise_and,
+            torch.Tensor.bitwise_not: self._torch_bitwise_not,  # pyre-ignore
+            torch.bitwise_not: self._torch_bitwise_not,
+            torch.Tensor.bitwise_or: self._torch_bitwise_or,  # pyre-ignore
+            torch.bitwise_or: self._torch_bitwise_or,
+            torch.Tensor.bitwise_xor: self._torch_bitwise_xor,  # pyre-ignore
+            torch.bitwise_xor: self._torch_bitwise_xor,
+            torch.Tensor.bitwise_left_shift: self._torch_bitwise_left_shift,  # pyre-ignore
+            torch.bitwise_left_shift: self._torch_bitwise_left_shift,
+            torch.Tensor.bitwise_right_shift: self._torch_bitwise_right_shift,  # pyre-ignore
+            torch.bitwise_right_shift: self._torch_bitwise_right_shift,
             torch.Tensor.div: self._torch_div,
             torch.div: self._torch_div,
             torch.Tensor.divide: self._torch_div,  # pyre-ignore
@@ -374,6 +381,8 @@ class SpecialFunctionCaller:
             # TODO: float_power
             torch.Tensor.floor_divide: self._torch_floor_divide,  # pyre-ignore
             torch.floor_divide: self._torch_floor_divide,
+            torch.Tensor.fmod: self._torch_fmod,  # pyre-ignore
+            torch.fmod: self._torch_fmod,
             # TODO: ge
             # TODO: greater_equal
             # TODO: gt
@@ -411,6 +420,8 @@ class SpecialFunctionCaller:
             torch.negative: self._torch_neg,
             torch.Tensor.pow: self._torch_pow,
             torch.pow: self._torch_pow,
+            torch.Tensor.remainder: self._torch_fmod,  # pyre-ignore
+            torch.remainder: self._torch_fmod,
             torch.sigmoid: self._torch_sigmoid,
             torch.Tensor.sigmoid: self._torch_sigmoid,
             torch.special.expit: self._torch_sigmoid,
@@ -766,6 +777,40 @@ class SpecialFunctionCaller:
         # then we need to generate a multiply and an addition.
         return self._bmg.add_addition(input, other)
 
+    def _torch_bitwise_and(
+        self, input: BMGNode, other: BMGNode, out: Any = None
+    ) -> BMGNode:
+        return self._bmg.add_bitand(input, other)
+
+    def _torch_bitwise_left_shift(
+        self, input: BMGNode, other: BMGNode, out: Any = None
+    ) -> BMGNode:
+        # TODO: In torch, a << b is not bitwise at all. Rather it is simply an
+        # an alias for a * (2 ** b). Make a rewriter that turns shifts into
+        # this operation.
+        return self._bmg.add_lshift(input, other)
+
+    def _torch_bitwise_not(self, input: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_invert(input)
+
+    def _torch_bitwise_or(
+        self, input: BMGNode, other: BMGNode, out: Any = None
+    ) -> BMGNode:
+        return self._bmg.add_bitor(input, other)
+
+    def _torch_bitwise_right_shift(
+        self, input: BMGNode, other: BMGNode, out: Any = None
+    ) -> BMGNode:
+        # TODO: In torch, a >> b is not bitwise at all. Rather it is simply an
+        # an alias for a * (2 ** -b). Make a rewriter that turns shifts into
+        # this operation.
+        return self._bmg.add_rshift(input, other)
+
+    def _torch_bitwise_xor(
+        self, input: BMGNode, other: BMGNode, out: Any = None
+    ) -> BMGNode:
+        return self._bmg.add_bitxor(input, other)
+
     def _torch_div(
         self,
         input: BMGNode,
@@ -798,6 +843,14 @@ class SpecialFunctionCaller:
         out: Any = None,
     ) -> BMGNode:
         return self._bmg.add_floordiv(input, other)
+
+    def _torch_fmod(
+        self,
+        input: BMGNode,
+        other: BMGNode,
+        out: Any = None,
+    ) -> BMGNode:
+        return self._bmg.add_mod(input, other)
 
     def _torch_int(
         self, input: BMGNode, memory_format: Optional[BMGNode] = None
@@ -865,17 +918,57 @@ class SpecialFunctionCaller:
     def _operator_add(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_addition(a, b)
 
+    def _operator_and(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_bitand(a, b)
+
     def _operator_floordiv(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_floordiv(a, b)
+
+    def _operator_inv(self, obj: BMGNode) -> BMGNode:
+        return self._bmg.add_invert(obj)
+
+    def _operator_lshift(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        # TODO: In torch, a << b is not bitwise at all. Rather it is simply an
+        # an alias for a * (2 ** b). Make a rewriter that turns shifts into
+        # this operation.
+        return self._bmg.add_lshift(a, b)
+
+    def _operator_matmul(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_matrix_multiplication(a, b)
+
+    def _operator_mod(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_mod(a, b)
 
     def _operator_mul(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_multiplication(a, b)
 
+    def _operator_neg(self, obj: BMGNode) -> BMGNode:
+        return self._bmg.add_negate(obj)
+
+    def _operator_not(self, obj: BMGNode) -> BMGNode:
+        return self._bmg.add_not(obj)
+
+    def _operator_or(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_bitor(a, b)
+
+    def _operator_pos(self, obj: BMGNode) -> BMGNode:
+        # unary + is an identity on graph nodes
+        return obj
+
     def _operator_pow(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_power(a, b)
+
+    def _operator_rshift(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        # TODO: In torch, a >> b is not bitwise at all. Rather it is simply an
+        # an alias for a * (2 ** -b). Make a rewriter that turns shifts into
+        # this operation.
+        return self._bmg.add_rshift(a, b)
 
     def _operator_sub(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_subtraction(a, b)
 
     def _operator_truediv(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_division(a, b)
+
+    def _operator_xor(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        return self._bmg.add_bitxor(a, b)

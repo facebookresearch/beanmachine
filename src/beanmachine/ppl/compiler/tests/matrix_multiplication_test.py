@@ -3,9 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import operator
 import unittest
 
 import beanmachine.ppl as bm
+import torch
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
 from torch.distributions import Normal
@@ -22,17 +24,23 @@ def norm():
 
 @bm.functional
 def mm():
-    return m1.mm(norm()).mm(m2)
+    # Use both the instance and static forms.
+    return torch.mm(m1.mm(norm()), m2)
 
 
 @bm.functional
 def matmul():
-    return m1.matmul(norm()).matmul(m2)
+    return torch.matmul(m1.matmul(norm()), m2)
 
 
 @bm.functional
 def infix():
     return m1 @ norm() @ m2
+
+
+@bm.functional
+def op_matmul():
+    return operator.matmul(operator.matmul(m1, norm()), m2)
 
 
 class MatMulTest(unittest.TestCase):
@@ -82,6 +90,12 @@ The unsupported node is the operator of a Query.
         self.assertEqual(expected_error.strip(), str(ex.exception))
 
         observed = BMGInference().to_dot([infix()], {}, after_transform=False)
+        self.assertEqual(expected_accumulation.strip(), observed.strip())
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([infix()], {}, after_transform=True)
+        self.assertEqual(expected_error.strip(), str(ex.exception))
+
+        observed = BMGInference().to_dot([op_matmul()], {}, after_transform=False)
         self.assertEqual(expected_accumulation.strip(), observed.strip())
         with self.assertRaises(ValueError) as ex:
             BMGInference().to_dot([infix()], {}, after_transform=True)
