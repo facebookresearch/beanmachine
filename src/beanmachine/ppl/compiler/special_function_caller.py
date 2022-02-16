@@ -279,21 +279,21 @@ class SpecialFunctionCaller:
             #
             operator.add: self._operator_add,
             operator.and_: self._operator_and,
-            # TODO: operator.contains
-            # TODO: operator.eq
+            operator.contains: self._operator_contains,
+            operator.eq: self._operator_eq,
             operator.floordiv: self._operator_floordiv,
-            # TODO: operator.ge
-            # TODO: operator.gt
+            operator.ge: self._operator_ge,
+            operator.gt: self._operator_gt,
             operator.inv: self._operator_inv,
-            # TODO: operator.is_
-            # TODO: operator.is_not
-            # TODO: operator.le
+            operator.is_: self._operator_is,
+            operator.is_not: self._operator_is_not,
+            operator.le: self._operator_le,
             operator.lshift: self._operator_lshift,
-            # TODO: operator.lt
+            operator.lt: self._operator_lt,
             operator.matmul: self._operator_matmul,
             operator.mod: self._operator_mod,
             operator.mul: self._operator_mul,
-            # TODO: operator.ne
+            operator.ne: self._operator_ne,
             operator.neg: self._operator_neg,
             operator.not_: self._operator_not,
             operator.or_: self._operator_or,
@@ -368,8 +368,10 @@ class SpecialFunctionCaller:
             torch.div: self._torch_div,
             torch.Tensor.divide: self._torch_div,  # pyre-ignore
             torch.divide: self._torch_div,
-            # TODO: eq
-            # TODO: equal
+            torch.Tensor.eq: self._torch_eq,
+            torch.eq: self._torch_eq,
+            torch.Tensor.equal: self._torch_eq,  # pyre-ignore
+            torch.equal: self._torch_eq,
             torch.Tensor.exp: self._torch_exp,  # pyre-ignore
             torch.exp: self._torch_exp,
             # TODO: exp2
@@ -383,14 +385,22 @@ class SpecialFunctionCaller:
             torch.floor_divide: self._torch_floor_divide,
             torch.Tensor.fmod: self._torch_fmod,  # pyre-ignore
             torch.fmod: self._torch_fmod,
-            # TODO: ge
-            # TODO: greater_equal
-            # TODO: gt
-            # TODO: greater
+            torch.Tensor.ge: self._torch_ge,
+            torch.ge: self._torch_ge,
+            torch.Tensor.greater: self._torch_gt,  # pyre-ignore
+            torch.greater: self._torch_gt,
+            torch.Tensor.greater_equal: self._torch_ge,  # pyre-ignore
+            torch.greater_equal: self._torch_ge,
+            torch.Tensor.gt: self._torch_gt,
+            torch.gt: self._torch_gt,
             torch.Tensor.int: self._torch_int,
             torch.Tensor.item: self._torch_item,
-            # TODO: le
-            # TODO: less_equal
+            torch.Tensor.le: self._torch_le,
+            torch.le: self._torch_le,
+            torch.Tensor.less: self._torch_lt,  # pyre-ignore
+            torch.less: self._torch_lt,
+            torch.Tensor.less_equal: self._torch_le,  # pyre-ignore
+            torch.less_equal: self._torch_le,
             torch.Tensor.log: self._torch_log,
             torch.log: self._torch_log,
             # TODO: log10
@@ -402,8 +412,8 @@ class SpecialFunctionCaller:
             # TODO: logical_xor
             torch.Tensor.logsumexp: self._torch_logsumexp,
             torch.logsumexp: self._torch_logsumexp,
-            # TODO: lt
-            # TODO: less
+            torch.Tensor.lt: self._torch_lt,
+            torch.lt: self._torch_lt,
             torch.Tensor.matmul: self._torch_matmul,
             torch.matmul: self._torch_matmul,
             torch.Tensor.mm: self._torch_mm,  # pyre-ignore
@@ -412,8 +422,10 @@ class SpecialFunctionCaller:
             torch.mul: self._torch_mul,
             torch.Tensor.multiply: self._torch_mul,  # pyre-ignore
             torch.multiply: self._torch_mul,
-            # TODO: ne
-            # TODO: not_equal
+            torch.Tensor.ne: self._torch_ne,
+            torch.ne: self._torch_ne,
+            torch.Tensor.not_equal: self._torch_ne,  # pyre-ignore
+            torch.not_equal: self._torch_ne,
             torch.Tensor.neg: self._torch_neg,
             torch.neg: self._torch_neg,
             torch.Tensor.negative: self._torch_neg,  # pyre-ignore
@@ -821,6 +833,9 @@ class SpecialFunctionCaller:
         # TODO: Should we give an error if there is a rounding mode?
         return self._bmg.add_division(input, other)
 
+    def _torch_eq(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_equal(input, other)
+
     def _torch_exp(self, input: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_exp(input)
 
@@ -852,6 +867,12 @@ class SpecialFunctionCaller:
     ) -> BMGNode:
         return self._bmg.add_mod(input, other)
 
+    def _torch_ge(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_greater_than_equal(input, other)
+
+    def _torch_gt(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_greater_than(input, other)
+
     def _torch_int(
         self, input: BMGNode, memory_format: Optional[BMGNode] = None
     ) -> BMGNode:
@@ -860,6 +881,9 @@ class SpecialFunctionCaller:
 
     def _torch_item(self, input: BMGNode) -> Any:
         return self._bmg.add_item(input)
+
+    def _torch_le(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_less_than_equal(input, other)
 
     def _torch_log(self, input: BMGNode, out: Any = None) -> Any:
         return self._bmg.add_log(input)
@@ -878,6 +902,9 @@ class SpecialFunctionCaller:
             keepdim = self._make_constant(False)
         return self._bmg.add_logsumexp_torch(input, dim, keepdim)
 
+    def _torch_lt(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_less_than(input, other)
+
     def _torch_matmul(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
         # TODO: mm and matmul have different behavior; we probably need to make
         # a distinction here.
@@ -890,6 +917,9 @@ class SpecialFunctionCaller:
 
     def _torch_mul(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_multiplication(input, other)
+
+    def _torch_ne(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_not_equal(input, other)
 
     def _torch_neg(self, input: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_negate(input)
@@ -921,17 +951,43 @@ class SpecialFunctionCaller:
     def _operator_and(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_bitand(a, b)
 
+    def _operator_contains(self, a: BMGNode, b: BMGNode) -> BMGNode:
+        # Note that "a" is the container and "b" is the query. That is,
+        # this means "b in a", NOT "a in b"
+        return self._bmg.add_in(b, a)
+
+    def _operator_eq(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_equal(a, b)
+
     def _operator_floordiv(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_floordiv(a, b)
 
+    def _operator_ge(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_greater_than_equal(a, b)
+
+    def _operator_gt(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_greater_than(a, b)
+
     def _operator_inv(self, obj: BMGNode) -> BMGNode:
         return self._bmg.add_invert(obj)
+
+    def _operator_is(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_is(a, b)
+
+    def _operator_is_not(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_is_not(a, b)
+
+    def _operator_le(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_less_than_equal(a, b)
 
     def _operator_lshift(self, a: BMGNode, b: BMGNode) -> BMGNode:
         # TODO: In torch, a << b is not bitwise at all. Rather it is simply an
         # an alias for a * (2 ** b). Make a rewriter that turns shifts into
         # this operation.
         return self._bmg.add_lshift(a, b)
+
+    def _operator_lt(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_less_than(a, b)
 
     def _operator_matmul(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_matrix_multiplication(a, b)
@@ -941,6 +997,9 @@ class SpecialFunctionCaller:
 
     def _operator_mul(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_multiplication(a, b)
+
+    def _operator_ne(self, a: Any, b: Any) -> Any:
+        return self._bmg.add_not_equal(a, b)
 
     def _operator_neg(self, obj: BMGNode) -> BMGNode:
         return self._bmg.add_negate(obj)
