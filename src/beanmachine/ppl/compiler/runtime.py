@@ -183,53 +183,37 @@ class BMGRuntime:
         )
 
     def handle_greater_than(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.gt, self._bmg.add_greater_than, [input, other]
-        )
+        return self.handle_function(operator.gt, [input, other], {})
 
     def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.ge, self._bmg.add_greater_than_equal, [input, other]
-        )
+        return self.handle_function(operator.ge, [input, other], {})
 
     def handle_less_than(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.lt, self._bmg.add_less_than, [input, other]
-        )
+        return self.handle_function(operator.lt, [input, other], {})
 
     def handle_less_than_equal(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.le, self._bmg.add_less_than_equal, [input, other]
-        )
+        return self.handle_function(operator.le, [input, other], {})
 
     def handle_equal(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.eq, self._bmg.add_equal, [input, other]
-        )
+        return self.handle_function(operator.eq, [input, other], {})
 
     def handle_not_equal(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.ne, self._bmg.add_not_equal, [input, other]
-        )
+        return self.handle_function(operator.ne, [input, other], {})
 
     def handle_is(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.is_, self._bmg.add_is, [input, other]
-        )
+        return self.handle_function(operator.is_, [input, other], {})
 
     def handle_is_not(self, input: Any, other: Any) -> Any:
-        return self._possibly_stochastic_op(
-            operator.is_not, self._bmg.add_is_not, [input, other]
-        )
+        return self.handle_function(operator.is_not, [input, other], {})
 
     def handle_in(self, input: Any, other: Any) -> Any:
-        # Note that we cannot use operator.contains here because
-        # "x in y" is the same as "contains(y, x)".
-        return self._possibly_stochastic_op(
-            lambda x, y: x in y, self._bmg.add_in, [input, other]
-        )
+        # Note that we reverse the operands here; "a in b" is the
+        # same as "contains(b, a)"
+        return self.handle_function(operator.contains, [other, input], {})
 
     def handle_not_in(self, input: Any, other: Any) -> Any:
+        # Unfortunately there is no operator function equivalent of
+        # "not in" so we can't leverage the special function caller here.
         return self._possibly_stochastic_op(
             lambda x, y: x not in y, self._bmg.add_not_in, [input, other]
         )
