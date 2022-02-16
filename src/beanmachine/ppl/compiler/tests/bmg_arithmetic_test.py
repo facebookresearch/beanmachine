@@ -136,33 +136,8 @@ def unsupported_invert():
 
 
 @bm.functional
-def unsupported_bitand():
-    return bino() & bino()
-
-
-@bm.functional
-def unsupported_bitor():
-    return bino() | bino()
-
-
-@bm.functional
 def unsupported_bitxor():
     return bino() ^ bino()
-
-
-@bm.functional
-def unsupported_lshift():
-    return bino() << bino()
-
-
-@bm.functional
-def unsupported_mod():
-    return bino() % bino()
-
-
-@bm.functional
-def unsupported_rshift():
-    return bino() >> bino()
 
 
 @bm.functional
@@ -384,6 +359,18 @@ def not_7():
 
 
 @bm.functional
+def not_8():
+    # Constant value, operator.not_
+    return torch.tensor(operator.not_(torch.tensor(8.0)))
+
+
+@bm.functional
+def not_9():
+    # Stochastic value, operator.not_
+    return torch.tensor(operator.not_(beta() + 9.0))
+
+
+@bm.functional
 def neg_1():
     # Ordinary constant, - operator. Note that a functional is
     # required to return a tensor. Verify that ordinary
@@ -427,6 +414,18 @@ def neg_7():
     # Stochastic value, instance neg
     # TODO: "negative" is a synonym; make it work too.
     return (beta() + 7.0).neg()
+
+
+@bm.functional
+def neg_8():
+    # Constant value, operator.neg
+    return operator.neg(torch.tensor(8.0))
+
+
+@bm.functional
+def neg_9():
+    # Stochastic value, operator.neg
+    return operator.neg(beta() + 9.0)
 
 
 @bm.functional
@@ -485,6 +484,60 @@ def add_8():
 def add_9():
     # Stochastic values, operator.add
     return operator.add(beta(), torch.tensor(9.0))
+
+
+@bm.functional
+def and_1():
+    # Ordinary arithmetic, & operator
+    return torch.tensor(1 & 3)
+
+
+@bm.functional
+def and_2():
+    # Tensor arithmetic, & operator
+    return torch.tensor(6) & torch.tensor(2)
+
+
+@bm.functional
+def and_3():
+    # Tensor constants, Tensor.bitwise_and.
+    return torch.Tensor.bitwise_and(torch.tensor(7), torch.tensor(3))
+
+
+@bm.functional
+def and_4():
+    # Tensor constant, instance bitwise_and
+    return torch.tensor(7).bitwise_and(torch.tensor(4))
+
+
+@bm.functional
+def and_5():
+    # Stochastic value, & operator
+    return beta() & 2
+
+
+@bm.functional
+def and_6():
+    # Stochastic value, Tensor.bitwise_and
+    return torch.Tensor.bitwise_and(beta(), torch.tensor(4))
+
+
+@bm.functional
+def and_7():
+    # Stochastic value, instance bitwise_and
+    return beta().bitwise_and(torch.tensor(8))
+
+
+@bm.functional
+def and_8():
+    # Constant values, operator.and_
+    return operator.and_(torch.tensor(15), torch.tensor(8))
+
+
+@bm.functional
+def and_9():
+    # Stochastic values, operator.and_
+    return operator.and_(beta(), torch.tensor(16))
 
 
 @bm.functional
@@ -592,8 +645,170 @@ def floordiv_8():
 
 @bm.functional
 def floordiv_9():
-    # Stochastic values, operator.truediv
+    # Stochastic values, operator.floordiv
     return operator.floordiv(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def inv_1():
+    # Ordinary constant, ~ operator.
+    return torch.tensor(~1)
+
+
+@bm.functional
+def inv_2():
+    # Tensor constant; ~ operator.
+    return ~torch.tensor(2)
+
+
+@bm.functional
+def inv_3():
+    # Tensor constant, Tensor.bitwise_not.
+    return torch.Tensor.bitwise_not(torch.tensor(3))
+
+
+@bm.functional
+def inv_4():
+    # Tensor constant, instance bitwise_not
+    return torch.tensor(4).bitwise_not()
+
+
+@bm.functional
+def inv_5():
+    # Stochastic value, ~ operator
+    return ~(beta() + 5.0)
+
+
+@bm.functional
+def inv_6():
+    # Stochastic value, Tensor.bitwise_not
+    return torch.Tensor.bitwise_not(beta() + 6.0)
+
+
+@bm.functional
+def inv_7():
+    # Stochastic value, instance bitwise_not
+    return (beta() + 7.0).bitwise_not()
+
+
+@bm.functional
+def inv_8():
+    # Constant value, operator.inv
+    return operator.inv(torch.tensor(8))
+
+
+@bm.functional
+def inv_9():
+    # Stochastic value, operator.inv
+    return operator.inv(beta())
+
+
+@bm.functional
+def lshift_1():
+    # Ordinary arithmetic, << operator
+    return torch.tensor(1 << 1)
+
+
+@bm.functional
+def lshift_2():
+    # Tensor arithmetic, << operator
+    return torch.tensor(2.0) << torch.tensor(2.0)
+
+
+@bm.functional
+def lshift_3():
+    # Tensor constants, Tensor.bitwise_left_shift.
+    return torch.Tensor.bitwise_left_shift(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def lshift_4():
+    # Tensor constant, instance bitwise_left_shift
+    return torch.tensor(8.0).bitwise_left_shift(torch.tensor(2.0))
+
+
+@bm.functional
+def lshift_5():
+    # Stochastic value, << operator
+    return beta() << 4.0
+
+
+@bm.functional
+def lshift_6():
+    # Stochastic value, Tensor.bitwise_left_shift
+    return torch.Tensor.bitwise_left_shift(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def lshift_7():
+    # Stochastic value, instance bitwise_left_shift
+    return beta().bitwise_left_shift(torch.tensor(16.0))
+
+
+@bm.functional
+def lshift_8():
+    # Constant values, operator.lshift
+    return operator.lshift(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def lshift_9():
+    # Stochastic values, operator.lshift
+    return operator.lshift(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def mod_1():
+    # Ordinary arithmetic, % operator
+    return torch.tensor(1 % 1)
+
+
+@bm.functional
+def mod_2():
+    # Tensor arithmetic, % operator
+    return torch.tensor(5.0) % torch.tensor(3.0)
+
+
+@bm.functional
+def mod_3():
+    # Tensor constants, Tensor.fmod.
+    return torch.Tensor.fmod(torch.tensor(11.0), torch.tensor(4.0))
+
+
+@bm.functional
+def mod_4():
+    # Tensor constant, instance remainder (a near synonym).
+    return torch.tensor(9.0).remainder(torch.tensor(5.0))
+
+
+@bm.functional
+def mod_5():
+    # Stochastic value, % operator
+    return beta() % 5.0
+
+
+@bm.functional
+def mod_6():
+    # Stochastic value, Tensor.fmod
+    return torch.Tensor.fmod(beta(), torch.tensor(6.0))
+
+
+@bm.functional
+def mod_7():
+    # Stochastic value, instance fmod
+    return beta().fmod(torch.tensor(7.0))
+
+
+@bm.functional
+def mod_8():
+    # Constant values, operator.mod
+    return operator.mod(torch.tensor(17.0), torch.tensor(9.0))
+
+
+@bm.functional
+def mod_9():
+    # Stochastic values, operator.mod
+    return operator.mod(beta(), torch.tensor(9.0))
 
 
 @bm.functional
@@ -648,6 +863,144 @@ def mul_8():
 def mul_9():
     # Stochastic values, operator.mul
     return operator.mul(beta(), torch.tensor(9.0))
+
+
+@bm.functional
+def or_1():
+    # Ordinary arithmetic, | operator
+    return torch.tensor(1 | 3)
+
+
+@bm.functional
+def or_2():
+    # Tensor arithmetic, | operator
+    return torch.tensor(6) | torch.tensor(2)
+
+
+@bm.functional
+def or_3():
+    # Tensor constants, Tensor.bitwise_or.
+    return torch.Tensor.bitwise_or(torch.tensor(7), torch.tensor(3))
+
+
+@bm.functional
+def or_4():
+    # Tensor constant, instance bitwise_or
+    return torch.tensor(7).bitwise_or(torch.tensor(4))
+
+
+@bm.functional
+def or_5():
+    # Stochastic value, | operator
+    return beta() | 2
+
+
+@bm.functional
+def or_6():
+    # Stochastic value, Tensor.bitwise_or
+    return torch.Tensor.bitwise_or(beta(), torch.tensor(4))
+
+
+@bm.functional
+def or_7():
+    # Stochastic value, instance bitwise_or
+    return beta().bitwise_or(torch.tensor(8))
+
+
+@bm.functional
+def or_8():
+    # Constant values, operator.or_
+    return operator.or_(torch.tensor(15), torch.tensor(8))
+
+
+@bm.functional
+def or_9():
+    # Stochastic values, operator.or_
+    return operator.or_(beta(), torch.tensor(16))
+
+
+@bm.functional
+def pos_1():
+    # Ordinary constant, + operator.
+    return torch.tensor(+1.0)
+
+
+@bm.functional
+def pos_2():
+    # Tensor constant; + operator.
+    return +torch.tensor(2.0)
+
+
+@bm.functional
+def pos_5():
+    # Stochastic value, + operator
+    return +(beta() + 5.0)
+
+
+@bm.functional
+def pos_8():
+    # Constant value, operator.pos
+    return operator.pos(torch.tensor(8.0))
+
+
+@bm.functional
+def pos_9():
+    # Stochastic value, operator.pos
+    return operator.pos(beta() + 9.0)
+
+
+@bm.functional
+def rshift_1():
+    # Ordinary arithmetic, >> operator
+    return torch.tensor(2 >> 1)
+
+
+@bm.functional
+def rshift_2():
+    # Tensor arithmetic, << operator
+    return torch.tensor(4.0) >> torch.tensor(2.0)
+
+
+@bm.functional
+def rshift_3():
+    # Tensor constants, Tensor.bitwise_right_shift.
+    return torch.Tensor.bitwise_right_shift(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def rshift_4():
+    # Tensor constant, instance bitwise_right_shift
+    return torch.tensor(8.0).bitwise_right_shift(torch.tensor(2.0))
+
+
+@bm.functional
+def rshift_5():
+    # Stochastic value, >> operator
+    return beta() >> 4.0
+
+
+@bm.functional
+def rshift_6():
+    # Stochastic value, Tensor.bitwise_right_shift
+    return torch.Tensor.bitwise_right_shift(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def rshift_7():
+    # Stochastic value, instance bitwise_right_shift
+    return beta().bitwise_right_shift(torch.tensor(16.0))
+
+
+@bm.functional
+def rshift_8():
+    # Constant values, operator.rshift
+    return operator.rshift(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def rshift_9():
+    # Stochastic values, operator.lshift
+    return operator.rshift(beta(), torch.tensor(32.0))
 
 
 @bm.functional
@@ -708,6 +1061,60 @@ def sub_9():
     return operator.sub(beta(), torch.tensor(9.0))
 
 
+@bm.functional
+def xor_1():
+    # Ordinary arithmetic, ^ operator
+    return torch.tensor(1 ^ 3)
+
+
+@bm.functional
+def xor_2():
+    # Tensor arithmetic, ^ operator
+    return torch.tensor(6) ^ torch.tensor(2)
+
+
+@bm.functional
+def xor_3():
+    # Tensor constants, Tensor.bitwise_xor.
+    return torch.Tensor.bitwise_xor(torch.tensor(7), torch.tensor(3))
+
+
+@bm.functional
+def xor_4():
+    # Tensor constant, instance bitwise_xor
+    return torch.tensor(7).bitwise_xor(torch.tensor(4))
+
+
+@bm.functional
+def xor_5():
+    # Stochastic value, ^ operator
+    return beta() ^ 2
+
+
+@bm.functional
+def xor_6():
+    # Stochastic value, Tensor.bitwise_xor
+    return torch.Tensor.bitwise_xor(beta(), torch.tensor(4))
+
+
+@bm.functional
+def xor_7():
+    # Stochastic value, instance bitwise_xor
+    return beta().bitwise_xor(torch.tensor(8))
+
+
+@bm.functional
+def xor_8():
+    # Constant values, operator.xor
+    return operator.xor(torch.tensor(15), torch.tensor(8))
+
+
+@bm.functional
+def xor_9():
+    # Stochastic values, operator.xor
+    return operator.xor(beta(), torch.tensor(16))
+
+
 class BMGArithmeticTest(unittest.TestCase):
     def test_bmg_arithmetic_logical_not(self) -> None:
         self.maxDiff = None
@@ -715,10 +1122,22 @@ class BMGArithmeticTest(unittest.TestCase):
         # "not" operators are not yet properly supported by the compiler/BMG;
         # update this test when we get them working.
 
-        queries = [not_1(), not_2(), not_3(), not_4(), not_5(), not_6(), not_7()]
+        queries = [
+            not_1(),
+            not_2(),
+            not_3(),
+            not_4(),
+            not_5(),
+            not_6(),
+            not_7(),
+            not_8(),
+            not_9(),
+        ]
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
+The model uses a not operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
 The model uses a not operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
 The model uses a not operation unsupported by Bean Machine Graph.
@@ -904,6 +1323,8 @@ digraph "graph" {
                 neg_5(),
                 neg_6(),
                 neg_7(),
+                neg_8(),
+                neg_9(),
             ],
             {},
         )
@@ -933,6 +1354,12 @@ digraph "graph" {
   N21[label="+"];
   N22[label="-"];
   N23[label=Query];
+  N24[label=-8.0];
+  N25[label=Query];
+  N26[label=9.0];
+  N27[label="+"];
+  N28[label="-"];
+  N29[label=Query];
   N00 -> N01;
   N02 -> N03;
   N04 -> N05;
@@ -944,6 +1371,7 @@ digraph "graph" {
   N11 -> N13;
   N11 -> N17;
   N11 -> N21;
+  N11 -> N27;
   N12 -> N13;
   N13 -> N14;
   N14 -> N15;
@@ -953,6 +1381,10 @@ digraph "graph" {
   N20 -> N21;
   N21 -> N22;
   N22 -> N23;
+  N24 -> N25;
+  N26 -> N27;
+  N27 -> N28;
+  N28 -> N29;
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
@@ -1025,6 +1457,38 @@ digraph "graph" {
   N24 -> N25;
 }
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_and(self) -> None:
+        self.maxDiff = None
+
+        # & operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            and_1(),
+            and_2(),
+            and_3(),
+            and_4(),
+            and_5(),
+            and_6(),
+            and_7(),
+            and_8(),
+            and_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a & operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a & operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a & operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a & operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_bmg_arithmetic_div(self) -> None:
@@ -1132,6 +1596,103 @@ The unsupported node is the operator of a Query.
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_bmg_arithmetic_inv(self) -> None:
+        self.maxDiff = None
+
+        # ~ operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            inv_1(),
+            inv_2(),
+            inv_3(),
+            inv_4(),
+            inv_5(),
+            inv_6(),
+            inv_7(),
+            inv_8(),
+            inv_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        # TODO: This is weirdly capitalized and ungrammatical. Fix the error message.
+        expected = """
+The model uses a Invert operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a Invert operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a Invert operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a Invert operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_lshift(self) -> None:
+        self.maxDiff = None
+
+        # << operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            lshift_1(),
+            lshift_2(),
+            lshift_3(),
+            lshift_4(),
+            lshift_5(),
+            lshift_6(),
+            lshift_7(),
+            lshift_8(),
+            lshift_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a << operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a << operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a << operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a << operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_mod(self) -> None:
+        self.maxDiff = None
+
+        # % operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            mod_1(),
+            mod_2(),
+            mod_3(),
+            mod_4(),
+            mod_5(),
+            mod_6(),
+            mod_7(),
+            mod_8(),
+            mod_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a % operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a % operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a % operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a % operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_mul(self) -> None:
         self.maxDiff = None
 
@@ -1202,6 +1763,118 @@ digraph "graph" {
 """
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_bmg_arithmetic_or(self) -> None:
+        self.maxDiff = None
+
+        # & operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            or_1(),
+            or_2(),
+            or_3(),
+            or_4(),
+            or_5(),
+            or_6(),
+            or_7(),
+            or_8(),
+            or_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a | operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a | operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a | operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a | operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_rshift(self) -> None:
+        self.maxDiff = None
+
+        # >> operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            rshift_1(),
+            rshift_2(),
+            rshift_3(),
+            rshift_4(),
+            rshift_5(),
+            rshift_6(),
+            rshift_7(),
+            rshift_8(),
+            rshift_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a >> operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a >> operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a >> operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a >> operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_pos(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                pos_1(),
+                pos_2(),
+                pos_5(),
+                pos_8(),
+                pos_9(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Query];
+  N04[label=2.0];
+  N05[label=Beta];
+  N06[label=Sample];
+  N07[label=ToPosReal];
+  N08[label=5.0];
+  N09[label="+"];
+  N10[label=Query];
+  N11[label=8.0];
+  N12[label=Query];
+  N13[label=9.0];
+  N14[label="+"];
+  N15[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N09;
+  N07 -> N14;
+  N08 -> N09;
+  N09 -> N10;
+  N11 -> N12;
+  N13 -> N14;
+  N14 -> N15;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_sub(self) -> None:
         self.maxDiff = None
 
@@ -1267,6 +1940,38 @@ digraph "graph" {
   N22 -> N23;
 }
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_xor(self) -> None:
+        self.maxDiff = None
+
+        # ^ operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            xor_1(),
+            xor_2(),
+            xor_3(),
+            xor_4(),
+            xor_5(),
+            xor_6(),
+            xor_7(),
+            xor_8(),
+            xor_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a ^ operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a ^ operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a ^ operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a ^ operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_bmg_arithmetic_exp(self) -> None:
@@ -1586,63 +2291,9 @@ digraph "graph" {
         self.maxDiff = None
 
         with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_invert()], {}, 1)
-        expected = """
-The model uses a Invert operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_bitand()], {}, 1)
-        expected = """
-The model uses a & operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_bitor()], {}, 1)
-        expected = """
-The model uses a | operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
             BMGInference().infer([unsupported_bitxor()], {}, 1)
         expected = """
 The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_lshift()], {}, 1)
-        expected = """
-The model uses a << operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_mod()], {}, 1)
-        expected = """
-The model uses a % operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_rshift()], {}, 1)
-        expected = """
-The model uses a >> operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
         """
         observed = str(ex.exception)
