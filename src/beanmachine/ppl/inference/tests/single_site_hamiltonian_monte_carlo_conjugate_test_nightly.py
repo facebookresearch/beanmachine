@@ -17,7 +17,7 @@ class SingleSiteHamiltonianMonteCarloConjugateTest(
         self.beta_binomial_conjugate_run(hmc, num_samples=500, num_adaptive_samples=500)
 
     def test_gamma_gamma_conjugate_run(self):
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 0.01)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5, 0.05)
         self.gamma_gamma_conjugate_run(hmc, num_samples=500, num_adaptive_samples=500)
 
     def test_gamma_normal_conjugate_run(self):
