@@ -769,17 +769,17 @@ uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
   return add_node(std::move(node), parent_ids);
 }
 
-// uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
-//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-//   std::unique_ptr<Node> node =
-//       factor::Factor::new_factor(fac_type, parent_nodes);
-//   uint node_id = add_node(std::move(node), parent_ids);
-//   // factors are both stochastic nodes and observed nodes
-//   Node* node2 = check_node(node_id, NodeType::FACTOR);
-//   node2->is_observed = true;
-//   observed.insert(node_id);
-//   return node_id;
-// }
+uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  std::unique_ptr<Node> node =
+      factor::Factor::new_factor(fac_type, parent_nodes);
+  uint node_id = add_node(std::move(node), parent_ids);
+  // factors are both stochastic nodes and observed nodes
+  Node* node2 = check_node(node_id, NodeType::FACTOR);
+  node2->is_observed = true;
+  observed.insert(node_id);
+  return node_id;
+}
 
 void Graph::observe(uint node_id, bool value) {
   // A bool can only be a bool NodeValue, so we can just pass it along.
@@ -1196,10 +1196,10 @@ Graph::Graph(const Graph& other) {
         }
         break;
       }
-      // case NodeType::FACTOR: {
-      //   add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
-      //   break;
-      // }
+      case NodeType::FACTOR: {
+        add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
+        break;
+      }
       default: {
         throw std::invalid_argument("Trying to copy a node of unknown type.");
       }

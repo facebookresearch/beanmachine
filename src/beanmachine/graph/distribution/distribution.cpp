@@ -7,13 +7,13 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/distribution/bernoulli.h"
-// #include "beanmachine/graph/distribution/bernoulli_logit.h"
+#include "beanmachine/graph/distribution/bernoulli_logit.h"
 // #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
 #include "beanmachine/graph/distribution/beta.h"
 // #include "beanmachine/graph/distribution/bimixture.h"
 #include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/distribution/categorical.h"
-// #include "beanmachine/graph/distribution/dirichlet.h"
+#include "beanmachine/graph/distribution/dirichlet.h"
 // #include "beanmachine/graph/distribution/flat.h"
 // #include "beanmachine/graph/distribution/gamma.h"
 // #include "beanmachine/graph/distribution/half_cauchy.h"
@@ -63,9 +63,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       // case graph::DistributionType::STUDENT_T: {
       //   return std::make_unique<StudentT>(atype, in_nodes);
       // }
-      // case graph::DistributionType::BERNOULLI_LOGIT: {
-      //   return std::make_unique<BernoulliLogit>(atype, in_nodes);
-      // }
+      case graph::DistributionType::BERNOULLI_LOGIT: {
+        return std::make_unique<BernoulliLogit>(atype, in_nodes);
+      }
       // case graph::DistributionType::GAMMA: {
       //   return std::make_unique<Gamma>(atype, in_nodes);
       // }
@@ -85,9 +85,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   } else if (
       sample_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX) {
     switch (dist_type) {
-      // case graph::DistributionType::DIRICHLET: {
-      //   return std::make_unique<Dirichlet>(sample_type, in_nodes);
-      // }
+      case graph::DistributionType::DIRICHLET: {
+        return std::make_unique<Dirichlet>(sample_type, in_nodes);
+      }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +

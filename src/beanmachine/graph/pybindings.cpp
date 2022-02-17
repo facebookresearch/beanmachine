@@ -97,14 +97,14 @@ PYBIND11_MODULE(graph, module) {
     //   .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
     //   .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
     //   .value("STUDENT_T", DistributionType::STUDENT_T)
-    //   .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
+      .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
     //   .value("GAMMA", DistributionType::GAMMA)
     //   .value("BIMIXTURE", DistributionType::BIMIXTURE)
-    //   .value("DIRICHLET", DistributionType::DIRICHLET)
+      .value("DIRICHLET", DistributionType::DIRICHLET)
       .value("CATEGORICAL", DistributionType::CATEGORICAL);
 
-//   py::enum_<FactorType>(module, "FactorType")
-//       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
+  py::enum_<FactorType>(module, "FactorType")
+      .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
 
   py::enum_<NodeType>(module, "NodeType")
       .value("CONSTANT", NodeType::CONSTANT)
@@ -245,12 +245,12 @@ PYBIND11_MODULE(graph, module) {
           "add an operator Node",
           py::arg("op"),
           py::arg("parents"))
-    //   .def(
-    //       "add_factor",
-    //       &Graph::add_factor,
-    //       "add a factor Node",
-    //       py::arg("fac_type"),
-    //       py::arg("parents"))
+      .def(
+          "add_factor",
+          &Graph::add_factor,
+          "add a factor Node",
+          py::arg("fac_type"),
+          py::arg("parents"))
       .def(
           "observe",
           (void (Graph::*)(uint, bool)) & Graph::observe,

@@ -172,8 +172,10 @@ setup(
                         "src/beanmachine/graph/util.cpp",
                         "src/beanmachine/graph/distribution/distribution.cpp",
                         "src/beanmachine/graph/distribution/bernoulli.cpp",
+                        "src/beanmachine/graph/distribution/bernoulli_logit.cpp",
                         "src/beanmachine/graph/distribution/beta.cpp",
                         "src/beanmachine/graph/distribution/binomial.cpp",
+                        "src/beanmachine/graph/distribution/dirichlet.cpp",
                         "src/beanmachine/graph/distribution/categorical.cpp",
                         "src/beanmachine/graph/distribution/tabular.cpp",
                     ])
