@@ -19,6 +19,43 @@ from beanmachine.ppl.compiler.bmg_nodes import BMGNode
 from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 
 
+_in_place_operator_names = {
+    operator.iadd: "__iadd__",
+    operator.iand: "__iand__",
+    operator.ifloordiv: "__ifloordiv__",
+    operator.ilshift: "__ilshift__",
+    operator.imatmul: "__imatmul__",
+    operator.imod: "__imod__",
+    operator.imul: "__imul__",
+    operator.ior: "__ior__",
+    operator.ipow: "__ipow__",
+    operator.irshift: "__irshift__",
+    operator.isub: "__isub__",
+    operator.itruediv: "__idiv__",
+    operator.ixor: "__ixor__",
+}
+
+_in_place_to_regular = {
+    operator.iadd: operator.add,
+    operator.iand: operator.and_,
+    operator.ifloordiv: operator.floordiv,
+    operator.ilshift: operator.lshift,
+    operator.imatmul: operator.matmul,
+    operator.imod: operator.mod,
+    operator.imul: operator.mul,
+    operator.ior: operator.or_,
+    operator.ipow: operator.pow,
+    operator.irshift: operator.rshift,
+    operator.isub: operator.sub,
+    operator.itruediv: operator.truediv,
+    operator.ixor: operator.xor,
+}
+
+
+def _is_in_place_operator(func: Callable) -> bool:
+    return func in _in_place_to_regular
+
+
 def _ordinary_arg_or_const(arg: Any) -> bool:
     return isinstance(arg, bn.ConstantNode) or not isinstance(arg, BMGNode)
 
@@ -493,7 +530,9 @@ class SpecialFunctionCaller:
             return True
         if func in self._function_map:
             return True
-
+        # All in-place operators are special functions.
+        if _is_in_place_operator(func):
+            return True
         return False
 
     def _canonicalize_function(
@@ -527,6 +566,10 @@ class SpecialFunctionCaller:
             new_args = (_get_ordinary_value(arg) for arg in args)
             new_kwargs = {key: _get_ordinary_value(arg) for key, arg in kwargs.items()}
             return func(*new_args, **new_kwargs)
+
+        if _is_in_place_operator(func):
+            return self._in_place_operator(func, *args)
+
         return self.do_special_call_always_stochastic(func, args, kwargs)
 
     def do_special_call_always_stochastic(
@@ -1031,3 +1074,93 @@ class SpecialFunctionCaller:
 
     def _operator_xor(self, a: BMGNode, b: BMGNode) -> BMGNode:
         return self._bmg.add_bitxor(a, b)
+
+    #
+    # Augmented assignment operators
+    #
+
+    def _in_place_operator(
+        self,
+        native_in_place: Callable,  # operator.iadd, for example
+        left: Any,
+        right: Any,
+    ) -> Any:
+        # Handling augmented assignments (+=, -=, *=, and so on) has a lot of cases;
+        # to cut down on code duplication we call this higher-level method. Throughout
+        # the comments below we assume that we're handling a +=; the logic is the same
+        # for all the operators.
+
+        # TODO: We have a problem that we need to resolve regarding compilation of models
+        # which have mutations of aliased tensors. Compare the action of these two similar:
+        # models in the original Bean Machine implementation:
+        #
+        # @functional def foo():
+        #   x = flip() # 0 or 1
+        #   y = x      # y is an alias for x
+        #   y += 1     # y is mutated in place and continues to alias x
+        #   return x   # returns 1 or 2
+        #
+        # vs
+        #
+        # @functional def foo():
+        #   x = flip() # 0 or 1
+        #   y = x      # y is an alias for x
+        #   y = y + 1  # y no longer aliases x; y is 1 or 2
+        #   return x   # returns 0 or 1
+        #
+        # Suppose we are asked to compile the first model; how should we execute
+        # the rewritten form of it so as to accumulate the correct graph? Unlike
+        # tensors, graph nodes are not mutable!
+        #
+        # Here's what we're going to do for now:
+        #
+        # If neither operand is a graph node then do exactly what the model would
+        # normally do:
+        #
+        if not isinstance(left, BMGNode) and not isinstance(right, BMGNode):
+            return native_in_place(left, right)
+
+        assert native_in_place in _in_place_to_regular
+        native_regular = _in_place_to_regular[native_in_place]
+
+        # At least one operand is a graph node. If we have tensor += graph_node
+        # or graph_node += anything then optimistically assume that there
+        # is NOT any alias of the mutated left side, and treat the += as though
+        # it is a normal addition.
+        #
+        # TODO: Should we produce some sort of warning here telling the user that
+        # the compiled model semantics might be different than the original model?
+        # Or is that too noisy? There are going to be a lot of models with += where
+        # one of the operands is an ordinary tensor and one is a graph node, but which
+        # do not have any aliasing problem.
+
+        if isinstance(left, torch.Tensor) or isinstance(left, BMGNode):
+            return self.do_special_call_always_stochastic(
+                native_regular, [left, right], {}
+            )
+
+        # If we've made it here then we have x += graph_node, where x is not a
+        # tensor. There are two possibilities: either x is some type which implements
+        # mutating in-place +=, or it is not.  If it is, then just call the mutator
+        # and hope for the best.
+        #
+        # TODO: This scenario is another opportunity for a warning or error, since
+        # the model is probably not one that can be compiled if it is depending on
+        # in-place mutation of an object which has a stochastic quantity added to it.
+
+        assert isinstance(right, BMGNode)
+        assert native_in_place in _in_place_operator_names
+        if hasattr(left, _in_place_operator_names[native_in_place]):
+            # It is possible that the operator exists but either returns
+            # NotImplemented or raises NotImplementedError. In either case,
+            # assume that we can fall back to non-mutating addition.
+            try:
+                result = native_in_place(left, right)
+                if result is not NotImplemented:
+                    return result
+            except NotImplementedError:
+                pass
+
+        # We have x += graph_node, and x is not mutating in place, so just
+        # do x + graph_node:
+        return self.do_special_call_maybe_stochastic(native_regular, [left, right], {})
