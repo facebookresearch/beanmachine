@@ -92,12 +92,12 @@ TEST(testdistrib, dirichlet) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_matrix(0), 0.8416, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix(1), -0.8473, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix(2), -0.1127, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix(0), 0.8333, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix(1), 0.0, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix(2), 2.9412, 1e-3);
+  EXPECT_NEAR((*grad1[0])(0), 0.8416, 1e-3);
+  EXPECT_NEAR((*grad1[0])(1), -0.8473, 1e-3);
+  EXPECT_NEAR((*grad1[0])(2), -0.1127, 1e-3);
+  EXPECT_NEAR((*grad1[1])(0), 0.8333, 1e-3);
+  EXPECT_NEAR((*grad1[1])(1), 0.0, 1e-3);
+  EXPECT_NEAR((*grad1[1])(2), 2.9412, 1e-3);
 
   // different shape
   Graph g2;
@@ -134,15 +134,15 @@ TEST(testdistrib, dirichlet) {
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 2);
   // p1
-  EXPECT_NEAR(back_grad[0]->_matrix(0), -1.4029, 1e-3);
-  EXPECT_NEAR(back_grad[0]->_matrix(1), -0.4029, 1e-3);
-  EXPECT_NEAR(back_grad[0]->_matrix(2), 0.8697, 1e-3);
-  EXPECT_NEAR(back_grad[0]->_matrix(3), -0.5274, 1e-3);
+  EXPECT_NEAR((*back_grad[0])(0), -1.4029, 1e-3);
+  EXPECT_NEAR((*back_grad[0])(1), -0.4029, 1e-3);
+  EXPECT_NEAR((*back_grad[0])(2), 0.8697, 1e-3);
+  EXPECT_NEAR((*back_grad[0])(3), -0.5274, 1e-3);
   // x
-  EXPECT_NEAR(back_grad[1]->_matrix(0), 20, 1e-3);
-  EXPECT_NEAR(back_grad[1]->_matrix(1), 0, 1e-3);
-  EXPECT_NEAR(back_grad[1]->_matrix(2), 2.5, 1e-3);
-  EXPECT_NEAR(back_grad[1]->_matrix(3), 8.3333, 1e-3);
+  EXPECT_NEAR((*back_grad[1])(0), 20, 1e-3);
+  EXPECT_NEAR((*back_grad[1])(1), 0, 1e-3);
+  EXPECT_NEAR((*back_grad[1])(2), 2.5, 1e-3);
+  EXPECT_NEAR((*back_grad[1])(3), 8.3333, 1e-3);
 }
 
 TEST(testdistrib, dirichlet_sample) {

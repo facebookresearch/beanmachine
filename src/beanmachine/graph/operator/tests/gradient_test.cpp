@@ -411,9 +411,9 @@ TEST(testgradient, backward_matrix_index) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_matrix(0), 2.5, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix(1), 5.0, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix(2), 4.0, 1e-3);
+  EXPECT_NEAR((*grad1[0])(0), 2.5, 1e-3);
+  EXPECT_NEAR((*grad1[0])(1), 5.0, 1e-3);
+  EXPECT_NEAR((*grad1[0])(2), 4.0, 1e-3);
 }
 
 TEST(testgradient, backward_column_index) {
@@ -462,9 +462,9 @@ TEST(testgradient, backward_column_index) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_matrix(0), 2.5, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix(1), 5.0, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix(2), 4.0, 1e-3);
+  EXPECT_NEAR((*grad1[0])(0), 2.5, 1e-3);
+  EXPECT_NEAR((*grad1[0])(1), 5.0, 1e-3);
+  EXPECT_NEAR((*grad1[0])(2), 4.0, 1e-3);
 }
 
 TEST(testgradient, forward_to_matrix) {
