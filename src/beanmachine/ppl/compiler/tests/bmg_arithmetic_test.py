@@ -596,6 +596,60 @@ def div_9():
 
 
 @bm.functional
+def eq_1():
+    # Ordinary arithmetic, == operator
+    return torch.tensor(1.0 == 1.0)
+
+
+@bm.functional
+def eq_2():
+    # Tensor arithmetic, == operator
+    return torch.tensor(4.0) == torch.tensor(2.0)
+
+
+@bm.functional
+def eq_3():
+    # Tensor constants, Tensor.eq.
+    return torch.Tensor.eq(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def eq_4():
+    # Tensor constant, instance eq
+    return torch.tensor(8.0).eq(torch.tensor(2.0))
+
+
+@bm.functional
+def eq_5():
+    # Stochastic value, == operator
+    return beta() == 4.0
+
+
+@bm.functional
+def eq_6():
+    # Stochastic value, Tensor.equal (a synonym)
+    return torch.Tensor.equal(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def eq_7():
+    # Stochastic value, instance equal
+    return beta().equal(torch.tensor(16.0))
+
+
+@bm.functional
+def eq_8():
+    # Constant values, operator.eq
+    return operator.eq(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def eq_9():
+    # Stochastic values, operator.eq
+    return operator.eq(beta(), torch.tensor(32.0))
+
+
+@bm.functional
 def floordiv_1():
     # Ordinary arithmetic, // operator
     return torch.tensor(1.0 // 1.0)
@@ -647,6 +701,168 @@ def floordiv_8():
 def floordiv_9():
     # Stochastic values, operator.floordiv
     return operator.floordiv(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def ge_1():
+    # Ordinary arithmetic, >= operator
+    return torch.tensor(1.0 >= 1.0)
+
+
+@bm.functional
+def ge_2():
+    # Tensor arithmetic, >= operator
+    return torch.tensor(4.0) >= torch.tensor(2.0)
+
+
+@bm.functional
+def ge_3():
+    # Tensor constants, Tensor.ge.
+    return torch.Tensor.ge(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def ge_4():
+    # Tensor constant, instance ge
+    return torch.tensor(8.0).ge(torch.tensor(2.0))
+
+
+@bm.functional
+def ge_5():
+    # Stochastic value, >= operator
+    return beta() >= 4.0
+
+
+@bm.functional
+def ge_6():
+    # Stochastic value, Tensor.greater_equal (a synonym)
+    return torch.Tensor.greater_equal(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def ge_7():
+    # Stochastic value, instance greater_equal
+    return beta().greater_equal(torch.tensor(16.0))
+
+
+@bm.functional
+def ge_8():
+    # Constant values, operator.ge
+    return operator.ge(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def ge_9():
+    # Stochastic values, operator.ge
+    return operator.ge(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def gt_1():
+    # Ordinary arithmetic, > operator
+    return torch.tensor(1.0 > 1.0)
+
+
+@bm.functional
+def gt_2():
+    # Tensor arithmetic, > operator
+    return torch.tensor(4.0) > torch.tensor(2.0)
+
+
+@bm.functional
+def gt_3():
+    # Tensor constants, Tensor.gt.
+    return torch.Tensor.gt(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def gt_4():
+    # Tensor constant, instance gt
+    return torch.tensor(8.0).gt(torch.tensor(2.0))
+
+
+@bm.functional
+def gt_5():
+    # Stochastic value, > operator
+    return beta() > 4.0
+
+
+@bm.functional
+def gt_6():
+    # Stochastic value, Tensor.greater (a synonym)
+    return torch.Tensor.greater(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def gt_7():
+    # Stochastic value, instance greater
+    return beta().greater(torch.tensor(16.0))
+
+
+@bm.functional
+def gt_8():
+    # Constant values, operator.gt
+    return operator.gt(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def gt_9():
+    # Stochastic values, operator.gt
+    return operator.gt(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def in_1():
+    # Ordinary arithmetic, in operator
+    return torch.tensor(1.0 in [1.0])
+
+
+@bm.functional
+def in_2():
+    # Tensor arithmetic, in operator
+    return torch.tensor(torch.tensor(4.0) in torch.tensor(2.0))
+
+
+@bm.functional
+def in_3():
+    # Stochastic value, in operator
+    return torch.tensor(beta() in torch.tensor(4.0))
+
+
+@bm.functional
+def in_4():
+    # Constant values, operator.contains
+    return torch.tensor(operator.contains(torch.tensor(16.0), torch.tensor(2.0)))
+
+
+@bm.functional
+def in_5():
+    # Stochastic values, operator.contains
+    return torch.tensor(operator.contains(torch.tensor(32.0), beta()))
+
+
+@bm.functional
+def is_1():
+    # Tensor arithmetic, is operator
+    return torch.tensor(torch.tensor(4.0) is torch.tensor(2.0))
+
+
+@bm.functional
+def is_2():
+    # Stochastic value, is operator
+    return torch.tensor(beta() is torch.tensor(4.0))
+
+
+@bm.functional
+def is_3():
+    # Constant values, operator.is_
+    return torch.tensor(operator.is_(torch.tensor(16.0), torch.tensor(2.0)))
+
+
+@bm.functional
+def is_4():
+    # Stochastic values, operator.is_
+    return torch.tensor(operator.is_(torch.tensor(32.0), beta()))
 
 
 @bm.functional
@@ -704,6 +920,60 @@ def inv_9():
 
 
 @bm.functional
+def le_1():
+    # Ordinary arithmetic, <= operator
+    return torch.tensor(1.0 <= 1.0)
+
+
+@bm.functional
+def le_2():
+    # Tensor arithmetic, <= operator
+    return torch.tensor(4.0) <= torch.tensor(2.0)
+
+
+@bm.functional
+def le_3():
+    # Tensor constants, Tensor.le.
+    return torch.Tensor.le(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def le_4():
+    # Tensor constant, instance le
+    return torch.tensor(8.0).le(torch.tensor(2.0))
+
+
+@bm.functional
+def le_5():
+    # Stochastic value, <= operator
+    return beta() <= 4.0
+
+
+@bm.functional
+def le_6():
+    # Stochastic value, Tensor.less_equal (a synonym)
+    return torch.Tensor.less_equal(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def le_7():
+    # Stochastic value, instance less_equal
+    return beta().less_equal(torch.tensor(16.0))
+
+
+@bm.functional
+def le_8():
+    # Constant values, operator.le
+    return operator.le(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def le_9():
+    # Stochastic values, operator.le
+    return operator.le(beta(), torch.tensor(32.0))
+
+
+@bm.functional
 def lshift_1():
     # Ordinary arithmetic, << operator
     return torch.tensor(1 << 1)
@@ -755,6 +1025,60 @@ def lshift_8():
 def lshift_9():
     # Stochastic values, operator.lshift
     return operator.lshift(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def lt_1():
+    # Ordinary arithmetic, < operator
+    return torch.tensor(1.0 < 1.0)
+
+
+@bm.functional
+def lt_2():
+    # Tensor arithmetic, < operator
+    return torch.tensor(4.0) < torch.tensor(2.0)
+
+
+@bm.functional
+def lt_3():
+    # Tensor constants, Tensor.lt.
+    return torch.Tensor.lt(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def lt_4():
+    # Tensor constant, instance lt
+    return torch.tensor(8.0).lt(torch.tensor(2.0))
+
+
+@bm.functional
+def lt_5():
+    # Stochastic value, < operator
+    return beta() < 4.0
+
+
+@bm.functional
+def lt_6():
+    # Stochastic value, Tensor.less (a synonym)
+    return torch.Tensor.less(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def lt_7():
+    # Stochastic value, instance less
+    return beta().less(torch.tensor(16.0))
+
+
+@bm.functional
+def lt_8():
+    # Constant values, operator.lt
+    return operator.lt(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def lt_9():
+    # Stochastic values, operator.lt
+    return operator.lt(beta(), torch.tensor(32.0))
 
 
 @bm.functional
@@ -863,6 +1187,102 @@ def mul_8():
 def mul_9():
     # Stochastic values, operator.mul
     return operator.mul(beta(), torch.tensor(9.0))
+
+
+@bm.functional
+def ne_1():
+    # Ordinary arithmetic, != operator
+    return torch.tensor(1.0 != 1.0)
+
+
+@bm.functional
+def ne_2():
+    # Tensor arithmetic, != operator
+    return torch.tensor(4.0) != torch.tensor(2.0)
+
+
+@bm.functional
+def ne_3():
+    # Tensor constants, Tensor.ne.
+    return torch.Tensor.ne(torch.tensor(6.0), torch.tensor(2.0))
+
+
+@bm.functional
+def ne_4():
+    # Tensor constant, instance ne
+    return torch.tensor(8.0).ne(torch.tensor(2.0))
+
+
+@bm.functional
+def ne_5():
+    # Stochastic value, != operator
+    return beta() != 4.0
+
+
+@bm.functional
+def ne_6():
+    # Stochastic value, Tensor.not_equal (a synonym)
+    return torch.Tensor.not_equal(beta(), torch.tensor(8.0))
+
+
+@bm.functional
+def ne_7():
+    # Stochastic value, instance not_equal
+    return beta().not_equal(torch.tensor(16.0))
+
+
+@bm.functional
+def ne_8():
+    # Constant values, operator.ne
+    return operator.ne(torch.tensor(16.0), torch.tensor(2.0))
+
+
+@bm.functional
+def ne_9():
+    # Stochastic values, operator.ne
+    return operator.ne(beta(), torch.tensor(32.0))
+
+
+@bm.functional
+def not_in_1():
+    # Ordinary arithmetic, not in operator
+    return torch.tensor(1.0 not in [1.0])
+
+
+@bm.functional
+def not_in_2():
+    # Tensor arithmetic, not in operator
+    return torch.tensor(torch.tensor(4.0) not in torch.tensor(2.0))
+
+
+@bm.functional
+def not_in_3():
+    # Stochastic value, not in operator
+    return torch.tensor(beta() not in torch.tensor(4.0))
+
+
+@bm.functional
+def is_not_1():
+    # Tensor arithmetic, is not operator
+    return torch.tensor(torch.tensor(4.0) is not torch.tensor(2.0))
+
+
+@bm.functional
+def is_not_2():
+    # Stochastic value, is not operator
+    return torch.tensor(beta() is not torch.tensor(4.0))
+
+
+@bm.functional
+def is_not_3():
+    # Constant values, operator.is_not
+    return torch.tensor(operator.is_not(torch.tensor(16.0), torch.tensor(2.0)))
+
+
+@bm.functional
+def is_not_4():
+    # Stochastic values, operator.is_not
+    return torch.tensor(operator.is_not(torch.tensor(32.0), beta()))
 
 
 @bm.functional
@@ -1559,6 +1979,38 @@ digraph "graph" {
 """
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_bmg_arithmetic_eq(self) -> None:
+        self.maxDiff = None
+
+        # "==" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            eq_1(),
+            eq_2(),
+            eq_3(),
+            eq_4(),
+            eq_5(),
+            eq_6(),
+            eq_7(),
+            eq_8(),
+            eq_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a == operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a == operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a == operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a == operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_floordiv(self) -> None:
 
         self.skipTest(
@@ -1591,6 +2043,130 @@ The unsupported node is the operator of a Query.
 The model uses a // operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
 The model uses a // operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_ge(self) -> None:
+        self.maxDiff = None
+
+        # ">=" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            ge_1(),
+            ge_2(),
+            ge_3(),
+            ge_4(),
+            ge_5(),
+            ge_6(),
+            ge_7(),
+            ge_8(),
+            ge_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a >= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a >= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a >= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a >= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_gt(self) -> None:
+        self.maxDiff = None
+
+        # ">=" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            gt_1(),
+            gt_2(),
+            gt_3(),
+            gt_4(),
+            gt_5(),
+            gt_6(),
+            gt_7(),
+            gt_8(),
+            gt_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a > operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a > operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a > operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a > operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_in(self) -> None:
+        self.maxDiff = None
+
+        # in and not in operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            in_1(),
+            in_2(),
+            in_3(),
+            in_4(),
+            in_5(),
+            not_in_1(),
+            not_in_2(),
+            not_in_3(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a In operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a In operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a NotIn operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_is(self) -> None:
+        self.maxDiff = None
+
+        # is and is not operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            is_1(),
+            is_2(),
+            is_3(),
+            is_4(),
+            is_not_1(),
+            is_not_2(),
+            is_not_3(),
+            is_not_4(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a Is operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a Is operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a IsNot operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a IsNot operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
         """
         observed = str(ex.exception)
@@ -1629,6 +2205,38 @@ The unsupported node is the operator of a Query.
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_bmg_arithmetic_le(self) -> None:
+        self.maxDiff = None
+
+        # "<=" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            le_1(),
+            le_2(),
+            le_3(),
+            le_4(),
+            le_5(),
+            le_6(),
+            le_7(),
+            le_8(),
+            le_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a <= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a <= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a <= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a <= operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_lshift(self) -> None:
         self.maxDiff = None
 
@@ -1656,6 +2264,38 @@ The unsupported node is the operator of a Query.
 The model uses a << operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
 The model uses a << operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_lt(self) -> None:
+        self.maxDiff = None
+
+        # "<" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            lt_1(),
+            lt_2(),
+            lt_3(),
+            lt_4(),
+            lt_5(),
+            lt_6(),
+            lt_7(),
+            lt_8(),
+            lt_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a < operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a < operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a < operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a < operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
         """
         observed = str(ex.exception)
@@ -1761,6 +2401,38 @@ digraph "graph" {
   N24 -> N25;
 }
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_ne(self) -> None:
+        self.maxDiff = None
+
+        # "!=" operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            ne_1(),
+            ne_2(),
+            ne_3(),
+            ne_4(),
+            ne_5(),
+            ne_6(),
+            ne_7(),
+            ne_8(),
+            ne_9(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a != operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a != operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a != operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+The model uses a != operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_bmg_arithmetic_or(self) -> None:
