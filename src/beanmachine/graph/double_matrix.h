@@ -105,6 +105,8 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   explicit DoubleMatrix(Eigen::MatrixXd matrix)
       : VariantBaseClass(matrix), _double(*this), _matrix(*this) {}
 
+  operator double() const;
+
   DoubleMatrix& operator=(double d);
   DoubleMatrix& operator=(const Matrix& d);
   DoubleMatrix& operator=(const DoubleMatrix& d);

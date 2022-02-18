@@ -198,7 +198,7 @@ void GlobalState::get_flattened_unconstrained_grads(
   int i = 0;
   for (Node* node : stochastic_nodes) {
     if (node->value.type.variable_type == VariableType::SCALAR) {
-      flattened_grad[i] = node->back_grad1._double;
+      flattened_grad[i] = node->back_grad1;
       i++;
     } else {
       Eigen::VectorXd vector(Eigen::Map<Eigen::VectorXd>(
