@@ -329,8 +329,8 @@ TEST(testgradient, backward_vector_linearmodel) {
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 5);
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(0), 0.4000, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(1), -0.6806, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(0), 0.4000, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(1), -0.6806, 1e-3);
   EXPECT_NEAR((*grad1[1]), -2.8773, 1e-3);
 }
 

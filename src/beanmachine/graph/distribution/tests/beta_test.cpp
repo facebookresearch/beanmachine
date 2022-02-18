@@ -202,8 +202,8 @@ TEST(testdistrib, beta2) {
   g2.eval_and_grad(grad);
   EXPECT_NEAR((*grad[0]), 0.7067, 0.001);
   EXPECT_NEAR((*grad[1]), 0.4847, 0.001);
-  EXPECT_NEAR(grad[2]->_matrix.coeff(0), -0.1190, 0.001);
-  EXPECT_NEAR(grad[2]->_matrix.coeff(1), -1.8750, 0.001);
+  EXPECT_NEAR(grad[2]->coeff(0), -0.1190, 0.001);
+  EXPECT_NEAR(grad[2]->coeff(1), -1.8750, 0.001);
 
   // test sample/iid_sample from a mixture of betas
   Graph g3;
@@ -265,6 +265,6 @@ TEST(testdistrib, beta2) {
   EXPECT_NEAR((*back_grad[3]), -0.2800, 1e-3); // b2
   EXPECT_NEAR((*back_grad[4]), 1.3939, 1e-3); // p
   EXPECT_NEAR((*back_grad[5]), -4.3652, 1e-3); // x1
-  EXPECT_NEAR(back_grad[6]->_matrix.coeff(0), 0.6975, 1e-3); // x2
-  EXPECT_NEAR(back_grad[6]->_matrix.coeff(1), 0.8230, 1e-3);
+  EXPECT_NEAR(back_grad[6]->coeff(0), 0.6975, 1e-3); // x2
+  EXPECT_NEAR(back_grad[6]->coeff(1), 0.8230, 1e-3);
 }

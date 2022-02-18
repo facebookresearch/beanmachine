@@ -171,10 +171,10 @@ TEST(testdistrib, student_t) {
   EXPECT_NEAR((*grad[2]), 4.4557, 1e-3); // loc
   EXPECT_NEAR((*grad[3]), 6.4192, 1e-3); // scale
   EXPECT_NEAR((*grad[4]), -0.5331, 1e-3); // x
-  EXPECT_NEAR(grad[5]->_matrix.coeff(0), -0.1736, 1e-3); // y
-  EXPECT_NEAR(grad[5]->_matrix.coeff(1), 0.0923, 1e-3);
-  EXPECT_NEAR(grad[5]->_matrix.coeff(2), 0.6784, 1e-3);
-  EXPECT_NEAR(grad[5]->_matrix.coeff(3), -0.9551, 1e-3);
+  EXPECT_NEAR(grad[5]->coeff(0), -0.1736, 1e-3); // y
+  EXPECT_NEAR(grad[5]->coeff(1), 0.0923, 1e-3);
+  EXPECT_NEAR(grad[5]->coeff(2), 0.6784, 1e-3);
+  EXPECT_NEAR(grad[5]->coeff(3), -0.9551, 1e-3);
 
   // test sample/iid_sample from a mixture of t-dist
   Graph g2;
@@ -239,6 +239,6 @@ TEST(testdistrib, student_t) {
   EXPECT_NEAR((*back_grad[3]), -1.0941, 1e-3); // s
   EXPECT_NEAR((*back_grad[4]), 0.2134, 1e-3); // p
   EXPECT_NEAR((*back_grad[5]), 0.0945, 1e-3); // x1
-  EXPECT_NEAR(back_grad[6]->_matrix.coeff(0), -0.1673, 1e-3); // x2
-  EXPECT_NEAR(back_grad[6]->_matrix.coeff(1), 0.3370, 1e-3);
+  EXPECT_NEAR(back_grad[6]->coeff(0), -0.1673, 1e-3); // x2
+  EXPECT_NEAR(back_grad[6]->coeff(1), 0.3370, 1e-3);
 }

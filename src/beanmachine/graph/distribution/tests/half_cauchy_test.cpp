@@ -130,10 +130,10 @@ TEST(testdistrib, half_cauchy) {
   g2.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 2);
   EXPECT_NEAR((*grad[0]), -4.8711, 1e-3);
-  EXPECT_NEAR(grad[1]->_matrix.coeff(0), -0.3077, 1e-3);
-  EXPECT_NEAR(grad[1]->_matrix.coeff(1), -0.8219, 1e-3);
-  EXPECT_NEAR(grad[1]->_matrix.coeff(2), -0.5882, 1e-3);
-  EXPECT_NEAR(grad[1]->_matrix.coeff(3), -1.0000, 1e-3);
+  EXPECT_NEAR(grad[1]->coeff(0), -0.3077, 1e-3);
+  EXPECT_NEAR(grad[1]->coeff(1), -0.8219, 1e-3);
+  EXPECT_NEAR(grad[1]->coeff(2), -0.5882, 1e-3);
+  EXPECT_NEAR(grad[1]->coeff(3), -1.0000, 1e-3);
 
   // mixture of half_cauchy
   Graph g3;
@@ -186,6 +186,6 @@ TEST(testdistrib, half_cauchy) {
   EXPECT_NEAR((*back_grad[1]), -0.1019, 1e-3); // s2
   EXPECT_NEAR((*back_grad[2]), 0.7455, 1e-3); // p
   EXPECT_NEAR((*back_grad[3]), -0.3798, 1e-3); // x_
-  EXPECT_NEAR(back_grad[4]->_matrix.coeff(0), -0.5960, 1e-3); // xiid
-  EXPECT_NEAR(back_grad[4]->_matrix.coeff(1), -0.6793, 1e-3);
+  EXPECT_NEAR(back_grad[4]->coeff(0), -0.5960, 1e-3); // xiid
+  EXPECT_NEAR(back_grad[4]->coeff(1), -0.6793, 1e-3);
 }
