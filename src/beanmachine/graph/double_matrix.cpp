@@ -129,10 +129,9 @@ DoubleMatrixError error(const char* message) {
 
 DoubleMatrix::operator double() const {
   if (not std::holds_alternative<double>(*this)) {
-    throw std::runtime_error(
-        "operator double() on DoubleMatrix without double");
+    throw error("operator double() on DoubleMatrix without double");
   }
-  return std::get<double>(*this);
+  return get<double>(*this);
 }
 
 /// =
@@ -175,6 +174,19 @@ DoubleMatrix& DoubleMatrix::operator+=(double d) {
   }
 }
 
+DoubleMatrix& DoubleMatrix::operator+=(const Matrix& matrix) {
+  switch (TYPE(*this)) {
+    case DOUBLE:
+      throw error(
+          "In-place addition of matrix to 'DoubleMatrix' containing double");
+    case MATRIX:
+      get<Matrix>(*this) += matrix;
+      return *this;
+    default:
+      throw error("In-place addition to empty DoubleMatrix");
+  }
+}
+
 DoubleMatrix& DoubleMatrix::operator+=(const DoubleMatrix& another) {
   switch (TYPE(*this)) {
     case DOUBLE:
@@ -205,23 +217,23 @@ DoubleMatrix operator*(double d, const DoubleMatrix& double_matrix) {
   return double_matrix * d;
 }
 
-Matrix operator*(const DoubleMatrix& double_matrix, const Matrix& arg) {
+Matrix operator*(const DoubleMatrix& double_matrix, const Matrix& matrix) {
   switch (TYPE(double_matrix)) {
     case DOUBLE:
-      return get<double>(double_matrix) * arg;
+      return get<double>(double_matrix) * matrix;
     case MATRIX:
-      return get<Matrix>(double_matrix) * arg;
+      return get<Matrix>(double_matrix) * matrix;
     default:
       throw error("Multiplying DoubleMatrix that does not hold a value.");
   }
 }
 
-Matrix operator*(const Matrix& arg, const DoubleMatrix& double_matrix) {
+Matrix operator*(const Matrix& matrix, const DoubleMatrix& double_matrix) {
   switch (TYPE(double_matrix)) {
     case DOUBLE:
-      return arg * get<double>(double_matrix);
+      return matrix * get<double>(double_matrix);
     case MATRIX:
-      return arg * get<Matrix>(double_matrix);
+      return matrix * get<Matrix>(double_matrix);
     default:
       throw error("Multiplying DoubleMatrix that does not hold a value.");
   }
@@ -244,10 +256,10 @@ DoubleMatrix operator*(const DoubleMatrix& dm1, const DoubleMatrix& dm2) {
 // here we can assume arguments will always contain information
 // of the same type.
 
-double operator+(const DoubleMatrix& double_matrix, double arg) {
+double operator+(const DoubleMatrix& double_matrix, double d) {
   switch (TYPE(double_matrix)) {
     case DOUBLE:
-      return get<double>(double_matrix) + arg;
+      return get<double>(double_matrix) + d;
     case MATRIX:
       throw error(
           "Adding DoubleMatrix with matrix to double is not supported by Eigen.");
@@ -256,42 +268,40 @@ double operator+(const DoubleMatrix& double_matrix, double arg) {
   }
 }
 
-double operator+(double arg, const DoubleMatrix& double_matrix) {
-  return double_matrix + arg;
+double operator+(double d, const DoubleMatrix& double_matrix) {
+  return double_matrix + d;
 }
 
-DoubleMatrix operator+(
-    const DoubleMatrix& double_matrix,
-    const DoubleMatrix& arg) {
-  switch (TYPE(double_matrix)) {
-    case DOUBLE:
-      return DoubleMatrix{get<double>(double_matrix) + arg};
-    case MATRIX:
-      return DoubleMatrix{get<Matrix>(double_matrix) + get<Matrix>(arg)};
-    default:
-      throw error("Adding DoubleMatrix that does not hold a value.");
-  }
-}
-
-Matrix operator+(const DoubleMatrix& double_matrix, const Matrix& arg) {
+Matrix operator+(const DoubleMatrix& double_matrix, const Matrix& matrix) {
   switch (TYPE(double_matrix)) {
     case DOUBLE:
       throw error(
           "Adding DoubleMatrix with double to a matrix is not supported by Eigen.");
     case MATRIX:
-      return get<Matrix>(double_matrix) + arg;
+      return get<Matrix>(double_matrix) + matrix;
     default:
       throw error("Adding DoubleMatrix that does not hold a value.");
   }
 }
 
-Matrix operator+(const Matrix& arg, const DoubleMatrix& double_matrix) {
+Matrix operator+(const Matrix& matrix, const DoubleMatrix& double_matrix) {
   switch (TYPE(double_matrix)) {
     case DOUBLE:
       throw error(
           "Adding DoubleMatrix with double to a matrix is not supported by Eigen.");
     case MATRIX:
-      return arg + get<Matrix>(double_matrix);
+      return matrix + get<Matrix>(double_matrix);
+    default:
+      throw error("Adding DoubleMatrix that does not hold a value.");
+  }
+}
+
+DoubleMatrix operator+(const DoubleMatrix& dm1, const DoubleMatrix& dm2) {
+  switch (TYPE(dm1)) {
+    case DOUBLE:
+      return DoubleMatrix{get<double>(dm1) + dm2};
+    case MATRIX:
+      return DoubleMatrix{get<Matrix>(dm1) + get<Matrix>(dm2)};
     default:
       throw error("Adding DoubleMatrix that does not hold a value.");
   }
