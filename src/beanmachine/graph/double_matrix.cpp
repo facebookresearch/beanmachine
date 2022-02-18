@@ -46,22 +46,20 @@ MatrixProperty::operator const Matrix&() const {
   return value();
 }
 
-double MatrixProperty::coeff(Eigen::MatrixXd::Index i) const {
-  return std::get<Eigen::MatrixXd>(*owner).coeff(i);
+double MatrixProperty::coeff(Index i) const {
+  return std::get<Matrix>(*owner).coeff(i);
 }
 
-double& MatrixProperty::operator()(Eigen::MatrixXd::Index i) {
-  return std::get<Eigen::MatrixXd>(*owner)(i);
+double& MatrixProperty::operator()(Index i) {
+  return std::get<Matrix>(*owner)(i);
 }
 
-double& MatrixProperty::operator()(
-    Eigen::MatrixXd::Index row,
-    Eigen::MatrixXd::Index col) {
-  return std::get<Eigen::MatrixXd>(*owner)(row, col);
+double& MatrixProperty::operator()(Index row, Index col) {
+  return std::get<Matrix>(*owner)(row, col);
 }
 
-Eigen::MatrixXd::ColXpr MatrixProperty::col(Eigen::MatrixXd::Index i) {
-  return std::get<Eigen::MatrixXd>(*owner).col(i);
+Matrix::ColXpr MatrixProperty::col(Index i) {
+  return std::get<Matrix>(*owner).col(i);
 }
 
 double MatrixProperty::sum() {
@@ -100,11 +98,9 @@ Matrix::ColXpr operator+=(Matrix::ColXpr operand, const MatrixProperty& mp) {
   return operand += get<Matrix>(*mp.owner);
 }
 
-Eigen::MatrixXd& MatrixProperty::setZero(
-    Eigen::MatrixXd::Index rows,
-    Eigen::MatrixXd::Index cols) {
+Matrix& MatrixProperty::setZero(Index rows, Index cols) {
   if (not has<Matrix>(*owner)) {
-    *this = Eigen::MatrixXd();
+    *this = Matrix();
   }
   return value().setZero(rows, cols);
 }
@@ -260,30 +256,51 @@ DoubleMatrix& DoubleMatrix::operator-=(const DoubleMatrix& another) {
 
 /// operator()
 
-double& DoubleMatrix::operator()(int i) {
+double& DoubleMatrix::operator()(Index i) {
   return get<Matrix>(*this)(i);
 }
 
-double& DoubleMatrix::operator()(int row, int col) {
+double& DoubleMatrix::operator()(Index row, Index col) {
   return get<Matrix>(*this)(row, col);
 }
 
-double DoubleMatrix::operator()(int i) const {
+double DoubleMatrix::operator()(Index i) const {
   return get<Matrix>(*this)(i);
 }
 
-double DoubleMatrix::operator()(int row, int col) const {
+double DoubleMatrix::operator()(Index row, Index col) const {
   return get<Matrix>(*this)(row, col);
 }
 
 /// setZero
 
-DoubleMatrix& DoubleMatrix::setZero(int rows, int cols) {
+DoubleMatrix& DoubleMatrix::setZero(Index rows, Index cols) {
   if (not has<Matrix>(*this)) {
     *this = Matrix();
   }
   get<Matrix>(*this).setZero(rows, cols);
   return *this;
+}
+
+/// col
+
+Matrix::ColXpr DoubleMatrix::col(Index i) {
+  return get<Matrix>(*this).col(i);
+}
+
+Matrix::ColXpr operator+=(
+    DoubleMatrix::Matrix::ColXpr col,
+    const DoubleMatrix& double_matrix) {
+  switch (TYPE(double_matrix)) {
+    case DOUBLE:
+      throw double_matrix_error(
+          "Adding column and double not supported by Eigen.");
+    case MATRIX:
+      return col += get<Matrix>(double_matrix);
+    default:
+      throw double_matrix_error(
+          "Adding DoubleMatrix that does not hold a value to a column.");
+  }
 }
 
 /// *

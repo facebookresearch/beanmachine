@@ -19,6 +19,7 @@ struct DoubleMatrix;
 class MatrixProperty {
  public:
   using Matrix = Eigen::MatrixXd;
+  using Index = Matrix::Index;
 
   DoubleMatrix* owner;
 
@@ -32,13 +33,13 @@ class MatrixProperty {
 
   operator const Matrix&() const;
 
-  double coeff(Eigen::MatrixXd::Index i) const;
+  double coeff(Index i) const;
 
-  double& operator()(Eigen::MatrixXd::Index i);
+  double& operator()(Index i);
 
-  double& operator()(Eigen::MatrixXd::Index row, Eigen::MatrixXd::Index col);
+  double& operator()(Index row, Index col);
 
-  Eigen::MatrixXd::ColXpr col(Eigen::MatrixXd::Index i);
+  Eigen::MatrixXd::ColXpr col(Index i);
 
   double sum();
 
@@ -52,9 +53,7 @@ class MatrixProperty {
 
   Matrix operator*(const DoubleMatrix& operand);
 
-  Eigen::MatrixXd& setZero(
-      Eigen::MatrixXd::Index rows,
-      Eigen::MatrixXd::Index cols);
+  Eigen::MatrixXd& setZero(Index rows, Index cols);
 
   Eigen::ArrayWrapper<Matrix> array();
 
@@ -75,6 +74,7 @@ MatrixProperty::Matrix::ColXpr operator+=(
 
 struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   using Matrix = MatrixProperty::Matrix;
+  using Index = Matrix::Index;
   using VariantBaseClass = std::variant<double, Matrix>;
   using Array = Eigen::ArrayWrapper<Matrix>;
   using ArrayOfConst = Eigen::ArrayWrapper<const Matrix>;
@@ -179,15 +179,21 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   Array array();
   const ArrayOfConst array() const;
 
-  double& operator()(int i);
-  double& operator()(int row, int col);
-  double operator()(int i) const;
-  double operator()(int row, int col) const;
+  double& operator()(Index i);
+  double& operator()(Index row, Index col);
+  double operator()(Index i) const;
+  double operator()(Index row, Index col) const;
 
   /* Resizes to the given size, and sets all coefficients in this expression to
    * zero. */
-  DoubleMatrix& setZero(int rows, int cols);
+  DoubleMatrix& setZero(Index rows, Index cols);
+
+  Matrix::ColXpr col(Index i);
 };
+
+DoubleMatrix::Matrix::ColXpr operator+=(
+    DoubleMatrix::Matrix::ColXpr col,
+    const DoubleMatrix& double_matrix);
 
 /// *
 
