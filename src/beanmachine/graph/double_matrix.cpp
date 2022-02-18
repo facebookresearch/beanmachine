@@ -25,98 +25,6 @@ bool has(const DoubleMatrix& double_matrix) {
   return std::holds_alternative<T>(double_matrix);
 }
 
-/// MatrixProperty methods
-
-MatrixProperty::MatrixProperty(DoubleMatrix& owner) : owner(&owner) {}
-
-inline Matrix& MatrixProperty::value() {
-  return get<Matrix>(*owner);
-}
-
-inline const Matrix& MatrixProperty::value() const {
-  return get<Matrix>(*owner);
-}
-
-Matrix& MatrixProperty::operator=(const Matrix& m) {
-  owner->VariantBaseClass::operator=(m);
-  return value();
-}
-
-MatrixProperty::operator const Matrix&() const {
-  return value();
-}
-
-double MatrixProperty::coeff(Index i) const {
-  return std::get<Matrix>(*owner).coeff(i);
-}
-
-double& MatrixProperty::operator()(Index i) {
-  return std::get<Matrix>(*owner)(i);
-}
-
-double& MatrixProperty::operator()(Index row, Index col) {
-  return std::get<Matrix>(*owner)(row, col);
-}
-
-Matrix::ColXpr MatrixProperty::col(Index i) {
-  return std::get<Matrix>(*owner).col(i);
-}
-
-double MatrixProperty::sum() {
-  return value().sum();
-}
-
-Matrix& MatrixProperty::operator+=(const Matrix& increment) {
-  return value() += increment;
-}
-
-Matrix& MatrixProperty::operator+=(const DoubleMatrix& increment) {
-  return value() += get<Matrix>(increment);
-}
-
-Matrix& MatrixProperty::operator-=(const Matrix& increment) {
-  return value() -= increment;
-}
-
-Matrix MatrixProperty::operator*(const Matrix& increment) {
-  return value() * increment;
-}
-
-Matrix MatrixProperty::operator*(const DoubleMatrix& increment) {
-  return value() * get<Matrix>(increment);
-}
-
-Matrix operator*(const Matrix& operand, const MatrixProperty& mp) {
-  return operand * get<Matrix>(*mp.owner);
-}
-
-Matrix operator*(double operand, const MatrixProperty& mp) {
-  return operand * get<Matrix>(*mp.owner);
-}
-
-Matrix::ColXpr operator+=(Matrix::ColXpr operand, const MatrixProperty& mp) {
-  return operand += get<Matrix>(*mp.owner);
-}
-
-Matrix& MatrixProperty::setZero(Index rows, Index cols) {
-  if (not has<Matrix>(*owner)) {
-    *this = Matrix();
-  }
-  return value().setZero(rows, cols);
-}
-
-Eigen::ArrayWrapper<Matrix> MatrixProperty::array() {
-  return value().array();
-}
-
-Matrix::Scalar* MatrixProperty::data() {
-  return value().data();
-}
-
-Matrix::Index MatrixProperty::size() {
-  return value().size();
-}
-
 /// DoubleMatrix methods
 
 #define TYPE(DM) ((DM).index())
@@ -149,17 +57,14 @@ DoubleMatrix& DoubleMatrix::operator=(const Matrix& matrix) {
   return *this;
 }
 
-DoubleMatrix& DoubleMatrix::operator=(const DoubleMatrix& double_matrix) {
-  switch (TYPE(double_matrix)) {
-    case DOUBLE:
-      VariantBaseClass::operator=(get<double>(double_matrix));
-      return *this;
-    case MATRIX:
-      VariantBaseClass::operator=(get<Matrix>(double_matrix));
-      return *this;
-    default:
-      throw double_matrix_error("Assigning from DoubleMatrix without value");
-  }
+DoubleMatrix& DoubleMatrix::operator=(const DoubleMatrix& another) {
+  VariantBaseClass::operator=(static_cast<const VariantBaseClass&>(another));
+  return *this;
+}
+
+DoubleMatrix& DoubleMatrix::operator=(DoubleMatrix&& another) {
+  VariantBaseClass::operator=(static_cast<VariantBaseClass&&>(another));
+  return *this;
 }
 
 /// array
