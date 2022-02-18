@@ -114,6 +114,10 @@ struct DoubleMatrix : public std::variant<double, MatrixProperty::Matrix> {
   DoubleMatrix& operator+=(const Matrix& matrix);
   DoubleMatrix& operator+=(const DoubleMatrix& another);
 
+  DoubleMatrix& operator-=(double d);
+  DoubleMatrix& operator-=(const Matrix& matrix);
+  DoubleMatrix& operator-=(const DoubleMatrix& another);
+
   // A substitute for operator*(DoubleMatrix, Matrix).
   //
   // One might ask why we need these method instead of operator*(DoubleMatrix,
