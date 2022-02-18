@@ -69,8 +69,7 @@ void Log::unconstrained_gradient(
     back_grad = back_grad * constrained._double + 1.0;
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    back_grad._matrix =
-        back_grad._matrix.array() * constrained._matrix.array() + 1.0;
+    back_grad = back_grad.array() * constrained._matrix.array() + 1.0;
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
