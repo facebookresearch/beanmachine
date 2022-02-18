@@ -250,7 +250,7 @@ Node::forward_gradient_scalarops<Eigen::Matrix<double, 1, 2>, Eigen::Matrix2d>(
 void Node::reset_backgrad() {
   assert(value.type.variable_type != graph::VariableType::UNKNOWN);
   if (value.type.variable_type == graph::VariableType::SCALAR) {
-    back_grad1._double = 0;
+    back_grad1 = 0;
   } else {
     back_grad1._matrix.setZero(value.type.rows, value.type.cols);
   }
