@@ -1,16 +1,16 @@
 import React from 'react';
 import { PlotlyFigure } from '../../../../website/src/components/Plotting.jsx';
 
-export const PlotlyFigure2b90f2061731479e9e6642ca9bf3ddf0 = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigure2b90f206-1731-479e-9e66-42ca9bf3ddf0.json";
+export const PlotlyFigure16d7d8e0539c4dc6b93c645136a1320e = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigure16d7d8e0-539c-4dc6-b93c-645136a1320e.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigure80cb803767ca438a9c945384cf7a8da4 = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigure80cb8037-67ca-438a-9c94-5384cf7a8da4.json";
+export const PlotlyFigure2dd3ba3543ce4bf4b1a196d00bb9cae7 = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigure2dd3ba35-43ce-4bf4-b1a1-96d00bb9cae7.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
