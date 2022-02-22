@@ -40,11 +40,11 @@ _dist_types = {
     bn.CategoricalNode: (dt.CATEGORICAL, AtomicType.NATURAL),
     bn.DirichletNode: (dt.DIRICHLET, None),
     bn.FlatNode: (dt.FLAT, AtomicType.PROBABILITY),
-    bn.GammaNode: (dt.GAMMA, AtomicType.POS_REAL),
-    bn.HalfCauchyNode: (dt.HALF_CAUCHY, AtomicType.POS_REAL),
+    # bn.GammaNode: (dt.GAMMA, AtomicType.POS_REAL),
+    # bn.HalfCauchyNode: (dt.HALF_CAUCHY, AtomicType.POS_REAL),
     bn.NormalNode: (dt.NORMAL, AtomicType.REAL),
-    bn.HalfNormalNode: (dt.HALF_NORMAL, AtomicType.POS_REAL),
-    bn.StudentTNode: (dt.STUDENT_T, AtomicType.REAL),
+    # bn.HalfNormalNode: (dt.HALF_NORMAL, AtomicType.POS_REAL),
+    # bn.StudentTNode: (dt.STUDENT_T, AtomicType.REAL),
 }
 
 

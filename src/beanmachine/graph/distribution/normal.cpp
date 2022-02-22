@@ -69,7 +69,7 @@ double Normal::log_prob(const NodeValue& value) const {
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
     size = static_cast<int>(value._matrix.numel());
     sum_x = value._matrix.sum().item().toDouble();
-    sum_xsq = value._matrix.squaredNorm();
+    sum_xsq = value._matrix.norm(2).item().toDouble();
   } else {
     throw std::runtime_error(
         "Normal::log_prob applied to invalid variable type");
@@ -157,7 +157,7 @@ void Normal::backward_value_iid(
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -= ((value._matrix - m) / s_sq).matrix();
+  back_grad._matrix -= ((value._matrix - m) / s_sq);
 }
 
 void Normal::backward_value_iid(
@@ -169,7 +169,7 @@ void Normal::backward_value_iid(
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
   back_grad._matrix -=
-      (adjunct * (value._matrix - m) / s_sq).matrix();
+      (adjunct * (value._matrix - m) / s_sq);
 }
 
 void Normal::backward_param(const graph::NodeValue& value, double adjunct)
@@ -201,7 +201,7 @@ void Normal::backward_param_iid(const graph::NodeValue& value) const {
     in_nodes[0]->back_grad1._double += sum_x / s_sq - size * m / s_sq;
   }
   if (in_nodes[1]->needs_gradient()) {
-    double sum_xsq = value._matrix.squaredNorm();
+    double sum_xsq = value._matrix.norm(2).item().toDouble();
     in_nodes[1]->back_grad1._double +=
         (-size / s + (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s_sq));
   }

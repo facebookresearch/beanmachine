@@ -178,6 +178,8 @@ setup(
                         "src/beanmachine/graph/distribution/dirichlet.cpp",
                         "src/beanmachine/graph/distribution/categorical.cpp",
                         "src/beanmachine/graph/distribution/tabular.cpp",
+                        "src/beanmachine/graph/distribution/normal.cpp",
+                        "src/beanmachine/graph/distribution/flat.cpp",
                     ])
                     | set(glob("src/beanmachine/graph/transform/*.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/factor/*.cpp", recursive=True))

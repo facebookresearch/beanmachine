@@ -71,12 +71,12 @@ natural_t Flat::_natural_sampler(std::mt19937& gen) const {
 torch::Tensor Flat::_matrix_sampler(std::mt19937& gen) const {
   int rows = static_cast<int>(sample_type.rows);
   int cols = static_cast<int>(sample_type.cols);
-  torch::Tensor result(rows, cols);
+  torch::Tensor result = torch::empty({rows, cols});
   std::uniform_real_distribution<double> dist =
       _get_uniform_real_distribution();
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
-      result(i, j) = dist(gen);
+      result.index_put_({i, j}, dist(gen));
     }
   }
   return result;

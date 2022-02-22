@@ -14,11 +14,11 @@
 #include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/distribution/categorical.h"
 #include "beanmachine/graph/distribution/dirichlet.h"
-// #include "beanmachine/graph/distribution/flat.h"
+#include "beanmachine/graph/distribution/flat.h"
 // #include "beanmachine/graph/distribution/gamma.h"
 // #include "beanmachine/graph/distribution/half_cauchy.h"
 // #include "beanmachine/graph/distribution/half_normal.h"
-// #include "beanmachine/graph/distribution/normal.h"
+#include "beanmachine/graph/distribution/normal.h"
 // #include "beanmachine/graph/distribution/student_t.h"
 #include "beanmachine/graph/distribution/tabular.h"
 
@@ -48,12 +48,12 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       case graph::DistributionType::BINOMIAL: {
         return std::make_unique<Binomial>(atype, in_nodes);
       }
-      // case graph::DistributionType::FLAT: {
-      //   return std::make_unique<Flat>(atype, in_nodes);
-      // }
-      // case graph::DistributionType::NORMAL: {
-      //   return std::make_unique<Normal>(atype, in_nodes);
-      // }
+      case graph::DistributionType::FLAT: {
+        return std::make_unique<Flat>(atype, in_nodes);
+      }
+      case graph::DistributionType::NORMAL: {
+        return std::make_unique<Normal>(atype, in_nodes);
+      }
       // case graph::DistributionType::HALF_NORMAL: {
       //   return std::make_unique<Half_Normal>(atype, in_nodes);
       // }
@@ -97,9 +97,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     }
   } else {
     switch (dist_type) {
-      // case graph::DistributionType::FLAT: {
-      //   return std::make_unique<Flat>(sample_type, in_nodes);
-      // }
+      case graph::DistributionType::FLAT: {
+        return std::make_unique<Flat>(sample_type, in_nodes);
+      }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +
