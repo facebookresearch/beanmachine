@@ -130,11 +130,27 @@ def _handle_unary(p: Pattern, s: str) -> PatternRule:
     #
     # into
     #
-    # x = bmg.handle_OP(y)
+    # x = bmg.handle_function(operator.OP, [y])
+
+    op = ast.Attribute(
+        value=ast.Name("operator", ctx=ast.Load()), attr=s, ctx=ast.Load()
+    )
 
     return PatternRule(
         assign(value=unaryop(op=p)),
-        lambda a: ast.Assign(a.targets, _make_bmg_call(s, [a.value.operand])),
+        lambda a: ast.Assign(
+            a.targets,
+            _make_bmg_call(
+                "handle_function",
+                [
+                    op,
+                    ast.List(
+                        elts=[a.value.operand],
+                        ctx=ast.Load(),
+                    ),
+                ],
+            ),
+        ),
     )
 
 
@@ -145,33 +161,66 @@ def _handle_binary(p: Pattern, s: str) -> PatternRule:
     #
     # into
     #
-    # x = bmg.handle_OP(y, z)
+    # x = bmg.handle_function(operator.OP, [y, z])
+    #
+    # p is a pattern which matches the binary operator kind.
+    # s is the name of the operator function.
+
+    op = ast.Attribute(
+        value=ast.Name("operator", ctx=ast.Load()), attr=s, ctx=ast.Load()
+    )
 
     return PatternRule(
         assign(value=binop(op=p)),
         lambda a: ast.Assign(
-            a.targets, _make_bmg_call(s, [a.value.left, a.value.right])
+            a.targets,
+            _make_bmg_call(
+                "handle_function",
+                [
+                    op,
+                    ast.List(
+                        elts=[a.value.left, a.value.right],
+                        ctx=ast.Load(),
+                    ),
+                ],
+            ),
         ),
     )
 
 
-def _handle_aug_assign(op: Pattern, s: str) -> PatternRule:
+def _handle_aug_assign(p: Pattern, s: str) -> PatternRule:
     # A rule which transforms
     #
     # x OP= y
     #
     # into
     #
-    # x = bmg.handle_iOP(x, y)
+    # x = bmg.handle_function(operator.iOP, [x, y])
     #
     # Note that the x on the left of the assignment must be a Store()
     # and the one on the right must be a Load().
 
+    op = ast.Attribute(
+        value=ast.Name("operator", ctx=ast.Load()), attr=s, ctx=ast.Load()
+    )
+
     return PatternRule(
-        aug_assign(target=name(), value=name(), op=op),
+        aug_assign(target=name(), value=name(), op=p),
         lambda a: ast.Assign(
             [a.target],
-            _make_bmg_call(s, [ast.Name(id=a.target.id, ctx=ast.Load()), a.value]),
+            _make_bmg_call(
+                "handle_function",
+                [
+                    op,
+                    ast.List(
+                        elts=[
+                            ast.Name(id=a.target.id, ctx=ast.Load()),
+                            a.value,
+                        ],
+                        ctx=ast.Load(),
+                    ),
+                ],
+            ),
         ),
     )
 
@@ -183,14 +232,63 @@ def _handle_comparison(p: Pattern, s: str) -> PatternRule:
     #
     # into
     #
-    # x = bmg.handle_OP(y, z)
+    # x = bmg.handle_function(operator.op, [y, z])
+
+    op = ast.Attribute(
+        value=ast.Name("operator", ctx=ast.Load()), attr=s, ctx=ast.Load()
+    )
 
     return PatternRule(
-        assign(value=p),
+        assign(value=binary_compare(p)),
         lambda a: ast.Assign(
-            a.targets, _make_bmg_call(s, [a.value.left, a.value.comparators[0]])
+            a.targets,
+            _make_bmg_call(
+                "handle_function",
+                [
+                    op,
+                    ast.List(
+                        elts=[a.value.left, a.value.comparators[0]],
+                        ctx=ast.Load(),
+                    ),
+                ],
+            ),
         ),
     )
+
+
+# x = y in z --> x = bmg.handle_function(operator.contains, [z, y])
+_handle_in = PatternRule(
+    assign(value=binary_compare(ast.In)),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call(
+            "handle_function",
+            [
+                ast.Attribute(
+                    value=ast.Name("operator", ctx=ast.Load()),
+                    attr="contains",
+                    ctx=ast.Load(),
+                ),
+                ast.List(
+                    elts=[
+                        a.value.comparators[0],
+                        a.value.left,
+                    ],
+                    ctx=ast.Load(),
+                ),
+            ],
+        ),
+    ),
+)
+
+# x = y not in z --> x = bmg.handle_not_in(y, z)
+_handle_not_in = PatternRule(
+    assign(value=binary_compare(ast.NotIn)),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_not_in", [a.value.left, a.value.comparators[0]]),
+    ),
+)
 
 
 # a = b[c] --> a = bmg.handle_index(b, c)
@@ -293,55 +391,55 @@ _assignments_to_bmg: Rule = first(
         _handle_dot,
         _handle_call,
         # Unary operators: ~ not + -
-        _handle_unary(ast.Invert, "handle_invert"),
-        _handle_unary(ast.Not, "handle_not"),
-        _handle_unary(ast.UAdd, "handle_uadd"),
-        _handle_unary(ast.USub, "handle_negate"),
-        _handle_binary(ast.Add, "handle_addition"),
+        _handle_unary(ast.Invert, "inv"),
+        _handle_unary(ast.Not, "not_"),
+        _handle_unary(ast.UAdd, "pos"),
+        _handle_unary(ast.USub, "neg"),
         # Binary operators & | / // << % * ** >> - @
         # "and" and "or" are already eliminated by the single
         # assignment rewriter.
-        _handle_binary(ast.BitAnd, "handle_bitand"),
-        _handle_binary(ast.BitOr, "handle_bitor"),
-        _handle_binary(ast.BitXor, "handle_bitxor"),
-        _handle_binary(ast.Div, "handle_division"),
-        _handle_binary(ast.FloorDiv, "handle_floordiv"),
-        _handle_binary(ast.LShift, "handle_lshift"),
-        _handle_binary(ast.MatMult, "handle_matrix_multiplication"),
-        _handle_binary(ast.Mod, "handle_mod"),
-        _handle_binary(ast.Mult, "handle_multiplication"),
-        _handle_binary(ast.Pow, "handle_power"),
-        _handle_binary(ast.RShift, "handle_rshift"),
-        _handle_binary(ast.Sub, "handle_subtraction"),
+        _handle_binary(ast.Add, "add"),
+        _handle_binary(ast.BitAnd, "and_"),
+        _handle_binary(ast.BitOr, "or_"),
+        _handle_binary(ast.BitXor, "xor"),
+        _handle_binary(ast.Div, "truediv"),
+        _handle_binary(ast.FloorDiv, "floordiv"),
+        _handle_binary(ast.LShift, "lshift"),
+        _handle_binary(ast.MatMult, "matmul"),
+        _handle_binary(ast.Mod, "mod"),
+        _handle_binary(ast.Mult, "mul"),
+        _handle_binary(ast.Pow, "pow"),
+        _handle_binary(ast.RShift, "rshift"),
+        _handle_binary(ast.Sub, "sub"),
         # []
         _handle_index,
         _handle_slice,
         # Comparison operators: == != > >= < <=
         # is, is not, in, not in
-        _handle_comparison(binary_compare(ast.Eq), "handle_equal"),
-        _handle_comparison(binary_compare(ast.NotEq), "handle_not_equal"),
-        _handle_comparison(binary_compare(ast.Gt), "handle_greater_than"),
-        _handle_comparison(binary_compare(ast.GtE), "handle_greater_than_equal"),
-        _handle_comparison(binary_compare(ast.Lt), "handle_less_than"),
-        _handle_comparison(binary_compare(ast.LtE), "handle_less_than_equal"),
-        _handle_comparison(binary_compare(ast.Is), "handle_is"),
-        _handle_comparison(binary_compare(ast.IsNot), "handle_is_not"),
-        _handle_comparison(binary_compare(ast.In), "handle_in"),
-        _handle_comparison(binary_compare(ast.NotIn), "handle_not_in"),
+        _handle_comparison(ast.Eq, "eq"),
+        _handle_comparison(ast.NotEq, "ne"),
+        _handle_comparison(ast.Gt, "gt"),
+        _handle_comparison(ast.GtE, "ge"),
+        _handle_comparison(ast.Lt, "lt"),
+        _handle_comparison(ast.LtE, "le"),
+        _handle_comparison(ast.Is, "is_"),
+        _handle_comparison(ast.IsNot, "is_not"),
+        _handle_in,
+        _handle_not_in,
         # Augmented assignments
-        _handle_aug_assign(ast.Add, "handle_iadd"),
-        _handle_aug_assign(ast.Sub, "handle_isub"),
-        _handle_aug_assign(ast.Mult, "handle_imul"),
-        _handle_aug_assign(ast.Div, "handle_idiv"),
-        _handle_aug_assign(ast.FloorDiv, "handle_ifloordiv"),
-        _handle_aug_assign(ast.Mod, "handle_imod"),
-        _handle_aug_assign(ast.Pow, "handle_ipow"),
-        _handle_aug_assign(ast.MatMult, "handle_imatmul"),
-        _handle_aug_assign(ast.LShift, "handle_ilshift"),
-        _handle_aug_assign(ast.RShift, "handle_irshift"),
-        _handle_aug_assign(ast.BitAnd, "handle_iand"),
-        _handle_aug_assign(ast.BitXor, "handle_ixor"),
-        _handle_aug_assign(ast.BitOr, "handle_ior"),
+        _handle_aug_assign(ast.Add, "iadd"),
+        _handle_aug_assign(ast.Sub, "isub"),
+        _handle_aug_assign(ast.Mult, "imul"),
+        _handle_aug_assign(ast.Div, "itruediv"),
+        _handle_aug_assign(ast.FloorDiv, "ifloordiv"),
+        _handle_aug_assign(ast.Mod, "imod"),
+        _handle_aug_assign(ast.Pow, "ipow"),
+        _handle_aug_assign(ast.MatMult, "imatmul"),
+        _handle_aug_assign(ast.LShift, "ilshift"),
+        _handle_aug_assign(ast.RShift, "irshift"),
+        _handle_aug_assign(ast.BitAnd, "iand"),
+        _handle_aug_assign(ast.BitXor, "ixor"),
+        _handle_aug_assign(ast.BitOr, "ior"),
         # Indexed assignments
         _handle_subscript_assign_index,
         _handle_subscript_assign_slice,
@@ -419,7 +517,7 @@ def _bm_ast_to_bmg_ast(a: ast.Module) -> ast.Module:
             t1 = []
             t2 = bmg.handle_function(norm, t1)
             t3 = 1.0
-            t4 = bmg.handle_add(t2, t3)
+            t4 = bmg.handle_function(operator.add, [t2, t3])
             return t4
 
     It returns the AST of the transformed code as a module.
@@ -473,7 +571,7 @@ def _transform_lambda(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str]:
             t2 = [n]
             t3 = bmg.handle_function(norm, t2)
             t4 = 1.0
-            t5 = bmg.handle_add(t3, t4)
+            t5 = bmg.handle_function(operator.add, [t3, t4])
             return t5
         _lambda = t1
 
@@ -542,7 +640,7 @@ def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str
             t1 = []
             t2 = bmg.handle_function(norm, t1)
             t3 = 1.0
-            t4 = bmg.handle_add(t2, t3)
+            t4 = bmg.handle_function(operator.add, [t2, t3])
             return t4
         t5 = [f]
         f = bmg.handle_function(functional, t5)
@@ -597,7 +695,7 @@ def _create_enclosing_helper(
     #     t1 = []
     #     t2 = bmg.handle_function(norm, t1)
     #     t3 = 1.0
-    #     t4 = bmg.handle_add(t2, t3)
+    #     t4 = bmg.handle_function(operator.add, [t2, t3])
     #     return t4
     #
     # Then we generate:
@@ -607,7 +705,7 @@ def _create_enclosing_helper(
     #         t1 = []
     #         t2 = bmg.handle_function(norm, t1)
     #         t3 = 1.0
-    #         t4 = bmg.handle_add(t2, t3)
+    #         t4 = bmg.handle_function(operator.add, [t2, t3])
     #         return t4
     #     return f
     #
@@ -630,7 +728,7 @@ def _create_enclosing_helper(
     #
     # def y():
     #    t1 = bmg.handle_function(flip, [])
-    #    t2 = bmg.handle_add(t1, offset)
+    #    t2 = bmg.handle_function(operator.add, [t1, offset])
     #    return t2
     #
     # where offset needs to be 1.
@@ -646,7 +744,7 @@ def _create_enclosing_helper(
     # def y_helper(bmg, offset):
     #   def y():
     #     t1 = bmg.handle_function(flip, [])
-    #     t2 = bmg.handle_add(t1, offset)
+    #     t2 = bmg.handle_function(operator.add, [t1, offset])
     #     return t2
     #   return y
     #
@@ -709,9 +807,11 @@ def _create_enclosing_helper(
         defaults=[],
     )
 
-    helper_body = transformed_body + [
-        ast.Return(value=ast.Name(id=name, ctx=ast.Load())),
-    ]
+    helper_body = (
+        [ast.Import(names=[ast.alias(name="operator", asname=None)])]
+        + transformed_body  # pyre-ignore
+        + [ast.Return(value=ast.Name(id=name, ctx=ast.Load()))]  # pyre-ignore
+    )
 
     helper_func = ast.FunctionDef(
         name=helper_name,

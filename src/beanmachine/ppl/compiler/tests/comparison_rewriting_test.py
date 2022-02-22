@@ -53,26 +53,27 @@ class ComparisonRewritingTest(unittest.TestCase):
         observed = astor.to_source(bmgast)
         expected = """
 def y_helper(bmg):
+    import operator
 
     def y():
         a1 = 0.0
         r6 = []
         r10 = {}
         a4 = bmg.handle_function(x, r6, r10)
-        a7 = bmg.handle_less_than(a1, a4)
+        a7 = bmg.handle_function(operator.lt, [a1, a4])
         bmg.handle_if(a7)
         if a7:
             a8 = 2.0
-            z = bmg.handle_less_than(a4, a8)
+            z = bmg.handle_function(operator.lt, [a4, a8])
         else:
             z = a7
         a16 = 3.0
         a13 = [a16]
         a17 = [z]
-        a12 = bmg.handle_addition(a13, a17)
+        a12 = bmg.handle_function(operator.add, [a13, a17])
         a18 = 4.0
         a14 = [a18]
-        r11 = bmg.handle_addition(a12, a14)
+        r11 = bmg.handle_function(operator.add, [a12, a14])
         r15 = {}
         r2 = bmg.handle_function(StudentT, r11, r15)
         return r2

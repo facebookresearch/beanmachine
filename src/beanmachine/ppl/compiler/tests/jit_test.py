@@ -223,6 +223,7 @@ class JITTest(unittest.TestCase):
         observed = astor.to_source(bmgast)
         expected = """
 def f_helper(bmg):
+    import operator
 
     def f(x):
         a2 = bmg.handle_dot_get(math, 'exp')
@@ -237,11 +238,12 @@ def f_helper(bmg):
         observed = astor.to_source(bmgast)
         expected = """
 def norm_helper(bmg):
+    import operator
 
     def norm(n):
         global counter
         a1 = 1
-        counter = bmg.handle_addition(counter, a1)
+        counter = bmg.handle_function(operator.add, [counter, a1])
         r4 = []
         a9 = 0.0
         a8 = dict(loc=a9)
