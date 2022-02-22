@@ -59,6 +59,7 @@ import beanmachine.ppl.compiler.profiler as prof
 import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
+from beanmachine.ppl.compiler.execution_context import FunctionCall, ExecutionContext
 from beanmachine.ppl.compiler.special_function_caller import (
     SpecialFunctionCaller,
     canonicalize_function,
@@ -137,6 +138,7 @@ class BMGRuntime:
     _pd: Optional[prof.ProfilerData]
 
     _special_function_caller: SpecialFunctionCaller
+    _context: ExecutionContext
 
     def __init__(self) -> None:
         self._bmg = BMGraphBuilder()
@@ -145,6 +147,7 @@ class BMGRuntime:
         self.lifted_map = {}
         self.in_flight = set()
         self._rv_to_query = {}
+        self._context = ExecutionContext()
         self._special_function_caller = SpecialFunctionCaller(self._bmg)
 
     def _begin(self, s: str) -> None:
@@ -156,6 +159,13 @@ class BMGRuntime:
         pd = self._pd
         if pd is not None:
             pd.finish(s)
+
+    def _record_node_call(self, node: BMGNode) -> None:
+        self._context.record_node_call(node)
+
+    def _record_node_rv(self, node: BMGNode, rv: RVIdentifier) -> None:
+        call = FunctionCall(rv.function, rv.arguments, {})
+        self._context.record_node_call(node, call)
 
     #
     # Operators
@@ -174,12 +184,14 @@ class BMGRuntime:
 
         if all(_has_ordinary_value(v) for v in values):
             return normal_op(*(_get_ordinary_value(v) for v in values))
-        return stochastic_op(
+        node = stochastic_op(
             *(
                 v if isinstance(v, bn.BMGNode) else self._bmg.add_constant(v)
                 for v in values
             )
         )
+        self._record_node_call(node)
+        return node
 
     def handle_not_in(self, input: Any, other: Any) -> Any:
         # Unfortunately there is no operator function equivalent of
@@ -325,7 +337,9 @@ class BMGRuntime:
             )
             switch_inputs.append(key)
             switch_inputs.append(value)
-        return self._bmg.add_switch(*switch_inputs)
+        node = self._bmg.add_switch(*switch_inputs)
+        self._record_node_call(node)
+        return node
 
     def _handle_random_variable_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
@@ -470,13 +484,14 @@ class BMGRuntime:
         # false, and we call the compiled function exactly as we should.
 
         if _has_source_code(function):
-            return self._function_to_bmg_function(function)(*arguments, **kwargs)
+            rewritten_function = self._function_to_bmg_function(function)
+            return self._context.call(rewritten_function, arguments, kwargs)
         # It is not compiled and we have no source code to compile.
         # Just call it and hope for the best.
         # TODO: Do we need to consider the scenario where we do not have
         # source code, we call a function, and it somehow returns an RVID?
         # We *could* convert that to a graph node.
-        return function(*arguments, **kwargs)
+        return self._context.call(function, arguments, kwargs)
 
     def handle_function(
         self,
@@ -494,9 +509,12 @@ class BMGRuntime:
         if self._special_function_caller.is_special_function(
             function, arguments, kwargs
         ):
-            return self._special_function_caller.do_special_call_maybe_stochastic(
+            result = self._special_function_caller.do_special_call_maybe_stochastic(
                 function, arguments, kwargs
             )
+            if isinstance(result, BMGNode):
+                self._record_node_call(result)
+            return result
 
         f, args = canonicalize_function(function, arguments)
 
@@ -564,12 +582,12 @@ class BMGRuntime:
                 # situation then when we call the rewritten function, we'll get back a
                 # RVID, and if we're in the second situation, we will not.
 
-                value = rewritten_function(*rv.arguments)
+                value = self._context.call(rewritten_function, rv.arguments)
                 if isinstance(value, RVIdentifier):
                     # We have a rewritten function with a decorator already applied.
                     # Therefore the rewritten form of the *undecorated* function is
                     # stored in the rv.  Call *that* function with the given arguments.
-                    value = value.function(*rv.arguments)
+                    value = self._context.call(value.function, rv.arguments)
 
                 # We now have the value returned by the undecorated random variable
                 # regardless of whether the source code was decorated or not.
@@ -581,7 +599,7 @@ class BMGRuntime:
                 # we are calling a functional then we check below that we got
                 # back either a graph node or a tensor that we can make into a constant.
                 if rv.is_random_variable:
-                    value = self._handle_sample(value)
+                    value = self._handle_sample(rv, value)
             finally:
                 self.in_flight.remove(key)
             if isinstance(value, torch.Tensor):
@@ -593,21 +611,26 @@ class BMGRuntime:
             return value
         return self.rv_map[key]
 
-    def _handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
+    def _handle_sample(self, rv: RVIdentifier, operand: Any) -> bn.SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
         time a model function decorated with @bm.random_variable returns; we verify that the
         returned value is a distribution that we know how to accumulate into the
         graph, and add a sample node to the graph."""
 
         if isinstance(operand, bn.DistributionNode):
-            return self._bmg.add_sample(operand)
+            sample = self._bmg.add_sample(operand)
+            self._record_node_rv(sample, rv)
+            return sample
 
         if not isinstance(operand, torch.distributions.Distribution):
             # TODO: Better error
             raise TypeError("A random_variable is required to return a distribution.")
 
         d = self._special_function_caller.distribution_to_node(operand)
-        return self._bmg.add_sample(d)
+        sample = self._bmg.add_sample(d)
+        self._record_node_rv(d, rv)
+        self._record_node_rv(sample, rv)
+        return sample
 
     def handle_dot_get(self, operand: Any, name: str) -> Any:
         # If we have x = foo.bar, foo must not be a sample; we have no way of
