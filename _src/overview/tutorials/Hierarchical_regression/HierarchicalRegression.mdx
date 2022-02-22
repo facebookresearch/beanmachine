@@ -6,17 +6,17 @@ nb_path: tutorials/Hierarchical_regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 ---
-import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
-import { SampleOfPriors } from "./HierarchicalRegression.jsx";
-import { QueryEss } from "./HierarchicalRegression.jsx";
+import { CountyPosteriors } from "./HierarchicalRegression.jsx";
 import { LogPlotComparison } from "./HierarchicalRegression.jsx";
+import { TraceRanks } from "./HierarchicalRegression.jsx";
+import { SampleOfPriors } from "./HierarchicalRegression.jsx";
+import { BetaGamma } from "./HierarchicalRegression.jsx";
+import { QueryEss } from "./HierarchicalRegression.jsx";
+import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
+import { FloorPlot } from "./HierarchicalRegression.jsx";
+import { Uranium } from "./HierarchicalRegression.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { FloorPlot } from "./HierarchicalRegression.jsx";
-import { TraceRanks } from "./HierarchicalRegression.jsx";
-import { CountyPosteriors } from "./HierarchicalRegression.jsx";
-import { BetaGamma } from "./HierarchicalRegression.jsx";
-import { Uranium } from "./HierarchicalRegression.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
@@ -155,6 +155,9 @@ log of the raw data.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 log_plot_comparison = radon.log_plot_comparison(df["activity"])
 show(log_plot_comparison)
 ```
@@ -178,6 +181,9 @@ plot that radon levels decrease as you move away from the basement.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 floor_plot = radon.floor_plot(df)
 show(floor_plot)
 ```
@@ -368,6 +374,9 @@ showing what these priors look like are shown below.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 sample_of_priors = radon.sample_of_priors()
 show(sample_of_priors)
 ```
@@ -437,17 +446,17 @@ summary_df = az.summary(samples.to_xarray(), round_to=3)
 Markdown(summary_df.sample(20).T.to_markdown())
 ```
 
-|           |   alpha_hat()[668] |   y_hat()[382] |   alpha_hat()[104] |   y_hat()[797] |   alpha_hat()[83] |   alpha_hat()[509] |   alpha_hat()[313] |   alpha_hat()[705] |   y_hat()[679] |   alpha()[20] |   y_hat()[517] |   alpha_hat()[458] |   y_hat()[870] |   y_hat()[878] |   alpha()[83] |   alpha_hat()[52] |   alpha_hat()[221] |   alpha_hat()[352] |   alpha_hat()[450] |   alpha()[55] |
-|:----------|-------------------:|---------------:|-------------------:|---------------:|------------------:|-------------------:|-------------------:|-------------------:|---------------:|--------------:|---------------:|-------------------:|---------------:|---------------:|--------------:|------------------:|-------------------:|-------------------:|-------------------:|--------------:|
-| mean      |              0.963 |          0.983 |              1.558 |          1.543 |             1.809 |              1.749 |              1.396 |              0.963 |          0.963 |         1.535 |          1.631 |              1.535 |          1.369 |          1.369 |         1.578 |             0.917 |              1.696 |              1.396 |              1.535 |         1.461 |
-| sd        |              0.066 |          0.161 |              0.142 |          0.106 |             0.132 |              0.154 |              0.064 |              0.066 |          0.066 |         0.136 |          0.155 |              0.135 |          0.089 |          0.089 |         0.129 |             0.087 |              0.153 |              0.064 |              0.135 |         0.154 |
-| hdi_5.5%  |              0.862 |          0.732 |              1.327 |          1.374 |             1.607 |              1.516 |              1.296 |              0.862 |          0.862 |         1.326 |          1.376 |              1.319 |          1.223 |          1.223 |         1.373 |             0.777 |              1.461 |              1.296 |              1.319 |         1.211 |
-| hdi_94.5% |              1.073 |          1.243 |              1.78  |          1.712 |             2.023 |              2.001 |              1.5   |              1.073 |          1.073 |         1.757 |          1.868 |              1.747 |          1.506 |          1.506 |         1.783 |             1.053 |              1.944 |              1.5   |              1.747 |         1.698 |
-| mcse_mean |              0.001 |          0.001 |              0.001 |          0.001 |             0.002 |              0.002 |              0     |              0.001 |          0.001 |         0.001 |          0.001 |              0.001 |          0.001 |          0.001 |         0.001 |             0.001 |              0.001 |              0     |              0.001 |         0.001 |
-| mcse_sd   |              0.001 |          0.001 |              0.001 |          0.001 |             0.001 |              0.001 |              0     |              0.001 |          0.001 |         0.001 |          0.001 |              0.001 |          0     |          0     |         0.001 |             0     |              0.001 |              0     |              0.001 |         0.001 |
-| ess_bulk  |           5265.37  |      18875.2   |          23851.1   |      20960.4   |          5726.44  |           9906.01  |          22852.7   |           5265.37  |       5265.37  |     14907.2   |      17606.9   |          17660.8   |      25939.3   |      25939.3   |      8144.38  |         15990.9   |          21008.7   |          22852.7   |          17660.8   |     22071.5   |
-| ess_tail  |           6863.98  |      10810.7   |          11536.2   |      13975.2   |          9518.44  |           9365.52  |          13505.2   |           6863.98  |       6863.98  |     10984     |      10398.9   |          10324.7   |      12530.3   |      12530.3   |     10338.5   |         10954.8   |          10242.5   |          13505.2   |          10324.7   |     10950.3   |
-| r_hat     |              1     |          1     |              1     |          1     |             1     |              1     |              1     |              1     |          1     |         1.001 |          1     |              1     |          1.001 |          1.001 |         1     |             1     |              1     |              1     |              1     |         1.001 |
+|           |   alpha_hat()[690] |   y_hat()[754] |   y_hat()[723] |   alpha_hat()[261] |   y_hat()[181] |   alpha()[55] |   alpha_hat()[19] |   y_hat()[234] |   alpha()[73] |   alpha_hat()[700] |   alpha_hat()[841] |   alpha_hat()[789] |   alpha_hat()[230] |   alpha_hat()[639] |   y_hat()[641] |   alpha_hat()[851] |   alpha_hat()[550] |   y_hat()[243] |   alpha_hat()[895] |   y_hat()[888] |
+|:----------|-------------------:|---------------:|---------------:|-------------------:|---------------:|--------------:|------------------:|---------------:|--------------:|-------------------:|-------------------:|-------------------:|-------------------:|-------------------:|---------------:|-------------------:|-------------------:|---------------:|-------------------:|---------------:|
+| mean      |              0.965 |          0.965 |          0.327 |              1.752 |          1.4   |         1.46  |             0.918 |          1.505 |         1.389 |              0.965 |              1.369 |              1.543 |              1.642 |              1.632 |          1.632 |              1.369 |              1.409 |          1.777 |              1.756 |          1.75  |
+| sd        |              0.067 |          0.067 |          0.091 |              0.132 |          0.079 |         0.15  |             0.087 |          0.169 |         0.153 |              0.067 |              0.086 |              0.106 |              0.131 |              0.132 |          0.132 |              0.086 |              0.15  |          0.145 |              0.128 |          0.167 |
+| hdi_5.5%  |              0.862 |          0.862 |          0.185 |              1.551 |          1.271 |         1.216 |             0.778 |          1.245 |         1.154 |              0.862 |              1.232 |              1.368 |              1.438 |              1.428 |          1.428 |              1.232 |              1.167 |          1.554 |              1.551 |          1.504 |
+| hdi_94.5% |              1.075 |          1.075 |          0.474 |              1.965 |          1.524 |         1.696 |             1.055 |          1.77  |         1.63  |              1.075 |              1.507 |              1.706 |              1.852 |              1.842 |          1.842 |              1.507 |              1.647 |          2.008 |              1.957 |          2.019 |
+| mcse_mean |              0.001 |          0.001 |          0.002 |              0.002 |          0.001 |         0.001 |             0.001 |          0.003 |         0.002 |              0.001 |              0.001 |              0.001 |              0.001 |              0.002 |          0.002 |              0.001 |              0.001 |          0.002 |              0.001 |          0.003 |
+| mcse_sd   |              0.001 |          0.001 |          0.002 |              0.002 |          0     |         0.001 |             0.001 |          0.002 |         0.001 |              0.001 |              0     |              0.001 |              0.001 |              0.001 |          0.001 |              0     |              0.001 |          0.002 |              0.001 |          0.002 |
+| ess_bulk  |           2714.28  |       2714.28  |       1968.43  |           3279.48  |      13564.7   |     20267.5   |          9491.38  |       2829.43  |      8117.78  |           2714.28  |          16151.2   |          15522.6   |          12168.8   |           4617.43  |       4617.43  |          16151.2   |          20793.6   |       3781.4   |          13435.2   |       3418.39  |
+| ess_tail  |           2206.28  |       2206.28  |       1983.23  |           8353.32  |      12606.6   |     10353.2   |         14270.7   |       8004.69  |      9553.92  |           2206.28  |          11643.2   |          12197.6   |          10664.7   |           9966.77  |       9966.77  |          11643.2   |          10119.8   |       9174.35  |          11733     |       8004.11  |
+| r_hat     |              1.002 |          1.002 |          1.004 |              1.003 |          1.001 |         1.001 |             1.001 |          1.002 |         1.001 |              1.002 |              1.001 |              1     |              1.001 |              1.002 |          1.002 |              1.001 |              1.001 |          1.002 |              1.001 |          1.004 |
 
 #### $\hat{R}$ diagnostic
 
@@ -498,6 +507,9 @@ converging properly, both the bulk and tail lines should be _roughly_ linear.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 keys = ["μ_α", "σ_α", "β", "γ", "σ_y"]
 values = [mu_alpha(), sigma_alpha(), beta(), gamma(), sigma_y()]
 parameters = dict(zip(keys, values))
@@ -524,6 +536,9 @@ parameter, we will do so for a sample.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 sample_counties = {
     item["county_index"]: item["county"]
     for item in df[
@@ -572,6 +587,9 @@ plots for our model's parameters are shown below.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 trace_ranks = radon.plot_trace_ranks(
     keys=["μ_α", "σ_α", "β", "γ", "σ_y"],
     values=[mu_alpha(), sigma_alpha(), beta(), gamma(), sigma_y()],
@@ -599,6 +617,9 @@ subject.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 beta_posterior = az.plot_posterior(
     {"β": samples.get(beta()).numpy()},
     show=False,
@@ -618,6 +639,9 @@ the model.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 alphas = samples.get(alpha()).numpy()
 data = {
     f"α[{county}]": alphas[:, :, index]
@@ -636,6 +660,9 @@ posterior distribution.
 
 
 ```python
+# Needed for Colab
+output_notebook()
+
 uranium = radon.uranium(summary_df, df)
 show(uranium)
 ```

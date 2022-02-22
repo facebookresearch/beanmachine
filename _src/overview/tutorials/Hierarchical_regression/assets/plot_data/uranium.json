@@ -1,6 +1,6 @@
 {
   "target_id": "uranium",
-  "root_id": "14847",
+  "root_id": "14856",
   "doc": {
     "defs": [],
     "roots": {
@@ -9,80 +9,230 @@
           "attributes": {
             "below": [
               {
-                "id": "14858"
+                "id": "14867"
               }
             ],
             "center": [
               {
-                "id": "14861"
+                "id": "14870"
               },
               {
-                "id": "14865"
+                "id": "14874"
               },
               {
-                "id": "14897"
+                "id": "14906"
               },
               {
-                "id": "14901"
+                "id": "14910"
               }
             ],
             "height": 500,
             "left": [
               {
-                "id": "14862"
+                "id": "14871"
               }
             ],
             "outline_line_color": "black",
             "output_backend": "svg",
             "renderers": [
               {
-                "id": "14885"
+                "id": "14894"
               },
               {
-                "id": "14909"
+                "id": "14918"
               }
             ],
             "title": {
-              "id": "14848"
+              "id": "14857"
             },
             "toolbar": {
-              "id": "14873"
+              "id": "14882"
             },
             "width": 800,
             "x_range": {
-              "id": "14850"
+              "id": "14859"
             },
             "x_scale": {
-              "id": "14854"
+              "id": "14863"
             },
             "y_range": {
-              "id": "14852"
+              "id": "14861"
             },
             "y_scale": {
-              "id": "14856"
+              "id": "14865"
             }
           },
-          "id": "14847",
+          "id": "14856",
           "subtype": "Figure",
           "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "14865",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "14855"
+            }
+          },
+          "id": "14895",
+          "type": "CDSView"
         },
         {
           "attributes": {
             "axis_label": "log(uranium)",
             "coordinates": null,
             "formatter": {
-              "id": "14892"
+              "id": "14901"
             },
             "group": null,
             "major_label_policy": {
-              "id": "14893"
+              "id": "14902"
             },
             "ticker": {
-              "id": "14859"
+              "id": "14868"
             }
           },
-          "id": "14858",
+          "id": "14867",
           "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Estimated linear regression"
+            },
+            "renderers": [
+              {
+                "id": "14918"
+              }
+            ]
+          },
+          "id": "14934",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "14876",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "14902",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "14893",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "14855"
+            },
+            "glyph": {
+              "id": "14890"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "14892"
+            },
+            "muted_glyph": {
+              "id": "14893"
+            },
+            "nonselection_glyph": {
+              "id": "14891"
+            },
+            "view": {
+              "id": "14895"
+            }
+          },
+          "id": "14894",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "axis_label": "Intercept estimate (log(radon activity))",
+            "coordinates": null,
+            "formatter": {
+              "id": "14898"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "14899"
+            },
+            "ticker": {
+              "id": "14872"
+            }
+          },
+          "id": "14871",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "14907"
+              },
+              {
+                "id": "14934"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "14906",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "14871"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "14874",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "14872",
+          "type": "BasicTicker"
         },
         {
           "attributes": {
@@ -91,49 +241,12 @@
             },
             "renderers": [
               {
-                "id": "14885"
+                "id": "14894"
               }
             ]
           },
-          "id": "14898",
+          "id": "14907",
           "type": "LegendItem"
-        },
-        {
-          "attributes": {},
-          "id": "14867",
-          "type": "WheelZoomTool"
-        },
-        {
-          "attributes": {},
-          "id": "14892",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "14905"
-            }
-          },
-          "id": "14910",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {
-            "axis_label": "Intercept estimate (log(radon activity))",
-            "coordinates": null,
-            "formatter": {
-              "id": "14889"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "14890"
-            },
-            "ticker": {
-              "id": "14863"
-            }
-          },
-          "id": "14862",
-          "type": "LinearAxis"
         },
         {
           "attributes": {
@@ -146,155 +259,27 @@
               "field": "y"
             }
           },
-          "id": "14908",
+          "id": "14917",
           "type": "Line"
         },
         {
-          "attributes": {
-            "axis": {
-              "id": "14862"
-            },
-            "coordinates": null,
-            "dimension": 1,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "14865",
-          "type": "Grid"
-        },
-        {
-          "attributes": {
-            "fill_alpha": {
-              "value": 0.2
-            },
-            "fill_color": {
-              "value": "steelblue"
-            },
-            "hatch_alpha": {
-              "value": 0.2
-            },
-            "line_alpha": {
-              "value": 0.2
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14884",
-          "type": "Circle"
-        },
-        {
           "attributes": {},
-          "id": "14893",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "14863",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "14846"
-            }
-          },
-          "id": "14886",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "14905"
-            },
-            "glyph": {
-              "id": "14906"
-            },
-            "group": null,
-            "hover_glyph": null,
-            "level": "underlay",
-            "muted_glyph": {
-              "id": "14908"
-            },
-            "nonselection_glyph": {
-              "id": "14907"
-            },
-            "view": {
-              "id": "14910"
-            }
-          },
-          "id": "14909",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {
-            "fill_alpha": {
-              "value": 0.1
-            },
-            "fill_color": {
-              "value": "steelblue"
-            },
-            "hatch_alpha": {
-              "value": 0.1
-            },
-            "line_alpha": {
-              "value": 0.1
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14882",
-          "type": "Circle"
-        },
-        {
-          "attributes": {},
-          "id": "14871",
+          "id": "14880",
           "type": "HelpTool"
         },
         {
           "attributes": {
-            "label": {
-              "value": "Estimated linear regression"
+            "fill_alpha": {
+              "value": 0.7
             },
-            "renderers": [
-              {
-                "id": "14909"
-              }
-            ]
-          },
-          "id": "14925",
-          "type": "LegendItem"
-        },
-        {
-          "attributes": {
             "fill_color": {
-              "value": "orange"
+              "value": "steelblue"
             },
             "line_alpha": {
               "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
             },
             "size": {
               "value": 10
@@ -306,68 +291,70 @@
               "field": "y"
             }
           },
-          "id": "14883",
+          "id": "14890",
           "type": "Circle"
         },
         {
-          "attributes": {},
-          "id": "14866",
-          "type": "PanTool"
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "14916",
+          "type": "Line"
         },
         {
           "attributes": {},
-          "id": "14895",
-          "type": "Selection"
+          "id": "14875",
+          "type": "PanTool"
         },
         {
           "attributes": {
             "overlay": {
-              "id": "14872"
+              "id": "14881"
             }
           },
-          "id": "14868",
+          "id": "14877",
           "type": "BoxZoomTool"
         },
         {
           "attributes": {
-            "coordinates": null,
-            "group": null,
-            "items": [
-              {
-                "id": "14898"
-              },
-              {
-                "id": "14925"
-              }
-            ],
-            "location": "top_left"
+            "line_alpha": 0.3,
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
           },
-          "id": "14897",
-          "type": "Legend"
+          "id": "14915",
+          "type": "Line"
         },
         {
           "attributes": {},
-          "id": "14869",
+          "id": "14878",
           "type": "SaveTool"
         },
         {
           "attributes": {},
-          "id": "14870",
+          "id": "14879",
           "type": "ResetTool"
         },
         {
-          "attributes": {
-            "coordinates": null,
-            "group": null,
-            "text": "Partial-pooling with individual and group level predictors"
-          },
-          "id": "14848",
-          "type": "Title"
+          "attributes": {},
+          "id": "14903",
+          "type": "UnionRenderers"
         },
         {
           "attributes": {},
-          "id": "14922",
-          "type": "UnionRenderers"
+          "id": "14904",
+          "type": "Selection"
         },
         {
           "attributes": {
@@ -389,82 +376,59 @@
             "syncable": false,
             "top_units": "screen"
           },
-          "id": "14872",
+          "id": "14881",
           "type": "BoxAnnotation"
         },
         {
-          "attributes": {},
-          "id": "14923",
-          "type": "Selection"
-        },
-        {
           "attributes": {
-            "fill_alpha": {
-              "value": 0.7
-            },
-            "fill_color": {
-              "value": "steelblue"
-            },
-            "line_alpha": {
-              "value": 0.7
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14881",
-          "type": "Circle"
-        },
-        {
-          "attributes": {
-            "line_color": {
-              "value": "steelblue"
-            },
-            "size": {
-              "value": 10
-            }
-          },
-          "id": "14903",
-          "type": "TeeHead"
-        },
-        {
-          "attributes": {
-            "end": 0.6,
-            "start": -1
-          },
-          "id": "14850",
-          "type": "Range1d"
-        },
-        {
-          "attributes": {
-            "callback": null,
-            "renderers": [
-              {
-                "id": "14885"
-              }
-            ],
-            "tooltips": [
-              [
-                "County",
-                "@county"
+            "data": {
+              "x": [
+                -1,
+                1
               ],
-              [
-                "Estimated \u03b1",
-                "@y{0.000}"
-              ]
-            ]
+              "y": {
+                "__ndarray__": "8afGSzeJ6T/wp8ZLN4kBQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  2
+                ]
+              }
+            },
+            "selected": {
+              "id": "14932"
+            },
+            "selection_policy": {
+              "id": "14931"
+            }
           },
-          "id": "14899",
-          "type": "HoverTool"
+          "id": "14914",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "14914"
+            },
+            "glyph": {
+              "id": "14915"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "level": "underlay",
+            "muted_glyph": {
+              "id": "14917"
+            },
+            "nonselection_glyph": {
+              "id": "14916"
+            },
+            "view": {
+              "id": "14919"
+            }
+          },
+          "id": "14918",
+          "type": "GlyphRenderer"
         },
         {
           "attributes": {
@@ -557,7 +521,7 @@
                 "YELLOW MEDICINE"
               ],
               "lower": {
-                "__ndarray__": "N4lBYOXQ6j+QwvUoXI/qP9Ei2/l+avQ/pHA9Ctej8D+q8dJNYhD0P/LSTWIQWPk/okW28/3U+j8dWmQ730/5P/YoXI/C9fA/Dy2yne+n9j8FgZVDi2zvP/hT46WbxPg/B6wcWmQ76z+e76fGSzf7P2Q730+Nl/Q/EoPAyqFF7j8AAAAAAAD4P4/C9Shcj+4/9P3UeOkm9T/jpZvEILD4P+kmMQisHPg/nMQgsHJo9T9GtvP91Hj5P5MYBFYOLfo/lkOLbOf7+T8cWmQ730/1PyGwcmiR7fo/yXa+nxov8T/n+6nx0k3qP6rx0k1iEOw/Vg4tsp3v+T/m0CLb+X70P8DKoUW28/c/xSCwcmiR9T+0yHa+nxrnP9Ei2/l+avo/jZduEoPA5j8IrBxaZDvvP76fGi/dJPg/bhKDwMqh+z+LbOf7qfH6P6JFtvP91PY/ZmZmZmZm9j+cxCCwcmj1P8P1KFyPwvU/30+Nl24S9T/m0CLb+X7yP1pkO99PjfM/dJMYBFYO+T/o+6nx0k36P4brUbgehfk/6Pup8dJN+j8EVg4tsp33P/7UeOkmMfY/ukkMAiuH9D8VrkfhehT0P8L1KFyPwvE/IbByaJHt+j86tMh2vp/4P2u8dJMYBPg/xCCwcmiR8T+8dJMYBFb6Py/dJAaBlfk/XrpJDAIr+T9QjZduEoP6P94kBoGVQ/U/6iYxCKwc+D93vp8aL93sPwmsHFpkO/c/TmIQWDm07D/KoUW28/32PzvfT42Xbvg/ZTvfT42X+j8IrBxaZDv3Pxsv3SQGgfU/BoGVQ4ts+z99PzVeukn4P8QgsHJoke0/8tJNYhBY9T97FK5H4Xr0P8ZLN4lBYPk/0SLb+X5q+D9ANV66SQz6P5MYBFYOLfY/ObTIdr6f+D8=",
+                "__ndarray__": "jZduEoPA6j9lO99PjZfqPzzfT42XbvQ/+n5qvHST8D/pJjEIrBz0P7Kd76fGS/k/YhBYObTI+j9I4XoUrkf5P6AaL90kBvE/OrTIdr6f9j9bj8L1KFzvP/hT46WbxPg/MjMzMzMz6z9eukkMAiv7Pzm0yHa+n/Q/lBgEVg4t7j+WQ4ts5/v3P2dmZmZmZu4/iUFg5dAi9T/jpZvEILD4P5MYBFYOLfg/xks3iUFg9T/b+X5qvHT5P+kmMQisHPo/7FG4HoXr+T8dWmQ730/1P4ts5/up8fo/CawcWmQ78T9mZmZmZmbqP9JNYhBYOew/Vg4tsp3v+T8lBoGVQ4v0P8HKoUW28/c/BFYOLbKd9T/fT42XbhLnP5LtfD81Xvo/4XoUrkfh5j+KQWDl0CLvP+kmMQisHPg/mpmZmZmZ+z8gsHJoke36P6JFtvP91PY/ZmZmZmZm9j8bL90kBoH1Py2yne+nxvU/SgwCK4cW9T+7SQwCK4fyPzDdJAaBlfM/dJMYBFYO+T89CtejcD36P9v5fmq8dPk/PgrXo3A9+j8EVg4tsp33P/7UeOkmMfY/EFg5tMh29D+/nxov3ST0Py2yne+nxvE/TDeJQWDl+j+kcD0K16P4P2q8dJMYBPg/WmQ730+N8T8nMQisHFr6P8QgsHJokfk/tMh2vp8a+T97FK5H4Xr6PzMzMzMzM/U/AAAAAAAA+D9MN4lBYOXsPwmsHFpkO/c/Itv5fmq87D/KoUW28/32PxBYObTIdvg/OrTIdr6f+j9zaJHtfD/3P0a28/3UePU/cT0K16Nw+z/+1HjpJjH4P/Cnxks3ie0/XY/C9Shc9T+6SQwCK4f0P4cW2c73U/k/O99PjZdu+D9ANV66SQz6Pyhcj8L1KPY/OrTIdr6f+D8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -565,7 +529,7 @@
                 ]
               },
               "upper": {
-                "__ndarray__": "vHSTGARW8j+q8dJNYhDwP0fhehSuR/k/mpmZmZmZ9T/MzMzMzMz4PxKDwMqhRf4/dJMYBFYO/z9pke18PzX+P3Joke18P/U/MzMzMzMz+z+jcD0K16P0P/Cnxks3if0/0CLb+X5q8j+cxCCwcmj/P1yPwvUoXPk/001iEFg59D/KoUW28/38P3A9CtejcPM/rkfhehSu9z8v3SQGgZX9P+XQItv5fvw/uB6F61G4+j9kO99PjZf+PzeJQWDl0P4/vp8aL90k/j9cj8L1KFz3P0OLbOf7qf8/QWDl0CLb9T/n+6nx0k3yP30/NV66SfI/Itv5fmq8/j9eukkMAiv5PwwCK4cW2fw/5dAi2/l++j99PzVeuknwP5duEoPAyv8/6SYxCKwc8D9KDAIrhxb1P2IQWDm0yPw/XI/C9ShcAEDb+X5qvHT/P2q8dJMYBPw/uB6F61G4+j9oke18PzX6PxfZzvdT4/k/g8DKoUW2+T9aZDvfT433P6wcWmQ73/c/SgwCK4cW/T9aZDvfT43/P6abxCCwcv4/CKwcWmQ7/z/6fmq8dJP8PyqHFtnO9/k/Nl66SQwC+T81XrpJDAL5P7pJDAIrh/Y/bef7qfHS/z9cj8L1KFz9P99PjZduEv0/TmIQWDm09D+0yHa+nxr/P3sUrkfhev4/MgisHFpk/T8YBFYOLbL/P7ByaJHtfPk/aJHtfD81/D9g5dAi2/nyP9V46SYxCPw/EFg5tMh28D/8qfHSTWL6P+Olm8QgsPw/g8DKoUW2/z+oxks3iUH8P710kxgEVvo//tR46SYxAEAj2/l+arz8P65H4XoUrvM/kML1KFyP+j+HFtnO91P3P7gehetRuP4/bxKDwMqh/T9oke18PzX+P+f7qfHSTfo/g8DKoUW2/T8=",
+                "__ndarray__": "ke18PzVe8j8VrkfhehTwPwisHFpkO/k/xCCwcmiR9T+Nl24Sg8D4P6jGSzeJQf4/CtejcD0K/z/qJjEIrBz+P3Joke18P/U/XrpJDAIr+z/O91PjpZv0Pxov3SQGgf0/O99PjZdu8j9cj8L1KFz/P4cW2c73U/k/PgrXo3A99D+28/3UeOn8PwaBlUOLbPM/Q4ts5/up9z8v3SQGgZX9P5HtfD81Xvw/YhBYObTI+j8lBoGVQ4v+P42XbhKDwP4/vp8aL90k/j+HFtnO91P3Py/dJAaBlf8/16NwPQrX9T8nMQisHFryP+f7qfHSTfI/eOkmMQis/j/Jdr6fGi/5P42XbhKDwPw/0CLb+X5q+j8Sg8DKoUXwP1g5tMh2vv8/vp8aL90k8D/fT42XbhL1P42XbhKDwPw/sp3vp8ZLAEDy0k1iEFj/P5ZDi2zn+/s/5KWbxCCw+j+TGARWDi36P4GVQ4ts5/k/GARWDi2y+T+F61G4HoX3P6wcWmQ73/c/SgwCK4cW/T+F61G4HoX/PycxCKwcWv4/CKwcWmQ7/z8kBoGVQ4v8PwAAAAAAAPo/YOXQItv5+D+LbOf7qfH4P0+Nl24Sg/Y/wvUoXI/C/z8cWmQ730/9PwrXo3A9Cv0/5KWbxCCw9D/LoUW28/3+PxBYObTIdv4/iBbZzvdT/T9Di2zn+6n/P9v5fmq8dPk/0k1iEFg5/D/2KFyPwvXyPyuHFtnO9/s/UI2XbhKD8D/8qfHSTWL6Pw4tsp3vp/w/rkfhehSu/z89CtejcD38P+j7qfHSTfo/9P3UeOkmAEAi2/l+arz8P0SLbOf7qfM/JQaBlUOL+j9I4XoUrkf3P3npJjEIrP4/hetRuB6F/T++nxov3ST+P6jGSzeJQfo/rkfhehSu/T8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -581,7 +545,7 @@
                 ]
               },
               "y": {
-                "__ndarray__": "WDm0yHa+7z/y0k1iEFjtPwwCK4cW2fY/H4XrUbge8z8730+Nl272PwIrhxbZzvs/i2zn+6nx/D/D9Shcj8L7P7TIdr6fGvM/IbByaJHt+D+TGARWDi3yP/T91HjpJvs/arx0kxgE8D8dWmQ730/9P2Dl0CLb+fY/rkfhehSu8T/l0CLb+X76P1yPwvUoXPE/0SLb+X5q9j+JQWDl0CL7P+f7qfHSTfo/qvHSTWIQ+D/VeOkmMQj8P+XQItv5fvw/qvHSTWIQ/D+8dJMYBFb2P7Kd76fGS/0/hetRuB6F8z/b+X5qvHTvPylcj8L1KPA/vHSTGARW/D+iRbbz/dT2P2ZmZmZmZvo/1XjpJjEI+D/Xo3A9CtfrP7TIdr6fGv0/sHJoke186z8nMQisHFryPxBYObTIdvo/kxgEVg4t/j8zMzMzMzP9PwaBlUOLbPk/j8L1KFyP+D8CK4cW2c73P23n+6nx0vc/MQisHFpk9z+gGi/dJAb1P4PAyqFFtvU/30+Nl24S+z8hsHJoke38P5ZDi2zn+/s/+FPjpZvE/D9/arx0kxj6PxSuR+F6FPg/+FPjpZvE9j8lBoGVQ4v2P76fGi/dJPQ/x0s3iUFg/T/LoUW28/36PyUGgZVDi/o/iUFg5dAi8z+4HoXrUbj8P9V46SYxCPw/SOF6FK5H+z+0yHa+nxr9P8dLN4lBYPc/KVyPwvUo+j9OYhBYObTwP28Sg8DKofk/N4lBYOXQ7j/jpZvEILD4P4/C9Shcj/o/9P3UeOkm/T9YObTIdr75P+xRuB6F6/c/gZVDi2zn/T9QjZduEoP6PwisHFpkO/E/wcqhRbbz9z+BlUOLbOf1Pz81XrpJDPw/oBov3SQG+z9U46WbxCD8Pz0K16NwPfg/XrpJDAIr+z8=",
+                "__ndarray__": "WDm0yHa+7z/HSzeJQWDtP6JFtvP91PY/30+Nl24S8z8730+Nl272Py2yne+nxvs/tvP91Hjp/D8ZBFYOLbL7P4lBYOXQIvM/TDeJQWDl+D++nxov3STyP4lBYOXQIvs/arx0kxgE8D/dJAaBlUP9P2Dl0CLb+fY/RIts5/up8T+mm8QgsHL6Px1aZDvfT/E/ZmZmZmZm9j+JQWDl0CL7PxKDwMqhRfo/FK5H4XoU+D8AAAAAAAD8PzvfT42Xbvw/1XjpJjEI/D9SuB6F61H2P90kBoGVQ/0/8KfGSzeJ8z9aZDvfT43vP2iR7Xw/NfA/5/up8dJN/D93vp8aL932PycxCKwcWvo/arx0kxgE+D8CK4cW2c7rP3WTGARWDv0/L90kBoGV6z9SuB6F61HyPzvfT42Xbvo/f2q8dJMY/j+JQWDl0CL9P5zEILByaPk/JQaBlUOL+D/Xo3A9Ctf3P9ejcD0K1/c/MQisHFpk9z+gGi/dJAb1P+58PzVeuvU/30+Nl24S+z/hehSuR+H8P4GVQ4ts5/s/I9v5fmq8/D8UrkfhehT6P39qvHSTGPg/uB6F61G49j8lBoGVQ4v2P76fGi/dJPQ/hxbZzvdT/T9g5dAi2/n6P7pJDAIrh/o/H4XrUbge8z956SYxCKz8P2q8dJMYBPw/nu+nxks3+z/fT42XbhL9P4cW2c73U/c/6SYxCKwc+j9OYhBYObTwP5qZmZmZmfk/4XoUrkfh7j/jpZvEILD4P4/C9Shcj/o/9P3UeOkm/T9YObTIdr75PxfZzvdT4/c/rBxaZDvf/T8QWDm0yHb6P57vp8ZLN/E/wcqhRbbz9z+BlUOLbOf1PwAAAAAAAPw/YOXQItv5+j9/arx0kxj8P2iR7Xw/Nfg/9P3UeOkm+z8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -590,19 +554,65 @@
               }
             },
             "selected": {
-              "id": "14895"
+              "id": "14904"
             },
             "selection_policy": {
-              "id": "14894"
+              "id": "14903"
             }
           },
-          "id": "14846",
+          "id": "14855",
           "type": "ColumnDataSource"
         },
         {
           "attributes": {
-            "line_alpha": 0.1,
-            "line_width": 3,
+            "end": 0.6,
+            "start": -1
+          },
+          "id": "14859",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "14931",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Partial-pooling with individual and group level predictors"
+          },
+          "id": "14857",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "14932",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "14912",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "size": {
+              "value": 10
+            },
             "x": {
               "field": "x"
             },
@@ -610,37 +620,35 @@
               "field": "y"
             }
           },
-          "id": "14907",
-          "type": "Line"
+          "id": "14892",
+          "type": "Circle"
         },
         {
           "attributes": {
-            "tools": [
+            "callback": null,
+            "renderers": [
               {
-                "id": "14866"
-              },
-              {
-                "id": "14867"
-              },
-              {
-                "id": "14868"
-              },
-              {
-                "id": "14869"
-              },
-              {
-                "id": "14870"
-              },
-              {
-                "id": "14871"
-              },
-              {
-                "id": "14899"
+                "id": "14894"
               }
+            ],
+            "tooltips": [
+              [
+                "County",
+                "@county"
+              ],
+              [
+                "Estimated \u03b1",
+                "@y{0.000}"
+              ]
             ]
           },
-          "id": "14873",
-          "type": "Toolbar"
+          "id": "14908",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "14901",
+          "type": "BasicTickFormatter"
         },
         {
           "attributes": {
@@ -656,19 +664,19 @@
               "field": "lower"
             },
             "lower_head": {
-              "id": "14904"
+              "id": "14913"
             },
             "source": {
-              "id": "14846"
+              "id": "14855"
             },
             "upper": {
               "field": "upper"
             },
             "upper_head": {
-              "id": "14903"
+              "id": "14912"
             }
           },
-          "id": "14901",
+          "id": "14910",
           "type": "Whisker"
         },
         {
@@ -680,93 +688,76 @@
               "value": 10
             }
           },
-          "id": "14904",
+          "id": "14913",
           "type": "TeeHead"
         },
         {
           "attributes": {},
-          "id": "14894",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {
-            "data": {
-              "x": [
-                -1,
-                1
-              ],
-              "y": {
-                "__ndarray__": "Gy/dJAaB6T+PwvUoXI8BQA==",
-                "dtype": "float64",
-                "order": "little",
-                "shape": [
-                  2
-                ]
-              }
-            },
-            "selected": {
-              "id": "14923"
-            },
-            "selection_policy": {
-              "id": "14922"
-            }
-          },
-          "id": "14905",
-          "type": "ColumnDataSource"
+          "id": "14898",
+          "type": "BasicTickFormatter"
         },
         {
           "attributes": {},
-          "id": "14859",
+          "id": "14868",
           "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "14875"
+              },
+              {
+                "id": "14876"
+              },
+              {
+                "id": "14877"
+              },
+              {
+                "id": "14878"
+              },
+              {
+                "id": "14879"
+              },
+              {
+                "id": "14880"
+              },
+              {
+                "id": "14908"
+              }
+            ]
+          },
+          "id": "14882",
+          "type": "Toolbar"
         },
         {
           "attributes": {
             "end": 2.2,
             "start": 0.5
           },
-          "id": "14852",
+          "id": "14861",
           "type": "Range1d"
         },
         {
           "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "14846"
+            "fill_alpha": {
+              "value": 0.1
             },
-            "glyph": {
-              "id": "14881"
+            "fill_color": {
+              "value": "steelblue"
             },
-            "group": null,
-            "hover_glyph": {
-              "id": "14883"
+            "hatch_alpha": {
+              "value": 0.1
             },
-            "muted_glyph": {
-              "id": "14884"
+            "line_alpha": {
+              "value": 0.1
             },
-            "nonselection_glyph": {
-              "id": "14882"
+            "line_color": {
+              "value": "white"
             },
-            "view": {
-              "id": "14886"
-            }
-          },
-          "id": "14885",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {},
-          "id": "14889",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {},
-          "id": "14854",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.3,
-            "line_width": 3,
+            "size": {
+              "value": 10
+            },
             "x": {
               "field": "x"
             },
@@ -774,13 +765,23 @@
               "field": "y"
             }
           },
-          "id": "14906",
-          "type": "Line"
+          "id": "14891",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "14899",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "14863",
+          "type": "LinearScale"
         },
         {
           "attributes": {
             "axis": {
-              "id": "14858"
+              "id": "14867"
             },
             "coordinates": null,
             "grid_line_alpha": 0.2,
@@ -789,22 +790,21 @@
             "group": null,
             "ticker": null
           },
-          "id": "14861",
+          "id": "14870",
           "type": "Grid"
         },
         {
-          "attributes": {},
-          "id": "14890",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "14856",
-          "type": "LinearScale"
+          "attributes": {
+            "source": {
+              "id": "14914"
+            }
+          },
+          "id": "14919",
+          "type": "CDSView"
         }
       ],
       "root_ids": [
-        "14847"
+        "14856"
       ]
     },
     "title": "Bokeh Application",
