@@ -201,6 +201,7 @@ digraph "graph" {
         observed = astor.to_source(bmgast)
         expected = """
 def foo_helper(bmg, __class__):
+    import operator
 
     def foo(self):
         a5 = super()
@@ -210,13 +211,13 @@ def foo_helper(bmg, __class__):
         f = bmg.handle_function(a1, r7, r10)
         a14 = [DerivedModel]
         a15 = [self]
-        r13 = bmg.handle_addition(a14, a15)
+        r13 = bmg.handle_function(operator.add, [a14, a15])
         a6 = super(*r13)
         a2 = bmg.handle_dot_get(a6, 'bar')
         r8 = []
         r11 = {}
         b = bmg.handle_function(a2, r8, r11)
-        r3 = bmg.handle_multiplication(f, b)
+        r3 = bmg.handle_function(operator.mul, [f, b])
         return r3
     a4 = bmg.handle_dot_get(bm, 'functional')
     r9 = [foo]

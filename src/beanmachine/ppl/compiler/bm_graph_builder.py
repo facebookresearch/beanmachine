@@ -90,24 +90,8 @@ class BMGraphBuilder:
     # By memoizing almost all the "add" methods we ensure that
     # the graph is deduplicated automatically.
     #
-    # The "handle" methods, in contrast, conditionally create new
-    # graph nodes only when required because an operation on a
-    # stochastic value must be accumulated into the graph.
-    #
-    # For example, if we have a call to handle_addition where all
-    # operands are ordinary floats (or constant graph nodes)
-    # then there is no need to add a new node to the graph. But
-    # if we have an addition of 1.0 to a stochastic node -- perhaps
-    # a sample node, or perhaps some other graph node that eventually
-    # involves a sample node -- then we need to construct a new
-    # addition node, which is then returned and becomes the value
-    # manipulated by the executing lifted program.
-    #
-    # TODO: The code in the "handle" methods which folds operations
-    # on constant nodes and regular values is a holdover from an
-    # earlier prototyping stage in which all values were lifted to
-    # graph nodes. These scenarios should now be impossible, and we
-    # should take a work item to remove this now-unnecessary code.
+    # TODO: This code does constant folding as well as deduplication,
+    # but that could be moved to a later optimization pass.
 
     def add_node(self, node: BMGNode) -> BMGNode:
         # TODO: This should be private

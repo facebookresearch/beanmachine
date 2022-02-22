@@ -51,7 +51,6 @@ three, four and five.
 """
 
 import inspect
-import operator
 from types import MethodType
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -182,80 +181,12 @@ class BMGRuntime:
             )
         )
 
-    def handle_greater_than(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.gt, [input, other], {})
-
-    def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.ge, [input, other], {})
-
-    def handle_less_than(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.lt, [input, other], {})
-
-    def handle_less_than_equal(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.le, [input, other], {})
-
-    def handle_equal(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.eq, [input, other], {})
-
-    def handle_not_equal(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.ne, [input, other], {})
-
-    def handle_is(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.is_, [input, other], {})
-
-    def handle_is_not(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.is_not, [input, other], {})
-
-    def handle_in(self, input: Any, other: Any) -> Any:
-        # Note that we reverse the operands here; "a in b" is the
-        # same as "contains(b, a)"
-        return self.handle_function(operator.contains, [other, input], {})
-
     def handle_not_in(self, input: Any, other: Any) -> Any:
         # Unfortunately there is no operator function equivalent of
         # "not in" so we can't leverage the special function caller here.
         return self._possibly_stochastic_op(
             lambda x, y: x not in y, self._bmg.add_not_in, [input, other]
         )
-
-    def handle_multiplication(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.mul, [input, other], {})
-
-    def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
-        return self.handle_function(operator.matmul, [input, mat2], {})
-
-    def handle_addition(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.add, [input, other], {})
-
-    def handle_bitand(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.and_, [input, other], {})
-
-    def handle_bitor(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.or_, [input, other], {})
-
-    def handle_bitxor(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.xor, [input, other], {})
-
-    def handle_subtraction(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.sub, [input, other], {})
-
-    def handle_division(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.truediv, [input, other], {})
-
-    def handle_floordiv(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.floordiv, [input, other], {})
-
-    def handle_lshift(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.lshift, [input, other], {})
-
-    def handle_mod(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.mod, [input, other], {})
-
-    def handle_power(self, input: Any, exponent: Any) -> Any:
-        return self.handle_function(operator.pow, [input, exponent], {})
-
-    def handle_rshift(self, input: Any, other: Any) -> Any:
-        return self.handle_function(operator.rshift, [input, other], {})
 
     def _is_stochastic_tuple(self, t: Any):
         # A stochastic tuple is any tuple where any element is either a graph node
@@ -333,61 +264,6 @@ class BMGRuntime:
         ):
             raise ValueError("Stochastic slices are not yet implemented.")
         return left[lower:upper:step]
-
-    def handle_invert(self, input: Any) -> Any:
-        return self.handle_function(operator.inv, [input], {})
-
-    def handle_negate(self, input: Any) -> Any:
-        return self.handle_function(operator.neg, [input], {})
-
-    def handle_uadd(self, input: Any) -> Any:
-        return self.handle_function(operator.pos, [input], {})
-
-    def handle_not(self, input: Any) -> Any:
-        return self.handle_function(operator.not_, [input], {})
-
-    #
-    # Augmented assignment operators
-    #
-
-    def handle_iadd(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.iadd, [left, right])
-
-    def handle_isub(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.isub, [left, right])
-
-    def handle_imul(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.imul, [left, right])
-
-    def handle_idiv(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.itruediv, [left, right])
-
-    def handle_ifloordiv(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.ifloordiv, [left, right])
-
-    def handle_imod(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.imod, [left, right])
-
-    def handle_ipow(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.ipow, [left, right])
-
-    def handle_imatmul(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.imatmul, [left, right])
-
-    def handle_ilshift(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.ilshift, [left, right])
-
-    def handle_irshift(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.irshift, [left, right])
-
-    def handle_iand(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.iand, [left, right])
-
-    def handle_ixor(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.ixor, [left, right])
-
-    def handle_ior(self, left: Any, right: Any) -> Any:
-        return self.handle_function(operator.ior, [left, right])
 
     #
     # Control flow
