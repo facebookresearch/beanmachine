@@ -232,10 +232,10 @@ digraph "graph" {
             BMGInference().to_dot([invalid_tensor_1(), invalid_tensor_2()], {})
         # TODO: This error message is horrid. Fix it.
         expected = (
-            "The model uses a [[[1.0,2.0],\\n[3.0,4.0]],\\n[[5.0,6.0],\\n[7.0,8.0]]] "
+            "The model uses a tensor "
             + "operation unsupported by Bean Machine Graph.\n"
-            + "The unsupported node is the operator of a Query.\n"
-            + "The model uses a [] operation unsupported by Bean Machine Graph.\n"
-            + "The unsupported node is the operator of a Query."
+            + "The unsupported node is the operator of a query.\n"
+            + "The model uses a tensor operation unsupported by Bean Machine Graph.\n"
+            + "The unsupported node is the operator of a query."
         )
         self.assertEqual(expected, str(ex.exception))

@@ -254,10 +254,10 @@ digraph "graph" {
         error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
-The count of a Binomial is required to be a natural but is a positive real.
+The count of a binomial is required to be a natural but is a positive real.
 The probability of a Bernoulli is required to be a probability but is a 2 x 1 simplex matrix.
-The probability of a Binomial is required to be a probability but is a positive real.
-The sigma of a Normal is required to be a positive real but is a negative real.
+The probability of a binomial is required to be a probability but is a positive real.
+The sigma of a normal is required to be a positive real but is a negative real.
         """
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -553,10 +553,10 @@ digraph "graph" {
         error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
-The model uses a Uniform operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Uniform operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
+The model uses a uniform operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a sample.
+The model uses a uniform operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a sample.
 """
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -942,7 +942,7 @@ digraph "graph" {
         observed = str(error_report)
         expected = """
 A Bernoulli distribution is observed to have value -1.5 but only produces samples of type bool.
-A Binomial distribution is observed to have value 5.25 but only produces samples of type natural.
+A binomial distribution is observed to have value 5.25 but only produces samples of type natural.
 """
         self.assertEqual(observed.strip(), expected.strip())
 

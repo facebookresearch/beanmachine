@@ -131,16 +131,6 @@ def bino():
 
 
 @bm.functional
-def unsupported_invert():
-    return ~bino()
-
-
-@bm.functional
-def unsupported_bitxor():
-    return bino() ^ bino()
-
-
-@bm.functional
 def unsupported_add():
     # What happens if we use a stochastic quantity in an operation with
     # a non-tensor, non-number?
@@ -1542,6 +1532,8 @@ class BMGArithmeticTest(unittest.TestCase):
         # "not" operators are not yet properly supported by the compiler/BMG;
         # update this test when we get them working.
 
+        # TODO: Add test cases for not operators on Bernoulli samples.
+
         queries = [
             not_1(),
             not_2(),
@@ -1556,14 +1548,14 @@ class BMGArithmeticTest(unittest.TestCase):
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a not operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a not operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a not operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a not operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'not' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'not' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'not' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'not' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -1899,14 +1891,14 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a & operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a & operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a & operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a & operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'bitwise and' (&) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise and' (&) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise and' (&) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise and' (&) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -1999,14 +1991,14 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a == operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a == operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a == operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a == operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses an equality (==) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an equality (==) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an equality (==) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an equality (==) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2037,13 +2029,13 @@ The unsupported node is the operator of a Query.
             BMGInference().infer(queries, {}, 1)
         expected = """
 The model uses a // operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The unsupported node is the operator of a query.
 The model uses a // operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The unsupported node is the operator of a query.
 The model uses a // operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The unsupported node is the operator of a query.
 The model uses a // operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2068,14 +2060,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a >= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a >= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a >= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a >= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'greater than or equal' (>=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'greater than or equal' (>=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'greater than or equal' (>=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'greater than or equal' (>=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2100,14 +2092,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a > operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a > operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a > operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a > operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'greater than' (>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'greater than' (>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'greater than' (>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'greater than' (>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2131,13 +2123,13 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a In operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a In operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a NotIn operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
+The model uses a 'not in' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an 'in' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an 'in' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+"""
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -2160,15 +2152,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a Is operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a Is operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a IsNot operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a IsNot operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
+The model uses an 'is not' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an 'is not' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an 'is' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an 'is' operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query."""
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -2193,14 +2184,14 @@ The unsupported node is the operator of a Query.
             BMGInference().infer(queries, {}, 1)
         # TODO: This is weirdly capitalized and ungrammatical. Fix the error message.
         expected = """
-The model uses a Invert operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a Invert operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a Invert operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a Invert operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'bitwise invert' (~) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise invert' (~) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise invert' (~) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise invert' (~) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2225,14 +2216,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a <= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a <= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a <= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a <= operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'less than or equal' (<=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'less than or equal' (<=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'less than or equal' (<=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'less than or equal' (<=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2257,14 +2248,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a << operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a << operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a << operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a << operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'left shift' (<<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'left shift' (<<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'left shift' (<<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'left shift' (<<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2289,14 +2280,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a < operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a < operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a < operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a < operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'less than' (<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'less than' (<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'less than' (<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'less than' (<) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2321,14 +2312,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a % operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a % operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a % operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a % operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a modulus (%) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a modulus (%) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a modulus (%) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a modulus (%) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2423,14 +2414,14 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a != operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a != operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a != operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a != operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses an inequality (!=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an inequality (!=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an inequality (!=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses an inequality (!=) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2455,14 +2446,14 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a | operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a | operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a | operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a | operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'bitwise or' (|) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise or' (|) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise or' (|) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise or' (|) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2487,15 +2478,15 @@ The unsupported node is the operator of a Query.
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a >> operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a >> operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a >> operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a >> operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
+The model uses a 'right shift' (>>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'right shift' (>>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'right shift' (>>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'right shift' (>>) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+"""
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -2634,14 +2625,14 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, {}, 1)
         expected = """
-The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a 'bitwise xor' (^) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise xor' (^) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise xor' (^) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
+The model uses a 'bitwise xor' (^) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
@@ -2959,26 +2950,14 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-    def test_unsupported_arithmetic(self) -> None:
-        self.maxDiff = None
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_bitxor()], {}, 1)
-        expected = """
-The model uses a ^ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
-        """
-        observed = str(ex.exception)
-        self.assertEqual(expected.strip(), observed.strip())
-
     def test_unsupported_operands(self) -> None:
         self.maxDiff = None
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer([unsupported_add()], {}, 1)
         # TODO: This error message is terrible; fix it.
         expected = """
-The model uses a foo operation unsupported by Bean Machine Graph.
-The unsupported node is the right of a +.
+The model uses a constant value operation unsupported by Bean Machine Graph.
+The unsupported node is the right of an addition (+).
         """
         observed = str(ex.exception)
         self.assertEqual(expected.strip(), observed.strip())

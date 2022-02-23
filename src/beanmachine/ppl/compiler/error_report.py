@@ -15,12 +15,8 @@ from beanmachine.ppl.compiler.bmg_types import (
     Requirement,
     requirement_to_type,
 )
-from beanmachine.ppl.compiler.graph_labels import get_node_label
-
-
-# TODO: We use the DOT label of the node in the error messages here,
-# but we can probably do a better job. These labels are designed for
-# displaying a graph, not an error message.
+from beanmachine.ppl.compiler.graph_labels import get_node_error_label
+from beanmachine.ppl.utils.a_or_an import a_or_an, A_or_An
 
 
 class BMGError(ABC):
@@ -55,9 +51,9 @@ class Violation(BMGError):
         # TODO: Fix this error message for the case where we require
         # a matrix but we can only get a scalar value
         msg = (
-            f"The {self.edge} of a {get_node_label(self.consumer)} "
-            + f"is required to be a {t.long_name} "
-            + f"but is a {self.node_type.long_name}."
+            f"The {self.edge} of {a_or_an(get_node_error_label(self.consumer))} "
+            + f"is required to be {a_or_an(t.long_name)} "
+            + f"but is {a_or_an(self.node_type.long_name)}."
         )
         return msg
 
@@ -74,10 +70,10 @@ class ImpossibleObservation(BMGError):
         v = self.node.value
         s = self.node.observed
         assert isinstance(s, SampleNode)
-        d = get_node_label(s.operand)
+        d = get_node_error_label(s.operand)
         t = self.distribution_type.long_name
         msg = (
-            f"A {d} distribution is observed to have value {v} "
+            f"{A_or_An(d)} distribution is observed to have value {v} "
             + f"but only produces samples of type {t}."
         )
         return msg
@@ -96,9 +92,9 @@ class UnsupportedNode(BMGError):
     def __str__(self) -> str:
         msg = (
             # TODO: Improve wording and diagnosis.
-            f"The model uses a {get_node_label(self.node)} operation unsupported by "
+            f"The model uses {a_or_an(get_node_error_label(self.node))} operation unsupported by "
             + f"Bean Machine Graph.\nThe unsupported node is the {self.edge} "
-            + f"of a {get_node_label(self.consumer)}."
+            + f"of {a_or_an(get_node_error_label(self.consumer))}."
         )
         return msg
 

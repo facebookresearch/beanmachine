@@ -71,10 +71,10 @@ digraph "graph" {
   N7 -> N8;
 }"""
         expected_error = """
-The model uses a @ operation unsupported by Bean Machine Graph.
-The unsupported node is the left of a @.
-The model uses a @ operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a Query.
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node is the left of a matrix multiplication (@).
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a query.
         """
 
         observed = BMGInference().to_dot([mm()], {}, after_transform=False)
