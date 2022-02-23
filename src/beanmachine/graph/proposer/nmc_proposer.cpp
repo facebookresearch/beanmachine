@@ -61,7 +61,7 @@ nmc_proposer(const graph::NodeValue& value, double grad1, double grad2) {
   //     proposers.push_back(std::make_unique<Beta>(a, b));
   //   }
   // } else 
-  if (value.type == graph::AtomicType::REAL) {
+  // if (value.type == graph::AtomicType::REAL) {
     torch::Tensor x = value._value;
     // first a random walk
     weights.push_back(RANDOM_WALK_WEIGHT);
@@ -84,8 +84,12 @@ nmc_proposer(const graph::NodeValue& value, double grad1, double grad2) {
       weights.push_back(MAIN_PROPOSER_WEIGHT / 10);
       proposers.push_back(std::make_unique<Normal>(mu, sigma * 10));
     }
-  } 
+
+
+  // }
   // else if (value.type == graph::AtomicType::POS_REAL) {
+  // NOTE: the `TO_POS_REAL` upcast in the type system results in this sampler
+  // here being used
   //   double x = value._value;
   //   // first a random walk
   //   weights.push_back(RANDOM_WALK_WEIGHT);

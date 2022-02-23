@@ -201,7 +201,7 @@ class NodeValue {
               "Trying to copy an NodeValue of unknown type.");
         }
         default: {
-          _value = other._value;
+          _value = other._value.detach();
           break;
         }
       }
@@ -213,14 +213,14 @@ class NodeValue {
         case AtomicType::NEG_REAL:
         case AtomicType::PROBABILITY:
         case AtomicType::NATURAL:
-          _value = other._value;
+          _value = other._value.detach();
           break;
         default:
           throw std::invalid_argument(
               "Trying to copy a MATRIX NodeValue of unsupported type.");
       }
     } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-      _value = other._value;
+      _value = other._value.detach();
     } else {
       throw std::invalid_argument(
           "Trying to copy a value of unknown VariableType");
@@ -490,7 +490,7 @@ struct Graph {
 
   ~Graph() {}
   // std::string to_string() const;
-  // std::string to_dot() const;
+  std::string to_dot() const;
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);

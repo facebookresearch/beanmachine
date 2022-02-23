@@ -36,11 +36,7 @@ class DOT {
   void scalar(NodeValue v) {
     switch (v.type.atomic_type) {
       case AtomicType::BOOLEAN:
-        os << v._bool;
-        break;
       case AtomicType::NATURAL:
-        os << v._value;
-        break;
       case AtomicType::REAL:
       case AtomicType::POS_REAL:
       case AtomicType::NEG_REAL:

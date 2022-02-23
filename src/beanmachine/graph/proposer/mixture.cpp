@@ -31,8 +31,8 @@ graph::NodeValue Mixture::sample(std::mt19937& gen) const {
   }
   // due to numerical stability issues we could have gone past all the
   // elements in this case pick the last element
-  if (index == weights.size()) {
-    index--;
+  if (index >= weights.size()) {
+    index = weights.size() - 1;
   }
   return proposers[index]->sample(gen);
 }

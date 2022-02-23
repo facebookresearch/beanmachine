@@ -109,12 +109,15 @@ void Normal::gradient_log_prob_value(
   // _grad1_log_prob_value(grad1, value._value, m, s_sq);
   // grad2 += -1 / s_sq;
 
-  torch::Tensor lp = log_prob(value);
-    std::cout << "foo" << endl;
-  torch::Tensor grad = torch::autograd::grad({lp}, {value._value})[0];
-  grad1 = grad.item().toDouble();
-    std::cout << "bar" << endl;
-  grad2 = torch::autograd::grad({grad}, {value._value})[0].item().toDouble();
+  auto node_value_tmp = NodeValue(value);
+  auto value_tmp = node_value_tmp._value.set_requires_grad(true);
+  torch::Tensor lp = log_prob(node_value_tmp);
+  torch::Tensor grad = torch::autograd::grad({lp}, {value_tmp}, {}, false, true)[0];
+  grad1 += grad.item().toDouble();
+  grad.set_requires_grad(true);
+  grad2 += torch::autograd::grad({grad}, {value_tmp})[0].item().toDouble();
+  // grad.set_requires_grad(false);
+  // value._value.set_requires_grad(false);
 };
 
 void Normal::gradient_log_prob_param(
@@ -126,6 +129,10 @@ void Normal::gradient_log_prob_param(
   torch::Tensor m = in_nodes[0]->value._value;
   torch::Tensor s = in_nodes[1]->value._value;
   torch::Tensor s_sq = s * s;
+
+  // NOTE: adding the gradients for s and m to grad1/grad2 is only done
+  // because we assume at most one is parametric. This is wrong in general.
+
   // gradients of m should be non-zero before computing gradients w.r.t. m
   double m_grad = in_nodes[0]->grad1;
   double m_grad2 = in_nodes[0]->grad2;
@@ -135,12 +142,12 @@ void Normal::gradient_log_prob_param(
     // torch::Tensor grad2_m2 = -1 / s_sq;
     // grad1 += grad_m * m_grad;
     // grad2 += grad2_m2 * m_grad * m_grad + grad_m * m_grad2;
-    std::cout << "baz" << endl;
+    m.set_requires_grad(true);
     torch::Tensor grad = torch::autograd::grad(
       {lp}, {m}
     )[0];
     grad1 += grad.item().toDouble();
-    std::cout << "qux" << endl;
+    grad.set_requires_grad(true);
     grad2 += torch::autograd::grad({grad}, {m})[0].item().toDouble();
   }
   double s_grad = in_nodes[1]->grad1;

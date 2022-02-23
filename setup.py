@@ -125,6 +125,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3 :: Only",
+        'Programming Language :: Python :: Implementation :: CPython',
         "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering",
         "Intended Audience :: Science/Research",
@@ -199,7 +200,6 @@ setup(
                 - set(glob("src/beanmachine/graph/operator/linalgop.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.cpp", recursive=True))
-                - set(glob("src/beanmachine/graph/to_dot.cpp", recursive=True))
             ),
             include_dirs=INCLUDE_DIRS,
             # extra_compile_args=CPP_COMPILE_ARGS,
