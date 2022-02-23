@@ -62,10 +62,10 @@ MatrixMultiply::MatrixMultiply(const std::vector<graph::Node*>& in_nodes)
 
 void MatrixMultiply::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
-  value._matrix = in_nodes[0]->value._matrix * in_nodes[1]->value._matrix;
-  if (value.type.variable_type == graph::VariableType::SCALAR) {
-    to_scalar();
-  }
+  value._value = in_nodes[0]->value._value * in_nodes[1]->value._value;
+  // if (value.type.variable_type == graph::VariableType::SCALAR) {
+  //   to_scalar();
+  // }
 }
 // TODO[Walid]: The following needs to be modified to actually
 // implement the desired functionality
@@ -123,7 +123,7 @@ MatrixScale::MatrixScale(const std::vector<graph::Node*>& in_nodes)
 
 void MatrixScale::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
-  value._matrix = in_nodes[0]->value._double * in_nodes[1]->value._matrix;
+  value._value = in_nodes[0]->value._double * in_nodes[1]->value._value;
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     to_scalar();
   }
@@ -151,7 +151,7 @@ void MatrixScale::compute_gradients() {
   bool hasGrad2 = (in_nodes[1]->Grad2.numel() != 0);
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
-      Grad1[i][j] = in_nodes[0]->grad1 * in_nodes[1]->value._matrix[i][j];
+      Grad1[i][j] = in_nodes[0]->grad1 * in_nodes[1]->value._value[i][j];
       if (hasGrad1) {
         Grad1[i][j] += in_nodes[0]->value._double * in_nodes[1]->Grad1[i][j];
         Grad2[i][j] = in_nodes[0]->grad2 * in_nodes[1]->Grad1[i][j];
@@ -187,22 +187,22 @@ Index::Index(const std::vector<graph::Node*>& in_nodes)
 void Index::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
   const graph::NodeValue& matrix = in_nodes[0]->value;
-  graph::natural_t matrix_index = in_nodes[1]->value._natural;
+  graph::natural_t matrix_index = in_nodes[1]->value._value;
   if (matrix_index >= static_cast<unsigned long>(matrix.type.rows)) {
     throw std::runtime_error(
         "invalid index for INDEX operator at node_id " + std::to_string(index));
   }
   graph::AtomicType matrix_type = matrix.type.atomic_type;
   if (matrix_type == graph::AtomicType::BOOLEAN) {
-    value._bool = matrix._matrix[matrix_index].item().toBool();
+    value._value = matrix._value[matrix_index].item().toBool();
   } else if (
       matrix_type == graph::AtomicType::REAL or
       matrix_type == graph::AtomicType::POS_REAL or
       matrix_type == graph::AtomicType::NEG_REAL or
       matrix_type == graph::AtomicType::PROBABILITY) {
-    value._double = matrix._matrix[matrix_index].item().toDouble();
+    value._value = matrix._value[matrix_index].item().toDouble();
   } else if (matrix_type == graph::AtomicType::NATURAL) {
-    value._natural = matrix._matrix[matrix_index].item().toInt();
+    value._value = matrix._value[matrix_index].item().toInt();
   } else {
     throw std::runtime_error(
         "invalid parent type " + matrix.type.to_string() +
@@ -234,22 +234,22 @@ ColumnIndex::ColumnIndex(const std::vector<graph::Node*>& in_nodes)
 void ColumnIndex::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
   const graph::NodeValue& matrix = in_nodes[0]->value;
-  graph::natural_t matrix_index = in_nodes[1]->value._natural;
+  graph::natural_t matrix_index = in_nodes[1]->value._value;
   if (matrix_index >= static_cast<unsigned long>(matrix.type.cols)) {
     throw std::runtime_error(
         "invalid index for COLUMN_INDEX at node_id " + std::to_string(index));
   }
   graph::AtomicType matrix_type = matrix.type.atomic_type;
   if (matrix_type == graph::AtomicType::BOOLEAN) {
-    value._matrix = matrix._matrix.index({torch::indexing::Slice(), matrix_index});
+    value._value = matrix._value.index({torch::indexing::Slice(), matrix_index});
   } else if (
       matrix_type == graph::AtomicType::REAL or
       matrix_type == graph::AtomicType::POS_REAL or
       matrix_type == graph::AtomicType::NEG_REAL or
       matrix_type == graph::AtomicType::PROBABILITY) {
-    value._matrix = matrix._matrix.index({torch::indexing::Slice(), matrix_index});
+    value._value = matrix._value.index({torch::indexing::Slice(), matrix_index});
   } else if (matrix_type == graph::AtomicType::NATURAL) {
-    value._matrix = matrix._matrix.index({torch::indexing::Slice(), matrix_index});
+    value._value = matrix._value.index({torch::indexing::Slice(), matrix_index});
   } else {
     throw std::runtime_error(
         "invalid parent type " + matrix.type.to_string() +
@@ -284,8 +284,8 @@ BroadcastAdd::BroadcastAdd(const std::vector<graph::Node*>& in_nodes)
 
 void BroadcastAdd::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
-  value._matrix =
-      in_nodes[0]->value._double + in_nodes[1]->value._matrix;
+  value._value =
+      in_nodes[0]->value._double + in_nodes[1]->value._value;
 }
 
 } // namespace oper
