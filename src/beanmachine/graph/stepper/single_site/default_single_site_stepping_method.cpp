@@ -65,21 +65,21 @@ void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
 
   mh->revertibly_set_and_propagate(tgt_node, new_value);
 
-  double new_sto_affected_nodes_log_prob =
+  torch::Tensor new_sto_affected_nodes_log_prob =
       mh->compute_log_prob_of(mh->get_sto_affected_nodes(tgt_node));
 
   auto proposal_given_new_value = get_proposal_distribution(tgt_node);
 
   NodeValue& old_value = mh->get_old_value(tgt_node);
-  double old_sto_affected_nodes_log_prob =
+  torch::Tensor old_sto_affected_nodes_log_prob =
       mh->get_old_sto_affected_nodes_log_prob();
 
-  double logacc = new_sto_affected_nodes_log_prob -
+  torch::Tensor logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob +
       proposal_given_new_value->log_prob(old_value) -
       proposal_given_old_value->log_prob(new_value);
 
-  bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc);
+  bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc.item().toDouble());
   if (!accepted) {
     mh->revert_set_and_propagate(tgt_node);
   }

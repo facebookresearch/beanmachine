@@ -159,7 +159,7 @@ setup(
             sources=sorted(
                 (
                     set([
-                        "src/beanmachine/graph/rejection.cpp",
+                        # "src/beanmachine/graph/rejection.cpp",
                         # "src/beanmachine/graph/gibbs.cpp",
                         "src/beanmachine/graph/nmc.cpp",
                         "src/beanmachine/graph/pybindings.cpp",
@@ -187,7 +187,9 @@ setup(
                     | set(glob("src/beanmachine/graph/stepper/**/*.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/proposer/**/nmc_proposer.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/proposer/**/mixture.cpp", recursive=True))
+                    | set(glob("src/beanmachine/graph/proposer/**/normal.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/proposer/**/proposer.cpp", recursive=True))
+                    | set(glob("src/beanmachine/graph/proposer/**/default_initializer.cpp", recursive=True))
                 )
                 # set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
@@ -198,6 +200,7 @@ setup(
                 - set(glob("src/beanmachine/graph/operator/multiaryop.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/operator/unaryop.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/to_dot.cpp", recursive=True))
             ),
             include_dirs=INCLUDE_DIRS,

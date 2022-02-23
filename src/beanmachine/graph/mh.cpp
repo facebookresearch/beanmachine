@@ -270,12 +270,12 @@ void MH::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
 
 // Computes the log probability with respect to a given
 // set of stochastic nodes.
-double MH::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
+torch::Tensor MH::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
   torch::Tensor log_prob = torch::zeros({1});
   for (Node* node : sto_nodes) {
     log_prob += node->log_prob();
   }
-  return log_prob.item().toDouble();
+  return log_prob;
 }
 
 NodeValue MH::sample(const std::unique_ptr<proposer::Proposer>& prop) {

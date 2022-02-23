@@ -489,8 +489,8 @@ struct Graph {
   Graph(const Graph& other);
 
   ~Graph() {}
-  std::string to_string() const;
-  std::string to_dot() const;
+  // std::string to_string() const;
+  // std::string to_dot() const;
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);
@@ -792,8 +792,8 @@ struct Graph {
   std::vector<std::vector<double>> variational_params;
   std::vector<double> elbo_vals;
   void collect_sample();
-  void rejection(uint num_samples, uint seed, InferConfig infer_config);
-  void gibbs(uint num_samples, uint seed, InferConfig infer_config);
+  // void rejection(uint num_samples, uint seed, InferConfig infer_config);
+  // void gibbs(uint num_samples, uint seed, InferConfig infer_config);
   void nmc(uint num_samples, uint seed, InferConfig infer_config);
   void cavi(
       uint num_iters,

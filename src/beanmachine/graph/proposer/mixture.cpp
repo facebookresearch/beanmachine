@@ -37,14 +37,14 @@ graph::NodeValue Mixture::sample(std::mt19937& gen) const {
   return proposers[index]->sample(gen);
 }
 
-double Mixture::log_prob(graph::NodeValue& value) const {
-  std::vector<double> log_probs;
+torch::Tensor Mixture::log_prob(graph::NodeValue& value) const {
+  std::vector<torch::Tensor> log_probs;
   for (std::vector<double>::size_type index = 0; index < weights.size();
        index++) {
     log_probs.push_back(
         log(weights[index]) + proposers[index]->log_prob(value));
   }
-  return util::log_sum_exp(log_probs) - std::log(weight_sum);
+  return torch::stack(log_probs).logsumexp(0) - std::log(weight_sum);
 }
 
 } // namespace proposer

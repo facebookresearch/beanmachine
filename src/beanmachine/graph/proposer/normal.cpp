@@ -19,8 +19,8 @@ graph::NodeValue Normal::sample(std::mt19937& gen) const {
   return graph::NodeValue(graph::AtomicType::REAL, dist(gen));
 }
 
-double Normal::log_prob(graph::NodeValue& value) const {
-  return -sigma.log() - 0.5 * std::log(2 * M_PI) -
+torch::Tensor Normal::log_prob(graph::NodeValue& value) const {
+  return -std::log(sigma) - 0.5 * std::log(2 * M_PI) -
       0.5 * (value._value - mu) * (value._value - mu) / (sigma * sigma);
 }
 

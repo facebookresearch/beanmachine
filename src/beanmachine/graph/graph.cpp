@@ -11,11 +11,11 @@
 #include <thread>
 
 #include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/factor/factor.h"
+// #include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
-#include "beanmachine/graph/transform/transform.h"
+// #include "beanmachine/graph/transform/transform.h"
 
 namespace beanmachine {
 namespace graph {
@@ -61,32 +61,32 @@ std::string ValueType::to_string() const {
   return vtype + atype + ">";
 }
 
-// NodeValue::NodeValue(AtomicType type, double value)
-//     : type(type), _double(value) {
-//   // don't allow constrained values to get too close to the boundary
-//   if (type == AtomicType::POS_REAL) {
-//     if (_double < PRECISION) {
-//       _value = PRECISION;
-//     }
-//   } else if (type == AtomicType::NEG_REAL) {
-//     if (_double > -PRECISION) {
-//       _value = -PRECISION;
-//     }
-//   } else if (type == AtomicType::PROBABILITY) {
-//     if (_double < PRECISION) {
-//       _value = PRECISION;
-//     } else if (_double > (1 - PRECISION)) {
-//       _value = 1 - PRECISION;
-//     }
-//   } else {
-//     // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
-//     // values
-//     if (type != AtomicType::REAL) {
-//       throw std::invalid_argument(
-//           "expect probability, pos_real, neg_real or real type with floating point value");
-//     }
-//   }
-// }
+NodeValue::NodeValue(AtomicType type, double value)
+    : type(type), _value(torch::tensor({value})) {
+  // don't allow constrained values to get too close to the boundary
+  // if (type == AtomicType::POS_REAL) {
+  //   if (_double < PRECISION) {
+  //     _value = PRECISION;
+  //   }
+  // } else if (type == AtomicType::NEG_REAL) {
+  //   if (_double > -PRECISION) {
+  //     _value = -PRECISION;
+  //   }
+  // } else if (type == AtomicType::PROBABILITY) {
+  //   if (_double < PRECISION) {
+  //     _value = PRECISION;
+  //   } else if (_double > (1 - PRECISION)) {
+  //     _value = 1 - PRECISION;
+  //   }
+  // } else {
+  //   // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
+  //   // values
+  //   if (type != AtomicType::REAL) {
+  //     throw std::invalid_argument(
+  //         "expect probability, pos_real, neg_real or real type with floating point value");
+  //   }
+  // }
+}
 
 void NodeValue::init_scalar(AtomicType type) {
   switch (type) {
@@ -765,17 +765,17 @@ uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
   return add_node(std::move(node), parent_ids);
 }
 
-uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  std::unique_ptr<Node> node =
-      factor::Factor::new_factor(fac_type, parent_nodes);
-  uint node_id = add_node(std::move(node), parent_ids);
-  // factors are both stochastic nodes and observed nodes
-  Node* node2 = check_node(node_id, NodeType::FACTOR);
-  node2->is_observed = true;
-  observed.insert(node_id);
-  return node_id;
-}
+// uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
+//   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+//   std::unique_ptr<Node> node =
+//       factor::Factor::new_factor(fac_type, parent_nodes);
+//   uint node_id = add_node(std::move(node), parent_ids);
+//   // factors are both stochastic nodes and observed nodes
+//   Node* node2 = check_node(node_id, NodeType::FACTOR);
+//   node2->is_observed = true;
+//   observed.insert(node_id);
+//   return node_id;
+// }
 
 void Graph::observe(uint node_id, bool value) {
   // A bool can only be a bool NodeValue, so we can just pass it along.
@@ -999,11 +999,12 @@ void Graph::_infer(
   if (num_samples < 1) {
     throw std::runtime_error("num_samples can't be zero");
   }
-  if (algorithm == InferenceType::REJECTION) {
-    rejection(num_samples, seed, infer_config);
-  } else if (algorithm == InferenceType::GIBBS) {
-    gibbs(num_samples, seed, infer_config);
-  } else if (algorithm == InferenceType::NMC) {
+  // if (algorithm == InferenceType::REJECTION) {
+  //   rejection(num_samples, seed, infer_config);
+  // } else if (algorithm == InferenceType::GIBBS) {
+  //   gibbs(num_samples, seed, infer_config);
+  // } else 
+  if (algorithm == InferenceType::NMC) {
     nmc(num_samples, seed, infer_config);
   }
 }
@@ -1192,10 +1193,10 @@ Graph::Graph(const Graph& other) {
         }
         break;
       }
-      case NodeType::FACTOR: {
-        add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
-        break;
-      }
+      // case NodeType::FACTOR: {
+      //   add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
+      //   break;
+      // }
       default: {
         throw std::invalid_argument("Trying to copy a node of unknown type.");
       }

@@ -39,7 +39,7 @@ class Mixture : public Proposer {
   :param value: The value to evaluate the distribution.
   :returns: log probability of value.
   */
-  double log_prob(graph::NodeValue& value) const override;
+  torch::Tensor log_prob(graph::NodeValue& value) const override;
 
  private:
   double weight_sum;

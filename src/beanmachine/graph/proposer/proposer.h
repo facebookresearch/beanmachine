@@ -27,7 +27,7 @@ class Proposer {
   :param value: The value to evaluate the distribution.
   :returns: log probability of value.
   */
-  virtual double log_prob(graph::NodeValue& value) const = 0;
+  virtual torch::Tensor log_prob(graph::NodeValue& value) const = 0;
   // Destructor for Proposer
   virtual ~Proposer() {}
 };

@@ -44,7 +44,7 @@ class MH {
   // affected by the last revertible set and propagate operation
   // see (revertibly_set_and_propagate method).
   std::vector<NodeValue> old_values;
-  double old_sto_affected_nodes_log_prob;
+  torch::Tensor old_sto_affected_nodes_log_prob;
 
   // The support is the set of all nodes in the graph that are queried or
   // observed, directly or indirectly. We need both the support as nodes
@@ -148,7 +148,7 @@ class MH {
 
   NodeValue& get_old_value(const Node* node);
 
-  double get_old_sto_affected_nodes_log_prob() {
+  torch::Tensor get_old_sto_affected_nodes_log_prob() {
     return old_sto_affected_nodes_log_prob;
   }
 
@@ -166,7 +166,7 @@ class MH {
 
   void clear_gradients_of_node_and_its_affected_nodes(Node* node);
 
-  double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
+  torch::Tensor compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 
   NodeValue sample(const std::unique_ptr<proposer::Proposer>& prop);
 

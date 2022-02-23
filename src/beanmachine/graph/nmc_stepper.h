@@ -13,8 +13,8 @@
 
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/nmc.h"
-#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
-#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.h"
+// #include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
+// #include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.h"
 #include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepping_method.h"
 #include "beanmachine/graph/stepper/single_site/sequential_single_site_stepper.h"
 
@@ -34,8 +34,9 @@ class NMCStepper : public SequentialSingleSiteStepper {
                 // nodes to which Beta is applicable,
                 // but we want to give priority to Beta in those cases.
                 new NMCScalarSingleSiteSteppingMethod(mh),
-                new NMCDirichletBetaSingleSiteSteppingMethod(mh),
-                new NMCDirichletGammaSingleSiteSteppingMethod(mh)}) {}
+                // new NMCDirichletBetaSingleSiteSteppingMethod(mh),
+                // new NMCDirichletGammaSingleSiteSteppingMethod(mh)
+            }) {}
 };
 
 } // namespace graph
