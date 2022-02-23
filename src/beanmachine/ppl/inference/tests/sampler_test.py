@@ -24,7 +24,7 @@ def test_sampler():
     queries = [model.foo()]
     observations = {model.bar(): torch.tensor(0.5)}
     num_samples = 10
-    sampler = nuts.sampler(queries, observations, num_samples)
+    sampler = nuts.sampler(queries, observations, num_samples, num_adaptive_samples=0)
     worlds = list(sampler)
     assert len(worlds) == num_samples
     for world in worlds:

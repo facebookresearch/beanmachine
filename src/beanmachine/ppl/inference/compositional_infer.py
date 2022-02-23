@@ -182,6 +182,19 @@ class CompositionalInference(BaseInference):
 
         self._default_inference = default_inference
 
+    def _get_default_num_adaptive_samples(self, num_samples: int) -> int:
+        """Returns the default number of adaptive samples for CompositionalInference,
+        which equals to the maximum number of adaptive samples recommended by each
+        algorithm in the inference config."""
+        num_adaptive_per_algorithm = [
+            self._default_inference._get_default_num_adaptive_samples(num_samples)
+        ]
+        for inference in self.config.values():
+            num_adaptive_per_algorithm.append(
+                inference._get_default_num_adaptive_samples(num_samples)
+            )
+        return max(num_adaptive_per_algorithm)
+
     def get_proposers(
         self,
         world: World,
@@ -194,10 +207,10 @@ class CompositionalInference(BaseInference):
             rv_family_to_node[node.wrapper].add(node)
 
         all_proposers = []
-        for target_families, inferences in self.config.items():
+        for target_families, inference in self.config.items():
             nodes = _get_nodes_for_rv_family(target_families, rv_family_to_node)
             if len(nodes) > 0:
-                proposers = inferences.get_proposers(world, nodes, num_adaptive_sample)
+                proposers = inference.get_proposers(world, nodes, num_adaptive_sample)
                 if isinstance(target_families, tuple):
                     # tuple of RVs == block into a single accept/reject step
                     proposers = [SequentialProposer(proposers)]
