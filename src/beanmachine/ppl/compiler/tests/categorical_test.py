@@ -203,8 +203,8 @@ q2 = g.query(n4)
             BMGInference().infer(queries, observations, 10)
         observed = str(ex.exception)
         expected = """
-The model uses a Categorical(logits) operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
+The model uses a categorical operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a sample.
         """
         self.assertEqual(expected.strip(), observed.strip())
 
@@ -224,6 +224,6 @@ The unsupported node is the operand of a Sample.
             BMGInference().infer(queries, observations, 10)
         observed = str(ex.exception)
         expected = """
-The probability of a Categorical is required to be a 2 x 1 simplex matrix but is a 2 x 2 simplex matrix.
+The probability of a categorical is required to be a 2 x 1 simplex matrix but is a 2 x 2 simplex matrix.
         """
         self.assertEqual(expected.strip(), observed.strip())
