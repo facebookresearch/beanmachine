@@ -231,3 +231,26 @@ def test_block_inference_changing_shape():
     # however, K is going to be stuck at its initial value because changing it will
     # invalidate alpha
     assert torch.all(samples[model.K()] == samples[model.K()][0])
+
+
+def test_default_num_adaptive_samples():
+    model = SampleModel()
+    num_samples = 100
+    compositional = bm.CompositionalInference(
+        {
+            model.bar: bm.SingleSiteAncestralMetropolisHastings(),
+            ...: bm.SingleSiteRandomWalk(),
+        }
+    )
+    # none of the method in compositional requires adaptation, so default to 0
+    assert compositional._get_default_num_adaptive_samples(num_samples) == 0
+    compositional = bm.CompositionalInference(
+        {
+            model.foo: bm.GlobalNoUTurnSampler(),
+            model.bar: bm.SingleSiteAncestralMetropolisHastings(),
+        }
+    )
+    # default to num_samples // 2 due to NUTS' default
+    assert (
+        compositional._get_default_num_adaptive_samples(num_samples) == num_samples // 2
+    )

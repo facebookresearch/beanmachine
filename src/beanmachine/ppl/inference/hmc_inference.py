@@ -47,6 +47,9 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         self.target_accept_prob = target_accept_prob
         self._proposer = None
 
+    def _get_default_num_adaptive_samples(self, num_samples: int) -> int:
+        return num_samples // 2
+
     def get_proposers(
         self,
         world: World,
@@ -98,6 +101,9 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         self.adapt_mass_matrix = adapt_mass_matrix
         self.target_accept_prob = target_accept_prob
         self._proposers = {}
+
+    def _get_default_num_adaptive_samples(self, num_samples: int) -> int:
+        return num_samples // 2
 
     def get_proposers(
         self,

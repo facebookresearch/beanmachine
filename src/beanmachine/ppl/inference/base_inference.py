@@ -81,13 +81,19 @@ class BaseInference(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    def _get_default_num_adaptive_samples(self, num_samples: int) -> int:
+        """
+        Returns a reasonable default number of adaptive samples for the algorithm.
+        """
+        return 0
+
     def infer(
         self,
         queries: List[RVIdentifier],
         observations: RVDict,
         num_samples: int,
         num_chains: int = 4,
-        num_adaptive_samples: int = 0,
+        num_adaptive_samples: Optional[int] = None,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_fn: InitializeFn = init_to_uniform,
         max_init_retries: int = 100,
@@ -100,8 +106,9 @@ class BaseInference(metaclass=ABCMeta):
             observations: Observations as an RVDict keyed by RVIdentifier
             num_samples: Number of samples.
             num_chains: Number of chains to run, defaults to 4.
-            num_adaptive_samples:  Number of adaptive samples, defaults to 0.
-            verbose: Verbose level for logging.
+            num_adaptive_samples: Number of adaptive samples. If not provided, BM will
+                fall back to algorithm-specific default value based on num_samples.
+            verbose: Whether to display the progress bar or not.
             initialize_fn: A callable that takes in a distribution and returns a Tensor.
                 The default behavior is to sample from Uniform(-2, 2) then biject to
                 the support of the distribution.
@@ -113,6 +120,9 @@ class BaseInference(metaclass=ABCMeta):
         )
         chain_results = []
         chain_logll = []
+        if num_adaptive_samples is None:
+            num_adaptive_samples = self._get_default_num_adaptive_samples(num_samples)
+
         for _ in range(num_chains):
             sampler = self.sampler(
                 queries,
@@ -161,7 +171,7 @@ class BaseInference(metaclass=ABCMeta):
         queries: List[RVIdentifier],
         observations: RVDict,
         num_samples: Optional[int] = None,
-        num_adaptive_samples: int = 0,
+        num_adaptive_samples: Optional[int] = None,
         initialize_fn: InitializeFn = init_to_uniform,
         max_init_retries: int = 100,
     ) -> Sampler:
@@ -174,7 +184,9 @@ class BaseInference(metaclass=ABCMeta):
             queries: List of queries
             observations: Observations as an RVDict keyed by RVIdentifier
             num_samples: Number of samples, defaults to None for an infinite sampler.
-            num_adaptive_samples:  Number of adaptive samples, defaults to 0.
+            num_adaptive_samples:  Number of adaptive samples. If not provided, BM will
+                fall back to algorithm-specific default value based on num_samples. If
+                num_samples is not provided either, then defaults to 0.
             initialize_fn: A callable that takes in a distribution and returns a Tensor.
                 The default behavior is to sample from Uniform(-2, 2) then biject to
                 the support of the distribution.
@@ -184,6 +196,14 @@ class BaseInference(metaclass=ABCMeta):
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )
+        if num_adaptive_samples is None:
+            if num_samples is None:
+                num_adaptive_samples = 0
+            else:
+                num_adaptive_samples = self._get_default_num_adaptive_samples(
+                    num_samples
+                )
+
         world = self._initialize_world(queries, observations, initialize_fn)
         # start inference with a copy of self to ensure that multi-chain or multi
         # inference runs all start with the same pristine state
