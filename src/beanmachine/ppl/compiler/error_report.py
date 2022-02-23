@@ -7,7 +7,7 @@
 when compiling Bean Machine models to Bean Machine Graph."""
 
 from abc import ABC
-from typing import List
+from typing import List, Set
 
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, Observation, SampleNode
 from beanmachine.ppl.compiler.bmg_types import (
@@ -15,6 +15,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Requirement,
     requirement_to_type,
 )
+from beanmachine.ppl.compiler.execution_context import FunctionCall
 from beanmachine.ppl.compiler.graph_labels import get_node_error_label
 from beanmachine.ppl.utils.a_or_an import a_or_an, A_or_An
 
@@ -80,22 +81,39 @@ class ImpossibleObservation(BMGError):
 
 
 class UnsupportedNode(BMGError):
+    # Graph node "consumer" has a parent "node" which is not supported by BMG.
+    # Give an error describing the offending node, the consumer which uses its
+    # value, and the label of the edge connecting them.
     node: BMGNode
     consumer: BMGNode
     edge: str
+    node_locations: Set[FunctionCall]
 
-    def __init__(self, node: BMGNode, consumer: BMGNode, edge: str) -> None:
+    def __init__(
+        self,
+        node: BMGNode,
+        consumer: BMGNode,
+        edge: str,
+        node_locations: Set[FunctionCall],
+    ) -> None:
         self.node = node
         self.consumer = consumer
         self.edge = edge
+        self.node_locations = node_locations
 
     def __str__(self) -> str:
-        msg = (
-            # TODO: Improve wording and diagnosis.
-            f"The model uses {a_or_an(get_node_error_label(self.node))} operation unsupported by "
-            + f"Bean Machine Graph.\nThe unsupported node is the {self.edge} "
-            + f"of {a_or_an(get_node_error_label(self.consumer))}."
-        )
+        # TODO: Improve wording and diagnosis.
+        msg = f"The model uses {a_or_an(get_node_error_label(self.node))} "
+        msg += "operation unsupported by Bean Machine Graph."
+
+        if len(self.node_locations) > 0:
+            msg += "\nThe unsupported node was created in function call "
+            msg += ", ".join(sorted(str(loc) for loc in self.node_locations))
+            msg += "."
+        else:
+            msg += f"\nThe unsupported node is the {self.edge} "
+            msg += f"of {a_or_an(get_node_error_label(self.consumer))}."
+
         return msg
 
 

@@ -204,7 +204,7 @@ q2 = g.query(n4)
         observed = str(ex.exception)
         expected = """
 The model uses a categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a sample.
+The unsupported node was created in function call c_random_logit().
         """
         self.assertEqual(expected.strip(), observed.strip())
 

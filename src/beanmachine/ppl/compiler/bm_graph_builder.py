@@ -13,6 +13,7 @@ import numpy as np
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
+from beanmachine.ppl.compiler.execution_context import ExecutionContext
 from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import memoize
 
@@ -28,6 +29,8 @@ supported_bool_types = {bool, np.bool_}
 supported_float_types = {np.longdouble, np.float16, np.float32, np.float64, float}
 supported_int_types = {np.int16, np.int32, np.int64, np.int8, np.longlong}
 supported_int_types |= {np.uint16, np.uint32, np.uint64, np.uint8, np.ulonglong, int}
+
+_empty_context = ExecutionContext()
 
 
 class BMGraphBuilder:
@@ -64,10 +67,13 @@ class BMGraphBuilder:
 
     _pd: Optional[prof.ProfilerData]
 
-    def __init__(self) -> None:
+    execution_context: ExecutionContext
+
+    def __init__(self, execution_context: ExecutionContext = _empty_context) -> None:
         self._nodes = {}
         self._node_counter = 0
         self._pd = None
+        self.execution_context = execution_context
 
     def _begin(self, s: str) -> None:
         pd = self._pd

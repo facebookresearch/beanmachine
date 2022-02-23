@@ -394,4 +394,10 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
         # Consider fixing this.
-        return UnsupportedNode(n.inputs[index], n, get_edge_label(n, index))
+        unsupported_node = n.inputs[index]
+        return UnsupportedNode(
+            unsupported_node,
+            n,
+            get_edge_label(n, index),
+            self._bmg.execution_context.node_locations(unsupported_node),
+        )

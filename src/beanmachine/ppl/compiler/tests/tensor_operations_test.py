@@ -128,9 +128,14 @@ digraph "graph" {
         # TODO: Do a better job here. Say why the operation is unsupported.
         expected = """
 The model uses a logsumexp operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a query.
+The unsupported node was created in function call lse_bad_1().
         """
         self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        expected = """
+The model uses a logsumexp operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call lse_bad_2().
+        """
 
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer([lse_bad_2()], {}, 1)

@@ -495,7 +495,7 @@ digraph "graph" {
 
         expected = """
 The model uses a tensor operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a query."""
+The unsupported node was created in function call f1by2by3()."""
         with self.assertRaises(ValueError) as ex:
             to_dot(
                 bmg,
