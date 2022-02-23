@@ -430,7 +430,7 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
     // TODO: can we make signature use a default generator then?
     std::mt19937 generator(12131);
     node->eval(generator);
-    node->compute_gradients();
+    // node->compute_gradients();
   }
   set_value(grad1, 0.0);
   set_value(grad2, 0.0);

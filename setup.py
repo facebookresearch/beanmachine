@@ -197,8 +197,6 @@ setup(
                 - set(glob("src/beanmachine/graph/operator/controlop.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/operator/gradient.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/operator/linalgop.cpp", recursive=True))
-                - set(glob("src/beanmachine/graph/operator/multiaryop.cpp", recursive=True))
-                - set(glob("src/beanmachine/graph/operator/unaryop.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/to_dot.cpp", recursive=True))

@@ -27,7 +27,7 @@ class Operator : public graph::Node {
 
   // Computes gradients of node's value based on its in-nodes values and
   // gradients (forward autodifferentiation).
-  void compute_gradients() override;
+  // void compute_gradients() override;
 
   // Computes the gradient of the log probability of this node's value based on
   // its in-nodes values and gradients (forward autodifferentiation). It is

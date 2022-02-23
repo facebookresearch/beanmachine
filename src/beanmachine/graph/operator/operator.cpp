@@ -33,12 +33,12 @@ void Operator::eval(std::mt19937& /* gen */) {
       std::to_string(index));
 }
 
-void Operator::compute_gradients() {
-  throw std::runtime_error(
-      "internal error: unexpected operator type " +
-      std::to_string(static_cast<int>(op_type)) + " at node_id " +
-      std::to_string(index));
-}
+// void Operator::compute_gradients() {
+//   throw std::runtime_error(
+//       "internal error: unexpected operator type " +
+//       std::to_string(static_cast<int>(op_type)) + " at node_id " +
+//       std::to_string(index));
+// }
 
 bool OperatorFactory::register_op(
     const graph::OperatorType op_type,

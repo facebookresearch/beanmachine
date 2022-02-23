@@ -7,7 +7,7 @@
 
 // #include "beanmachine/graph/operator/controlop.h"
 // #include "beanmachine/graph/operator/linalgop.h"
-// #include "beanmachine/graph/operator/multiaryop.h"
+#include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/operator/unaryop.h"
 
@@ -23,13 +23,13 @@ namespace oper {
 //     graph::OperatorType::CHOICE,
 //     &(Choice::new_op));
 
-// // multiary op
-// bool Add::is_registered =
-//     OperatorFactory::register_op(graph::OperatorType::ADD, &(Add::new_op));
+// multiary op
+bool Add::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::ADD, &(Add::new_op));
 
-// bool Multiply::is_registered = OperatorFactory::register_op(
-//     graph::OperatorType::MULTIPLY,
-//     &(Multiply::new_op));
+bool Multiply::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::MULTIPLY,
+    &(Multiply::new_op));
 
 // bool LogSumExp::is_registered = OperatorFactory::register_op(
 //     graph::OperatorType::LOGSUMEXP,
@@ -63,9 +63,9 @@ bool IIdSample::is_registered = OperatorFactory::register_op(
 //     graph::OperatorType::TO_REAL_MATRIX,
 //     &(ToRealMatrix::new_op));
 
-// bool ToPosReal::is_registered = OperatorFactory::register_op(
-//     graph::OperatorType::TO_POS_REAL,
-//     &(ToPosReal::new_op));
+bool ToPosReal::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::TO_POS_REAL,
+    &(ToPosReal::new_op));
 
 // bool ToPosRealMatrix::is_registered = OperatorFactory::register_op(
 //     graph::OperatorType::TO_POS_REAL_MATRIX,

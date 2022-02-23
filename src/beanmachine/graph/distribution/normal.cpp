@@ -110,8 +110,10 @@ void Normal::gradient_log_prob_value(
   // grad2 += -1 / s_sq;
 
   torch::Tensor lp = log_prob(value);
+    std::cout << "foo" << endl;
   torch::Tensor grad = torch::autograd::grad({lp}, {value._value})[0];
   grad1 = grad.item().toDouble();
+    std::cout << "bar" << endl;
   grad2 = torch::autograd::grad({grad}, {value._value})[0].item().toDouble();
 };
 
@@ -133,10 +135,12 @@ void Normal::gradient_log_prob_param(
     // torch::Tensor grad2_m2 = -1 / s_sq;
     // grad1 += grad_m * m_grad;
     // grad2 += grad2_m2 * m_grad * m_grad + grad_m * m_grad2;
+    std::cout << "baz" << endl;
     torch::Tensor grad = torch::autograd::grad(
       {lp}, {m}
     )[0];
     grad1 += grad.item().toDouble();
+    std::cout << "qux" << endl;
     grad2 += torch::autograd::grad({grad}, {m})[0].item().toDouble();
   }
   double s_grad = in_nodes[1]->grad1;

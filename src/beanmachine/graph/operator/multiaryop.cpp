@@ -93,18 +93,21 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::NEG_REAL or
       parent0.type == graph::AtomicType::POS_REAL) {
-    double max_val = parent0._value;
-    for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
-      const auto& parenti = in_nodes[i]->value;
-      if (parenti._value > max_val) {
-        max_val = parenti._value;
-      }
-    }
-    double expsum = 0.0;
-    for (const auto parent : in_nodes) {
-      expsum += std::exp(parent->value._value - max_val);
-    }
-    value._value = std::log(expsum) + max_val;
+    // double max_val = parent0._value;
+    // for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
+    //   const auto& parenti = in_nodes[i]->value;
+    //   if (parenti._value > max_val) {
+    //     max_val = parenti._value;
+    //   }
+    // }
+    // double expsum = 0.0;
+    // for (const auto parent : in_nodes) {
+    //   expsum += std::exp(parent->value._value - max_val);
+    // }
+    // value._value = std::log(expsum) + max_val;
+    std::vector<torch::Tensor> values;
+    std::transform(in_nodes.begin(), in_nodes.end(), std::back_inserter(values), [](Node* n){ return n->value._value; });
+    value._value = torch::stack(values).logsumexp(0);
   } else {
     throw std::runtime_error(
         "invalid type " + parent0.type.to_string() +
@@ -160,93 +163,93 @@ void Pow::eval(std::mt19937& /* gen */) {
     throw std::runtime_error(
         "invalid type for POW operator at node_id " + std::to_string(index));
   }
-  value._value = std::pow(parent0._value, parent1._value);
+  value._value = parent0._value.pow(parent1._value);
 }
 
-ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::TO_MATRIX) {
-  if (in_nodes.size() < 3) {
-    throw std::invalid_argument(
-        "operator TO_MATRIX requires number of rows (m), number of columns (n), "
-        "and m * n additional nodes");
-  }
-  // rows and cols must be constant natural numbers > 0
-  if (in_nodes[0]->value.type != graph::AtomicType::NATURAL or
-      in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
-    throw std::invalid_argument(
-        "operator TO_MATRIX requires the first and second parents to be NATURAL"
-        "representing the number of rows and the number of columns respectively");
-  } else if (
-      in_nodes[0]->node_type != graph::NodeType::CONSTANT or
-      in_nodes[1]->node_type != graph::NodeType::CONSTANT) {
-    throw std::invalid_argument(
-        "operator TO_MATRIX requires the number of rows and columns to be CONSTANT");
-  } else if (
-      (in_nodes[0]->value._value == 0) or
-      (in_nodes[1]->value._value == 0)) {
-    throw std::invalid_argument(
-        "operator TO_MATRIX requires the number of rows and columns to be greater than 0");
-  }
+// ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
+//     : Operator(graph::OperatorType::TO_MATRIX) {
+//   if (in_nodes.size() < 3) {
+//     throw std::invalid_argument(
+//         "operator TO_MATRIX requires number of rows (m), number of columns (n), "
+//         "and m * n additional nodes");
+//   }
+//   // rows and cols must be constant natural numbers > 0
+//   if (in_nodes[0]->value.type != graph::AtomicType::NATURAL or
+//       in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
+//     throw std::invalid_argument(
+//         "operator TO_MATRIX requires the first and second parents to be NATURAL"
+//         "representing the number of rows and the number of columns respectively");
+//   } else if (
+//       in_nodes[0]->node_type != graph::NodeType::CONSTANT or
+//       in_nodes[1]->node_type != graph::NodeType::CONSTANT) {
+//     throw std::invalid_argument(
+//         "operator TO_MATRIX requires the number of rows and columns to be CONSTANT");
+//   } else if (
+//       (in_nodes[0]->value._value == 0) or
+//       (in_nodes[1]->value._value == 0)) {
+//     throw std::invalid_argument(
+//         "operator TO_MATRIX requires the number of rows and columns to be greater than 0");
+//   }
 
-  uint rows = static_cast<uint>(in_nodes[0]->value._value);
-  uint cols = static_cast<uint>(in_nodes[1]->value._value);
+//   uint rows = static_cast<uint>(in_nodes[0]->value._value);
+//   uint cols = static_cast<uint>(in_nodes[1]->value._value);
 
-  if (rows * cols != in_nodes.size() - 2) {
-    throw std::invalid_argument(
-        "operator TO_MATRIX expected " + std::to_string(rows * cols) +
-        "elements in the matrix but received " +
-        std::to_string(in_nodes.size() - 2));
-  }
+//   if (rows * cols != in_nodes.size() - 2) {
+//     throw std::invalid_argument(
+//         "operator TO_MATRIX expected " + std::to_string(rows * cols) +
+//         "elements in the matrix but received " +
+//         std::to_string(in_nodes.size() - 2));
+//   }
 
-  graph::ValueType type0 = in_nodes[2]->value.type;
-  for (uint i = 3; i < static_cast<uint>(in_nodes.size()); i++) {
-    graph::ValueType type = in_nodes[i]->value.type;
-    if (type.variable_type != graph::VariableType::SCALAR) {
-      throw std::invalid_argument(
-          "operator TO_MATRIX requires scalar nodes as parents");
-    } else if (type != type0) {
-      throw std::invalid_argument(
-          "operator TO_MATRIX requires parent nodes to have the same type");
-    }
-  }
+//   graph::ValueType type0 = in_nodes[2]->value.type;
+//   for (uint i = 3; i < static_cast<uint>(in_nodes.size()); i++) {
+//     graph::ValueType type = in_nodes[i]->value.type;
+//     if (type.variable_type != graph::VariableType::SCALAR) {
+//       throw std::invalid_argument(
+//           "operator TO_MATRIX requires scalar nodes as parents");
+//     } else if (type != type0) {
+//       throw std::invalid_argument(
+//           "operator TO_MATRIX requires parent nodes to have the same type");
+//     }
+//   }
 
-  value = graph::NodeValue(graph::ValueType(
-      graph::VariableType::BROADCAST_MATRIX, type0.atomic_type, rows, cols));
-}
+//   value = graph::NodeValue(graph::ValueType(
+//       graph::VariableType::BROADCAST_MATRIX, type0.atomic_type, rows, cols));
+// }
 
-void ToMatrix::eval(std::mt19937& /* gen */) {
-  assert(in_nodes.size() >= 3);
-  int rows = static_cast<int>(in_nodes[0]->value._value);
-  int cols = static_cast<int>(in_nodes[1]->value._value);
+// void ToMatrix::eval(std::mt19937& /* gen */) {
+//   assert(in_nodes.size() >= 3);
+//   int rows = static_cast<int>(in_nodes[0]->value._value);
+//   int cols = static_cast<int>(in_nodes[1]->value._value);
 
-  const graph::ValueType& parent_type = in_nodes[2]->value.type;
+//   const graph::ValueType& parent_type = in_nodes[2]->value.type;
 
-  if (parent_type == graph::AtomicType::BOOLEAN) {
-    torch::Tensor result = torch::empty({rows, cols});
-    for (int j = 0; j < cols; j++) {
-      for (int i = 0; i < rows; i++) {
-        result[i][j] = in_nodes[2 + j * rows + i]->value._bool;
-      }
-    }
-    value._value = result;
-  } else if (parent_type == graph::AtomicType::NATURAL) {
-    torch::Tensor result = torch::empty({rows, cols});
-    for (int j = 0; j < cols; j++) {
-      for (int i = 0; i < rows; i++) {
-        result[i][j] = in_nodes[2 + j * rows + i]->value._value;
-      }
-    }
-    value._value = result;
-  } else { // real
-    torch::Tensor result = torch::empty({rows, cols});
-    for (int j = 0; j < cols; j++) {
-      for (int i = 0; i < rows; i++) {
-        result[i][j] = in_nodes[2 + j * rows + i]->value._value;
-      }
-    }
-    value._value = result;
-  }
-}
+//   if (parent_type == graph::AtomicType::BOOLEAN) {
+//     torch::Tensor result = torch::empty({rows, cols});
+//     for (int j = 0; j < cols; j++) {
+//       for (int i = 0; i < rows; i++) {
+//         result[i][j] = in_nodes[2 + j * rows + i]->value._bool;
+//       }
+//     }
+//     value._value = result;
+//   } else if (parent_type == graph::AtomicType::NATURAL) {
+//     torch::Tensor result = torch::empty({rows, cols});
+//     for (int j = 0; j < cols; j++) {
+//       for (int i = 0; i < rows; i++) {
+//         result[i][j] = in_nodes[2 + j * rows + i]->value._value;
+//       }
+//     }
+//     value._value = result;
+//   } else { // real
+//     torch::Tensor result = torch::empty({rows, cols});
+//     for (int j = 0; j < cols; j++) {
+//       for (int i = 0; i < rows; i++) {
+//         result[i][j] = in_nodes[2 + j * rows + i]->value._value;
+//       }
+//     }
+//     value._value = result;
+//   }
+// }
 
 } // namespace oper
 } // namespace beanmachine

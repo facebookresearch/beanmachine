@@ -36,8 +36,8 @@ class MultiaryOperator : public Operator {
   }
   ~MultiaryOperator() override {}
   void eval(std::mt19937& /* gen */) override {}
-  void compute_gradients() override {}
-  void backward() override {}
+  // void compute_gradients() override { }
+  // void backward() override {}
 };
 
 class Add : public MultiaryOperator {
@@ -46,8 +46,8 @@ class Add : public MultiaryOperator {
   ~Add() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
-  void backward() override;
+  // void compute_gradients() override;
+  // void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -64,8 +64,8 @@ class Multiply : public MultiaryOperator {
   ~Multiply() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
-  void backward() override;
+  // void compute_gradients() override;
+  // void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -82,8 +82,8 @@ class LogSumExp : public MultiaryOperator {
   ~LogSumExp() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
-  void backward() override;
+  // void compute_gradients() override;
+  // void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -102,8 +102,8 @@ class Pow : public Operator {
   ~Pow() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
-  void backward() override;
+  // void compute_gradients() override;
+  // void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -114,23 +114,23 @@ class Pow : public Operator {
   static bool is_registered;
 };
 
-class ToMatrix : public Operator {
- public:
-  explicit ToMatrix(const std::vector<graph::Node*>& in_nodes);
-  ~ToMatrix() override {}
+// class ToMatrix : public Operator {
+//  public:
+//   explicit ToMatrix(const std::vector<graph::Node*>& in_nodes);
+//   ~ToMatrix() override {}
 
-  void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
-  void backward() override;
+//   void eval(std::mt19937& gen) override;
+//   void compute_gradients() override;
+//   void backward() override;
 
-  static std::unique_ptr<Operator> new_op(
-      const std::vector<graph::Node*>& in_nodes) {
-    return std::make_unique<ToMatrix>(in_nodes);
-  }
+//   static std::unique_ptr<Operator> new_op(
+//       const std::vector<graph::Node*>& in_nodes) {
+//     return std::make_unique<ToMatrix>(in_nodes);
+//   }
 
- private:
-  static bool is_registered;
-};
+//  private:
+//   static bool is_registered;
+// };
 
 } // namespace oper
 } // namespace beanmachine
