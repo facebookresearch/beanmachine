@@ -27,6 +27,7 @@ def _val(node: bn.ConstantNode) -> str:
     return str(node.value)
 
 
+# These are the labels used when rendering a graph as a DOT.
 _node_labels = {
     bn.AdditionNode: "+",
     bn.BernoulliLogitNode: "Bernoulli(logits)",
@@ -116,6 +117,98 @@ _node_labels = {
     bn.UntypedConstantNode: _val,
     bn.VectorIndexNode: "index",
 }
+
+# These are the labels used when describing a node in an error message.
+_node_error_labels = {
+    bn.AdditionNode: "addition (+)",
+    bn.BernoulliLogitNode: "Bernoulli",
+    bn.BernoulliNode: "Bernoulli",
+    bn.BetaNode: "beta",
+    bn.BinomialNode: "binomial",
+    bn.BinomialLogitNode: "binomial",
+    bn.BitAndNode: "'bitwise and' (&)",
+    bn.BitOrNode: "'bitwise or' (|)",
+    bn.BitXorNode: "'bitwise xor' (^)",
+    bn.BooleanNode: "Boolean value",
+    bn.CategoricalLogitNode: "categorical",
+    bn.CategoricalNode: "categorical",
+    bn.Chi2Node: "chi-squared",
+    bn.ChoiceNode: "choice",
+    bn.ColumnIndexNode: "column index",
+    bn.ComplementNode: "complement",
+    bn.ConstantBooleanMatrixNode: "Boolean matrix",
+    bn.ConstantNaturalMatrixNode: "natural matrix",
+    bn.ConstantNegativeRealMatrixNode: "negative real matrix",
+    bn.ConstantPositiveRealMatrixNode: "positive real matrix",
+    bn.ConstantProbabilityMatrixNode: "probability matrix",
+    bn.ConstantRealMatrixNode: "real matrix",
+    bn.ConstantSimplexMatrixNode: "simplex",
+    bn.ConstantTensorNode: "tensor",
+    bn.DirichletNode: "Dirichlet",
+    bn.DivisionNode: "division (/)",
+    bn.EqualNode: "equality (==)",
+    bn.ExpM1Node: "expm1",
+    bn.ExpNode: "exp",
+    bn.ExpProductFactorNode: "exp product factor",
+    bn.FlatNode: "flat",
+    bn.FloorDivNode: "floor division (//)",
+    bn.GammaNode: "gamma",
+    bn.GreaterThanEqualNode: "'greater than or equal' (>=)",
+    bn.GreaterThanNode: "'greater than' (>)",
+    bn.HalfCauchyNode: "half Cauchy",
+    bn.IfThenElseNode: "'if'",
+    bn.InNode: "'in'",
+    bn.IndexNode: "index",
+    bn.InvertNode: "'bitwise invert' (~)",
+    bn.IsNode: "'is'",
+    bn.IsNotNode: "'is not'",
+    bn.ItemNode: "item",
+    bn.LessThanEqualNode: "'less than or equal' (<=)",
+    bn.LessThanNode: "'less than' (<)",
+    bn.Log1mexpNode: "log1mexp",
+    bn.LogisticNode: "logistic",
+    bn.LogNode: "log",
+    bn.LogSumExpNode: "logsumexp",
+    bn.LogSumExpTorchNode: "logsumexp",
+    bn.LogSumExpVectorNode: "logsumexp",
+    bn.LShiftNode: "'left shift' (<<)",
+    bn.MatrixMultiplicationNode: "matrix multiplication (@)",
+    bn.MatrixScaleNode: "matrix scale",
+    bn.ModNode: "modulus (%)",
+    bn.MultiplicationNode: "multiplication (*)",
+    bn.NaturalNode: "natural value",
+    bn.NegateNode: "negation (-)",
+    bn.NegativeRealNode: "negative real value",
+    bn.NormalNode: "normal",
+    bn.HalfNormalNode: "half normal",
+    bn.NotEqualNode: "inequality (!=)",
+    bn.NotInNode: "'not in'",
+    bn.NotNode: "'not'",
+    bn.Observation: "observation",
+    bn.PhiNode: "phi",
+    bn.PositiveRealNode: "positive real value",
+    bn.PowerNode: "power (**)",
+    bn.ProbabilityNode: "probability value",
+    bn.Query: "query",
+    bn.RealNode: "real value",
+    bn.RShiftNode: "'right shift' (>>)",
+    bn.SampleNode: "sample",
+    bn.StudentTNode: "student T",
+    bn.SwitchNode: "switch",
+    bn.TensorNode: "tensor",
+    bn.ToIntNode: "'to int'",
+    bn.ToMatrixNode: "'to matrix'",
+    bn.ToNegativeRealNode: "'to negative real'",
+    bn.ToPositiveRealMatrixNode: "'to positive real matrix'",
+    bn.ToPositiveRealNode: "'to positive real'",
+    bn.ToProbabilityNode: "'to probability'",
+    bn.ToRealMatrixNode: "'to real matrix'",
+    bn.ToRealNode: "'to real'",
+    bn.UniformNode: "uniform",
+    bn.UntypedConstantNode: "constant value",
+    bn.VectorIndexNode: "index",
+}
+
 
 _none = []
 _left_right = ["left", "right"]
@@ -214,14 +307,15 @@ _edge_labels = {
 
 
 def get_node_label(node: bn.BMGNode) -> str:
-    t = type(node)
-    if t not in _node_labels:
-        return "UNKNOWN"
-    label = _node_labels[t]
+    label = _node_labels.get(type(node), "UNKNOWN")  # pyre-ignore
     if isinstance(label, str):
         return label
     assert isinstance(label, Callable)
     return label(node)
+
+
+def get_node_error_label(node: bn.BMGNode) -> str:
+    return _node_error_labels.get(type(node), "UNKNOWN")  # pyre-ignore
 
 
 def get_edge_labels(node: bn.BMGNode) -> List[str]:

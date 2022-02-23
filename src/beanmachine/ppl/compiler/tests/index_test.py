@@ -419,7 +419,7 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().to_dot([negative_constant_index()], {})
         self.assertEqual(
-            "The right of a index is required to be a natural but is a negative real.",
+            "The right of an index is required to be a natural but is a negative real.",
             str(ex.exception),
         )
 
