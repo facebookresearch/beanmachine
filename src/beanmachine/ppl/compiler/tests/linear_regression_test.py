@@ -25,9 +25,9 @@ def theta_1():
     return Normal(0.0, 1.0)
 
 
-@bm.random_variable
-def error():
-    return Uniform(0.0, 1.0)
+# @bm.random_variable
+# def error():
+#     return Uniform(0.0, 1.0)
 
 
 @bm.random_variable
@@ -37,7 +37,7 @@ def x(i):
 
 @bm.random_variable
 def y(i):
-    return Normal(theta_0() + theta_1() * x(i), error())
+    return Normal(theta_0() + theta_1() * x(i), 1.0)
 
 
 def test_linear_regression_inference(benchmark) -> None:
