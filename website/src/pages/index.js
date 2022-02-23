@@ -60,6 +60,29 @@ function Feature({imageUrl, title, description}) {
   );
 }
 
+function VideoContainer() {
+  return (
+    <div align="center" className="container margin-top--xl margin-bottom--xl">
+      <div className="row">
+        <div className="col">
+          <h2>Watch Introductory Video</h2>
+          <div>
+            <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube.com/embed/XvrtH8xVXU0"
+              title="Explain Like I'm 5: Bean Machine"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Home() {
   const context = useDocusaurusContext();
   const {siteConfig = {}} = context;
@@ -105,6 +128,7 @@ function Home() {
         </div>
       </header>
       <main>
+        <VideoContainer />
         {features && features.length > 0 && (
           <section className={styles.features}>
             <div className="container">
