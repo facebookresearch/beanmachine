@@ -29,9 +29,9 @@ void Complement::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
-    value._bool = !parent._bool;
+    value._value = !parent._bool;
   } else if (parent.type == graph::AtomicType::PROBABILITY) {
-    value._double = 1 - parent._double;
+    value._value = 1 - parent._value;
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -48,15 +48,15 @@ void ToInt::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
-    value._double = parent._bool ? 1 : 0;
+    value._value = parent._bool ? 1 : 0;
   } else if (
       parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::NEG_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
-    value._natural = (int)round(parent._double);
+    value._value = (int)round(parent._value);
   } else if (parent.type == graph::AtomicType::NATURAL) {
-    value._natural = parent._natural;
+    value._value = parent._value;
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -73,15 +73,15 @@ void ToReal::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
-    value._double = parent._bool ? 1.0 : 0.0;
+    value._value = parent._bool ? 1.0 : 0.0;
   } else if (
       parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::NEG_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
-    value._double = parent._double;
+    value._value = parent._value;
   } else if (parent.type == graph::AtomicType::NATURAL) {
-    value._double = (double)parent._natural;
+    value._value = (double)parent._value;
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -128,25 +128,25 @@ void ToRealMatrix::eval(std::mt19937& /* gen */) {
     torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result[i][j] = parent_value._matrix[i][j].item().toBool() ? 1.0 : 0.0;
+        result[i][j] = parent_value._value[i][j].item().toBool() ? 1.0 : 0.0;
       }
     }
-    value._matrix = result;
+    value._value = result;
   } else if (element_type == graph::AtomicType::NATURAL) {
     torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result[i][j] = (double)parent_value._matrix[i][j].item().toDouble();
+        result[i][j] = (double)parent_value._value[i][j].item().toDouble();
       }
     }
-    value._matrix = result;
+    value._value = result;
   } else {
     assert(
         element_type == graph::AtomicType::REAL or
         element_type == graph::AtomicType::POS_REAL or
         element_type == graph::AtomicType::NEG_REAL or
         element_type == graph::AtomicType::PROBABILITY);
-    value._matrix = parent_value._matrix;
+    value._value = parent_value._value;
   }
 }
 
@@ -169,20 +169,20 @@ void ToPosReal::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
-    value._double = parent._bool ? 1.0 : 0.0;
+    value._value = parent._bool ? 1.0 : 0.0;
   } else if (
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
-    value._double = parent._double;
+    value._value = parent._value;
   } else if (parent.type == graph::AtomicType::REAL) {
-    if (parent._double < 0) {
+    if (parent._value < 0) {
       throw std::runtime_error(
-          "invalid value of " + std::to_string(parent._double) +
+          "invalid value of " + std::to_string(parent._value) +
           " for TO_POS_REAL operator at node_id " + std::to_string(index));
     }
-    value._double = parent._double;
+    value._value = parent._value;
   } else if (parent.type == graph::AtomicType::NATURAL) {
-    value._double = (double)parent._natural;
+    value._value = (double)parent._value;
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -239,24 +239,24 @@ void ToPosRealMatrix::eval(std::mt19937& /* gen */) {
     torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result[i][j] = parent_value._matrix[i][j].item().toBool() ? 1.0 : 0.0;
+        result[i][j] = parent_value._value[i][j].item().toBool() ? 1.0 : 0.0;
       }
     }
-    value._matrix = result;
+    value._value = result;
   } else if (element_type == graph::AtomicType::NATURAL) {
     torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result[i][j] = (double)parent_value._matrix[i][j].item().toDouble();
+        result[i][j] = (double)parent_value._value[i][j].item().toDouble();
       }
     }
-    value._matrix = result;
+    value._value = result;
   } else {
     assert(
         element_type == graph::AtomicType::POS_REAL or
         element_type == graph::AtomicType::NEG_REAL or
         element_type == graph::AtomicType::PROBABILITY);
-    value._matrix = parent_value._matrix;
+    value._value = parent_value._value;
   }
 }
 
@@ -282,7 +282,7 @@ void ToProbability::eval(std::mt19937& /* gen */) {
     // note: we have to cast it to an NodeValue object rather than directly
     // assigning to ensure that the usual boundary checks for probabilities
     // are made
-    value = graph::NodeValue(graph::AtomicType::PROBABILITY, parent._double);
+    value = graph::NodeValue(graph::AtomicType::PROBABILITY, parent._value);
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -313,7 +313,7 @@ void ToNegReal::eval(std::mt19937& /* gen */) {
   // note: we have to cast it to an NodeValue object rather than directly
   // assigning to ensure that the usual boundary checks for negative reals
   // are made
-  value = graph::NodeValue(graph::AtomicType::NEG_REAL, parent._double);
+  value = graph::NodeValue(graph::AtomicType::NEG_REAL, parent._value);
 }
 
 Negate::Negate(const std::vector<graph::Node*>& in_nodes)
@@ -339,7 +339,7 @@ void Negate::eval(std::mt19937& /* gen */) {
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::NEG_REAL) {
-    value._double = -parent._double;
+    value._value = -parent._value;
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -369,7 +369,7 @@ void Exp::eval(std::mt19937& /* gen */) {
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::NEG_REAL) {
-    value._double = std::exp(parent._double);
+    value._value = std::exp(parent._value);
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -397,7 +397,7 @@ void ExpM1::eval(std::mt19937& /* gen */) {
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::NEG_REAL) {
-    value._double = std::expm1(parent._double);
+    value._value = std::expm1(parent._value);
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -422,7 +422,7 @@ void Phi::eval(std::mt19937& /* gen */) {
   // assigning to ensure that the usual boundary checks for probabilities
   // are made
   value = graph::NodeValue(
-      graph::AtomicType::PROBABILITY, util::Phi(parent._double));
+      graph::AtomicType::PROBABILITY, util::Phi(parent._value));
 }
 
 Logistic::Logistic(const std::vector<graph::Node*>& in_nodes)
@@ -442,7 +442,7 @@ void Logistic::eval(std::mt19937& /* gen */) {
   // assigning to ensure that the usual boundary checks for probabilities
   // are made
   value = graph::NodeValue(
-      graph::AtomicType::PROBABILITY, util::logistic(parent._double));
+      graph::AtomicType::PROBABILITY, util::logistic(parent._value));
 }
 
 Log1pExp::Log1pExp(const std::vector<graph::Node*>& in_nodes)
@@ -461,7 +461,7 @@ void Log1pExp::eval(std::mt19937& /* gen */) {
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL) {
-    value._double = util::log1pexp(parent._double);
+    value._value = util::log1pexp(parent._value);
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -487,7 +487,7 @@ void Log::eval(std::mt19937& /* gen */) {
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
-    value._double = std::log(parent._double);
+    value._value = parent._value.log();
   } else {
     throw std::runtime_error(
         "invalid parent type " +
@@ -509,7 +509,8 @@ void Log1mExp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::NEG_REAL) {
-    value._double = util::log1mexp(parent._double);
+    // TODO: torch logsumexp
+    value._value = torch::tensor({util::log1mexp(parent._value.item().toDouble())});
   } else {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
@@ -544,15 +545,15 @@ void LogSumExpVector::eval(std::mt19937& /* gen */) {
   if (parent.type.atomic_type == graph::AtomicType::REAL or
       parent.type.atomic_type == graph::AtomicType::NEG_REAL or
       parent.type.atomic_type == graph::AtomicType::POS_REAL) {
-    double max_val = parent._matrix[0].item().toDouble();
-    for (uint i = 1; i < parent._matrix.numel(); i++) {
-      double valuei = parent._matrix[i].item().toDouble();
+    double max_val = parent._value[0].item().toDouble();
+    for (uint i = 1; i < parent._value.numel(); i++) {
+      double valuei = parent._value[i].item().toDouble();
       if (valuei > max_val) {
         max_val = valuei;
       }
     }
-    double expsum = (parent._matrix - max_val).exp().sum().item().toDouble();
-    value._double = std::log(expsum) + max_val;
+    double expsum = (parent._value - max_val).exp().sum().item().toDouble();
+    value._value = torch::tensor({std::log(expsum) + max_val});
   } else {
     throw std::runtime_error(
         "invalid type " + parent.type.to_string() +

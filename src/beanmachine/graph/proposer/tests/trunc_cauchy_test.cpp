@@ -24,8 +24,8 @@ TEST(testproposer, trunc_cauchy) {
   uint below_loc = 0;
   for (uint i = 0; i < num_samples; i++) {
     auto val = dist.sample(gen);
-    ASSERT_GT(val._double, 0.0);
-    if (val._double < LOC) {
+    ASSERT_GT(val._value, 0.0);
+    if (val._value < LOC) {
       below_loc++;
     }
   }

@@ -32,7 +32,7 @@ Categorical::Categorical(
 }
 
 graph::natural_t Categorical::_natural_sampler(std::mt19937& gen) const {
-  const torch::Tensor& matrix = in_nodes[0]->value._matrix;
+  const torch::Tensor& matrix = in_nodes[0]->value._value;
   assert(matrix.size(1) == 1);
 
   // distrib(c0.begin(), c0.end()) fails on CircleCI saying that there are no
@@ -51,11 +51,11 @@ graph::natural_t Categorical::_natural_sampler(std::mt19937& gen) const {
 double Categorical::log_prob(const graph::NodeValue& value) const {
   assert(in_nodes.size() == 1);
   assert(in_nodes[0] != 0);
-  const torch::Tensor& matrix = in_nodes[0]->value._matrix;
+  const torch::Tensor& matrix = in_nodes[0]->value._value;
   double prob = 0.0;
   graph::natural_t r = (graph::natural_t)matrix.size(0);
-  if (0 <= value._natural and value._natural < r) {
-    prob = matrix[(int)value._natural][0].item().toDouble();
+  if (0 <= value._value and value._value < r) {
+    prob = matrix[(int)value._value][0].item().toDouble();
   }
   return std::log(prob);
 }
@@ -64,12 +64,12 @@ void Categorical::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  log_probs = torch::zeros({value._matrix.size(0), value._matrix.size(1)});
-  uint rows = static_cast<uint>(value._matrix.size(0));
-  uint cols = static_cast<uint>(value._matrix.size(1));
+  log_probs = torch::zeros({value._value.size(0), value._value.size(1)});
+  uint rows = static_cast<uint>(value._value.size(0));
+  uint cols = static_cast<uint>(value._value.size(1));
   for (uint r = 0; r < rows; r += 1) {
     for (uint c = 0; c < cols; c += 1) {
-      log_probs[r][c] = log_prob(graph::NodeValue(value._matrix[r][c].item().toDouble()));
+      log_probs[r][c] = log_prob(graph::NodeValue(value._value[r][c].item().toDouble()));
     }
   }
 }
@@ -105,14 +105,14 @@ void Categorical::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += 0; // TODO
+    in_nodes[0]->back_grad1._value += 0; // TODO
   }
 }
 
 void Categorical::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += 0; // TODO
+    in_nodes[0]->back_grad1._value += 0; // TODO
   }
 }
 
@@ -121,7 +121,7 @@ void Categorical::backward_param_iid(
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += 0; // TODO
+    in_nodes[0]->back_grad1._value += 0; // TODO
   }
 }
 

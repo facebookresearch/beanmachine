@@ -114,7 +114,7 @@ See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 :param x:
 :returns: log(1 + exp(x))
 */
-double log1pexp(double x);
+torch::Tensor log1pexp(torch::Tensor x);
 
 /*
 Compute `log(1 - exp(x))` with numerical stability.
@@ -122,7 +122,7 @@ See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 :param x:
 :returns: log(1 - exp(x))
 */
-double log1mexp(double x);
+torch::Tensor log1mexp(torch::Tensor x);
 
 } // namespace util
 } // namespace beanmachine

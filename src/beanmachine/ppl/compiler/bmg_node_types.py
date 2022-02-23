@@ -24,7 +24,7 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 _factor_types = {
-    bn.ExpProductFactorNode: ft.EXP_PRODUCT,
+    # bn.ExpProductFactorNode: ft.EXP_PRODUCT,
 }
 
 
@@ -33,8 +33,8 @@ def factor_type(node: bn.FactorNode) -> ft:
 
 
 _dist_types = {
-    bn.BernoulliLogitNode: (dt.BERNOULLI_LOGIT, AtomicType.BOOLEAN),
-    bn.BernoulliNode: (dt.BERNOULLI, AtomicType.BOOLEAN),
+    # bn.BernoulliLogitNode: (dt.BERNOULLI_LOGIT, AtomicType.BOOLEAN),
+    # bn.BernoulliNode: (dt.BERNOULLI, AtomicType.BOOLEAN),
     bn.BetaNode: (dt.BETA, AtomicType.PROBABILITY),
     bn.BinomialNode: (dt.BINOMIAL, AtomicType.NATURAL),
     bn.CategoricalNode: (dt.CATEGORICAL, AtomicType.NATURAL),

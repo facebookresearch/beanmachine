@@ -16,10 +16,10 @@ void Log::operator()(
     graph::NodeValue& unconstrained) {
   assert(constrained.type.atomic_type == graph::AtomicType::POS_REAL);
   if (constrained.type.variable_type == graph::VariableType::SCALAR) {
-    unconstrained._double = std::log(constrained._double);
+    unconstrained._value = std::log(constrained._value);
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    unconstrained._matrix = constrained._matrix.log();
+    unconstrained._value = constrained._value.log();
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
@@ -31,10 +31,10 @@ void Log::inverse(
     const graph::NodeValue& unconstrained) {
   assert(constrained.type.atomic_type == graph::AtomicType::POS_REAL);
   if (constrained.type.variable_type == graph::VariableType::SCALAR) {
-    constrained._double = std::exp(unconstrained._double);
+    constrained._value = std::exp(unconstrained._value);
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    constrained._matrix = unconstrained._matrix.exp();
+    constrained._value = unconstrained._value.exp();
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
@@ -47,10 +47,10 @@ double Log::log_abs_jacobian_determinant(
     const graph::NodeValue& unconstrained) {
   assert(constrained.type.atomic_type == graph::AtomicType::POS_REAL);
   if (constrained.type.variable_type == graph::VariableType::SCALAR) {
-    return unconstrained._double;
+    return unconstrained._value;
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    return unconstrained._matrix.sum().item().toDouble();
+    return unconstrained._value.sum().item().toDouble();
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }
@@ -66,11 +66,11 @@ void Log::unconstrained_gradient(
     const graph::NodeValue& /* unconstrained */) {
   assert(constrained.type.atomic_type == graph::AtomicType::POS_REAL);
   if (constrained.type.variable_type == graph::VariableType::SCALAR) {
-    back_grad._double = back_grad._double * constrained._double + 1.0;
+    back_grad._value = back_grad._value * constrained._value + 1.0;
   } else if (
       constrained.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    back_grad._matrix =
-        back_grad._matrix * constrained._matrix + 1.0;
+    back_grad._value =
+        back_grad._value * constrained._value + 1.0;
   } else {
     throw std::invalid_argument("Log transformation requires POS_REAL values.");
   }

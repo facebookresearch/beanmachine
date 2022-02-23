@@ -16,7 +16,7 @@ namespace proposer {
 
 graph::NodeValue FromProbabilityToDirichletProposerAdapter::sample(
     std::mt19937& gen) const {
-  auto probability = probability_proposer->sample(gen)._double;
+  auto probability = probability_proposer->sample(gen)._value;
   graph::ValueType value_type(
       graph::VariableType::COL_SIMPLEX_MATRIX,
       graph::AtomicType::PROBABILITY,
@@ -32,7 +32,7 @@ graph::NodeValue FromProbabilityToDirichletProposerAdapter::sample(
 double FromProbabilityToDirichletProposerAdapter::log_prob(
     graph::NodeValue& value) const {
   graph::NodeValue probability_node_value(
-      graph::AtomicType::PROBABILITY, value._matrix[0].item().toDouble());
+      graph::AtomicType::PROBABILITY, value._value[0].item().toDouble());
   return probability_proposer->log_prob(probability_node_value);
 }
 

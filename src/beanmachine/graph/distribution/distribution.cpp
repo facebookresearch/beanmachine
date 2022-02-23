@@ -6,21 +6,21 @@
  */
 
 #include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/distribution/bernoulli.h"
-#include "beanmachine/graph/distribution/bernoulli_logit.h"
+// #include "beanmachine/graph/distribution/bernoulli.h"
+// #include "beanmachine/graph/distribution/bernoulli_logit.h"
 // #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
-#include "beanmachine/graph/distribution/beta.h"
+// #include "beanmachine/graph/distribution/beta.h"
 // #include "beanmachine/graph/distribution/bimixture.h"
-#include "beanmachine/graph/distribution/binomial.h"
-#include "beanmachine/graph/distribution/categorical.h"
-#include "beanmachine/graph/distribution/dirichlet.h"
+// #include "beanmachine/graph/distribution/binomial.h"
+// #include "beanmachine/graph/distribution/categorical.h"
+// #include "beanmachine/graph/distribution/dirichlet.h"
 #include "beanmachine/graph/distribution/flat.h"
 // #include "beanmachine/graph/distribution/gamma.h"
 // #include "beanmachine/graph/distribution/half_cauchy.h"
 // #include "beanmachine/graph/distribution/half_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
 // #include "beanmachine/graph/distribution/student_t.h"
-#include "beanmachine/graph/distribution/tabular.h"
+// #include "beanmachine/graph/distribution/tabular.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -33,21 +33,21 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   if (sample_type.variable_type == graph::VariableType::SCALAR) {
     auto atype = sample_type.atomic_type;
     switch (dist_type) {
-      case graph::DistributionType::TABULAR: {
-        return std::make_unique<Tabular>(atype, in_nodes);
-      }
-      case graph::DistributionType::BERNOULLI: {
-        return std::make_unique<Bernoulli>(atype, in_nodes);
-      }
+      // case graph::DistributionType::TABULAR: {
+      //   return std::make_unique<Tabular>(atype, in_nodes);
+      // }
+      // case graph::DistributionType::BERNOULLI: {
+      //   return std::make_unique<Bernoulli>(atype, in_nodes);
+      // }
       // case graph::DistributionType::BERNOULLI_NOISY_OR: {
       //   return std::make_unique<BernoulliNoisyOr>(atype, in_nodes);
       // }
-      case graph::DistributionType::BETA: {
-        return std::make_unique<Beta>(atype, in_nodes);
-      }
-      case graph::DistributionType::BINOMIAL: {
-        return std::make_unique<Binomial>(atype, in_nodes);
-      }
+      // case graph::DistributionType::BETA: {
+      //   return std::make_unique<Beta>(atype, in_nodes);
+      // }
+      // case graph::DistributionType::BINOMIAL: {
+      //   return std::make_unique<Binomial>(atype, in_nodes);
+      // }
       case graph::DistributionType::FLAT: {
         return std::make_unique<Flat>(atype, in_nodes);
       }
@@ -63,18 +63,18 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       // case graph::DistributionType::STUDENT_T: {
       //   return std::make_unique<StudentT>(atype, in_nodes);
       // }
-      case graph::DistributionType::BERNOULLI_LOGIT: {
-        return std::make_unique<BernoulliLogit>(atype, in_nodes);
-      }
+      // case graph::DistributionType::BERNOULLI_LOGIT: {
+      //   return std::make_unique<BernoulliLogit>(atype, in_nodes);
+      // }
       // case graph::DistributionType::GAMMA: {
       //   return std::make_unique<Gamma>(atype, in_nodes);
       // }
       // case graph::DistributionType::BIMIXTURE: {
       //   return std::make_unique<Bimixture>(atype, in_nodes);
       // }
-      case graph::DistributionType::CATEGORICAL: {
-        return std::make_unique<Categorical>(atype, in_nodes);
-      }
+      // case graph::DistributionType::CATEGORICAL: {
+      //   return std::make_unique<Categorical>(atype, in_nodes);
+      // }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +
@@ -85,9 +85,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   } else if (
       sample_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX) {
     switch (dist_type) {
-      case graph::DistributionType::DIRICHLET: {
-        return std::make_unique<Dirichlet>(sample_type, in_nodes);
-      }
+      // case graph::DistributionType::DIRICHLET: {
+      //   return std::make_unique<Dirichlet>(sample_type, in_nodes);
+      // }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +
@@ -97,9 +97,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     }
   } else {
     switch (dist_type) {
-      case graph::DistributionType::FLAT: {
-        return std::make_unique<Flat>(sample_type, in_nodes);
-      }
+      // case graph::DistributionType::FLAT: {
+      //   return std::make_unique<Flat>(sample_type, in_nodes);
+      // }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +
@@ -122,15 +122,15 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
   if (sample_value.type.variable_type == graph::VariableType::SCALAR) {
     switch (sample_value.type.atomic_type) {
       case graph::AtomicType::BOOLEAN:
-        sample_value._bool = _bool_sampler(gen);
+        sample_value._value = torch::tensor({_bool_sampler(gen)});
         break;
       case graph::AtomicType::REAL:
       case graph::AtomicType::POS_REAL:
       case graph::AtomicType::PROBABILITY:
-        sample_value._double = _double_sampler(gen);
+        sample_value._value = torch::tensor({_double_sampler(gen)});
         break;
       case graph::AtomicType::NATURAL:
-        sample_value._natural = _natural_sampler(gen);
+        sample_value._value = torch::tensor({_natural_sampler(gen)});
         break;
       default:
         throw std::runtime_error("Unsupported sample type.");
@@ -147,19 +147,19 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
     switch (sample_value.type.atomic_type) {
       case graph::AtomicType::BOOLEAN:
         for (uint i = 0; i < size; i++) {
-          sample_value._matrix[i] = _bool_sampler(gen);
+          sample_value._value[i] = _bool_sampler(gen);
         }
         break;
       case graph::AtomicType::REAL:
       case graph::AtomicType::POS_REAL:
       case graph::AtomicType::PROBABILITY:
         for (uint i = 0; i < size; i++) {
-          sample_value._matrix[i] = _double_sampler(gen);
+          sample_value._value[i] = _double_sampler(gen);
         }
         break;
       case graph::AtomicType::NATURAL:
         for (uint i = 0; i < size; i++) {
-          sample_value._matrix[i] = _natural_sampler(gen);
+          sample_value._value[i] = _natural_sampler(gen);
         }
         break;
       default:
@@ -171,7 +171,7 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
       sample_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX) {
     switch (sample_type.atomic_type) {
       case graph::AtomicType::PROBABILITY:
-        sample_value._matrix = _matrix_sampler(gen);
+        sample_value._value = _matrix_sampler(gen);
         break;
       default:
         throw std::runtime_error("Unsupported sample type.");
@@ -184,7 +184,7 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
       case graph::AtomicType::REAL:
       case graph::AtomicType::POS_REAL:
       case graph::AtomicType::PROBABILITY:
-        sample_value._matrix = _matrix_sampler(gen);
+        sample_value._value = _matrix_sampler(gen);
         break;
       default:
         throw std::runtime_error("Unsupported sample type.");

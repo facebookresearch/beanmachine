@@ -58,7 +58,7 @@ TEST(testdistrib, half_cauchy) {
       g.infer(10000, InferenceType::REJECTION);
   std::vector<double> values;
   for (const auto& sample : samples) {
-    values.push_back(sample[0]._double);
+    values.push_back(sample[0]._value);
   }
   auto perc_values =
       util::percentiles<double>(values, std::vector<double>{.25, .5, .75, .9});

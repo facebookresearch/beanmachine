@@ -30,12 +30,12 @@ class Dirichlet : public Distribution {
       const graph::NodeValue& /*value*/,
       double& /*grad1*/,
       double& /*grad2*/) const override {}
-  void backward_value(
-      const graph::NodeValue& value,
-      graph::DoubleMatrix& back_grad,
-      double adjunct = 1.0) const override;
-  void backward_param(const graph::NodeValue& value, double adjunct = 1.0)
-      const override;
+//   void backward_value(
+//       const graph::NodeValue& value,
+//       graph::DoubleMatrix& back_grad,
+//       double adjunct = 1.0) const override;
+//   void backward_param(const graph::NodeValue& value, double adjunct = 1.0)
+//       const override;
 };
 
 } // namespace distribution

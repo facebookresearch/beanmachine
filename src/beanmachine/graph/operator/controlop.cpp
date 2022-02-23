@@ -60,7 +60,7 @@ Choice::Choice(const std::vector<graph::Node*>& in_nodes)
 
 void Choice::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() >= 2);
-  graph::natural_t choice = in_nodes[0]->value._natural + 1;
+  graph::natural_t choice = in_nodes[0]->value._value + 1;
   if (choice > in_nodes.size()) {
     throw std::runtime_error(
         "invalid value for CHOICE operator at node_id " +

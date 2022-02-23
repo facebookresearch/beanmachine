@@ -32,18 +32,18 @@ Binomial::Binomial(
 }
 
 graph::natural_t Binomial::_natural_sampler(std::mt19937& gen) const {
-  graph::natural_t param_n = in_nodes[0]->value._natural;
-  double param_p = in_nodes[1]->value._double;
+  graph::natural_t param_n = in_nodes[0]->value._value;
+  double param_p = in_nodes[1]->value._value;
   std::binomial_distribution<graph::natural_t> distrib(param_n, param_p);
   return distrib(gen);
 }
 
 double Binomial::log_prob(const graph::NodeValue& value) const {
-  double n = (double)in_nodes[0]->value._natural;
-  double p = in_nodes[1]->value._double;
+  double n = (double)in_nodes[0]->value._value;
+  double p = in_nodes[1]->value._value;
   double ret_val = 0;
   if (value.type.variable_type == graph::VariableType::SCALAR) {
-    graph::natural_t k = value._natural;
+    graph::natural_t k = value._value;
     if (k > n) {
       return -std::numeric_limits<double>::infinity();
     }
@@ -58,22 +58,22 @@ double Binomial::log_prob(const graph::NodeValue& value) const {
     ret_val += std::lgamma(n + 1) - std::lgamma(k + 1) - std::lgamma(n - k + 1);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    if ((value._matrix > n).any().item().toBool()) {
+    if ((value._value > n).any().item().toBool()) {
       return -std::numeric_limits<double>::infinity();
     }
-    int size = static_cast<int>(value._matrix.numel());
-    double sum_k = static_cast<double>(value._matrix.sum().item().toDouble());
+    int size = static_cast<int>(value._value.numel());
+    double sum_k = static_cast<double>(value._value.sum().item().toDouble());
 
     // we will try not to evaluate log(p) or log(1-p) unless needed
-    if ((value._matrix > 0).any().item().toBool()) {
+    if ((value._value > 0).any().item().toBool()) {
       ret_val += sum_k * log(p);
     }
-    if ((value._matrix < n).any().item().toBool()) {
+    if ((value._value < n).any().item().toBool()) {
       ret_val += (n * size - sum_k) * log(1 - p);
     }
 
     // note: Gamma(n+1) = n!
-    torch::Tensor value_double = value._matrix;
+    torch::Tensor value_double = value._value;
     double k_factorial_sum = (value_double + 1).lgamma().sum().item().toDouble();
     double n_k_factorial_sum = (n - value_double + 1).lgamma().sum().item().toDouble();
     ret_val += std::lgamma(n + 1) * size - k_factorial_sum - n_k_factorial_sum;
@@ -84,9 +84,9 @@ double Binomial::log_prob(const graph::NodeValue& value) const {
 void Binomial::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
-  double n = (double)in_nodes[0]->value._natural;
-  double p = in_nodes[1]->value._double;
-  torch::Tensor value_double = value._matrix;
+  double n = (double)in_nodes[0]->value._value;
+  double p = in_nodes[1]->value._value;
+  torch::Tensor value_double = value._value;
   log_probs = value_double * log(p) +
       (n - value_double) * log(1 - p) + std::lgamma(n + 1) -
       (value_double + 1).lgamma() -
@@ -102,7 +102,7 @@ void Binomial::gradient_log_prob_value(
     double& /* grad2 */) const {
   // nothing to do here since the value is a natural number and we can't
   // compute gradients w.r.t. naturals
-  double p = in_nodes[1]->value._double;
+  double p = in_nodes[1]->value._value;
   grad1 += std::log(p) - std::log(1 - p);
   // grad2 += 0;
 }
@@ -115,9 +115,9 @@ void Binomial::gradient_log_prob_param(
     const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
-  double n = (double)in_nodes[0]->value._natural;
-  double p = in_nodes[1]->value._double;
-  double k = (double)value._natural;
+  double n = (double)in_nodes[0]->value._value;
+  double p = in_nodes[1]->value._value;
+  double k = (double)value._value;
   // first compute gradients w.r.t. p
   double grad_p = (k / p) - (n - k) / (1 - p);
   double grad2_p2 = (-k / (p * p)) - (n - k) / ((1 - p) * (1 - p));
@@ -131,13 +131,13 @@ void Binomial::gradient_log_prob_param(
 void Binomial::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  double n = (double)in_nodes[0]->value._natural;
-  double p = in_nodes[1]->value._double;
-  double k = (double)value._natural;
+  double n = (double)in_nodes[0]->value._value;
+  double p = in_nodes[1]->value._value;
+  double k = (double)value._value;
 
   if (in_nodes[1]->needs_gradient()) {
     double grad = k / p - (n - k) / (1 - p);
-    in_nodes[1]->back_grad1._double += adjunct * grad;
+    in_nodes[1]->back_grad1._value += adjunct * grad;
   }
 }
 
@@ -145,12 +145,12 @@ void Binomial::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
 
   if (in_nodes[1]->needs_gradient()) {
-    double n = (double)in_nodes[0]->value._natural;
-    double p = in_nodes[1]->value._double;
-    int size = static_cast<int>(value._matrix.numel());
-    double sum_k = static_cast<double>(value._matrix.sum().item().toDouble());
+    double n = (double)in_nodes[0]->value._value;
+    double p = in_nodes[1]->value._value;
+    int size = static_cast<int>(value._value.numel());
+    double sum_k = static_cast<double>(value._value.sum().item().toDouble());
     double grad = sum_k / p - (size * n - sum_k) / (1 - p);
-    in_nodes[1]->back_grad1._double += grad;
+    in_nodes[1]->back_grad1._value += grad;
   }
 }
 
@@ -160,15 +160,15 @@ void Binomial::backward_param_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
 
   if (in_nodes[1]->needs_gradient()) {
-    double n = (double)in_nodes[0]->value._natural;
-    double p = in_nodes[1]->value._double;
+    double n = (double)in_nodes[0]->value._value;
+    double p = in_nodes[1]->value._value;
 
     double sum_adjunct = adjunct.sum().item().toDouble();
     double sum_k_adjunct =
-        (value._matrix * adjunct).sum().item().toDouble();
+        (value._value * adjunct).sum().item().toDouble();
     double grad =
         sum_k_adjunct / p - (sum_adjunct * n - sum_k_adjunct) / (1 - p);
-    in_nodes[1]->back_grad1._double += grad;
+    in_nodes[1]->back_grad1._value += grad;
   }
 }
 

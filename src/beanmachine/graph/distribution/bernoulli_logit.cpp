@@ -37,7 +37,7 @@ BernoulliLogit::BernoulliLogit(
 }
 
 bool BernoulliLogit::_bool_sampler(std::mt19937& gen) const {
-  double logodds = in_nodes[0]->value._double;
+  double logodds = in_nodes[0]->value._value;
   return (bool)util::sample_logodds(gen, logodds);
 }
 
@@ -57,14 +57,14 @@ bool BernoulliLogit::_bool_sampler(std::mt19937& gen) const {
 // - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
 // the above equation computes f'(g) [f is the current function g is the input]
 double BernoulliLogit::log_prob(const NodeValue& value) const {
-  double l = in_nodes[0]->value._double;
+  double l = in_nodes[0]->value._value;
 
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     return value._bool ? -util::log1pexp(-l) : -util::log1pexp(l);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = static_cast<int>(value._matrix.numel());
-    int n_positive = static_cast<int>(value._matrix.count_nonzero().item().toInt());
+    int size = static_cast<int>(value._value.numel());
+    int n_positive = static_cast<int>(value._value.count_nonzero().item().toInt());
     return -util::log1pexp(-l) * n_positive -
         util::log1pexp(l) * (size - n_positive);
   } else {
@@ -77,11 +77,11 @@ void BernoulliLogit::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double l = in_nodes[0]->value._double;
+  double l = in_nodes[0]->value._value;
   double pos_val = -util::log1pexp(-l);
   double neg_val = -util::log1pexp(l);
-  log_probs = torch::full_like(value._matrix, neg_val);
-  log_probs = torch::full_like(value._matrix, pos_val).where(value._matrix, log_probs);
+  log_probs = torch::full_like(value._value, neg_val);
+  log_probs = torch::full_like(value._value, pos_val).where(value._value, log_probs);
 }
 
 void BernoulliLogit::gradient_log_prob_value(
@@ -89,7 +89,7 @@ void BernoulliLogit::gradient_log_prob_value(
     double& grad1,
     double& /* grad2 */) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  double l = in_nodes[0]->value._double;
+  double l = in_nodes[0]->value._value;
   grad1 += l;
   // grad2 += 0
 }
@@ -104,7 +104,7 @@ void BernoulliLogit::gradient_log_prob_param(
     double& grad2) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   bool x = value._bool;
-  double l = in_nodes[0]->value._double;
+  double l = in_nodes[0]->value._value;
   // We will compute the gradients w.r.t. each the parameter only if
   // the gradients of the parameter w.r.t. the source variable is non-zero
   double l_grad = in_nodes[0]->grad1;
@@ -123,18 +123,18 @@ void BernoulliLogit::backward_param(
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   if (in_nodes[0]->needs_gradient()) {
     bool x = value._bool;
-    double l = in_nodes[0]->value._double;
-    in_nodes[0]->back_grad1._double += adjunct * _grad1_log_prob_param(x, l);
+    double l = in_nodes[0]->value._value;
+    in_nodes[0]->back_grad1._value += adjunct * _grad1_log_prob_param(x, l);
   }
 }
 
 void BernoulliLogit::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    double l = in_nodes[0]->value._double;
-    int size = static_cast<int>(value._matrix.numel());
-    int n_positive = static_cast<int>(value._matrix.count_nonzero().item().toInt());
-    in_nodes[0]->back_grad1._double +=
+    double l = in_nodes[0]->value._value;
+    int size = static_cast<int>(value._value.numel());
+    int n_positive = static_cast<int>(value._value.count_nonzero().item().toInt());
+    in_nodes[0]->back_grad1._value +=
         (1 / (1 + std::exp(l)) * n_positive -
          1 / (1 + std::exp(-l)) * (size - n_positive));
   }
@@ -145,11 +145,11 @@ void BernoulliLogit::backward_param_iid(
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    double l = in_nodes[0]->value._double;
+    double l = in_nodes[0]->value._value;
     double sum_adjunct = adjunct.sum().item().toDouble();
     double sum_pos_adjunct =
-        (value._matrix * adjunct).sum().item().toDouble();
-    in_nodes[0]->back_grad1._double +=
+        (value._value * adjunct).sum().item().toDouble();
+    in_nodes[0]->back_grad1._value +=
         (1 / (1 + std::exp(l)) * sum_pos_adjunct -
          1 / (1 + std::exp(-l)) * (sum_adjunct - sum_pos_adjunct));
   }

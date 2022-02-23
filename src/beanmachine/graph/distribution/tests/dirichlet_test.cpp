@@ -164,14 +164,14 @@ TEST(testdistrib, dirichlet_sample) {
   torch::Tensor mean(3, 1);
   Eigen::ArrayXd std(3, 1);
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._matrix;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean(0), 0.33, 0.01);
   EXPECT_NEAR(mean(1), 0.22, 0.01);
   EXPECT_NEAR(mean(2), 0.44, 0.01);
   for (int i = 0; i < samples.size(); i++) {
-    std += (samples[i][0]._matrix - mean).pow(2);
+    std += (samples[i][0]._value - mean).pow(2);
   }
   std = (std / (100000 - 1)).cwiseSqrt();
   EXPECT_NEAR(std(0), 0.201, 0.01);

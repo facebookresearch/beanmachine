@@ -29,7 +29,7 @@ Tabular::Tabular(
     throw std::invalid_argument(
         "Tabular distribution's first arg must be COL_SIMPLEX_MATRIX");
   }
-  const torch::Tensor& matrix = in_nodes[0]->value._matrix;
+  const torch::Tensor& matrix = in_nodes[0]->value._value;
   // the matrix must have num rows = 2, since we only support BOOLEAN
   // sample_type
   if (matrix.size(0) != 2) {
@@ -73,7 +73,7 @@ double Tabular::get_probability() const {
   assert(
       in_nodes[0]->value.type.variable_type ==
       graph::VariableType::COL_SIMPLEX_MATRIX);
-  const torch::Tensor& matrix = in_nodes[0]->value._matrix;
+  const torch::Tensor& matrix = in_nodes[0]->value._value;
   assert(col_id < matrix.size(1));
   assert(row_id < matrix.size(0));
   double prob = matrix[row_id][col_id].item().toDouble();

@@ -37,13 +37,13 @@ namespace oper {
 // Note: that we use the following chain rule for the gradients of f(g(x))
 // first: f'(g(x)) g'(x), assuming f'(g(x)) is given by back_grad1.
 
-void UnaryOperator::backward() {
-  assert(in_nodes.size() == 1);
-  auto node = in_nodes[0];
-  if (node->needs_gradient()) {
-    node->back_grad1._double += back_grad1._double * jacobian();
-  }
-}
+// void UnaryOperator::backward() {
+//   assert(in_nodes.size() == 1);
+//   auto node = in_nodes[0];
+//   if (node->needs_gradient()) {
+//     node->back_grad1._value += back_grad1._value * jacobian();
+//   }
+// }
 
 // g'(x) = -1
 double Complement::jacobian() const {
@@ -57,49 +57,49 @@ double Negate::jacobian() const {
 
 // g'(x) = exp(x) = g(x)
 double Exp::jacobian() const {
-  return value._double;
+  return value._value.item().toDouble();
 }
 
 // g'(x) = exp(x) = g(x) + 1
 double ExpM1::jacobian() const {
-  return value._double + 1.0;
+  return value._value.item().toDouble() + 1.0;
 }
 
 // 1st grad is the Normal(0, 1) pdf
 // g'(x) = 1/sqrt(2 pi) exp(-0.5 x^2)
 double Phi::jacobian() const {
-  double x = in_nodes[0]->value._double;
+  double x = in_nodes[0]->value._value;
   return M_SQRT1_2 * (M_2_SQRTPI / 2) * std::exp(-0.5 * x * x);
 }
 
 // g(x) = 1 / (1 + exp(-x))
 // g'(x) = exp(-x) / (1 + exp(-x))^2 = g(x) * (1 - g(x))
 double Logistic::jacobian() const {
-  return value._double * (1 - value._double);
+  return (value._value * (1 - value._value)).item().toDouble();
 }
 
 // g(x) = log (1 + exp(x))
 // g'(x) = exp(x) / (1 + exp(x)) = 1 - exp(-g)
 double Log1pExp::jacobian() const {
-  return 1.0 - std::exp(-value._double);
+  return 1.0 - (-value._value).exp().item().toDouble();
 }
 
 // g(x) = log (1 - exp(x))
 // g'(x) = -exp(x) / (1 - exp(x)) = 1 - exp(-g)
 double Log1mExp::jacobian() const {
-  return 1.0 - std::exp(-value._double);
+  return 1.0 - (-value._value).exp().item().toDouble();
 }
 
 // g'(x) = 1 / x
 double Log::jacobian() const {
-  return 1.0 / in_nodes[0]->value._double;
+  return 1.0 / in_nodes[0]->value._value.item().toDouble();
 }
 
 // dg(x1,...xn)/dxi = 1
 void Add::backward() {
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double += back_grad1._double;
+      node->back_grad1._value += back_grad1._value;
     }
   }
 }
@@ -107,29 +107,29 @@ void Add::backward() {
 // dg(x1,...xn)/dxi = g(x1, ..., xn) / xi
 void Multiply::backward() {
   // if at least one parent value is likely zero.
-  if (util::approx_zero(value._double)) {
+  if (util::approx_zero(value._value.item().toDouble())) {
     std::vector<graph::Node*> zeros;
     double non_zero_prod = 1.0;
     for (const auto node : in_nodes) {
-      if (util::approx_zero(node->value._double)) {
+      if (util::approx_zero(node->value._value.item().toDouble())) {
         zeros.push_back(node);
       } else {
-        non_zero_prod *= node->value._double;
+        non_zero_prod *= node->value._value.item().toDouble();
       }
     }
     if (zeros.size() == 1) {
       // if there is only one zero, only its backgrad needs update
-      zeros.front()->back_grad1._double += back_grad1._double * non_zero_prod;
+      zeros.front()->back_grad1._value += back_grad1._value * non_zero_prod;
       return;
     } else if (zeros.size() > 1) {
       // if multiple zeros, all grad increments are zero, no need to update
       return;
     } // otherwise, do the usual update
   }
-  double shared_numerator = back_grad1._double * value._double;
+  double shared_numerator = (back_grad1._value * value._value).item().toDouble();
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double += shared_numerator / node->value._double;
+      node->back_grad1._value += shared_numerator / node->value._value;
     }
   }
 }
@@ -139,16 +139,16 @@ void Multiply::backward() {
 // dg/x1 = g * log(x0)
 void Pow::backward() {
   assert(in_nodes.size() == 2);
-  double x0 = in_nodes[0]->value._double;
-  double x1 = in_nodes[1]->value._double;
+  torch::Tensor x0 = in_nodes[0]->value._value;
+  torch::Tensor x1 = in_nodes[1]->value._value;
   if (in_nodes[0]->needs_gradient()) {
-    double jacob = util::approx_zero(x0) ? x1 * std::pow(x0, x1 - 1)
-                                         : value._double * x1 / x0;
-    in_nodes[0]->back_grad1._double += back_grad1._double * jacob;
+    torch::Tensor jacob = util::approx_zero(x0.item().toDouble()) ? x1 * (x0).pow(x1 - 1)
+                                         : value._value * x1 / x0;
+    in_nodes[0]->back_grad1._value += back_grad1._value * jacob;
   }
   if (in_nodes[1]->needs_gradient()) {
-    double jacob = value._double * std::log(x0);
-    in_nodes[1]->back_grad1._double += back_grad1._double * jacob;
+    torch::Tensor jacob = value._value * x0.log();
+    in_nodes[1]->back_grad1._value += back_grad1._value * jacob;
   }
 }
 
@@ -156,8 +156,8 @@ void Pow::backward() {
 void LogSumExp::backward() {
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double +=
-          back_grad1._double * std::exp(node->value._double - value._double);
+      node->back_grad1._value +=
+          back_grad1._value * (node->value._value - value._value).exp();
     }
   }
 }
@@ -166,24 +166,24 @@ void LogSumExp::backward() {
 void LogSumExpVector::backward() {
   if (in_nodes[0]->needs_gradient()) {
     torch::Tensor exp =
-        (in_nodes[0]->value._matrix - value._double).exp();
-    in_nodes[0]->back_grad1._matrix += back_grad1._double * exp;
+        (in_nodes[0]->value._value - value._value).exp();
+    in_nodes[0]->back_grad1._value += back_grad1._value * exp;
   }
 }
 
 void IfThenElse::backward() {
   assert(in_nodes.size() == 3);
-  int choice = in_nodes[0]->value._bool ? 1 : 2;
+  int choice = in_nodes[0]->value._value.item().toBool() ? 1 : 2;
   if (in_nodes[choice]->needs_gradient()) {
-    in_nodes[choice]->back_grad1._double += back_grad1._double;
+    in_nodes[choice]->back_grad1._value += back_grad1._value;
   }
 }
 
 void Choice::backward() {
-  graph::natural_t choice = in_nodes[0]->value._natural + 1;
+  graph::natural_t choice = in_nodes[0]->value._value.item().toInt() + 1;
   assert(in_nodes.size() < choice);
   if (in_nodes[choice]->needs_gradient()) {
-    in_nodes[choice]->back_grad1._double += back_grad1._double;
+    in_nodes[choice]->back_grad1._value += back_grad1._value;
   }
 }
 
@@ -196,24 +196,24 @@ void MatrixMultiply::backward() {
   assert(in_nodes.size() == 2);
   auto node_a = in_nodes[0];
   auto node_b = in_nodes[1];
-  torch::Tensor& A = node_a->value._matrix;
-  torch::Tensor& B = node_b->value._matrix;
+  torch::Tensor& A = node_a->value._value;
+  torch::Tensor& B = node_b->value._value;
   // if C = A @ B is reduced to a scalar
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._matrix += back_grad1._double * B.transpose(0, 1);
+      node_a->back_grad1._value += back_grad1._value * B.transpose(0, 1);
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix += back_grad1._double * A.transpose(0, 1);
+      node_b->back_grad1._value += back_grad1._value * A.transpose(0, 1);
     }
     return;
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._matrix += back_grad1._matrix * B.transpose(0, 1);
+    node_a->back_grad1._value += back_grad1._value * B.transpose(0, 1);
   }
   if (node_b->needs_gradient()) {
-    node_b->back_grad1._matrix += A.transpose(0, 1) * back_grad1._matrix;
+    node_b->back_grad1._value += A.transpose(0, 1) * back_grad1._value;
   }
 }
 
@@ -229,25 +229,25 @@ void MatrixScale::backward() {
   assert(in_nodes.size() == 2);
   auto node_a = in_nodes[0];
   auto node_b = in_nodes[1];
-  double A = node_a->value._double;
-  torch::Tensor& B = node_b->value._matrix;
+  double A = node_a->value._value.item().toDouble();
+  torch::Tensor& B = node_b->value._value;
   // if C = A @ B is reduced to a scalar
   // TODO[Walid] : Check if this case is actually ever needed
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._double += (back_grad1._double * B.transpose(0, 1)).sum().item().toDouble();
+      node_a->back_grad1._value += (back_grad1._value * B.transpose(0, 1)).sum().item().toDouble();
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix[0][0] += back_grad1._double * A;
+      node_b->back_grad1._value[0][0] += back_grad1._value * A;
     }
     return;
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._double += (back_grad1._matrix * B.transpose(0, 1)).sum().item().toDouble();
+    node_a->back_grad1._value += (back_grad1._value * B.transpose(0, 1)).sum().item().toDouble();
   }
   if (node_b->needs_gradient()) {
-    node_b->back_grad1._matrix += A * back_grad1._matrix;
+    node_b->back_grad1._value += A * back_grad1._value;
   }
 }
 
@@ -255,8 +255,8 @@ void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix[in_nodes[1]->value._natural] +=
-        back_grad1._double;
+    matrix->back_grad1._value[in_nodes[1]->value._value] +=
+        back_grad1._value;
   }
 }
 
@@ -264,23 +264,23 @@ void ColumnIndex::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
   if (matrix->needs_gradient()) {
-    matrix->back_grad1._matrix.index_put_(
-      {torch::indexing::Slice(),(int)in_nodes[1]->value._natural},
-      matrix->back_grad1._matrix.index(
-        {torch::indexing::Slice(),(int)in_nodes[1]->value._natural}
-      ) + back_grad1._matrix
+    matrix->back_grad1._value.index_put_(
+      {torch::indexing::Slice(),(int)in_nodes[1]->value._value.item().toInt()},
+      matrix->back_grad1._value.index(
+        {torch::indexing::Slice(),(int)in_nodes[1]->value._value.item().toInt()}
+      ) + back_grad1._value
     );
   }
 }
 
 void ToMatrix::backward() {
-  int rows = static_cast<int>(in_nodes[0]->value._natural);
-  int cols = static_cast<int>(in_nodes[1]->value._natural);
+  int rows = static_cast<int>(in_nodes[0]->value._value.item().toInt());
+  int cols = static_cast<int>(in_nodes[1]->value._value.item().toInt());
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];
       if (node->needs_gradient()) {
-        node->back_grad1._double += back_grad1._matrix[i][j].item().toDouble();
+        node->back_grad1._value += back_grad1._value[i][j].item().toDouble();
       }
     }
   }
@@ -289,10 +289,10 @@ void ToMatrix::backward() {
 void BroadcastAdd::backward() {
   assert(in_nodes.size() == 2);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += back_grad1._matrix.sum().item().toDouble();
+    in_nodes[0]->back_grad1._value += back_grad1._value.sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._matrix += back_grad1._matrix;
+    in_nodes[1]->back_grad1._value += back_grad1._value;
   }
 }
 

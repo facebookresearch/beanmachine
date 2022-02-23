@@ -38,8 +38,8 @@ TEST(testnmc, beta_binomial) {
   for (const auto& sample : samples) {
     const auto& s = sample.front();
     ASSERT_EQ(s.type, AtomicType::PROBABILITY);
-    sum += s._double;
-    sumsq += s._double * s._double;
+    sum += s._value;
+    sumsq += s._value * s._value;
   }
   double mean = sum / num_samples;
   double var = sumsq / num_samples - mean * mean;
@@ -315,8 +315,8 @@ TEST(testnmc, infinite_grad) {
   for (const auto& sample : samples) {
     const auto& s = sample.front();
     ASSERT_EQ(s.type, AtomicType::PROBABILITY);
-    sum += s._double;
-    sumsq += s._double * s._double;
+    sum += s._value;
+    sumsq += s._value * s._value;
   }
   double mean = sum / num_samples;
   double var = sumsq / num_samples - mean * mean;
@@ -367,12 +367,12 @@ TEST(testnmc, bernoulli_dirichlet_beta) {
   for (const auto& sample : samples) {
     const auto& p0 = sample.front();
     ASSERT_EQ(p0.type, AtomicType::PROBABILITY);
-    sum0 += p0._double;
-    sum0sq += p0._double * p0._double;
+    sum0 += p0._value;
+    sum0sq += p0._value * p0._value;
     const auto& p1 = sample.back();
     ASSERT_EQ(p1.type, AtomicType::PROBABILITY);
-    sum1 += p1._double;
-    sum1sq += p1._double * p1._double;
+    sum1 += p1._value;
+    sum1sq += p1._value * p1._value;
   }
   // p0 ~ Beta(1, 3)
   double mean = sum0 / num_samples;
@@ -412,7 +412,7 @@ TEST(testnmc, dirichlet_gamma) {
 
   for (const auto& s : samples) {
     const auto& sample = s[0];
-    sum += sample._matrix;
+    sum += sample._value;
   }
   torch::Tensor mean = sum / num_samples;
   EXPECT_NEAR(mean(0), 0.2, 0.01);
@@ -421,7 +421,7 @@ TEST(testnmc, dirichlet_gamma) {
 
   torch::Tensor var = torch::Tensor::Zero(3, 1);
   for (const auto& s : samples) {
-    const auto& sample = s[0]._matrix;
+    const auto& sample = s[0]._value;
     var += ((sample - mean) * (sample - mean)).matrix();
   }
   var /= num_samples;

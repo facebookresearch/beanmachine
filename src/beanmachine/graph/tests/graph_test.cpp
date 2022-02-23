@@ -132,7 +132,7 @@ TEST(testgraph, infer_bn) {
     const auto& s0 = all_samples[0][i].front();
     const auto& s1 = all_samples[1][i].front();
     // @lint-ignore CLANGTIDY
-    eqsum += (s0._bool == s1._bool) ? 1 : 0;
+    eqsum += (s0._value == s1._bool) ? 1 : 0;
   }
   ASSERT_LT(eqsum, n_iter);
 
@@ -151,7 +151,7 @@ TEST(testgraph, clone_graph) {
   // types of nodes to test the copy constructor.
   graph::Graph g;
   // constants
-  uint c_bool = g.add_constant(true);
+  uint c_value = g.add_constant(true);
   uint c_real = g.add_constant(-2.5);
   uint c_natural_1 = g.add_constant((graph::natural_t)1);
   uint c_natural_2 = g.add_constant((graph::natural_t)2);
@@ -216,7 +216,7 @@ TEST(testgraph, clone_graph) {
       graph::AtomicType::POS_REAL,
       std::vector<uint>{c_pos, c_pos});
   // operators
-  uint o_sample_bool = g.add_operator(
+  uint o_sample_value = g.add_operator(
       graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
   uint o_sample_real =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_normal});
@@ -227,7 +227,7 @@ TEST(testgraph, clone_graph) {
   uint o_sample_pos =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_gamma});
 
-  uint o_iidsample_bool = g.add_operator(
+  uint o_iidsample_value = g.add_operator(
       graph::OperatorType::IID_SAMPLE,
       std::vector<uint>{d_bernoulli, c_natural_1, c_natural_2});
   uint o_iidsample_real = g.add_operator(
@@ -331,7 +331,7 @@ TEST(testgraph, full_log_prob) {
       double l = log_probs[c][i];
       g.remove_observations();
       g.observe(k, (graph::natural_t)8);
-      g.observe(prob, s._double);
+      g.observe(prob, s._value);
       EXPECT_NEAR(g.full_log_prob(), l, 1e-3);
     }
   }
@@ -359,7 +359,7 @@ TEST(testgraph, bad_observations) {
       graph::DistributionType::BERNOULLI,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>{c_prob});
-  uint o_sample_bool = g.add_operator(
+  uint o_sample_value = g.add_operator(
       graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
   EXPECT_THROW(g.observe(o_sample_bool, 0.1), std::invalid_argument);
   EXPECT_THROW(g.observe(o_sample_bool, nat), std::invalid_argument);
@@ -370,7 +370,7 @@ TEST(testgraph, bad_observations) {
   // Observe a bool(2, 1) to be a bool, double, natural, and (1, 2) matrices
   uint c_natural_1 = g.add_constant((graph::natural_t)1);
   uint c_natural_2 = g.add_constant((graph::natural_t)2);
-  uint o_iid_bool = g.add_operator(
+  uint o_iid_value = g.add_operator(
       graph::OperatorType::IID_SAMPLE,
       std::vector<uint>{d_bernoulli, c_natural_2, c_natural_1});
   EXPECT_THROW(g.observe(o_iid_bool, false), std::invalid_argument);

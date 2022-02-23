@@ -22,7 +22,7 @@ class Operator : public graph::Node {
   bool is_stochastic() const override {
     return false;
   }
-  double log_prob() const override;
+  torch::Tensor log_prob() const override;
   void eval(std::mt19937& gen) override;
 
   // Computes gradients of node's value based on its in-nodes values and
@@ -41,7 +41,7 @@ class Operator : public graph::Node {
       double& grad1,
       double& grad2) const override;
 
-  void backward() override {}
+//   void backward() override {}
   graph::OperatorType op_type;
 };
 

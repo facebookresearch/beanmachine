@@ -48,14 +48,14 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
   auto dirichlet_distribution_node = sto_tgt_node->in_nodes[0];
   auto param_node = dirichlet_distribution_node->in_nodes[0];
 
-  uint K = static_cast<uint>(tgt_node->value._matrix.numel());
+  uint K = static_cast<uint>(tgt_node->value._value.numel());
   for (uint k = 0; k < K; k++) {
-    double param_a_k = param_node->value._matrix[k].item().toDouble();
-    double x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
+    double param_a_k = param_node->value._value[k].item().toDouble();
+    double x_sum = sto_tgt_node->unconstrained_value._value.sum().item().toDouble();
 
     // save old values
     mh->save_old_values(det_affected_nodes);
-    double old_x_k = sto_tgt_node->unconstrained_value._matrix[k].item().toDouble();
+    double old_x_k = sto_tgt_node->unconstrained_value._value[k].item().toDouble();
     NodeValue old_x_k_value(AtomicType::POS_REAL, old_x_k);
     double old_sto_affected_nodes_log_prob =
         compute_sto_affected_nodes_log_prob(tgt_node, param_a_k, old_x_k_value);
@@ -68,11 +68,11 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     NodeValue new_x_k_value = mh->sample(proposal_given_old_value);
 
     // set new value
-    sto_tgt_node->unconstrained_value._matrix[k] =
-        new_x_k_value._double;
-    x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
-    sto_tgt_node->value._matrix =
-        sto_tgt_node->unconstrained_value._matrix / x_sum;
+    sto_tgt_node->unconstrained_value._value[k] =
+        new_x_k_value._value;
+    x_sum = sto_tgt_node->unconstrained_value._value.sum().item().toDouble();
+    sto_tgt_node->value._value =
+        sto_tgt_node->unconstrained_value._value / x_sum;
 
     // propagate new value
     mh->eval(det_affected_nodes);
@@ -94,10 +94,10 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     if (!accepted) {
       // revert
       mh->restore_old_values(det_affected_nodes);
-      sto_tgt_node->unconstrained_value._matrix[k] = old_x_k;
-      x_sum = sto_tgt_node->unconstrained_value._matrix.sum().item().toDouble();
-      sto_tgt_node->value._matrix =
-          sto_tgt_node->unconstrained_value._matrix / x_sum;
+      sto_tgt_node->unconstrained_value._value[k] = old_x_k;
+      x_sum = sto_tgt_node->unconstrained_value._value.sum().item().toDouble();
+      sto_tgt_node->value._value =
+          sto_tgt_node->unconstrained_value._value / x_sum;
     }
 
     // Gradients are must be cleared (equal to 0)
@@ -120,7 +120,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::compute_sto_affected_nodes_log_prob(
   double logweight = 0;
   for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
-      double& x_k = x_k_value._double;
+      double& x_k = x_k_value._value;
       // X_k ~ Gamma(param_a_k, 1)
       // PDF of Gamma(a, 1) is x^(a - 1)exp(-x)/gamma(a)
       // so log pdf(x) = log(x^(a - 1)) + (-x) - log(gamma(a))
@@ -153,7 +153,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   // where d2Y_k/dX2_k = -2 * (x_sum(X) - X_k)/x_sum(X)^3
   //       d2Y_j/dX2_k = -2 * X_j/x_sum(X)^3
   sto_tgt_node->Grad1 =
-      -sto_tgt_node->unconstrained_value._matrix / (x_sum * x_sum);
+      -sto_tgt_node->unconstrained_value._value / (x_sum * x_sum);
   sto_tgt_node->Grad1[k] += 1 / x_sum;
   sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / x_sum;
 
@@ -177,7 +177,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   double grad2 = 0;
   for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
-      double& x_k = x_k_value._double;
+      double& x_k = x_k_value._value;
       // X_k ~ Gamma(param_a_k, 1)
       // PDF of Gamma(a, 1) is x^(a - 1)exp(-x)/gamma(a)
       // so log pdf(x) = log(x^(a - 1)) + (-x) - log(gamma(a))

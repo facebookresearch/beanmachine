@@ -26,13 +26,13 @@ TEST(testgradient, operators) {
   auto f = g.add_operator(OperatorType::NEGATE, std::vector<uint>({e}));
   // c = 10a, where a=3. Therefore value=30, grad1=10, and grad2=0
   g.eval_and_grad(c, a, 12351, value, grad1, grad2);
-  EXPECT_NEAR(value._double, 30, 0.001);
+  EXPECT_NEAR(value._value, 30, 0.001);
   EXPECT_NEAR(grad1, 10, 1e-6);
   EXPECT_NEAR(grad2, 0, 1e-6);
   // b=10, c=10a, d=12a, e= 1200a^3 f=-1200a^3
   // Therefore value=-32400, grad1=-3600a^2=-32400, and grad2=-7200a = -21600
   g.eval_and_grad(f, a, 12351, value, grad1, grad2);
-  EXPECT_NEAR(value._double, -32400, 0.001);
+  EXPECT_NEAR(value._value, -32400, 0.001);
   EXPECT_NEAR(grad1, -32400, 1e-3);
   EXPECT_NEAR(grad2, -21600, 1e-3);
   // test operators on probabilities
@@ -42,7 +42,7 @@ TEST(testgradient, operators) {
   auto k = g.add_operator(OperatorType::TO_POS_REAL, std::vector<uint>({j}));
   // k = h (1 -h); h=.3 => value = .21, grad1 = 1 - 2h = 0.4, and grad2 = -2
   g.eval_and_grad(k, h, 12351, value, grad1, grad2);
-  EXPECT_NEAR(value._double, 0.21, 1e-6);
+  EXPECT_NEAR(value._value, 0.21, 1e-6);
   EXPECT_NEAR(grad1, 0.4, 1e-6);
   EXPECT_NEAR(grad2, -2, 1e-6);
 }

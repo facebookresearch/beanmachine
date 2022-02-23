@@ -42,7 +42,7 @@ TEST(testglobal, nuts_normal_normal) {
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   /*
@@ -81,7 +81,7 @@ TEST(testglobal, nuts_gamma_gamma) {
   EXPECT_EQ(samples.size(), 2000);
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   /*
@@ -115,7 +115,7 @@ TEST(testglobal, global_nuts_half_cauchy) {
   double expected_median = 1.0;
   double above_expected_median = 0;
   for (int i = 0; i < samples.size(); i++) {
-    if (samples[i][0]._double > expected_median) {
+    if (samples[i][0]._value > expected_median) {
       above_expected_median++;
     }
   }
@@ -182,14 +182,14 @@ TEST(testglobal, global_nuts_mixed) {
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][1]._double;
+    mean += samples[i][1]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean, 2.0 / 3, 0.02);
 
   mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean, 0.875, 0.03);
@@ -231,7 +231,7 @@ TEST(testglobal, global_nuts_halfnormal) {
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean, 1.69, 0.04);

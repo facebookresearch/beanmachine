@@ -22,9 +22,9 @@ TEST(testproposer, gamma) {
   double sumsq = 0.0;
   for (uint i = 0; i < num_samples; i++) {
     auto val = dist.sample(gen);
-    ASSERT_GT(val._double, 0.0);
-    sum += val._double;
-    sumsq += val._double * val._double;
+    ASSERT_GT(val._value, 0.0);
+    sum += val._value;
+    sumsq += val._value * val._value;
   }
   double mean = sum / num_samples;
   double var = sumsq / num_samples - mean * mean;

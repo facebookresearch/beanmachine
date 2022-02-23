@@ -80,14 +80,14 @@ void Exp::compute_gradients() {
   assert(in_nodes.size() == 1);
   // for f(y) = exp(y) or f(y) = exp(y)-1 we have f'(y) = exp(y) and f''(y) =
   // exp(y)
-  double exp_parent = std::exp(in_nodes[0]->value._double);
+  double exp_parent = std::exp(in_nodes[0]->value._value);
   grad1 = exp_parent * in_nodes[0]->grad1;
   grad2 = grad1 * in_nodes[0]->grad1 + exp_parent * in_nodes[0]->grad2;
 }
 
 void ExpM1::compute_gradients() {
   assert(in_nodes.size() == 1);
-  double exp_parent = std::exp(in_nodes[0]->value._double);
+  double exp_parent = std::exp(in_nodes[0]->value._value);
   grad1 = exp_parent * in_nodes[0]->grad1;
   grad2 = grad1 * in_nodes[0]->grad1 + exp_parent * in_nodes[0]->grad2;
 }
@@ -97,7 +97,7 @@ void Log1pExp::compute_gradients() {
   // f(x) = log (1 + exp(x))
   // f'(x) = exp(x) / (1 + exp(x)) = 1 - exp(-f)
   // f''(x) = exp(x) / (1 + exp(x))^2 = f' * (1 - f')
-  double f_x = value._double;
+  double f_x = value._value;
   double f_grad = 1.0 - std::exp(-f_x);
   double f_grad2 = f_grad * (1.0 - f_grad);
   grad1 = f_grad * in_nodes[0]->grad1;
@@ -110,7 +110,7 @@ void Log1mExp::compute_gradients() {
   // f(x) = log (1 - exp(x))
   // f'(x) = -exp(x) / (1 - exp(x)) = 1 - exp(-f)
   // f''(x) = -exp(x) / (1 - exp(x))^2 = f' * (1 - f')
-  double f_x = value._double;
+  double f_x = value._value;
   double f_grad = 1.0 - std::exp(-f_x);
   double f_grad2 = f_grad * (1.0 - f_grad);
   grad1 = f_grad * in_nodes[0]->grad1;
@@ -123,7 +123,7 @@ void Log::compute_gradients() {
   // f(x) = log(x)
   // f'(x) = 1 / x
   // f''(x) = -1 / (x^2) = -f'(x) * f'(x)
-  double x = in_nodes[0]->value._double;
+  double x = in_nodes[0]->value._value;
   double f_grad = 1.0 / x;
   double f_grad2 = -f_grad * f_grad;
   grad1 = f_grad * in_nodes[0]->grad1;
@@ -137,7 +137,7 @@ void Phi::compute_gradients() {
   // the normal density pdf:
   // 1/sqrt(2 pi) exp(-0.5 x^2)
   // second gradient = 1/sqrt(2 pi) exp(-0.5 x^2) * (-x)
-  double x = in_nodes[0]->value._double;
+  double x = in_nodes[0]->value._value;
   // compute gradient w.r.t. x and then include the gradient of x w.r.t. src
   // idx
   double grad1_x = M_SQRT1_2 * (M_2_SQRTPI / 2) * std::exp(-0.5 * x * x);
@@ -152,7 +152,7 @@ void Logistic::compute_gradients() {
   // f(x) = 1 / (1 + exp(-x))
   // f'(x) = exp(-x) / (1 + exp(-x))^2 = f(x) * (1 - f(x))
   // f''(x) = f'(x) - 2 f(x) f'(x) = f'(x) (1 - 2 f(x))
-  double f_x = value._double;
+  double f_x = value._value;
   double f_grad = f_x * (1 - f_x);
   double f_grad2 = f_grad * (1 - 2 * f_x);
   grad1 = f_grad * in_nodes[0]->grad1;
@@ -205,9 +205,9 @@ void Pow::compute_gradients() {
   // m'  = y'' log x + c
   // n'  = (x'' y / x  + c  - x' x' y) / (x x)
 
-  double f = value._double;
-  double x = in_nodes[0]->value._double;
-  double y = in_nodes[1]->value._double;
+  double f = value._value;
+  double x = in_nodes[0]->value._value;
+  double y = in_nodes[1]->value._value;
   double x1 = in_nodes[0]->grad1;
   double y1 = in_nodes[1]->grad1;
   double x2 = in_nodes[0]->grad2;
@@ -269,13 +269,13 @@ void Multiply::compute_gradients() {
   // second grad
   double sum_product_one_grad2 = 0.0;
   for (const auto in_node : in_nodes) {
-    sum_product_one_grad2 *= in_node->value._double;
+    sum_product_one_grad2 *= in_node->value._value;
     sum_product_one_grad2 += product * in_node->grad2;
-    sum_product_two_grad1 *= in_node->value._double;
+    sum_product_two_grad1 *= in_node->value._value;
     sum_product_two_grad1 += sum_product_one_grad1 * in_node->grad1;
-    sum_product_one_grad1 *= in_node->value._double;
+    sum_product_one_grad1 *= in_node->value._value;
     sum_product_one_grad1 += product * in_node->grad1;
-    product *= in_node->value._double;
+    product *= in_node->value._value;
   }
   grad1 = sum_product_one_grad1;
   grad2 = sum_product_two_grad1 * 2 + sum_product_one_grad2;
@@ -296,7 +296,7 @@ void LogSumExp::compute_gradients() {
   std::vector<double> f_grad;
   for (uint i = 0; i < N; i++) {
     const auto node_i = in_nodes[i];
-    double f_grad_i = std::exp(node_i->value._double - value._double);
+    double f_grad_i = std::exp(node_i->value._value - value._value);
     grad1 += f_grad_i * node_i->grad1;
     f_grad.push_back(f_grad_i);
   }
@@ -321,7 +321,7 @@ void LogSumExpVector::compute_gradients() {
   // therefore, grad2 = sum_i^n{exp(gi - f) * [(dgi/dx - grad1)*dgi/dx +
   // d(dgi/dx)/dx]}
   torch::Tensor f_grad =
-      (in_nodes[0]->value._matrix - value._double).exp();
+      (in_nodes[0]->value._value - value._value).exp();
   grad1 = (f_grad * in_nodes[0]->Grad1).sum().item().toDouble();
   grad2 = (f_grad *
            (in_nodes[0]->Grad1 * (in_nodes[0]->Grad1 - grad1) +
@@ -337,7 +337,7 @@ void IfThenElse::compute_gradients() {
 }
 
 void Choice::compute_gradients() {
-  graph::natural_t choice = in_nodes[0]->value._natural + 1;
+  graph::natural_t choice = in_nodes[0]->value._value + 1;
   assert(in_nodes.size() < choice);
   grad1 = in_nodes[choice]->grad1;
   grad2 = in_nodes[choice]->grad2;
@@ -345,8 +345,8 @@ void Choice::compute_gradients() {
 
 void Index::compute_gradients() {
   assert(in_nodes.size() == 2);
-  grad1 = in_nodes[0]->Grad1[(int)in_nodes[1]->value._natural].item().toDouble();
-  grad2 = in_nodes[0]->Grad2[(int)in_nodes[1]->value._natural].item().toDouble();
+  grad1 = in_nodes[0]->Grad1[(int)in_nodes[1]->value._value].item().toDouble();
+  grad2 = in_nodes[0]->Grad2[(int)in_nodes[1]->value._value].item().toDouble();
 }
 
 void ColumnIndex::compute_gradients() {
@@ -355,16 +355,16 @@ void ColumnIndex::compute_gradients() {
   Grad1.resize_({rows, 1});
   Grad2.resize_({rows, 1});
   Grad1 = in_nodes[0]->Grad1.index(
-    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural}
+    {torch::indexing::Slice(), in_nodes[1]->value._value}
   );
   Grad2 = in_nodes[0]->Grad2.index(
-    {torch::indexing::Slice(), (int)in_nodes[1]->value._natural}
+    {torch::indexing::Slice(), in_nodes[1]->value._value}
   );
 }
 
 void ToMatrix::compute_gradients() {
-  int rows = static_cast<int>(in_nodes[0]->value._natural);
-  int cols = static_cast<int>(in_nodes[1]->value._natural);
+  int rows = static_cast<int>(in_nodes[0]->value._value.item().toInt());
+  int cols = static_cast<int>(in_nodes[1]->value._value.item().toInt());
   Grad1.resize_({rows, cols});
   Grad2.resize_({rows, cols});
   for (int j = 0; j < cols; j++) {

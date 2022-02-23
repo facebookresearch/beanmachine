@@ -58,7 +58,7 @@ GlobalState::GlobalState(Graph& g) : graph(g) {
     if (unconstrained_value.type.variable_type == VariableType::SCALAR) {
       flat_size++;
     } else {
-      flat_size += static_cast<int>(unconstrained_value._matrix.numel());
+      flat_size += static_cast<int>(unconstrained_value._value.numel());
     }
   }
 }
@@ -178,7 +178,7 @@ void GlobalState::set_flattened_unconstrained_values(
     auto sto_node = static_cast<oper::StochasticOperator*>(node);
     NodeValue* value = sto_node->get_unconstrained_value(false);
     if (value->type.variable_type == VariableType::SCALAR) {
-      value->_double = flattened_values[i];
+      value->_value = flattened_values[i];
       i++;
     } else {
       value->_matrix = flattened_values.segment(i, value->_matrix.numel());
@@ -198,13 +198,13 @@ void GlobalState::get_flattened_unconstrained_grads(
   int i = 0;
   for (Node* node : stochastic_nodes) {
     if (node->value.type.variable_type == VariableType::SCALAR) {
-      flattened_grad[i] = node->back_grad1._double;
+      flattened_grad[i] = node->back_grad1._value;
       i++;
     } else {
       torch::Tensor vector(Eigen::Map<torch::Tensor>(
-          node->back_grad1._matrix.data(), node->back_grad1._matrix.numel()));
+          node->back_grad1._value.data(), node->back_grad1._value.numel()));
       flattened_grad.segment(i, vector.size()) = vector;
-      i += static_cast<int>(node->back_grad1._matrix.numel());
+      i += static_cast<int>(node->back_grad1._value.numel());
     }
   }
 }

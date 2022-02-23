@@ -42,7 +42,7 @@ ExpProduct::ExpProduct(const std::vector<graph::Node*>& in_nodes)
 double ExpProduct::log_prob() const {
   double product = 1.0;
   for (const Node* node : in_nodes) {
-    product *= node->value._double;
+    product *= node->value._value;
   }
   return product;
 }
@@ -59,12 +59,12 @@ void ExpProduct::gradient_log_prob(
   // product of previous terms and exactly two gradients
   double running_prod_2grad = 0;
   for (const Node* node : in_nodes) {
-    running_prod_2grad *= node->value._double;
+    running_prod_2grad *= node->value._value;
     running_prod_2grad +=
         2 * running_prod_1grad * node->grad1 + running_prod * node->grad2;
-    running_prod_1grad *= node->value._double;
+    running_prod_1grad *= node->value._value;
     running_prod_1grad += running_prod * node->grad1;
-    running_prod *= node->value._double;
+    running_prod *= node->value._value;
   }
   grad1 += running_prod_1grad;
   grad2 += running_prod_2grad;
@@ -76,15 +76,15 @@ void ExpProduct::backward() {
   std::vector<graph::Node*> zeros;
   double non_zero_prod = 1.0;
   for (const auto node : in_nodes) {
-    if (util::approx_zero(node->value._double)) {
+    if (util::approx_zero(node->value._value)) {
       zeros.push_back(node);
     } else {
-      non_zero_prod *= node->value._double;
+      non_zero_prod *= node->value._value;
     }
   }
   if (zeros.size() == 1 and zeros.front()->needs_gradient()) {
     // if there is only one zero, only its backgrad needs update
-    zeros.front()->back_grad1._double += non_zero_prod;
+    zeros.front()->back_grad1._value += non_zero_prod;
     return;
   } else if (zeros.size() > 1) {
     // if multiple zeros, all grad increments are zero, no need to update
@@ -93,7 +93,7 @@ void ExpProduct::backward() {
 
   for (const auto node : in_nodes) {
     if (node->needs_gradient()) {
-      node->back_grad1._double += non_zero_prod / node->value._double;
+      node->back_grad1._value += non_zero_prod / node->value._value;
     }
   }
 }

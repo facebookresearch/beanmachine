@@ -36,7 +36,7 @@ class Distribution : public graph::Node {
   // tell the compiler that we want the base class log_prob method
   // as well as the new one in this class
   using graph::Node::log_prob;
-  virtual double log_prob(const graph::NodeValue& value) const = 0;
+  virtual torch::Tensor log_prob(const graph::NodeValue& value) const = 0;
   virtual void log_prob_iid(
       const graph::NodeValue& /* value */,
       torch::Tensor& /* log_probs */) const {}
@@ -50,53 +50,53 @@ class Distribution : public graph::Node {
       double& grad1,
       double& grad2) const = 0;
 
-  /*
-  In backward gradient propagation, increments the back_grad by the gradient of
-  the log prob of the distribution w.r.t. the sampled value.
-  :param value: value of the child Sample operator, a single draw from the
-  distribution
-  :param back_grad: back_grad1 of the child Sample operator, to be incremented
-  :param adjunct: a multiplier that represents the gradient of the target
-  function w.r.t the log prob of this distribution. It uses the default value
-  1.0 if the direct child is a StochasticOperator, but requires input if the
-  direct child is a mixture distribution.
-  */
-  virtual void backward_value(
-      const graph::NodeValue& /* value */,
-      graph::DoubleMatrix& /* back_grad */,
-      double /* adjunct */ = 1.0) const {}
-  /*
-  Similar to backward_value, except that it is used when the child operator is
-  IId_Sample
-  */
-  virtual void backward_value_iid(
-      const graph::NodeValue& /* value */,
-      graph::DoubleMatrix& /* back_grad */) const {}
-  virtual void backward_value_iid(
-      const graph::NodeValue& /* value */,
-      graph::DoubleMatrix& /* back_grad */,
-      torch::Tensor& /* adjunct */) const {}
-  /*
-  In backward gradient propagation, increments the back_grad1 of each parent
-  node w.r.t. the log prob of the distribution, evaluated at the given value.
-  :param value: value of the child Sample operator, a single draw from the
-  distribution
-  :param adjunct: a multiplier that represents the gradient of the
-  target function w.r.t the log prob of this distribution. It uses the default
-  value 1.0 if the direct child is a StochasticOperator, but requires input if
-  the direct child is a mixture distribution.
-  */
-  virtual void backward_param(
-      const graph::NodeValue& /* value */,
-      double /* adjunct */ = 1.0) const {}
-  /*
-  Similar to backward_param, except that it is used when the child operator is
-  IId_Sample
-  */
-  virtual void backward_param_iid(const graph::NodeValue& /* value */) const {}
-  virtual void backward_param_iid(
-      const graph::NodeValue& /* value */,
-      torch::Tensor& /* adjunct */) const {}
+//   /*
+//   In backward gradient propagation, increments the back_grad by the gradient of
+//   the log prob of the distribution w.r.t. the sampled value.
+//   :param value: value of the child Sample operator, a single draw from the
+//   distribution
+//   :param back_grad: back_grad1 of the child Sample operator, to be incremented
+//   :param adjunct: a multiplier that represents the gradient of the target
+//   function w.r.t the log prob of this distribution. It uses the default value
+//   1.0 if the direct child is a StochasticOperator, but requires input if the
+//   direct child is a mixture distribution.
+//   */
+//   virtual void backward_value(
+//       const graph::NodeValue& /* value */,
+//       graph::DoubleMatrix& /* back_grad */,
+//       double /* adjunct */ = 1.0) const {}
+//   /*
+//   Similar to backward_value, except that it is used when the child operator is
+//   IId_Sample
+//   */
+//   virtual void backward_value_iid(
+//       const graph::NodeValue& /* value */,
+//       graph::DoubleMatrix& /* back_grad */) const {}
+//   virtual void backward_value_iid(
+//       const graph::NodeValue& /* value */,
+//       graph::DoubleMatrix& /* back_grad */,
+//       torch::Tensor& /* adjunct */) const {}
+//   /*
+//   In backward gradient propagation, increments the back_grad1 of each parent
+//   node w.r.t. the log prob of the distribution, evaluated at the given value.
+//   :param value: value of the child Sample operator, a single draw from the
+//   distribution
+//   :param adjunct: a multiplier that represents the gradient of the
+//   target function w.r.t the log prob of this distribution. It uses the default
+//   value 1.0 if the direct child is a StochasticOperator, but requires input if
+//   the direct child is a mixture distribution.
+//   */
+//   virtual void backward_param(
+//       const graph::NodeValue& /* value */,
+//       double /* adjunct */ = 1.0) const {}
+//   /*
+//   Similar to backward_param, except that it is used when the child operator is
+//   IId_Sample
+//   */
+//   virtual void backward_param_iid(const graph::NodeValue& /* value */) const {}
+//   virtual void backward_param_iid(
+//       const graph::NodeValue& /* value */,
+//       torch::Tensor& /* adjunct */) const {}
   graph::DistributionType dist_type;
   graph::ValueType sample_type;
 

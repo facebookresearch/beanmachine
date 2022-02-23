@@ -61,52 +61,52 @@ std::string ValueType::to_string() const {
   return vtype + atype + ">";
 }
 
-NodeValue::NodeValue(AtomicType type, double value)
-    : type(type), _double(value) {
-  // don't allow constrained values to get too close to the boundary
-  if (type == AtomicType::POS_REAL) {
-    if (_double < PRECISION) {
-      _double = PRECISION;
-    }
-  } else if (type == AtomicType::NEG_REAL) {
-    if (_double > -PRECISION) {
-      _double = -PRECISION;
-    }
-  } else if (type == AtomicType::PROBABILITY) {
-    if (_double < PRECISION) {
-      _double = PRECISION;
-    } else if (_double > (1 - PRECISION)) {
-      _double = 1 - PRECISION;
-    }
-  } else {
-    // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
-    // values
-    if (type != AtomicType::REAL) {
-      throw std::invalid_argument(
-          "expect probability, pos_real, neg_real or real type with floating point value");
-    }
-  }
-}
+// NodeValue::NodeValue(AtomicType type, double value)
+//     : type(type), _double(value) {
+//   // don't allow constrained values to get too close to the boundary
+//   if (type == AtomicType::POS_REAL) {
+//     if (_double < PRECISION) {
+//       _value = PRECISION;
+//     }
+//   } else if (type == AtomicType::NEG_REAL) {
+//     if (_double > -PRECISION) {
+//       _value = -PRECISION;
+//     }
+//   } else if (type == AtomicType::PROBABILITY) {
+//     if (_double < PRECISION) {
+//       _value = PRECISION;
+//     } else if (_double > (1 - PRECISION)) {
+//       _value = 1 - PRECISION;
+//     }
+//   } else {
+//     // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
+//     // values
+//     if (type != AtomicType::REAL) {
+//       throw std::invalid_argument(
+//           "expect probability, pos_real, neg_real or real type with floating point value");
+//     }
+//   }
+// }
 
 void NodeValue::init_scalar(AtomicType type) {
   switch (type) {
     case AtomicType::UNKNOWN:
       break;
     case AtomicType::BOOLEAN:
-      _bool = false;
+      _value = torch::tensor({false});
       break;
     case AtomicType::REAL:
-      _double = 0.0;
+      _value = torch::tensor({0.0});
       break;
     case AtomicType::PROBABILITY:
     case AtomicType::POS_REAL:
-      _double = PRECISION;
+      _value = torch::tensor({PRECISION});
       break;
     case AtomicType::NEG_REAL:
-      _double = -PRECISION;
+      _value = torch::tensor({-PRECISION});
       break;
     case AtomicType::NATURAL:
-      _natural = 0;
+      _value = torch::tensor({0});
       break;
   }
 }
@@ -119,27 +119,27 @@ NodeValue::NodeValue(ValueType type) : type(type) {
   if (type.variable_type == VariableType::BROADCAST_MATRIX) {
     switch (type.atomic_type) {
       case AtomicType::BOOLEAN:
-        _matrix = torch::full({type.rows, type.cols}, false);
+        _value = torch::full({type.rows, type.cols}, false);
         break;
       case AtomicType::REAL:
-        _matrix = torch::zeros({type.rows, type.cols});
+        _value = torch::zeros({type.rows, type.cols});
         break;
       case AtomicType::POS_REAL:
       case AtomicType::PROBABILITY:
-        _matrix = torch::full({type.rows, type.cols}, PRECISION);
+        _value = torch::full({type.rows, type.cols}, PRECISION);
         break;
       case AtomicType::NEG_REAL:
-        _matrix = torch::full({type.rows, type.cols}, -PRECISION);
+        _value = torch::full({type.rows, type.cols}, -PRECISION);
         break;
       case AtomicType::NATURAL:
-        _matrix =
+        _value =
             torch::full({type.rows, type.cols}, 0);
         break;
       default:
         throw std::invalid_argument("Unsupported types for BROADCAST_MATRIX.");
     }
   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-    _matrix = torch::ones({type.rows, type.cols}) / (double)type.rows;
+    _value = torch::ones({type.rows, type.cols}) / (double)type.rows;
   } else if (type.variable_type == VariableType::SCALAR) {
     this->init_scalar(type.atomic_type);
   } else {
@@ -147,68 +147,68 @@ NodeValue::NodeValue(ValueType type) : type(type) {
   }
 }
 
-std::string NodeValue::to_string() const {
-  std::ostringstream os;
-  std::string type_str = type.to_string() + " ";
-  if (type.variable_type == VariableType::SCALAR) {
-    switch (type.atomic_type) {
-      case AtomicType::UNKNOWN:
-        os << type_str;
-        break;
-      case AtomicType::BOOLEAN:
-        os << type_str << _bool;
-        break;
-      case AtomicType::NATURAL:
-        os << type_str << _natural;
-        break;
-      case AtomicType::REAL:
-      case AtomicType::POS_REAL:
-      case AtomicType::NEG_REAL:
-      case AtomicType::PROBABILITY:
-        os << type_str << _double;
-        break;
-      default:
-        os << "Unsupported SCALAR value";
-        break;
-    }
-  } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
-    switch (type.atomic_type) {
-      case AtomicType::UNKNOWN:
-        os << type_str;
-        break;
-      case AtomicType::REAL:
-      case AtomicType::POS_REAL:
-      case AtomicType::NEG_REAL:
-      case AtomicType::PROBABILITY:
-        os << type_str << _matrix;
-        break;
-      case AtomicType::BOOLEAN:
-        os << type_str << _matrix;
-        break;
-      case AtomicType::NATURAL:
-        os << type_str << _matrix;
-        break;
+// std::string NodeValue::to_string() const {
+//   std::ostringstream os;
+//   std::string type_str = type.to_string() + " ";
+//   if (type.variable_type == VariableType::SCALAR) {
+//     switch (type.atomic_type) {
+//       case AtomicType::UNKNOWN:
+//         os << type_str;
+//         break;
+//       case AtomicType::BOOLEAN:
+//         os << type_str << _bool;
+//         break;
+//       case AtomicType::NATURAL:
+//         os << type_str << _natural;
+//         break;
+//       case AtomicType::REAL:
+//       case AtomicType::POS_REAL:
+//       case AtomicType::NEG_REAL:
+//       case AtomicType::PROBABILITY:
+//         os << type_str << _double;
+//         break;
+//       default:
+//         os << "Unsupported SCALAR value";
+//         break;
+//     }
+//   } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
+//     switch (type.atomic_type) {
+//       case AtomicType::UNKNOWN:
+//         os << type_str;
+//         break;
+//       case AtomicType::REAL:
+//       case AtomicType::POS_REAL:
+//       case AtomicType::NEG_REAL:
+//       case AtomicType::PROBABILITY:
+//         os << type_str << _matrix;
+//         break;
+//       case AtomicType::BOOLEAN:
+//         os << type_str << _matrix;
+//         break;
+//       case AtomicType::NATURAL:
+//         os << type_str << _matrix;
+//         break;
 
-        break;
-      default:
-        os << "Unsupported BROADCAST_MATRIX value";
-    }
-  } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-    switch (type.atomic_type) {
-      case AtomicType::UNKNOWN:
-        os << type_str;
-        break;
-      case AtomicType::PROBABILITY:
-        os << type_str << _matrix;
-        break;
-      default:
-        os << "Unsupported COL_SIMPLEX_MATRIX value";
-    }
-  } else {
-    os << "Unsupported NodeValue";
-  }
-  return os.str();
-}
+//         break;
+//       default:
+//         os << "Unsupported BROADCAST_MATRIX value";
+//     }
+//   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
+//     switch (type.atomic_type) {
+//       case AtomicType::UNKNOWN:
+//         os << type_str;
+//         break;
+//       case AtomicType::PROBABILITY:
+//         os << type_str << _matrix;
+//         break;
+//       default:
+//         os << "Unsupported COL_SIMPLEX_MATRIX value";
+//     }
+//   } else {
+//     os << "Unsupported NodeValue";
+//   }
+//   return os.str();
+// }
 
 void Node::forward_gradient_scalarops(
     torch::Tensor& jacobian,
@@ -236,54 +236,50 @@ void Node::forward_gradient_scalarops(
 
 void Node::reset_backgrad() {
   assert(value.type.variable_type != graph::VariableType::UNKNOWN);
-  if (value.type.variable_type == graph::VariableType::SCALAR) {
-    back_grad1._double = 0;
-  } else {
-    back_grad1._matrix.new_zeros({value.type.rows, value.type.cols});
-  }
+  back_grad1._value.new_zeros({value.type.rows, value.type.cols});
 }
 
-void Node::to_scalar() {
-  switch (value.type.atomic_type) {
-    case graph::AtomicType::BOOLEAN:
-      assert(value._matrix.numel() == 1);
-      value._bool = value._matrix[0][0].item().toBool();
-      value._matrix.new_zeros({0, 0});
-      break;
-    case graph::AtomicType::NATURAL:
-      assert(value._matrix.numel() == 1);
-      value._natural = value._matrix[0][0].item().toInt();
-      value._matrix.new_zeros({0, 0});
-      break;
-    case graph::AtomicType::REAL:
-    case graph::AtomicType::POS_REAL:
-    case graph::AtomicType::NEG_REAL:
-    case graph::AtomicType::PROBABILITY:
-      assert(value._matrix.numel() == 1);
-      value._double = value._matrix[0][0].item().toDouble();
-      value._matrix.new_zeros({0, 0});
-      break;
-    default:
-      throw std::runtime_error("unsupported AtomicType to cast to scalar");
-  }
-}
+// void Node::to_scalar() {
+//   switch (value.type.atomic_type) {
+//     case graph::AtomicType::BOOLEAN:
+//       assert(value._value.numel() == 1);
+//       value._value = value._value[0][0].item().toBool();
+//       value._value.new_zeros({0, 0});
+//       break;
+//     case graph::AtomicType::NATURAL:
+//       assert(value._value.numel() == 1);
+//       value._value = value._value[0][0].item().toInt();
+//       value._value.new_zeros({0, 0});
+//       break;
+//     case graph::AtomicType::REAL:
+//     case graph::AtomicType::POS_REAL:
+//     case graph::AtomicType::NEG_REAL:
+//     case graph::AtomicType::PROBABILITY:
+//       assert(value._value.numel() == 1);
+//       value._value = value._value[0][0].item().toDouble();
+//       value._value.new_zeros({0, 0});
+//       break;
+//     default:
+//       throw std::runtime_error("unsupported AtomicType to cast to scalar");
+//   }
+// }
 
-std::string Graph::to_string() const {
-  std::ostringstream os;
-  for (auto const& node : nodes) {
-    os << "Node " << node->index << " type "
-       << static_cast<int>(node->node_type) << " parents [ ";
-    for (Node* parent : node->in_nodes) {
-      os << parent->index << " ";
-    }
-    os << "] children [ ";
-    for (Node* child : node->out_nodes) {
-      os << child->index << " ";
-    }
-    os << "] " << node->value.to_string() << std::endl;
-  }
-  return os.str();
-}
+// std::string Graph::to_string() const {
+//   std::ostringstream os;
+//   for (auto const& node : nodes) {
+//     os << "Node " << node->index << " type "
+//        << static_cast<int>(node->node_type) << " parents [ ";
+//     for (Node* parent : node->in_nodes) {
+//       os << parent->index << " ";
+//     }
+//     os << "] children [ ";
+//     for (Node* child : node->out_nodes) {
+//       os << child->index << " ";
+//     }
+//     os << "] " << node->value.to_string() << std::endl;
+//   }
+//   return os.str();
+// }
 
 // void Graph::update_backgrad(std::vector<Node*>& ordered_supp) {
 //   for (auto node : ordered_supp) {
@@ -464,7 +460,7 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 template void
 Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
 
-double Graph::log_prob(uint src_idx) {
+torch::Tensor Graph::log_prob(uint src_idx) {
   // TODO: also used in tests only
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
@@ -479,7 +475,7 @@ double Graph::log_prob(uint src_idx) {
     std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
     node->eval(generator);
   }
-  double log_prob = 0.0;
+  torch::Tensor log_prob = torch::zeros({1});
   for (auto node_id : sto_nodes) {
     Node* node = nodes[node_id].get();
     log_prob += node->log_prob();
@@ -490,7 +486,7 @@ double Graph::log_prob(uint src_idx) {
 // TODO: this is the one actually used in code (as opposed to full_log_prob used
 // in testing only, so why the _?)
 double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
-  double sum_log_prob = 0.0;
+  torch::Tensor sum_log_prob = torch::zeros({1});
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
   for (auto node : ordered_supp) {
     if (node->is_stochastic()) {
@@ -519,7 +515,7 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
       node->eval(generator);
     }
   }
-  return sum_log_prob;
+  return sum_log_prob.item().toDouble();
 }
 
 /* TODO: used in testing only; it looks like there has not been a need for it in
@@ -971,15 +967,15 @@ void Graph::collect_sample() {
     for (uint node_id : queries) {
       NodeValue value = nodes[node_id]->value;
       if (value.type == AtomicType::BOOLEAN) {
-        mean_collector[pos] += double(value._bool) / agg_samples;
+        mean_collector[pos] += double(value._value.item().toDouble()) / agg_samples;
       } else if (
           value.type == AtomicType::REAL or
           value.type == AtomicType::POS_REAL or
           value.type == AtomicType::NEG_REAL or
           value.type == AtomicType::PROBABILITY) {
-        mean_collector[pos] += value._double / agg_samples;
+        mean_collector[pos] += value._value.item().toDouble() / agg_samples;
       } else if (value.type == AtomicType::NATURAL) {
-        mean_collector[pos] += double(value._natural) / agg_samples;
+        mean_collector[pos] += double(value._value.item().toDouble()) / agg_samples;
       } else {
         throw std::runtime_error(
             "Mean aggregation only supported for "

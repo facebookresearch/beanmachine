@@ -124,33 +124,27 @@ typedef NATURAL_TYPE natural_t;
 class NodeValue {
  public:
   ValueType type;
-  union {
-    bool _bool;
-    double _double;
-    natural_t _natural;
-  };
-  // typing of tensor (".dtype") is at runtime
-  torch::Tensor _matrix;
+  torch::Tensor _value;
 
   NodeValue() : type(AtomicType::UNKNOWN) {}
   explicit NodeValue(AtomicType type);
   explicit NodeValue(ValueType type);
-  explicit NodeValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
-  explicit NodeValue(double value) : type(AtomicType::REAL), _double(value) {}
+  explicit NodeValue(bool value) : type(AtomicType::BOOLEAN), _value(torch::tensor({value})) {}
+  explicit NodeValue(double value) : type(AtomicType::REAL), _value(torch::tensor({value})) {}
   explicit NodeValue(natural_t value)
-      : type(AtomicType::NATURAL), _natural(value) {}
+      : type(AtomicType::NATURAL), _value(torch::tensor({value})) {}
   explicit NodeValue(torch::Tensor& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::REAL,
             static_cast<int>(value.size(0)),
             static_cast<int>(value.size(1)))),
-        _matrix(value) {}
+        _value(value) {}
 
-  NodeValue(AtomicType type, bool value) : type(type), _bool(value) {
+  NodeValue(AtomicType type, bool value) : type(type), _value(torch::tensor({value})) {
     assert(type == AtomicType::BOOLEAN);
   }
-  NodeValue(AtomicType type, natural_t value) : type(type), _natural(value) {
+  NodeValue(AtomicType type, natural_t value) : type(type), _value(torch::tensor({value})) {
     assert(type == AtomicType::NATURAL);
   }
   NodeValue(AtomicType type, torch::Tensor& value)
@@ -159,14 +153,14 @@ class NodeValue {
             type,
             static_cast<int>(value.size(0)),
             static_cast<int>(value.size(1)))),
-        _matrix(value) {
+        _value(value) {
     assert(
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::NEG_REAL or type == AtomicType::PROBABILITY);
   }
   // NodeValue(AtomicType /* type */, torch::Tensor& value) : NodeValue(value) {}
   NodeValue(ValueType type, torch::Tensor& value)
-         : type(type), _matrix(value) {
+         : type(type), _value(value) {
     assert(
         type.variable_type == VariableType::BROADCAST_MATRIX or
         type.variable_type == VariableType::COL_SIMPLEX_MATRIX);
@@ -206,16 +200,8 @@ class NodeValue {
           throw std::invalid_argument(
               "Trying to copy an NodeValue of unknown type.");
         }
-        case AtomicType::BOOLEAN: {
-          _bool = other._bool;
-          break;
-        }
-        case AtomicType::NATURAL: {
-          _natural = other._natural;
-          break;
-        }
         default: {
-          _double = other._double;
+          _value = other._value;
           break;
         }
       }
@@ -227,14 +213,14 @@ class NodeValue {
         case AtomicType::NEG_REAL:
         case AtomicType::PROBABILITY:
         case AtomicType::NATURAL:
-          _matrix = other._matrix;
+          _value = other._value;
           break;
         default:
           throw std::invalid_argument(
               "Trying to copy a MATRIX NodeValue of unsupported type.");
       }
     } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-      _matrix = other._matrix;
+      _value = other._value;
     } else {
       throw std::invalid_argument(
           "Trying to copy a value of unknown VariableType");
@@ -244,27 +230,7 @@ class NodeValue {
 
   std::string to_string() const;
   bool operator==(const NodeValue& other) const {
-    return type == other.type and
-        ((type == AtomicType::BOOLEAN and _bool == other._bool) or
-         (type == AtomicType::REAL and _double == other._double) or
-         (type == AtomicType::POS_REAL and _double == other._double) or
-         (type == AtomicType::NEG_REAL and _double == other._double) or
-         (type == AtomicType::PROBABILITY and _double == other._double) or
-         (type == AtomicType::NATURAL and _natural == other._natural) or
-         (type.variable_type == VariableType::BROADCAST_MATRIX and
-          (type.atomic_type == AtomicType::REAL or
-           type.atomic_type == AtomicType::POS_REAL or
-           type.atomic_type == AtomicType::NEG_REAL or
-           type.atomic_type == AtomicType::PROBABILITY) and
-          _matrix.allclose(other._matrix)) or
-         (type.variable_type == VariableType::BROADCAST_MATRIX and
-          type.atomic_type == AtomicType::BOOLEAN and
-          _matrix.equal(other._matrix)) or
-         (type.variable_type == VariableType::BROADCAST_MATRIX and
-          type.atomic_type == AtomicType::NATURAL and
-          _matrix.equal(other._matrix)) or
-         (type.variable_type == VariableType::COL_SIMPLEX_MATRIX and
-          _matrix.allclose(other._matrix)));
+    return type == other.type and _value.allclose(other._value);
   }
   bool operator!=(const NodeValue& other) const {
     return not(*this == other);
@@ -347,8 +313,7 @@ enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
 enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
 struct DoubleMatrix {
-  double _double;
-  torch::Tensor _matrix;
+  torch::Tensor _value;
 };
 
 struct InferConfig {
@@ -447,8 +412,8 @@ class Node {
   }
   // only valid for stochastic nodes
   // TODO: shouldn't we then restrict them to those classes? See below.
-  virtual double log_prob() const {
-    return 0;
+  virtual torch::Tensor log_prob() const {
+    return torch::zeros({1});
   }
   virtual bool needs_gradient() const {
     return true;
@@ -477,7 +442,7 @@ class Node {
   Gradient backward propagation: computes the 1st-order gradient update and
   add it to the parent's back_grad1.
   */
-  virtual void backward() {}
+  // virtual void backward() {}
   virtual ~Node() {}
   void reset_backgrad();
   /*
@@ -497,7 +462,7 @@ class Node {
       double& d_grad1,
       double& d_grad2) const;
   // Converts the 1x1 matrix value to a scalar value.
-  void to_scalar();
+  // void to_scalar();
 };
 
 class ConstNode : public Node {
@@ -757,7 +722,7 @@ struct Graph {
   :param src_idx: source node
   :returns: The sum of log_prob of source node and all stochastic descendants.
   */
-  double log_prob(uint src_idx);
+  torch::Tensor log_prob(uint src_idx);
   /*
   Evaluate the full log probability over the support of the graph.
   :returns: The sum of log_prob of stochastic nodes in the support.

@@ -36,7 +36,7 @@ class UnaryOperator : public Operator {
   ~UnaryOperator() override {}
   void eval(std::mt19937& /* gen */) override {}
   void compute_gradients() override {}
-  void backward() override;
+  // void backward() override;
   virtual double jacobian() const {
     return 1.0;
   }
@@ -330,7 +330,7 @@ class LogSumExpVector : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
-  void backward() override;
+  // void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {

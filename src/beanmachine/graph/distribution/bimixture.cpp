@@ -19,7 +19,7 @@ a bi-mixture distribution.
                       reference and returns a dtype sample.
 */
 #define GENERIC_DTYPE_SAMPLER(dtype_sampler)                                \
-  auto bern_dist = std::bernoulli_distribution(in_nodes[0]->value._double); \
+  auto bern_dist = std::bernoulli_distribution(in_nodes[0]->value._value); \
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);    \
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);    \
   if (bern_dist(gen)) {                                                     \
@@ -32,7 +32,7 @@ a bi-mixture distribution.
 #define BIMIX_PREPARE_GRAD()                                             \
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]); \
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]); \
-  double p = in_nodes[0]->value._double;                                 \
+  double p = in_nodes[0]->value._value;                                 \
   double logf1 = d1->log_prob(value), logf2 = d2->log_prob(value);       \
   double max_logfi = std::max(logf1, logf2);                             \
   double f1 = std::exp(logf1 - max_logfi);                               \
@@ -43,7 +43,7 @@ a bi-mixture distribution.
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX); \
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);     \
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);     \
-  double p = in_nodes[0]->value._double;                                     \
+  double p = in_nodes[0]->value._value;                                     \
   torch::Tensor logf1;                                                     \
   torch::Tensor logf2;                                                     \
   d1->log_prob_iid(value, logf1);                                            \
@@ -103,9 +103,9 @@ double Bimixture::log_prob(const graph::NodeValue& value) const {
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);
   if (value.type.variable_type == graph::VariableType::SCALAR) {
-    double z1 = std::log(in_nodes[0]->value._double) + d1->log_prob(value);
+    double z1 = std::log(in_nodes[0]->value._value) + d1->log_prob(value);
     double z2 =
-        std::log(1.0 - in_nodes[0]->value._double) + d2->log_prob(value);
+        std::log(1.0 - in_nodes[0]->value._value) + d2->log_prob(value);
     return util::log_sum_exp(std::vector<double>{z1, z2});
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
@@ -122,7 +122,7 @@ void Bimixture::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double p = in_nodes[0]->value._double;
+  double p = in_nodes[0]->value._value;
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);
   torch::Tensor logf1;
@@ -247,7 +247,7 @@ void Bimixture::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   BIMIX_PREPARE_GRAD()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double += adjunct * (f1 - f2) / f;
+    in_nodes[0]->back_grad1._value += adjunct * (f1 - f2) / f;
   }
   d1->backward_param(value, adjunct * p * f1 / f);
   d2->backward_param(value, adjunct * (1 - p) * f2 / f);
@@ -256,7 +256,7 @@ void Bimixture::backward_param(const graph::NodeValue& value, double adjunct)
 void Bimixture::backward_param_iid(const graph::NodeValue& value) const {
   BIMIX_PREPARE_GRAD_IID()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1._value +=
         ((f1 - f2) / f).sum().item().toDouble();
   }
   f1 = p * f1 / f;
@@ -270,7 +270,7 @@ void Bimixture::backward_param_iid(
     torch::Tensor& adjunct) const {
   BIMIX_PREPARE_GRAD_IID()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1._value +=
         ((f1 - f2) / f * adjunct).sum().item().toDouble();
   }
   f1 = p * f1 / f * adjunct;

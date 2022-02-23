@@ -17,7 +17,7 @@ double _compute_mean_at_index(
     int index) {
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][index]._double;
+    mean += samples[i][index]._value;
   }
   mean /= samples.size();
   return mean;

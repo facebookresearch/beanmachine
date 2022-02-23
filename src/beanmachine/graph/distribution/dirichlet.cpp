@@ -43,10 +43,10 @@ Dirichlet::Dirichlet(
 }
 
 torch::Tensor Dirichlet::_matrix_sampler(std::mt19937& gen) const {
-  int n_rows = static_cast<int>(in_nodes[0]->value._matrix.size(0));
+  int n_rows = static_cast<int>(in_nodes[0]->value._value.size(0));
   torch::Tensor sample = torch::empty({n_rows, 1});
 
-  torch::Tensor param = in_nodes[0]->value._matrix;
+  torch::Tensor param = in_nodes[0]->value._value;
   for (int i = 0; i < n_rows; i++) {
     std::gamma_distribution<double> gamma_dist(param.index({i}).item().toDouble(), 1);
     sample.index_put_({i}, gamma_dist(gen));
@@ -57,13 +57,13 @@ torch::Tensor Dirichlet::_matrix_sampler(std::mt19937& gen) const {
 double Dirichlet::log_prob(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
   assert(value.type.cols == 1);
-  torch::Tensor param = in_nodes[0]->value._matrix;
+  torch::Tensor param = in_nodes[0]->value._value;
 
   double log_prob = 0.0;
   for (int i = 0; i < param.size(0); i++) {
     double alpha = param.index({i,0}).item().toDouble();
     log_prob -= lgamma(alpha);
-    log_prob += std::log(value._matrix.index({i,0}).item().toDouble()) * (alpha - 1);
+    log_prob += std::log(value._value.index({i,0}).item().toDouble()) * (alpha - 1);
   }
   log_prob += lgamma(param.sum(0)).item().toDouble();
 
@@ -84,12 +84,12 @@ void Dirichlet::backward_value(
     graph::DoubleMatrix& back_grad,
     double adjunct) const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
-  torch::Tensor x = value._matrix;
-  torch::Tensor param = in_nodes[0]->value._matrix;
+  torch::Tensor x = value._value;
+  torch::Tensor param = in_nodes[0]->value._value;
   for (int i = 0; i < param.size(0); i++) {
-    back_grad._matrix.index_put_(
+    back_grad._value.index_put_(
       {i,Slice()},
-      back_grad._matrix.index({i,Slice()})
+      back_grad._value.index({i,Slice()})
       + adjunct * (param.index({i,Slice()}) - 1) / x.index({i,Slice()})
     );
   }
@@ -98,16 +98,16 @@ void Dirichlet::backward_value(
 void Dirichlet::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
-  torch::Tensor x = value._matrix;
-  torch::Tensor param = in_nodes[0]->value._matrix;
+  torch::Tensor x = value._value;
+  torch::Tensor param = in_nodes[0]->value._value;
   double digamma_sum = util::polygamma(0, param.sum().item().toDouble());
   if (in_nodes[0]->needs_gradient()) {
     for (int i = 0; i < param.size(0); i++) {
       double jacob =
           std::log(x.index({i,0}).item().toDouble()) + digamma_sum - util::polygamma(0, param.index({i,0}).item().toDouble());
-      in_nodes[0]->back_grad1._matrix.index_put_(
+      in_nodes[0]->back_grad1._value.index_put_(
         {i,Slice()},
-        in_nodes[0]->back_grad1._matrix.index({i,Slice()}) + adjunct * jacob
+        in_nodes[0]->back_grad1._value.index({i,Slice()}) + adjunct * jacob
       );
     }
   }

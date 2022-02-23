@@ -40,10 +40,10 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_step_profiler_event() {
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
     Node* tgt_node) {
-  assert(static_cast<uint>(tgt_node->value._matrix.numel()) == 2);
+  assert(static_cast<uint>(tgt_node->value._value.numel()) == 2);
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
-  double x = sto_tgt_node->value._matrix[0].item().toDouble();
+  double x = sto_tgt_node->value._value[0].item().toDouble();
 
   // Propagate gradients
   // Prepare gradients of Dirichlet values wrt Beta value.
@@ -66,7 +66,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   // @lint-ignore CLANGTIDY
   auto dirichlet_distribution = sto_tgt_node->in_nodes[0];
   auto dirichlet_parameters_node = dirichlet_distribution->in_nodes[0];
-  auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._matrix;
+  auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._value;
   auto param_a = dirichlet_parameters_matrix[0].item().toDouble();
   auto param_b = dirichlet_parameters_matrix[1].item().toDouble();
 

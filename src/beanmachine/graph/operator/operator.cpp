@@ -14,7 +14,7 @@
 namespace beanmachine {
 namespace oper {
 
-double Operator::log_prob() const {
+torch::Tensor Operator::log_prob() const {
   throw std::runtime_error("log_prob is only defined for sample or iid sample");
 }
 

@@ -30,11 +30,11 @@ void Add::eval(std::mt19937& /* gen */) {
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::POS_REAL or
       parent0.type == graph::AtomicType::NEG_REAL) {
-    value._double = parent0._double;
+    value._value = parent0._value;
 
     for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
       const auto& parenti = in_nodes[i]->value;
-      value._double += parenti._double;
+      value._value += parenti._value;
     }
   } else {
     throw std::runtime_error(
@@ -62,11 +62,11 @@ void Multiply::eval(std::mt19937& /* gen */) {
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::POS_REAL or
       parent0.type == graph::AtomicType::PROBABILITY) {
-    value._double = parent0._double;
+    value._value = parent0._value;
 
     for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
       const auto& parenti = in_nodes[i]->value;
-      value._double *= parenti._double;
+      value._value *= parenti._value;
     }
   } else {
     throw std::runtime_error(
@@ -93,18 +93,18 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::NEG_REAL or
       parent0.type == graph::AtomicType::POS_REAL) {
-    double max_val = parent0._double;
+    double max_val = parent0._value;
     for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
       const auto& parenti = in_nodes[i]->value;
-      if (parenti._double > max_val) {
-        max_val = parenti._double;
+      if (parenti._value > max_val) {
+        max_val = parenti._value;
       }
     }
     double expsum = 0.0;
     for (const auto parent : in_nodes) {
-      expsum += std::exp(parent->value._double - max_val);
+      expsum += std::exp(parent->value._value - max_val);
     }
-    value._double = std::log(expsum) + max_val;
+    value._value = std::log(expsum) + max_val;
   } else {
     throw std::runtime_error(
         "invalid type " + parent0.type.to_string() +
@@ -160,7 +160,7 @@ void Pow::eval(std::mt19937& /* gen */) {
     throw std::runtime_error(
         "invalid type for POW operator at node_id " + std::to_string(index));
   }
-  value._double = std::pow(parent0._double, parent1._double);
+  value._value = std::pow(parent0._value, parent1._value);
 }
 
 ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
@@ -182,14 +182,14 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator TO_MATRIX requires the number of rows and columns to be CONSTANT");
   } else if (
-      (in_nodes[0]->value._natural == 0) or
-      (in_nodes[1]->value._natural == 0)) {
+      (in_nodes[0]->value._value == 0) or
+      (in_nodes[1]->value._value == 0)) {
     throw std::invalid_argument(
         "operator TO_MATRIX requires the number of rows and columns to be greater than 0");
   }
 
-  uint rows = static_cast<uint>(in_nodes[0]->value._natural);
-  uint cols = static_cast<uint>(in_nodes[1]->value._natural);
+  uint rows = static_cast<uint>(in_nodes[0]->value._value);
+  uint cols = static_cast<uint>(in_nodes[1]->value._value);
 
   if (rows * cols != in_nodes.size() - 2) {
     throw std::invalid_argument(
@@ -216,8 +216,8 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
 
 void ToMatrix::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() >= 3);
-  int rows = static_cast<int>(in_nodes[0]->value._natural);
-  int cols = static_cast<int>(in_nodes[1]->value._natural);
+  int rows = static_cast<int>(in_nodes[0]->value._value);
+  int cols = static_cast<int>(in_nodes[1]->value._value);
 
   const graph::ValueType& parent_type = in_nodes[2]->value.type;
 
@@ -228,23 +228,23 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
         result[i][j] = in_nodes[2 + j * rows + i]->value._bool;
       }
     }
-    value._matrix = result;
+    value._value = result;
   } else if (parent_type == graph::AtomicType::NATURAL) {
     torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result[i][j] = in_nodes[2 + j * rows + i]->value._natural;
+        result[i][j] = in_nodes[2 + j * rows + i]->value._value;
       }
     }
-    value._matrix = result;
+    value._value = result;
   } else { // real
     torch::Tensor result = torch::empty({rows, cols});
     for (int j = 0; j < cols; j++) {
       for (int i = 0; i < rows; i++) {
-        result[i][j] = in_nodes[2 + j * rows + i]->value._double;
+        result[i][j] = in_nodes[2 + j * rows + i]->value._value;
       }
     }
-    value._matrix = result;
+    value._value = result;
   }
 }
 

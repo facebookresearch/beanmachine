@@ -121,21 +121,21 @@ graph::DoubleMatrix* StochasticOperator::get_unconstrained_gradient() {
   return &back_grad1;
 }
 
-void Sample::_backward(bool skip_observed) {
-  const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
-  dist->backward_param(value);
-  if (!(is_observed and skip_observed)) {
-    dist->backward_value(value, back_grad1);
-  }
-}
+// void Sample::_backward(bool skip_observed) {
+//   const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+//   dist->backward_param(value);
+//   if (!(is_observed and skip_observed)) {
+//     dist->backward_value(value, back_grad1);
+//   }
+// }
 
-void IIdSample::_backward(bool skip_observed) {
-  const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
-  dist->backward_param_iid(value);
-  if (!(is_observed and skip_observed)) {
-    dist->backward_value_iid(value, back_grad1);
-  }
-}
+// void IIdSample::_backward(bool skip_observed) {
+//   const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+//   dist->backward_param_iid(value);
+//   if (!(is_observed and skip_observed)) {
+//     dist->backward_value_iid(value, back_grad1);
+//   }
+// }
 
 Sample::Sample(const std::vector<graph::Node*>& in_nodes)
     : StochasticOperator(graph::OperatorType::SAMPLE) {
@@ -194,12 +194,12 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
   // CONSIDER removing this restriction. Sure, it is somewhat pointless to
   // create a one-value matrix here, but if the caller has a reason to create a
   // one-value matrix, then why not let them?
-  if (in_degree == 2 and in_nodes[1]->value._natural < 2) {
+  if (in_degree == 2 and in_nodes[1]->value._value.item().toInt() < 2) {
     throw std::invalid_argument(
         "operator IID_SAMPLE requires the second or third parent to have value >= 2");
   }
   if (in_degree == 3 and
-      (in_nodes[1]->value._natural * in_nodes[2]->value._natural) < 2) {
+      (in_nodes[1]->value._value * in_nodes[2]->value._value).item().toInt() < 2) {
     throw std::invalid_argument(
         "operator IID_SAMPLE requires the second or third parent to have value >= 2");
   }
@@ -212,8 +212,8 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       vtype = graph::ValueType(
           graph::VariableType::BROADCAST_MATRIX,
           dist->sample_type.atomic_type,
-          static_cast<uint>(in_nodes[1]->value._natural),
-          in_degree == 2 ? 1 : static_cast<uint>(in_nodes[2]->value._natural));
+          static_cast<uint>(in_nodes[1]->value._value.item().toInt()),
+          in_degree == 2 ? 1 : static_cast<uint>(in_nodes[2]->value._value.item().toInt()));
       break;
     case graph::VariableType::BROADCAST_MATRIX:
     case graph::VariableType::COL_SIMPLEX_MATRIX:

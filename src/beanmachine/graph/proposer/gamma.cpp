@@ -20,7 +20,7 @@ graph::NodeValue Gamma::sample(std::mt19937& gen) const {
 }
 
 double Gamma::log_prob(graph::NodeValue& value) const {
-  double x = value._double;
+  double x = value._value;
   return (alpha - 1) * std::log(x) - beta * x + alpha * std::log(beta) -
       std::lgamma(alpha);
 }

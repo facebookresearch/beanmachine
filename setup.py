@@ -160,7 +160,7 @@ setup(
                 (
                     set([
                         "src/beanmachine/graph/rejection.cpp",
-                        "src/beanmachine/graph/gibbs.cpp",
+                        # "src/beanmachine/graph/gibbs.cpp",
                         "src/beanmachine/graph/nmc.cpp",
                         "src/beanmachine/graph/pybindings.cpp",
                         "src/beanmachine/graph/graph.cpp",
@@ -171,24 +171,34 @@ setup(
                         "src/beanmachine/graph/mh.cpp",
                         "src/beanmachine/graph/util.cpp",
                         "src/beanmachine/graph/distribution/distribution.cpp",
-                        "src/beanmachine/graph/distribution/bernoulli.cpp",
-                        "src/beanmachine/graph/distribution/bernoulli_logit.cpp",
-                        "src/beanmachine/graph/distribution/beta.cpp",
-                        "src/beanmachine/graph/distribution/binomial.cpp",
-                        "src/beanmachine/graph/distribution/dirichlet.cpp",
-                        "src/beanmachine/graph/distribution/categorical.cpp",
-                        "src/beanmachine/graph/distribution/tabular.cpp",
+                        # "src/beanmachine/graph/distribution/bernoulli.cpp",
+                        # "src/beanmachine/graph/distribution/bernoulli_logit.cpp",
+                        # "src/beanmachine/graph/distribution/beta.cpp",
+                        # "src/beanmachine/graph/distribution/binomial.cpp",
+                        # "src/beanmachine/graph/distribution/dirichlet.cpp",
+                        # "src/beanmachine/graph/distribution/categorical.cpp",
+                        # "src/beanmachine/graph/distribution/tabular.cpp",
                         "src/beanmachine/graph/distribution/normal.cpp",
                         "src/beanmachine/graph/distribution/flat.cpp",
                     ])
-                    | set(glob("src/beanmachine/graph/transform/*.cpp", recursive=True))
-                    | set(glob("src/beanmachine/graph/factor/*.cpp", recursive=True))
+                    # | set(glob("src/beanmachine/graph/transform/*.cpp", recursive=True))
+                    # | set(glob("src/beanmachine/graph/factor/*.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/operator/*.cpp", recursive=True))
                     | set(glob("src/beanmachine/graph/stepper/**/*.cpp", recursive=True))
-                    | set(glob("src/beanmachine/graph/proposer/**/*.cpp", recursive=True))
+                    | set(glob("src/beanmachine/graph/proposer/**/nmc_proposer.cpp", recursive=True))
+                    | set(glob("src/beanmachine/graph/proposer/**/mixture.cpp", recursive=True))
+                    | set(glob("src/beanmachine/graph/proposer/**/proposer.cpp", recursive=True))
                 )
                 # set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/operator/backward.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/operator/controlop.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/operator/gradient.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/operator/linalgop.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/operator/multiaryop.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/operator/unaryop.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/to_dot.cpp", recursive=True))
             ),
             include_dirs=INCLUDE_DIRS,
             # extra_compile_args=CPP_COMPILE_ARGS,

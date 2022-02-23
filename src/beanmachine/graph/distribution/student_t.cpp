@@ -15,14 +15,14 @@
 
 // the common steps for all gradient calculation
 #define T_PREPARE_GRAD()                 \
-  double x = value._double;              \
-  double n = in_nodes[0]->value._double; \
-  double l = in_nodes[1]->value._double; \
-  double s = in_nodes[2]->value._double; \
+  double x = value._value;              \
+  double n = in_nodes[0]->value._value; \
+  double l = in_nodes[1]->value._value; \
+  double s = in_nodes[2]->value._value; \
   double n_s_sq_p_x_m_l_sq = n * s * s + (x - l) * (x - l);
 
 // the matrix form of n s^2 + (x - l)^2
-#define NS2PXML2 ((value._matrix - l).pow(2) + n * s * s)
+#define NS2PXML2 ((value._value - l).pow(2) + n * s * s)
 
 namespace beanmachine {
 namespace distribution {
@@ -51,9 +51,9 @@ StudentT::StudentT(AtomicType sample_type, const std::vector<Node*>& in_nodes)
 }
 
 double StudentT::_double_sampler(std::mt19937& gen) const {
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
   std::student_t_distribution<double> dist(n);
   return l + dist(gen) * s;
 }
@@ -86,19 +86,19 @@ double StudentT::_double_sampler(std::mt19937& gen) const {
 // the above equation computes f'(g) [f is the current function g is the input]
 
 double StudentT::log_prob(const NodeValue& value) const {
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
   double result = std::lgamma((n + 1) / 2) - std::lgamma(n / 2) -
       0.5 * std::log(n) - 0.5 * std::log(M_PI) - std::log(s) +
       ((n + 1) / 2) * (std::log(n) + 2 * std::log(s));
 
   if (value.type.variable_type == graph::VariableType::SCALAR) {
-    double x = value._double;
+    double x = value._value;
     result -= ((n + 1) / 2) * std::log(n * s * s + (x - l) * (x - l));
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = static_cast<int>(value._matrix.numel());
+    int size = static_cast<int>(value._value.numel());
     result = result * size - ((n + 1) / 2) * NS2PXML2.log().sum().item().toDouble();
   } else {
     throw std::runtime_error(
@@ -111,9 +111,9 @@ void StudentT::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
   double result = std::lgamma((n + 1) / 2) - std::lgamma(n / 2) -
       0.5 * std::log(n) - 0.5 * std::log(M_PI) - std::log(s) +
       ((n + 1) / 2) * (std::log(n) + 2 * std::log(s));
@@ -216,18 +216,18 @@ void StudentT::backward_value(
   T_PREPARE_GRAD()
   double increment = 0.0;
   _grad1_log_prob_value(increment, x, n, l, n_s_sq_p_x_m_l_sq);
-  back_grad._double += adjunct * increment;
+  back_grad._value += adjunct * increment;
 }
 
 void StudentT::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
-  back_grad._matrix -=
-      ((n + 1) * (value._matrix - l) / NS2PXML2).matrix();
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
+  back_grad._value -=
+      ((n + 1) * (value._value - l) / NS2PXML2).matrix();
 }
 
 void StudentT::backward_value_iid(
@@ -235,11 +235,11 @@ void StudentT::backward_value_iid(
     graph::DoubleMatrix& back_grad,
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
-  back_grad._matrix -=
-      (adjunct * (n + 1) * (value._matrix - l) / NS2PXML2)
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
+  back_grad._value -=
+      (adjunct * (n + 1) * (value._value - l) / NS2PXML2)
           .matrix();
 }
 
@@ -248,42 +248,42 @@ void StudentT::backward_param(const graph::NodeValue& value, double adjunct)
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   T_PREPARE_GRAD()
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1._value +=
         adjunct * _grad1_log_prob_n(n, s, n_s_sq_p_x_m_l_sq);
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
+    in_nodes[1]->back_grad1._value +=
         adjunct * _grad1_log_prob_l(x, n, l, n_s_sq_p_x_m_l_sq);
   }
   if (in_nodes[2]->needs_gradient()) {
-    in_nodes[2]->back_grad1._double +=
+    in_nodes[2]->back_grad1._value +=
         adjunct * _grad1_log_prob_s(n, s, n_s_sq_p_x_m_l_sq);
   }
 }
 
 void StudentT::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
   torch::Tensor NSsqPXMLsq = NS2PXML2;
-  int size = static_cast<int>(value._matrix.numel());
+  int size = static_cast<int>(value._value.numel());
   if (in_nodes[0]->needs_gradient()) {
     double jacob = size *
         (0.5 * util::polygamma(0, (n + 1) / 2) -
          0.5 * util::polygamma(0, n / 2) - 0.5 / n + 0.5 * std::log(n) +
          std::log(s) + 0.5 * (n + 1) / n);
-    in_nodes[0]->back_grad1._double += jacob -
+    in_nodes[0]->back_grad1._value += jacob -
         (0.5 * NSsqPXMLsq.log() +
          0.5 * (n + 1) * s * s / NSsqPXMLsq)
             .sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
-        (n + 1) * ((value._matrix - l) / NSsqPXMLsq).sum().item().toDouble();
+    in_nodes[1]->back_grad1._value +=
+        (n + 1) * ((value._value - l) / NSsqPXMLsq).sum().item().toDouble();
   }
   if (in_nodes[2]->needs_gradient()) {
-    in_nodes[2]->back_grad1._double +=
+    in_nodes[2]->back_grad1._value +=
         size * n / s - (n + 1) * n * (s / NSsqPXMLsq).sum().item().toDouble();
   }
 }
@@ -292,9 +292,9 @@ void StudentT::backward_param_iid(
     const graph::NodeValue& value,
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double n = in_nodes[0]->value._double;
-  double l = in_nodes[1]->value._double;
-  double s = in_nodes[2]->value._double;
+  double n = in_nodes[0]->value._value;
+  double l = in_nodes[1]->value._value;
+  double s = in_nodes[2]->value._value;
   torch::Tensor NSsqPXMLsq = NS2PXML2;
   double adjunct_sum = 1.0;
   if (in_nodes[0]->needs_gradient() or in_nodes[2]->needs_gradient()) {
@@ -305,20 +305,20 @@ void StudentT::backward_param_iid(
         (0.5 * util::polygamma(0, (n + 1) / 2) -
          0.5 * util::polygamma(0, n / 2) - 0.5 / n + 0.5 * std::log(n) +
          std::log(s) + 0.5 * (n + 1) / n);
-    in_nodes[0]->back_grad1._double += jacob -
+    in_nodes[0]->back_grad1._value += jacob -
         (adjunct *
          (0.5 * NSsqPXMLsq.log() +
           0.5 * (n + 1) * s * s / NSsqPXMLsq))
             .sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
-        (adjunct * (n + 1) * (value._matrix - l) /
+    in_nodes[1]->back_grad1._value +=
+        (adjunct * (n + 1) * (value._value - l) /
          NSsqPXMLsq)
             .sum().item().toDouble();
   }
   if (in_nodes[2]->needs_gradient()) {
-    in_nodes[2]->back_grad1._double += adjunct_sum * n / s -
+    in_nodes[2]->back_grad1._value += adjunct_sum * n / s -
         (adjunct * (n + 1) * n * (s / NSsqPXMLsq)).sum().item().toDouble();
   }
 }

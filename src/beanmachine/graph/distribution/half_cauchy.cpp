@@ -42,7 +42,7 @@ double HalfCauchy::_double_sampler(std::mt19937& gen) const {
   // therefore we will sample w ~ uniformly [0, pi/2] and compute tan(w)
   // finally we will multiply the scale to get the required value
   std::uniform_real_distribution<double> dist(0.0, M_PI_2);
-  return in_nodes[0]->value._double * std::tan(dist(gen));
+  return in_nodes[0]->value._value * std::tan(dist(gen));
 }
 
 // log_prob of a HalfCauchy is f(x; s) =  -log(pi/2) -log(s) -log(1 + (x/s)^2)
@@ -57,17 +57,17 @@ double HalfCauchy::_double_sampler(std::mt19937& gen) const {
 // - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
 // the above equation computes f'(g) [f is the current function g is the input]
 double HalfCauchy::log_prob(const NodeValue& value) const {
-  double s = in_nodes[0]->value._double;
+  double s = in_nodes[0]->value._value;
   double result;
   int size;
 
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     size = 1;
-    result = std::log1p(std::pow(value._double / s, 2));
+    result = std::log1p(std::pow(value._value / s, 2));
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    size = static_cast<int>(value._matrix.numel());
-    result = (value._matrix / s).pow(2).log1p().sum().item().toDouble();
+    size = static_cast<int>(value._value.numel());
+    result = (value._value / s).pow(2).log1p().sum().item().toDouble();
   } else {
     throw std::runtime_error(
         "HalfCauchy::log_prob applied to invalid variable type");
@@ -79,9 +79,9 @@ void HalfCauchy::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double s = in_nodes[0]->value._double;
+  double s = in_nodes[0]->value._value;
   log_probs = -std::log(M_PI_2) - std::log(s) -
-      (value._matrix / s).pow(2).log1p();
+      (value._value / s).pow(2).log1p();
 }
 
 void HalfCauchy::_grad1_log_prob_value(
@@ -96,8 +96,8 @@ void HalfCauchy::gradient_log_prob_value(
     double& grad1,
     double& grad2) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  double x = value._double;
-  double s = in_nodes[0]->value._double;
+  double x = value._value;
+  double s = in_nodes[0]->value._value;
   double s2_p_x2 = s * s + x * x;
   _grad1_log_prob_value(grad1, x, s2_p_x2);
   grad2 += -2 / s2_p_x2 + 4 * x * x / (s2_p_x2 * s2_p_x2);
@@ -116,8 +116,8 @@ void HalfCauchy::gradient_log_prob_param(
   double s_grad = in_nodes[0]->grad1;
   double s_grad2 = in_nodes[0]->grad2;
   if (s_grad != 0 or s_grad2 != 0) {
-    double x = value._double;
-    double s = in_nodes[0]->value._double;
+    double x = value._value;
+    double s = in_nodes[0]->value._value;
     double s2_p_x2 = s * s + x * x;
     double grad_s = _grad1_log_prob_param(s, s2_p_x2);
     double grad2_s2 =
@@ -132,22 +132,22 @@ void HalfCauchy::backward_value(
     graph::DoubleMatrix& back_grad,
     double adjunct) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  double x = value._double;
-  double s = in_nodes[0]->value._double;
+  double x = value._value;
+  double s = in_nodes[0]->value._value;
   double s2_p_x2 = s * s + x * x;
   double increment = 0.0;
   _grad1_log_prob_value(increment, x, s2_p_x2);
-  back_grad._double += adjunct * increment;
+  back_grad._value += adjunct * increment;
 }
 
 void HalfCauchy::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double s = in_nodes[0]->value._double;
+  double s = in_nodes[0]->value._value;
   torch::Tensor s2_p_x2 =
-      s * s + value._matrix * value._matrix;
-  back_grad._matrix -= (2 * value._matrix / s2_p_x2).matrix();
+      s * s + value._value * value._value;
+  back_grad._value -= (2 * value._value / s2_p_x2).matrix();
 }
 
 void HalfCauchy::backward_value_iid(
@@ -155,21 +155,21 @@ void HalfCauchy::backward_value_iid(
     graph::DoubleMatrix& back_grad,
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double s = in_nodes[0]->value._double;
+  double s = in_nodes[0]->value._value;
   torch::Tensor s2_p_x2 =
-      s * s + value._matrix * value._matrix;
-  back_grad._matrix -=
-      (2 * adjunct * value._matrix / s2_p_x2).matrix();
+      s * s + value._value * value._value;
+  back_grad._value -=
+      (2 * adjunct * value._value / s2_p_x2).matrix();
 }
 
 void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   if (in_nodes[0]->needs_gradient()) {
-    double x = value._double;
-    double s = in_nodes[0]->value._double;
+    double x = value._value;
+    double s = in_nodes[0]->value._value;
     double s2_p_x2 = s * s + x * x;
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1._value +=
         adjunct * _grad1_log_prob_param(s, s2_p_x2);
   }
 }
@@ -177,11 +177,11 @@ void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)
 void HalfCauchy::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    int size = static_cast<int>(value._matrix.numel());
-    double s = in_nodes[0]->value._double;
+    int size = static_cast<int>(value._value.numel());
+    double s = in_nodes[0]->value._value;
     torch::Tensor s2_p_x2 =
-        s * s + value._matrix * value._matrix;
-    in_nodes[0]->back_grad1._double +=
+        s * s + value._value * value._value;
+    in_nodes[0]->back_grad1._value +=
         size / s - 2 * (s / s2_p_x2).sum().item().toDouble();
   }
 }
@@ -191,11 +191,11 @@ void HalfCauchy::backward_param_iid(
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    double s = in_nodes[0]->value._double;
+    double s = in_nodes[0]->value._value;
     double sum_adjunct = adjunct.sum().item().toDouble();
     torch::Tensor s2_p_x2 =
-        s * s + value._matrix * value._matrix;
-    in_nodes[0]->back_grad1._double +=
+        s * s + value._value * value._value;
+    in_nodes[0]->back_grad1._value +=
         sum_adjunct / s - 2 * s * (adjunct / s2_p_x2).sum().item().toDouble();
   }
 }

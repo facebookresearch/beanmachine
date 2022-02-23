@@ -32,7 +32,7 @@ graph::NodeValue TruncatedCauchy::sample(std::mt19937& gen) const {
 
 double TruncatedCauchy::log_prob(graph::NodeValue& value) const {
   return log_pdf_constant - std::log(scale) -
-      log(1 + std::pow((value._double - loc) / scale, 2));
+      log(1 + std::pow((value._value - loc) / scale, 2));
 }
 
 } // namespace proposer

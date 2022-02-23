@@ -60,12 +60,12 @@ double sample_beta(std::mt19937& gen, double a, double b) {
   return p;
 }
 
-double logistic(double logodds) {
-  return 1.0 / (1.0 + std::exp(-logodds));
+torch::Tensor logistic(torch::Tensor logodds) {
+  return 1.0 / (1.0 + (-logodds).exp());
 }
 
-double Phi(double x) {
-  return 0.5 * (1 + std::erf(x / M_SQRT2));
+torch::Tensor Phi(torch::Tensor x) {
+  return 0.5 * (1 + (x / M_SQRT2).erf());
 }
 
 double Phi_approx(double x) {
@@ -101,25 +101,26 @@ double polygamma(int n, double x) {
   return boost::math::polygamma(n, x);
 }
 
-double log1pexp(double x) {
-  if (x <= -37) {
-    return std::exp(x);
-  } else if (x <= 18) {
-    return std::log1p(std::exp(x));
-  } else if (x <= 33.3) {
-    return x + std::exp(-x);
-  } else {
-    return x;
-  }
+torch::Tensor log1pexp(torch::Tensor x) {
+  return at::where(
+    x <= -37,
+    x.exp(),
+    at::where(
+      x <= 18,
+      x.exp().log1p().exp(),
+      at::where(
+        x <= 33.3,
+        x + (-x).exp(),
+        x)));
 }
 
-double log1mexp(double x) {
-  assert(x <= 0);
-  if (x < -0.693) {
-    return std::log1p(-std::exp(x));
-  } else {
-    return std::log(-std::expm1(x));
-  }
+torch::Tensor log1mexp(torch::Tensor x) {
+  assert((x <= 0).all().item().toBool());
+  return at::where(
+    x < -0.693,
+    (-x.exp()).log1p(),
+    (-x.expm1()).log()
+  );
 }
 
 } // namespace util

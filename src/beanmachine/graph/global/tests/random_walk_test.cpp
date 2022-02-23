@@ -43,7 +43,7 @@ TEST(testglobal, rw_normal_normal) {
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean, 0.25, 0.01);
@@ -78,7 +78,7 @@ TEST(testglobal, rw_distant_normal_normal) {
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean, 50.5, 0.5);
@@ -114,7 +114,7 @@ TEST(testglobal, rw_gamma_gamm) {
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][0]._double;
+    mean += samples[i][0]._value;
   }
   mean /= samples.size();
   EXPECT_NEAR(mean, 0.75, 0.01);

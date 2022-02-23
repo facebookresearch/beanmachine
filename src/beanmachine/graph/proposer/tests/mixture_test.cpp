@@ -36,8 +36,8 @@ TEST(testproposer, mixture) {
   double sumsq = 0.0;
   for (uint i = 0; i < num_samples; i++) {
     auto val = dist->sample(gen);
-    sum += val._double;
-    sumsq += val._double * val._double;
+    sum += val._value;
+    sumsq += val._value * val._value;
   }
   double mean = sum / num_samples;
   double var = sumsq / num_samples - mean * mean;

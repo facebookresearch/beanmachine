@@ -87,21 +87,21 @@ PYBIND11_MODULE(graph, module) {
       .value("CHOICE", OperatorType::CHOICE);
 
   py::enum_<DistributionType>(module, "DistributionType")
-      .value("TABULAR", DistributionType::TABULAR)
-      .value("BERNOULLI", DistributionType::BERNOULLI)
+    //   .value("TABULAR", DistributionType::TABULAR)
+    //   .value("BERNOULLI", DistributionType::BERNOULLI)
     //   .value("BERNOULLI_NOISY_OR", DistributionType::BERNOULLI_NOISY_OR)
-      .value("BETA", DistributionType::BETA)
-      .value("BINOMIAL", DistributionType::BINOMIAL)
+    //   .value("BETA", DistributionType::BETA)
+    //   .value("BINOMIAL", DistributionType::BINOMIAL)
       .value("FLAT", DistributionType::FLAT)
-      .value("NORMAL", DistributionType::NORMAL)
+      .value("NORMAL", DistributionType::NORMAL);
     //   .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
     //   .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
     //   .value("STUDENT_T", DistributionType::STUDENT_T)
-      .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
-      .value("GAMMA", DistributionType::GAMMA)
+    //   .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
+    //   .value("GAMMA", DistributionType::GAMMA)
     //   .value("BIMIXTURE", DistributionType::BIMIXTURE)
-      .value("DIRICHLET", DistributionType::DIRICHLET)
-      .value("CATEGORICAL", DistributionType::CATEGORICAL);
+    //   .value("DIRICHLET", DistributionType::DIRICHLET)
+    //   .value("CATEGORICAL", DistributionType::CATEGORICAL);
 
   py::enum_<FactorType>(module, "FactorType")
       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
@@ -145,26 +145,26 @@ PYBIND11_MODULE(graph, module) {
           (uint(Graph::*)(double)) & Graph::add_constant,
           "add a Node with a constant real value",
           py::arg("value"))
-      .def(
-          "add_constant_natural",
-          (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
-          "add a Node with a constant natural (integers >= 0) value",
-          py::arg("value"))
-      .def(
-          "add_constant",
-          (uint(Graph::*)(bool)) & Graph::add_constant,
-          "add a Node with a constant boolean value",
-          py::arg("value"))
+    //   .def(
+    //       "add_constant_natural",
+    //       (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
+    //       "add a Node with a constant natural (integers >= 0) value",
+    //       py::arg("value"))
+    //   .def(
+    //       "add_constant",
+    //       (uint(Graph::*)(bool)) & Graph::add_constant,
+    //       "add a Node with a constant boolean value",
+    //       py::arg("value"))
       .def(
           "add_constant",
           (uint(Graph::*)(double)) & Graph::add_constant,
           "add a Node with a constant real value",
           py::arg("value"))
-      .def(
-          "add_constant",
-          (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
-          "add a Node with a constant natural (integers >= 0) value",
-          py::arg("value"))
+    //   .def(
+    //       "add_constant",
+    //       (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
+    //       "add a Node with a constant natural (integers >= 0) value",
+    //       py::arg("value"))
       .def(
           "add_constant",
           (uint(Graph::*)(NodeValue)) & Graph::add_constant,

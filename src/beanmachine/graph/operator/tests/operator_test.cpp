@@ -40,7 +40,7 @@ TEST(testoperator, complement) {
   onode1.in_nodes.push_back(&cnode1);
   std::mt19937 generator(31245);
   onode1.eval(generator);
-  EXPECT_NEAR(onode1.value._double, 0.9, 0.001);
+  EXPECT_NEAR(onode1.value._value, 0.9, 0.001);
   // complement of bool is logical_not(bool)
   auto b1 = NodeValue(false);
   ConstNode cnode3(b1);
@@ -559,7 +559,7 @@ TEST(testoperator, logsumexp_vector) {
       OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{matrix123});
   g.query(logsumexp123);
   const auto& eval = g.infer(2, InferenceType::REJECTION);
-  EXPECT_NEAR(eval[0][0]._double, 3.4076, 1e-3);
+  EXPECT_NEAR(eval[0][0]._value, 3.4076, 1e-3);
 
   auto prior = g.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
@@ -856,8 +856,8 @@ TEST(testoperator, iid_sample) {
   double mean_x0sq = 0.0, mean_x1sq = 0.0;
   for (uint i = 0; i < n_samples; i++) {
     beta_samples.eval(generator);
-    x0 = *(beta_samples.value._matrix.data());
-    x1 = *(beta_samples.value._matrix.data() + 1);
+    x0 = *(beta_samples.value._value.data());
+    x1 = *(beta_samples.value._value.data() + 1);
     mean_x0 += x0 / n_samples;
     mean_x1 += x1 / n_samples;
     mean_x0sq += x0 * x0 / n_samples;
@@ -871,7 +871,7 @@ TEST(testoperator, iid_sample) {
   torch::Tensor m0 = torch::Tensor::Zero();
   for (uint i = 0; i < n_samples; i++) {
     bernoulli_samples.eval(generator);
-    m0 = m0 + bernoulli_samples.value._matrix.cast<int>();
+    m0 = m0 + bernoulli_samples.value._value.cast<int>();
   }
   EXPECT_NEAR(m0.coeff(0, 0) / (double)n_samples, 0.1, 0.01);
   EXPECT_NEAR(m0.coeff(0, 1) / (double)n_samples, 0.1, 0.01);
@@ -955,11 +955,11 @@ TEST(testoperator, matrix_multiply) {
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x, y});
   g.query(xy);
   const auto& xy_eval = g.infer(1, InferenceType::NMC);
-  EXPECT_EQ(xy_eval[0][0]._matrix.size(1), 2);
-  EXPECT_EQ(xy_eval[0][0]._matrix.size(0), 1);
+  EXPECT_EQ(xy_eval[0][0]._value.size(1), 2);
+  EXPECT_EQ(xy_eval[0][0]._value.size(0), 1);
   // result should be simply mx * m1
-  EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(0), -1.0600, 0.001);
-  EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(1), 0.4500, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._value.coeff(0), -1.0600, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._value.coeff(1), 0.4500, 0.001);
 
   // test backward():
   auto zw =
@@ -1111,11 +1111,11 @@ TEST(testoperator, matrix_scale) {
   const auto& xy_eval = g.infer(1, InferenceType::NMC);
   torch::Tensor mxy(3, 2);
   mxy = vx * m1;
-  EXPECT_EQ(xy_eval[0][0]._matrix.size(0), 3);
-  EXPECT_EQ(xy_eval[0][0]._matrix.size(1), 2);
+  EXPECT_EQ(xy_eval[0][0]._value.size(0), 3);
+  EXPECT_EQ(xy_eval[0][0]._value.size(1), 2);
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 2; j++) {
-      EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(i + 3 * j), mxy(i, j), 0.001);
+      EXPECT_NEAR(xy_eval[0][0]._value.coeff(i + 3 * j), mxy(i, j), 0.001);
       ;
     }
   }
@@ -1248,8 +1248,8 @@ TEST(testoperator, index) {
   g.query(times_three);
 
   const auto& xy_eval = g.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(xy_eval[0][0]._double, 2.0);
-  EXPECT_EQ(xy_eval[0][1]._double, 6.0);
+  EXPECT_EQ(xy_eval[0][0]._value, 2.0);
+  EXPECT_EQ(xy_eval[0][1]._value, 6.0);
 }
 
 TEST(testoperator, column_index) {
@@ -1279,8 +1279,8 @@ TEST(testoperator, column_index) {
   g.query(first_column);
 
   const auto& xy_eval = g.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(xy_eval[0][0]._matrix(0), 1.0);
-  EXPECT_EQ(xy_eval[0][0]._matrix(1), 3.0);
+  EXPECT_EQ(xy_eval[0][0]._value(0), 1.0);
+  EXPECT_EQ(xy_eval[0][0]._value(1), 3.0);
 }
 
 TEST(testoperator, to_real_matrix) {
@@ -1407,8 +1407,8 @@ TEST(testoperator, to_matrix) {
       g.add_operator(OperatorType::TO_MATRIX, {nat_one, nat_two, two, three});
   g.query(real_matrix);
   const auto& eval = g.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval[0][0]._matrix(0, 0), 2.0);
-  EXPECT_EQ(eval[0][0]._matrix(0, 1), 3.0);
+  EXPECT_EQ(eval[0][0]._value(0, 0), 2.0);
+  EXPECT_EQ(eval[0][0]._value(0, 1), 3.0);
 
   // 2x2 natural numbers
   Graph g1;
@@ -1421,10 +1421,10 @@ TEST(testoperator, to_matrix) {
       {nat_two, nat_two, nat_two, nat_zero, nat_three, nat_four});
   g1.query(nat_matrix);
   const auto& eval1 = g1.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval1[0][0]._matrix(0, 0), 2);
-  EXPECT_EQ(eval1[0][0]._matrix(1, 0), 0);
-  EXPECT_EQ(eval1[0][0]._matrix(0, 1), 3);
-  EXPECT_EQ(eval1[0][0]._matrix(1, 1), 4);
+  EXPECT_EQ(eval1[0][0]._value(0, 0), 2);
+  EXPECT_EQ(eval1[0][0]._value(1, 0), 0);
+  EXPECT_EQ(eval1[0][0]._value(0, 1), 3);
+  EXPECT_EQ(eval1[0][0]._value(1, 1), 4);
 
   // 3x1 stochastic boolean samples
   Graph g2;
@@ -1443,9 +1443,9 @@ TEST(testoperator, to_matrix) {
       OperatorType::TO_MATRIX, {nat_three, nat_one, bern1, bern2, bern3});
   g2.query(bool_matrix);
   const auto& eval2 = g2.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval2[0][0]._matrix.coeff(0), false);
-  EXPECT_EQ(eval2[0][0]._matrix.coeff(1), true);
-  EXPECT_EQ(eval2[0][0]._matrix.coeff(2), false);
+  EXPECT_EQ(eval2[0][0]._value.coeff(0), false);
+  EXPECT_EQ(eval2[0][0]._value.coeff(1), true);
+  EXPECT_EQ(eval2[0][0]._value.coeff(2), false);
 }
 
 TEST(testoperator, broadcast_add) {
@@ -1483,8 +1483,8 @@ TEST(testoperator, broadcast_add) {
       OperatorType::BROADCAST_ADD, std::vector<uint>{c1, matrix1});
   g1.query(sum_matrix);
   const auto& eval1 = g1.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval1[0][0]._matrix(0, 0), 3.5);
-  EXPECT_EQ(eval1[0][0]._matrix(1, 0), 0.5);
+  EXPECT_EQ(eval1[0][0]._value(0, 0), 3.5);
+  EXPECT_EQ(eval1[0][0]._value(1, 0), 0.5);
 
   Graph g2;
   auto c2 = g2.add_constant(-1.0);
@@ -1495,10 +1495,10 @@ TEST(testoperator, broadcast_add) {
       OperatorType::BROADCAST_ADD, std::vector<uint>{c2, matrix2});
   g2.query(sum_matrix2);
   const auto& eval2 = g2.infer(2, InferenceType::REJECTION);
-  EXPECT_EQ(eval2[0][0]._matrix(0, 0), -1.0);
-  EXPECT_EQ(eval2[0][0]._matrix(0, 1), 0.0);
-  EXPECT_EQ(eval2[0][0]._matrix(1, 0), 1.0);
-  EXPECT_EQ(eval2[0][0]._matrix(1, 1), 2.0);
+  EXPECT_EQ(eval2[0][0]._value(0, 0), -1.0);
+  EXPECT_EQ(eval2[0][0]._value(0, 1), 0.0);
+  EXPECT_EQ(eval2[0][0]._value(1, 0), 1.0);
+  EXPECT_EQ(eval2[0][0]._value(1, 1), 2.0);
 }
 
 TEST(testoperator, to_pos_real) {

@@ -241,8 +241,8 @@ void MH::clear_gradients(Node* node) {
       break;
     case VariableType::BROADCAST_MATRIX:
     case VariableType::COL_SIMPLEX_MATRIX: {
-      auto rows = node->value._matrix.size(0);
-      auto cols = node->value._matrix.size(1);
+      auto rows = node->value._value.size(0);
+      auto cols = node->value._value.size(1);
       node->Grad1 = torch::zeros({rows, cols});
       node->Grad2 = torch::zeros({rows, cols});
       break;
@@ -271,11 +271,11 @@ void MH::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
 // Computes the log probability with respect to a given
 // set of stochastic nodes.
 double MH::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
-  double log_prob = 0;
+  torch::Tensor log_prob = torch::zeros({1});
   for (Node* node : sto_nodes) {
     log_prob += node->log_prob();
   }
-  return log_prob;
+  return log_prob.item().toDouble();
 }
 
 NodeValue MH::sample(const std::unique_ptr<proposer::Proposer>& prop) {

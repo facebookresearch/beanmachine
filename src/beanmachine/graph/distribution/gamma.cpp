@@ -36,7 +36,7 @@ Gamma::Gamma(AtomicType sample_type, const std::vector<Node*>& in_nodes)
 
 double Gamma::_double_sampler(std::mt19937& gen) const {
   std::gamma_distribution<double> dist(
-      in_nodes[0]->value._double, 1 / in_nodes[1]->value._double);
+      in_nodes[0]->value._value, 1 / in_nodes[1]->value._value);
   return dist(gen);
 }
 
@@ -54,18 +54,18 @@ double Gamma::_double_sampler(std::mt19937& gen) const {
 // - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
 // the above equation computes f'(g) [f is the current function g is the input]
 double Gamma::log_prob(const graph::NodeValue& value) const {
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
 
   double result = param_a * std::log(param_b) - lgamma(param_a);
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     result +=
-        (param_a - 1.0) * std::log(value._double) - param_b * value._double;
+        (param_a - 1.0) * std::log(value._value) - param_b * value._value;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    result *= value._matrix.numel();
-    result += (param_a - 1.0) * value._matrix.log().sum() -
-        param_b * value._matrix.sum().item().toDouble();
+    result *= value._value.numel();
+    result += (param_a - 1.0) * value._value.log().sum() -
+        param_b * value._value.sum().item().toDouble();
   } else {
     throw std::runtime_error(
         "Gamma::log_prob applied to invalid variable type");
@@ -77,11 +77,11 @@ void Gamma::log_prob_iid(
     const graph::NodeValue& value,
     torch::Tensor& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
   double result = param_a * std::log(param_b) - lgamma(param_a);
-  log_probs = result + (param_a - 1.0) * value._matrix.log() -
-      param_b * value._matrix;
+  log_probs = result + (param_a - 1.0) * value._value.log() -
+      param_b * value._value;
 }
 
 void Gamma::_grad1_log_prob_value(
@@ -96,23 +96,23 @@ void Gamma::gradient_log_prob_value(
     const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
-  _grad1_log_prob_value(grad1, value._double, param_a, param_b);
-  grad2 += (1.0 - param_a) / (value._double * value._double);
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
+  _grad1_log_prob_value(grad1, value._value, param_a, param_b);
+  grad2 += (1.0 - param_a) / (value._value * value._value);
 }
 
 void Gamma::gradient_log_prob_param(
     const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
   double digamma_a = util::polygamma(0, param_a); // digamma(a)
   double poly1_a = util::polygamma(1, param_a); // polygamma(1, a)
   // 1st order derivatives
-  double grad_a = std::log(param_b) - digamma_a + std::log(value._double);
-  double grad_b = param_a / param_b - value._double;
+  double grad_a = std::log(param_b) - digamma_a + std::log(value._value);
+  double grad_b = param_a / param_b - value._value;
   // 2nd order derivatives
   double grad2_a2 = -poly1_a;
   double grad2_b2 = -param_a / (param_b * param_b);
@@ -128,21 +128,21 @@ void Gamma::backward_value(
     graph::DoubleMatrix& back_grad,
     double adjunct) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
   double increment = 0.0;
-  _grad1_log_prob_value(increment, value._double, param_a, param_b);
-  back_grad._double += adjunct * increment;
+  _grad1_log_prob_value(increment, value._value, param_a, param_b);
+  back_grad._value += adjunct * increment;
 }
 
 void Gamma::backward_value_iid(
     const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
-  back_grad._matrix +=
-      ((param_a - 1.0) / value._matrix - param_b).matrix();
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
+  back_grad._value +=
+      ((param_a - 1.0) / value._value - param_b).matrix();
 }
 
 void Gamma::backward_value_iid(
@@ -150,42 +150,42 @@ void Gamma::backward_value_iid(
     graph::DoubleMatrix& back_grad,
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
-  back_grad._matrix +=
-      (adjunct * ((param_a - 1.0) / value._matrix - param_b))
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
+  back_grad._value +=
+      (adjunct * ((param_a - 1.0) / value._value - param_b))
           .matrix();
 }
 
 void Gamma::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
-    double jacob = std::log(param_b) - digamma_a + std::log(value._double);
-    in_nodes[0]->back_grad1._double += adjunct * jacob;
+    double jacob = std::log(param_b) - digamma_a + std::log(value._value);
+    in_nodes[0]->back_grad1._value += adjunct * jacob;
   }
   if (in_nodes[1]->needs_gradient()) {
-    double jacob = param_a / param_b - value._double;
-    in_nodes[1]->back_grad1._double += adjunct * jacob;
+    double jacob = param_a / param_b - value._value;
+    in_nodes[1]->back_grad1._value += adjunct * jacob;
   }
 }
 
 void Gamma::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
-  int size = static_cast<int>(value._matrix.numel());
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
+  int size = static_cast<int>(value._value.numel());
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
-    in_nodes[0]->back_grad1._double += size * (std::log(param_b) - digamma_a) +
-        value._matrix.log().sum().item().toDouble();
+    in_nodes[0]->back_grad1._value += size * (std::log(param_b) - digamma_a) +
+        value._value.log().sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double +=
-        size * (param_a / param_b) - value._matrix.sum().item().toDouble();
+    in_nodes[1]->back_grad1._value +=
+        size * (param_a / param_b) - value._value.sum().item().toDouble();
   }
 }
 
@@ -193,21 +193,21 @@ void Gamma::backward_param_iid(
     const graph::NodeValue& value,
     torch::Tensor& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
+  double param_a = in_nodes[0]->value._value;
+  double param_b = in_nodes[1]->value._value;
   double adjunct_sum = 1.0;
   if (in_nodes[0]->needs_gradient() or in_nodes[1]->needs_gradient()) {
     adjunct_sum = adjunct.sum().item().toDouble();
   }
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
-    in_nodes[0]->back_grad1._double +=
+    in_nodes[0]->back_grad1._value +=
         adjunct_sum * (std::log(param_b) - digamma_a) +
-        (value._matrix.log() * adjunct).sum().item().toDouble();
+        (value._value.log() * adjunct).sum().item().toDouble();
   }
   if (in_nodes[1]->needs_gradient()) {
-    in_nodes[1]->back_grad1._double += adjunct_sum * (param_a / param_b) -
-        (value._matrix * adjunct).sum().item().toDouble();
+    in_nodes[1]->back_grad1._value += adjunct_sum * (param_a / param_b) -
+        (value._value * adjunct).sum().item().toDouble();
   }
 }
 

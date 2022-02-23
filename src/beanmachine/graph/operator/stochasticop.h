@@ -23,7 +23,7 @@ class StochasticOperator : public Operator {
     const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
     dist->sample(gen, value);
   }
-  double log_prob() const override {
+  torch::Tensor log_prob() const override {
     return static_cast<const distribution::Distribution*>(in_nodes[0])
         ->log_prob(value);
   }
@@ -35,10 +35,10 @@ class StochasticOperator : public Operator {
     return true;
   }
   void compute_gradients() override {}
-  void backward() override {
-    _backward(true);
-  }
-  virtual void _backward(bool /* skip_observed */) {}
+  // void backward() override {
+  //   _backward(true);
+  // }
+  // virtual void _backward(bool /* skip_observed */) {}
 
   graph::NodeValue* get_original_value(bool sync_from_unconstrained);
   graph::NodeValue* get_unconstrained_value(bool sync_from_constrained);
@@ -54,7 +54,7 @@ class Sample : public oper::StochasticOperator {
  public:
   explicit Sample(const std::vector<graph::Node*>& in_nodes);
   ~Sample() override {}
-  void _backward(bool skip_observed) override;
+  // void _backward(bool skip_observed) override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -68,7 +68,7 @@ class IIdSample : public oper::StochasticOperator {
  public:
   explicit IIdSample(const std::vector<graph::Node*>& in_nodes);
   ~IIdSample() override {}
-  void _backward(bool skip_observed) override;
+  // void _backward(bool skip_observed) override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {

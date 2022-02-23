@@ -39,13 +39,13 @@ class DOT {
         os << v._bool;
         break;
       case AtomicType::NATURAL:
-        os << v._natural;
+        os << v._value;
         break;
       case AtomicType::REAL:
       case AtomicType::POS_REAL:
       case AtomicType::NEG_REAL:
       case AtomicType::PROBABILITY:
-        os << v._double;
+        os << v._value;
         break;
       default:
         os << "Scalar";

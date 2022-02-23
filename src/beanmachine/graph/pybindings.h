@@ -40,42 +40,7 @@ struct type_caster<NodeValue> : public type_caster_base<NodeValue> {
   }
 
   static handle cast(NodeValue src, return_value_policy policy, handle parent) {
-    // for C++ -> Python condition the return object on the type
-    if (src.type.variable_type == VariableType::SCALAR) {
-      switch (src.type.atomic_type) {
-        case AtomicType::BOOLEAN: {
-          return type_caster<bool>::cast(src._bool, policy, parent);
-        }
-        case AtomicType::PROBABILITY:
-        case AtomicType::REAL:
-        case AtomicType::NEG_REAL:
-        case AtomicType::POS_REAL: {
-          return type_caster<double>::cast(src._double, policy, parent);
-        }
-        case AtomicType::NATURAL: {
-          return type_caster<int>::cast(src._natural, policy, parent);
-        }
-        default: {
-          throw std::runtime_error("unexpected type for NodeValue");
-        }
-      }
-    } else if (src.type.variable_type == VariableType::BROADCAST_MATRIX) {
-      switch (src.type.atomic_type) {
-        case AtomicType::BOOLEAN:
-        case AtomicType::REAL:
-        case AtomicType::POS_REAL:
-        case AtomicType::NEG_REAL:
-        case AtomicType::PROBABILITY:
-        case AtomicType::NATURAL:
-          return THPVariable_Wrap(src._matrix);
-        default:
-          throw std::runtime_error("unexpected type for NodeValue");
-      }
-    } else if (src.type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-        return THPVariable_Wrap(src._matrix);
-    } else {
-      throw std::runtime_error("unexpected type for NodeValue");
-    }
+    return THPVariable_Wrap(src._value);
   }
 };
 } // namespace detail

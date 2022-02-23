@@ -50,7 +50,7 @@ TEST(test_transform, log) {
   EXPECT_NEAR(x->_double, 2.5, 0.001);
   y = n1->get_unconstrained_value(true);
   EXPECT_NEAR(y->_double, std::log(2.5), 0.001);
-  y->_double = 0.0;
+  y->_value = 0.0;
   x = n1->get_original_value(true);
   EXPECT_NEAR(x->_double, 1.0, 0.001);
   // vector transform
