@@ -30,6 +30,7 @@ class Violation(BMGError):
     requirement: Requirement
     consumer: BMGNode
     edge: str
+    node_locations: Set[FunctionCall]
 
     def __init__(
         self,
@@ -38,12 +39,14 @@ class Violation(BMGError):
         requirement: Requirement,
         consumer: BMGNode,
         edge: str,
+        node_locations: Set[FunctionCall],
     ) -> None:
         self.node = node
         self.node_type = node_type
         self.requirement = requirement
         self.consumer = consumer
         self.edge = edge
+        self.node_locations = node_locations
 
     def __str__(self) -> str:
         r = self.requirement
@@ -51,11 +54,16 @@ class Violation(BMGError):
         assert isinstance(t, BMGLatticeType)
         # TODO: Fix this error message for the case where we require
         # a matrix but we can only get a scalar value
+        consumer_label = get_node_error_label(self.consumer)
         msg = (
-            f"The {self.edge} of {a_or_an(get_node_error_label(self.consumer))} "
+            f"The {self.edge} of {a_or_an(consumer_label)} "
             + f"is required to be {a_or_an(t.long_name)} "
             + f"but is {a_or_an(self.node_type.long_name)}."
         )
+        if len(self.node_locations) > 0:
+            msg += f"\nThe {consumer_label} was created in function call "
+            msg += ", ".join(sorted(str(loc) for loc in self.node_locations))
+            msg += "."
         return msg
 
 
