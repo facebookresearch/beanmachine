@@ -225,5 +225,6 @@ The unsupported node was created in function call c_random_logit().
         observed = str(ex.exception)
         expected = """
 The probability of a categorical is required to be a 2 x 1 simplex matrix but is a 2 x 2 simplex matrix.
+The categorical was created in function call c_multi().
         """
         self.assertEqual(expected.strip(), observed.strip())

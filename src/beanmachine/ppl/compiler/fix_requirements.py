@@ -103,7 +103,16 @@ class RequirementsFixer:
 
         # We cannot convert this node to any type that meets the requirement.
         # Add an error.
-        self.errors.add_error(Violation(node, it, requirement, consumer, edge))
+        self.errors.add_error(
+            Violation(
+                node,
+                it,
+                requirement,
+                consumer,
+                edge,
+                self.bmg.execution_context.node_locations(consumer),
+            )
+        )
         return node
 
     def _convert_operator_to_atomic_type(
@@ -291,7 +300,14 @@ class RequirementsFixer:
         else:
             # We have no way to make the conversion we need, so add an error.
             self.errors.add_error(
-                Violation(node, node_type, requirement, consumer, edge)
+                Violation(
+                    node,
+                    node_type,
+                    requirement,
+                    consumer,
+                    edge,
+                    self.bmg.execution_context.node_locations(consumer),
+                )
             )
             return node
 

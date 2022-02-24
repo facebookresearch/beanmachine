@@ -349,12 +349,13 @@ digraph "graph" {
         expected = (
             "The concentration of a Dirichlet is required to be"
             + " a 3 x 1 positive real matrix but is"
-            + " a 3 x 2 positive real matrix."
+            + " a 3 x 2 positive real matrix.\n"
+            + "The Dirichlet was created in function call d23()."
         )
 
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer([d23()], {}, 1)
-        self.assertEqual(expected, str(ex.exception))
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
 
     def test_dirichlet_fix_problems(self) -> None:
 
