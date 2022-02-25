@@ -158,7 +158,7 @@ class TyperBase(ABC, Generic[T]):
             self._nodes[cur] = new_type
             if current_type == new_type:
                 continue
-            for o in node.outputs.items:
+            for o in cur.outputs.items:
                 if o in self._nodes:
                     work.put(o)
 
