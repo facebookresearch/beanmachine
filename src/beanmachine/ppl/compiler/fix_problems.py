@@ -27,7 +27,10 @@ from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
-from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
+from beanmachine.ppl.compiler.fix_unsupported import (
+    UnsupportedNodeFixer,
+    UnsupportedNodeReporter,
+)
 from beanmachine.ppl.compiler.fix_vectorized_models import VectorizedModelFixer
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
@@ -53,6 +56,7 @@ _standard_fixer_types: List[Type] = [
     AdditionFixer,
     BoolComparisonFixer,
     UnsupportedNodeFixer,
+    UnsupportedNodeReporter,
     MatrixScaleFixer,
     MultiaryAdditionFixer,
     LogSumExpFixer,
