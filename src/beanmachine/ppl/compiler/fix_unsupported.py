@@ -390,6 +390,20 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         # It's not a constant. If the node is not supported then try to fix it.
         return not is_supported_by_bmg(n)
 
+
+class UnsupportedNodeReporter(ProblemFixerBase):
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
+
+    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
+        return None
+
+    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        if isinstance(n, bn.ConstantNode):
+            t = bt.type_of_value(n.value)
+            return t == bt.Tensor or t == bt.Untypable
+        return not is_supported_by_bmg(n)
+
     def _get_error(self, n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
