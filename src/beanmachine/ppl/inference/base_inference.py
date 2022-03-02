@@ -5,7 +5,8 @@
 
 import copy
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional, Set
+from functools import partial
+from typing import List, Optional, Set, Tuple
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -87,6 +88,66 @@ class BaseInference(metaclass=ABCMeta):
         """
         return 0
 
+    def _single_chain_infer(
+        self,
+        queries: List[RVIdentifier],
+        observations: RVDict,
+        num_samples: int,
+        num_adaptive_samples: int,
+        verbose: VerboseLevel,
+        initialize_fn: InitializeFn,
+        max_init_retries: int,
+        chain_id: int,
+    ) -> Tuple[RVDict, RVDict]:
+        """
+        Run a single chain of inference. Return a dictionary of samples and a
+        dictionary of log likelihood on observations.
+
+        Args:
+            queries: A list of queries.
+            observations: A dictionary of observations.
+            num_samples: Number of samples.
+            num_adaptive_samples: Number of adaptive samples.
+            verbose: Whether to display the progress bar or not.
+            initialize_fn: A callable that takes in a distribution and returns a Tensor.
+            max_init_retries: The number of attempts to make to initialize values for an
+                inference before throwing an error.
+            chain_id: The index of the current chain.
+        """
+        sampler = self.sampler(
+            queries,
+            observations,
+            num_samples,
+            num_adaptive_samples,
+            initialize_fn,
+        )
+        samples = {query: [] for query in queries}
+        log_likelihoods = {obs: [] for obs in observations}
+        # Main inference loop
+        for world in tqdm(
+            sampler,
+            total=num_samples + num_adaptive_samples,
+            desc="Samples collected",
+            disable=verbose == VerboseLevel.OFF,
+            position=chain_id,
+        ):
+            for obs in observations:
+                log_likelihoods[obs].append(world.log_prob([obs]))
+            # Extract samples
+            for query in queries:
+                raw_val = world.call(query)
+                if not isinstance(raw_val, torch.Tensor):
+                    raise TypeError(
+                        "The value returned by a queried function must be a tensor."
+                    )
+                samples[query].append(raw_val)
+
+        samples = {node: torch.stack(val) for node, val in samples.items()}
+        log_likelihoods = {
+            node: torch.stack(val) for node, val in log_likelihoods.items()
+        }
+        return samples, log_likelihoods
+
     def infer(
         self,
         queries: List[RVIdentifier],
@@ -118,51 +179,27 @@ class BaseInference(metaclass=ABCMeta):
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )
-        chain_results = []
-        chain_logll = []
         if num_adaptive_samples is None:
             num_adaptive_samples = self._get_default_num_adaptive_samples(num_samples)
 
-        for _ in range(num_chains):
-            sampler = self.sampler(
-                queries,
-                observations,
-                num_samples,
-                num_adaptive_samples,
-                initialize_fn,
-            )
-            samples = {query: [] for query in queries}
-            log_likelihoods = {obs: [] for obs in observations}
-            # Main inference loop
-            for world in tqdm(
-                sampler,
-                total=num_samples + num_adaptive_samples,
-                desc="Samples collected",
-                disable=verbose == VerboseLevel.OFF,
-            ):
-                for obs in observations:
-                    log_likelihoods[obs].append(world.log_prob([obs]))
-                # Extract samples
-                for query in queries:
-                    raw_val = world.call(query)
-                    if not isinstance(raw_val, torch.Tensor):
-                        raise TypeError(
-                            "The value returned by a queried function must be a tensor."
-                        )
-                    samples[query].append(raw_val)
+        # bind data to method for later use
+        single_chain_infer = partial(
+            self._single_chain_infer,
+            queries,
+            observations,
+            num_samples,
+            num_adaptive_samples,
+            verbose,
+            initialize_fn,
+            max_init_retries,
+        )
 
-            samples = {node: torch.stack(val) for node, val in samples.items()}
-            chain_results.append(samples)
-
-            log_likelihoods = {
-                node: torch.stack(val) for node, val in log_likelihoods.items()
-            }
-            chain_logll.append(log_likelihoods)
+        samples, log_likelihoods = zip(*map(single_chain_infer, range(num_chains)))
 
         return MonteCarloSamples(
-            chain_results,
+            list(samples),
             num_adaptive_samples,
-            chain_logll,
+            list(log_likelihoods),
             observations,
         )
 
@@ -204,7 +241,9 @@ class BaseInference(metaclass=ABCMeta):
                     num_samples
                 )
 
-        world = self._initialize_world(queries, observations, initialize_fn)
+        world = self._initialize_world(
+            queries, observations, initialize_fn, max_init_retries
+        )
         # start inference with a copy of self to ensure that multi-chain or multi
         # inference runs all start with the same pristine state
         kernel = copy.deepcopy(self)
