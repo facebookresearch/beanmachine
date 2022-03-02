@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from typing import Optional, Callable, List, Tuple, Union
+from typing import Optional, Callable, List, Tuple, Type, Union
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -61,6 +61,13 @@ def node_fixer_first_match(fixers: List[NodeFixer]) -> NodeFixer:
         return Inapplicable
 
     return first_match
+
+
+def type_guard(t: Type, fixer: Callable) -> NodeFixer:
+    def guarded(node: bn.BMGNode) -> Optional[bn.BMGNode]:
+        return fixer(node) if isinstance(node, t) else None
+
+    return guarded
 
 
 # A GraphFixer is a function that takes no arguments and returns (1) a bool indicating
@@ -158,6 +165,10 @@ def ancestors_first_graph_fixer(  # noqa
 
 # TODO: Create a match-first combinator on GraphFixers.
 # TODO: Create a fixpoint combinator on GraphFixers.
+
+
+# TODO: Eventually this base class will be refactored away and
+# only GraphFixer / NodeFixer will remain.
 
 
 class ProblemFixerBase(ABC):

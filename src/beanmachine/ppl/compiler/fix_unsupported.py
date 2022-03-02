@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Optional, Type, Callable
+from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
@@ -18,16 +18,10 @@ from beanmachine.ppl.compiler.fix_problem import (
     GraphFixer,
     ancestors_first_graph_fixer,
     node_fixer_first_match,
+    type_guard,
 )
 from beanmachine.ppl.compiler.graph_labels import get_edge_label
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
-
-
-def _guard(t: Type, fixer: Callable) -> NodeFixer:
-    def guarded(node: bn.BMGNode) -> Optional[bn.BMGNode]:
-        return fixer(node) if isinstance(node, t) else None
-
-    return guarded
 
 
 class UnsupportedNodeFixer:
@@ -37,30 +31,10 @@ class UnsupportedNodeFixer:
 
     _bmg: BMGraphBuilder
     _typer: LatticeTyper
-    _graph_fixer: GraphFixer
-    errors: ErrorReport
 
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         self._bmg = bmg
         self._typer = typer
-        node_fixer = node_fixer_first_match(
-            [
-                _guard(bn.Chi2Node, self._replace_chi2),
-                _guard(bn.DivisionNode, self._replace_division),
-                _guard(bn.IndexNode, self._replace_index),
-                _guard(bn.ItemNode, self._replace_item),
-                _guard(bn.LogSumExpTorchNode, self._replace_lse),
-                _guard(bn.MultiplicationNode, self._fix_matrix_scale),
-                _guard(bn.SwitchNode, self._replace_switch),
-                _guard(bn.TensorNode, self._replace_tensor),
-                _guard(bn.UniformNode, self._replace_uniform),
-            ]
-        )
-        self._graph_fixer = ancestors_first_graph_fixer(bmg, typer, node_fixer)
-        self.errors = ErrorReport()
-
-    def fix_problems(self) -> None:
-        self._graph_fixer()
 
     def _replace_division(self, node: bn.DivisionNode) -> Optional[bn.BMGNode]:
         # BMG has no division node. We replace division by a constant with
@@ -315,39 +289,21 @@ class UnsupportedNodeFixer:
         # turn into BMG nodes.
         return None
 
-    def _fix_matrix_scale(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
-        # Double check we can proceed, and that exactly one is scalar
-        if not self._fixable_matrix_scale(n):
-            return None
-        # We'll need to name the inputs and their types
-        left, right = n.inputs
-        left_type, right_type = [self._typer[i] for i in n.inputs]
-        # Let's assume the first is the scalr one
-        scalar, matrix = left, right
-        # Fix it if necessary
-        if right_type.is_singleton():
-            scalar = right
-            matrix = left
-        return self._bmg.add_matrix_scale(scalar, matrix)
 
-    def _fixable_matrix_scale(self, n: bn.BMGNode) -> bool:
-        # A matrix multiplication is fixable (to matrix_scale) if it is
-        # a binary multiplication with non-singlton result type
-        # and the type of one argument is matrix and the other is scalar
-        if not isinstance(n, bn.MultiplicationNode) or not (len(n.inputs) == 2):
-            return False
-        # The return type of the node should be matrix
-        if not (self._typer[n]).is_singleton():
-            return False
-        # Now let's check the types of the inputs
-        input_types = [self._typer[i] for i in n.inputs]
-        # If both are scalar, then there is nothing to do
-        if all(t.is_singleton() for t in input_types):
-            return False  # Both are scalar
-        # If both are matrices, then there is nothing to do
-        if all(not (t.is_singleton()) for t in input_types):
-            return False  # Both are matrices
-        return True
+def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+    usnf = UnsupportedNodeFixer(bmg, typer)
+    return node_fixer_first_match(
+        [
+            type_guard(bn.Chi2Node, usnf._replace_chi2),
+            type_guard(bn.DivisionNode, usnf._replace_division),
+            type_guard(bn.IndexNode, usnf._replace_index),
+            type_guard(bn.ItemNode, usnf._replace_item),
+            type_guard(bn.LogSumExpTorchNode, usnf._replace_lse),
+            type_guard(bn.SwitchNode, usnf._replace_switch),
+            type_guard(bn.TensorNode, usnf._replace_tensor),
+            type_guard(bn.UniformNode, usnf._replace_uniform),
+        ]
+    )
 
 
 # TODO: We should make a rewriter that detects stochastic index
@@ -357,39 +313,6 @@ class UnsupportedNodeFixer:
 # make it into a TO_MATRIX node, or (3) wrong shape or contents,
 # in which case we must give an error.  We will likely want to
 # move this check for unsupported constant value to AFTER that rewrite.
-
-# TODO: We have an ordering problem in the fixers:
-# Consider a model with (tensor([[c(), c()],[c(), c()]]) * 10.0).exp() in it,
-# where c() is a sample from Chi2(1.0).
-#
-# The devectorizer skips rewriting the tensor multiplied by scalar operation
-# because matrix scale rewriter will do so. However it does devectorize the
-# exp(); it adds index ops to extract the four values from the multiplication.
-#
-# Now, which runs first, the unsupported node fixer or the matrix scale fixer?
-#
-# * Unsupported node fixer must run first so that the Chi2(1.0) is rewritten into
-#   supported Gamma(0.5, 0.5) before the matrix scale fixer needs to know the type
-#   of the multiplication. But...
-# * Matrix scale fixer must run first so that unsupported node fixer can correctly
-#   rewrite and optimize the index operations.
-#
-# We have a chicken-and-egg problem here.
-#
-# The long-term solution is:
-#
-# * Extract the error reporting functionality from the unsupported node rewriter
-#   into its own pass.  Unsupported node rewriter just makes a best effort to rewrite.
-#   (DONE)
-# * All rewriting passes run in turn making best efforts to rewrite until a fixpoint is
-#   reached; THEN we check for remaining errors.
-#   (IN PROGRESS)
-#
-# However, that principled solution will require some minor rearchitecting of the
-# graph rewriters. For now, what we'll do is move the matrix scale fixer INTO the
-# unsupported node fixer. Since we rewrite from ancestors to descendants, we'll
-# rewrite the chi2, and then the multiplication, and then the index nodes, which is
-# the order we need to do them in.
 
 
 class UnsupportedNodeReporter:
