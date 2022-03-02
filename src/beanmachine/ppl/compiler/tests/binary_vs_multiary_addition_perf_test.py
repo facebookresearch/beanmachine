@@ -65,7 +65,7 @@ class BinaryVsMultiaryAdditionPerformanceTest(unittest.TestCase):
         self.assertEqual(report_w_optimization.edge_count, 204)
 
         skip_optimizations = {
-            "MultiaryAdditionFixer",
+            "multiary_addition_fixer",
             "BetaBernoulliConjugateFixer",
             "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",

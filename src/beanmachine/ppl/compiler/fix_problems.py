@@ -15,11 +15,11 @@ from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
 )
 from beanmachine.ppl.compiler.fix_bool_arithmetic import bool_arithmetic_fixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import bool_comparison_fixer
-from beanmachine.ppl.compiler.fix_logsumexp import LogSumExpFixer
+from beanmachine.ppl.compiler.fix_logsumexp import logsumexp_fixer
 from beanmachine.ppl.compiler.fix_matrix_scale import matrix_scale_fixer
 from beanmachine.ppl.compiler.fix_multiary_ops import (
-    MultiaryAdditionFixer,
-    MultiaryMultiplicationFixer,
+    multiary_addition_fixer,
+    multiary_multiplication_fixer,
 )
 from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
     NormalNormalConjugateFixer,
@@ -30,6 +30,7 @@ from beanmachine.ppl.compiler.fix_problem import (
     GraphFixer,
     node_fixer_first_match,
     ancestors_first_graph_fixer,
+    NodeFixer,
 )
 from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
 from beanmachine.ppl.compiler.fix_unsupported import (
@@ -43,39 +44,38 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # TODO[Walid]: Investigate ways to generalize transformations such as MatrixScale to
 # work with multiary multiplications.
 
-
-def arithmetic_graph_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
-    node_fixer = node_fixer_first_match(
-        [
-            addition_fixer(bmg, typer),
-            bool_arithmetic_fixer(bmg, typer),
-            bool_comparison_fixer(bmg, typer),
-            matrix_scale_fixer(bmg, typer),
-            unsupported_node_fixer(bmg, typer),
-        ]
-    )
-    return ancestors_first_graph_fixer(bmg, typer, node_fixer)
-
-
-_standard_fixer_types: List[Callable] = [
-    VectorizedModelFixer,
-    arithmetic_graph_fixer,
-    UnsupportedNodeReporter,
-    MultiaryAdditionFixer,
-    LogSumExpFixer,
-    MultiaryMultiplicationFixer,
-    BetaBernoulliConjugateFixer,
-    BetaBinomialConjugateFixer,
-    NormalNormalConjugateFixer,
-    RequirementsFixer,
-    ObservationsFixer,
-]
-
 default_skip_optimizations: Set[str] = {
     "BetaBernoulliConjugateFixer",
     "BetaBinomialConjugateFixer",
     "NormalNormalConjugateFixer",
 }
+
+_arithmetic_fixer_factories: List[
+    Callable[[BMGraphBuilder, LatticeTyper], NodeFixer]
+] = [
+    addition_fixer,
+    bool_arithmetic_fixer,
+    bool_comparison_fixer,
+    matrix_scale_fixer,
+    multiary_addition_fixer,
+    multiary_multiplication_fixer,
+    # TODO: logsumexp_fixer needs to come after multiary_addition_fixer right now;
+    # when we make the arithmetic_graph_fixer attain a fixpoint then we can do
+    # these fixers in any order.
+    logsumexp_fixer,
+    unsupported_node_fixer,
+]
+
+
+def arithmetic_graph_fixer(skip: Set[str]) -> Callable:
+    def graph_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+        node_fixers = [
+            f(bmg, typer) for f in _arithmetic_fixer_factories if f.__name__ not in skip
+        ]
+        node_fixer = node_fixer_first_match(node_fixers)
+        return ancestors_first_graph_fixer(bmg, typer, node_fixer)
+
+    return graph_fixer
 
 
 def fix_problems(
@@ -83,14 +83,26 @@ def fix_problems(
 ) -> ErrorReport:
     bmg._begin(prof.fix_problems)
 
+    # Functions with signature either
+    # (BMGraphBuilder, Typer) -> GraphFixer
+    # (BMGraphBuilder, Typer) -> ProblemFixer  # This will be refactored away
+    graph_fixer_factories: List[Callable] = [
+        VectorizedModelFixer,
+        arithmetic_graph_fixer(skip_optimizations),
+        UnsupportedNodeReporter,
+        BetaBernoulliConjugateFixer,
+        BetaBinomialConjugateFixer,
+        NormalNormalConjugateFixer,
+        RequirementsFixer,
+        ObservationsFixer,
+    ]
+
     typer = LatticeTyper()
-    fixer_types: List[Callable] = []
-    for fixer_type in _standard_fixer_types:
-        if fixer_type.__name__ not in skip_optimizations:
-            fixer_types.append(fixer_type)
+    fixer_types: List[Callable] = [
+        ft for ft in graph_fixer_factories if ft.__name__ not in skip_optimizations
+    ]
     errors = ErrorReport()
     if bmg._fix_observe_true:
-        # Note: must NOT be +=, which would mutate _standard_fixer_types.
         fixer_types = fixer_types + [ObserveTrueFixer]
     for fixer_type in fixer_types:
         bmg._begin(fixer_type.__name__)
