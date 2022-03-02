@@ -64,7 +64,7 @@ class BinaryVsMultiaryMultiplicationPerformanceTest(unittest.TestCase):
         self.assertEqual(report_w_optimization.edge_count, 204)
 
         skip_optimizations = {
-            "MultiaryMultiplicationFixer",
+            "multiary_multiplication_fixer",
             "BetaBernoulliConjugateFixer",
             "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",

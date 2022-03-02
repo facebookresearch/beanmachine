@@ -64,7 +64,7 @@ class LogSumExpPerformanceTest(unittest.TestCase):
         self.assertEqual(report_w_optimization.edge_count, 202)
 
         skip_optimizations = {
-            "LogSumExpFixer",
+            "logsumexp_fixer",
             "BetaBernoulliConjugateFixer",
             "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",
