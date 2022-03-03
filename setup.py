@@ -17,7 +17,7 @@ REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
 
 
-TEST_REQUIRES = ["pytest", "pytest-cov"]
+TEST_REQUIRES = ["pytest>=7.0.0", "pytest-cov"]
 TUTORIALS_REQUIRES = [
     "bokeh",
     "cma",

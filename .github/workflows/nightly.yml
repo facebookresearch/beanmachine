@@ -37,10 +37,7 @@ jobs:
         python -m pip install --upgrade pip
 
     - name: Install Bean Machine
-      run: pip install -v .
-
-    - name: Install pytest 7.0 (with a importlib patch in pytest-dev/pytest#7870)
-      run: pip install git+https://github.com/pytest-dev/pytest.git@7.0.0.dev0
+      run: pip install -v .[test]
 
     - name: Print out package info to help with debug
       run: pip list

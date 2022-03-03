@@ -23,8 +23,16 @@ To install from source, the first step is to clone the git repository:
 ```
 git clone https://github.com/facebookresearch/beanmachine.git
 cd beanmachine
-pip install -e .
 ```
+
+We recommend using [conda](https://docs.conda.io/en/latest/) to manage the virtual environment and install the necessary build dependencies.
+
+```
+conda create -n {env name} python=3.7; conda activate {env name}
+conda install boost eigen  # C++ dependencies
+pip install .
+```
+
 If you are a developer and plan to experiment with modifying the code, we recommend replacing the last step above with:
 ```
 pip install -e ".[dev]"
