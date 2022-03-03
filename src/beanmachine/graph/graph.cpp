@@ -1198,6 +1198,16 @@ std::vector<uint> Graph::get_parent_ids(
   return parent_ids;
 }
 
+void Graph::reindex_nodes() {
+  uint index = 0;
+  for (auto const& node : nodes) {
+    if (node) {
+      node->index = index;
+      index++;
+    }
+  }
+}
+
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.

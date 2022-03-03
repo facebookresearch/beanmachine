@@ -39,6 +39,13 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   nodes.push_back(std::move(marginalized_node_pointer));
 
   // add nodes to subgraph
+  // add discrete distribution and samples
+  subgraph->add_node_by_id(discrete_distribution->index);
+  subgraph->add_node_by_id(discrete_sample->index);
+  // add all intermediate deterministic nodes to subgraph
+  for (uint id : det_node_ids) {
+    subgraph->add_node_by_id(id);
+  }
 
   // parents for MarginalizedDistribution
 
@@ -47,6 +54,7 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   // create "COPY" for parents and children
 
   // move nodes to subgraph and finalize
+  subgraph->move_nodes_from_graph();
 }
 } // namespace graph
 } // namespace beanmachine

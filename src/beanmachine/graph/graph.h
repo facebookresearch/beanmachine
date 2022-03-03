@@ -936,6 +936,8 @@ struct Graph {
       profiler_data.finish(kind);
     }
   }
+
+  void reindex_nodes();
 };
 
 } // namespace graph
