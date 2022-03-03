@@ -12,6 +12,7 @@
 #include <beanmachine/graph/graph.h>
 
 using namespace beanmachine;
+using namespace graph;
 
 TEST(testgraph, support) {
   graph::Graph g;
@@ -111,4 +112,80 @@ TEST(testgraph, support) {
   EXPECT_EQ(sto_anc.size(), 2);
   EXPECT_EQ(sto_anc.front(), o2);
   EXPECT_EQ(sto_anc.back(), o4);
+}
+
+TEST(testgraph, full_support) {
+  /*
+  Visualize graph
+    digraph G {
+    "p" -> "bernoulli"
+    "bernoulli" -> "coin"
+    "coin" -> "coin_real"
+    "coin_real" -> "normal1"
+    "one" -> "normal1"
+    "normal1" -> "n1"
+    "five" -> "coin_plus_five"
+    "coin_real" -> "coin_plus_five"
+    "coin_plus_five" -> "normal2"
+    "one" -> "normal2"
+    "normal2" -> "n2 (query)"
+    }
+  */
+  // build graph
+  Graph g;
+  uint one = g.add_constant_pos_real(1.0);
+  uint p = g.add_constant_probability(0.5);
+  uint bernoulli =
+      g.add_distribution(DistributionType::BERNOULLI, AtomicType::BOOLEAN, {p});
+  uint coin = g.add_operator(OperatorType::SAMPLE, {bernoulli});
+  g.query(coin);
+  uint coin_real = g.add_operator(OperatorType::TO_REAL, {coin});
+  // should not be in support since not observed or queried
+  uint normal1 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {coin_real, one});
+  uint n1 = g.add_operator(OperatorType::SAMPLE, {normal1});
+  // should be in support since queried
+  uint five = g.add_constant(5.0);
+  uint coin_plus_five = g.add_operator(OperatorType::ADD, {coin_real, five});
+  uint normal2 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {coin_plus_five, one});
+  uint n2 = g.add_operator(OperatorType::SAMPLE, {normal2});
+  g.query(n2);
+
+  // begin tests
+
+  // support includes all operators and factors up to observations and queries
+  // doesn't include distributions or constants
+  std::set<uint> support = g.compute_support();
+  std::set<uint> expected_support = {coin, coin_real, coin_plus_five, n2};
+  EXPECT_EQ(support, expected_support);
+  EXPECT_EQ(support.count(n1), 0);
+
+  // full_support includes *all* nodes up to observations and queries
+  // includes distributions and constants
+  std::set<uint> full_support = g.compute_full_support();
+  std::set<uint> expected_full_support = {
+      p, bernoulli, coin, coin_real, five, coin_plus_five, one, normal2, n2};
+  EXPECT_EQ(full_support, expected_full_support);
+
+  std::vector<uint> det_nodes;
+  std::vector<uint> sto_nodes;
+  // computes node and nodes up to stochastic children
+  // deterministic nodes only have operator nodes
+  // stochastic node includes root node
+  std::tie(det_nodes, sto_nodes) = g.compute_affected_nodes(coin, support);
+  std::vector<uint> expected_det_nodes = {coin_real, coin_plus_five};
+  std::vector<uint> expected_sto_nodes = {coin, n2};
+  EXPECT_EQ(det_nodes, expected_det_nodes);
+  EXPECT_EQ(sto_nodes, expected_sto_nodes);
+
+  // computes nodes up to stochastic children
+  // deterministic nodes consist of all nodes
+  // (constants, distributions, operators, etc)
+  // stochastic node only includes children
+  std::tie(det_nodes, sto_nodes) = g.compute_children(coin, full_support);
+  expected_det_nodes = {coin_real, coin_plus_five, normal2};
+  expected_sto_nodes = {n2};
+  EXPECT_EQ(det_nodes, expected_det_nodes);
+  EXPECT_EQ(sto_nodes, expected_sto_nodes);
 }

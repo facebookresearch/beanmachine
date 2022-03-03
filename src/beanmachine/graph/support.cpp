@@ -18,6 +18,15 @@ namespace graph {
 // In other words, it is the set of queried and observed variables themselves
 // plus their ancestors that are operator and factor nodes.
 std::set<uint> Graph::compute_support() {
+  return _compute_support(true);
+}
+
+// set of queried and observed variables and *all* ancestors
+std::set<uint> Graph::compute_full_support() {
+  return _compute_support(false);
+}
+
+std::set<uint> Graph::_compute_support(bool operator_factor_only) {
   // we will do a standard BFS except that we are doing a BFS
   // in the reverse direction of the graph edges
   std::set<uint> visited;
@@ -40,8 +49,9 @@ std::set<uint> Graph::compute_support() {
     }
     visited.insert(node_id);
     const Node* node = nodes[node_id].get();
-    if (node->node_type == NodeType::OPERATOR or
-        node->node_type == NodeType::FACTOR) {
+    if (!operator_factor_only or
+        (node->node_type == NodeType::OPERATOR or
+         node->node_type == NodeType::FACTOR)) {
       support.insert(node_id);
     }
     for (const auto& parent : node->in_nodes) {
@@ -60,6 +70,21 @@ void include_children(const Node* node, std::list<uint>& queue) {
 std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_nodes(
     uint root_id,
     const std::set<uint>& support) {
+  return _compute_nodes_until_stochastic(root_id, support, true, true);
+}
+
+std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_children(
+    uint root_id,
+    const std::set<uint>& support) {
+  return _compute_nodes_until_stochastic(root_id, support, false, false);
+}
+
+std::tuple<std::vector<uint>, std::vector<uint>>
+Graph::_compute_nodes_until_stochastic(
+    uint root_id,
+    const std::set<uint>& support,
+    bool operator_only,
+    bool include_root_node) {
   // check for the validity of root_id since this method is not private
   if (root_id >= nodes.size()) {
     throw std::out_of_range(
@@ -86,7 +111,9 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_nodes(
       if (support.find(node_id) != support.end()) {
         // no need to check if node is operator because
         // all stochastic nodes are operators
-        sto_desc.push_back(node_id);
+        if (include_root_node or (node_id != root_id)) {
+          sto_desc.push_back(node_id);
+        }
       }
       // we only proceed to include children if node is root;
       // otherwise we stop because nodes beyond
@@ -94,7 +121,7 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_nodes(
       // affected by changes of value in the root.
       include_children_of_node = (node_id == root_id);
     } else if (
-        node->node_type == NodeType::OPERATOR and
+        (!operator_only or node->node_type == NodeType::OPERATOR) and
         support.find(node_id) != support.end()) {
       det_desc.push_back(node_id);
       // We always include children of deterministic
