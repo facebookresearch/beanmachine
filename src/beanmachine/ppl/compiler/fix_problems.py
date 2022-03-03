@@ -10,8 +10,8 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_additions import addition_fixer
 from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
-    BetaBernoulliConjugateFixer,
-    BetaBinomialConjugateFixer,
+    beta_bernoulli_conjugate_fixer,
+    beta_binomial_conjugate_fixer,
 )
 from beanmachine.ppl.compiler.fix_bool_arithmetic import bool_arithmetic_fixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import bool_comparison_fixer
@@ -22,7 +22,7 @@ from beanmachine.ppl.compiler.fix_multiary_ops import (
     multiary_multiplication_fixer,
 )
 from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
-    NormalNormalConjugateFixer,
+    normal_normal_conjugate_fixer,
 )
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
@@ -45,9 +45,9 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # work with multiary multiplications.
 
 default_skip_optimizations: Set[str] = {
-    "BetaBernoulliConjugateFixer",
-    "BetaBinomialConjugateFixer",
-    "NormalNormalConjugateFixer",
+    "beta_bernoulli_conjugate_fixer",
+    "beta_binomial_conjugate_fixer",
+    "normal_normal_conjugate_fixer",
 }
 
 _arithmetic_fixer_factories: List[
@@ -78,6 +78,24 @@ def arithmetic_graph_fixer(skip: Set[str]) -> Callable:
     return graph_fixer
 
 
+_conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
+    beta_bernoulli_conjugate_fixer,
+    beta_binomial_conjugate_fixer,
+    normal_normal_conjugate_fixer,
+]
+
+
+def conjugacy_graph_fixer(skip: Set[str]) -> Callable:
+    def graph_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+        node_fixers = [
+            f(bmg) for f in _conjugacy_fixer_factories if f.__name__ not in skip
+        ]
+        node_fixer = node_fixer_first_match(node_fixers)
+        return ancestors_first_graph_fixer(bmg, typer, node_fixer)
+
+    return graph_fixer
+
+
 def fix_problems(
     bmg: BMGraphBuilder, skip_optimizations: Set[str] = default_skip_optimizations
 ) -> ErrorReport:
@@ -90,9 +108,7 @@ def fix_problems(
         VectorizedModelFixer,
         arithmetic_graph_fixer(skip_optimizations),
         UnsupportedNodeReporter,
-        BetaBernoulliConjugateFixer,
-        BetaBinomialConjugateFixer,
-        NormalNormalConjugateFixer,
+        conjugacy_graph_fixer(skip_optimizations),
         RequirementsFixer,
         ObservationsFixer,
     ]

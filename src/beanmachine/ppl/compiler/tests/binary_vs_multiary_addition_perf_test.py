@@ -55,9 +55,9 @@ class BinaryVsMultiaryAdditionPerformanceTest(unittest.TestCase):
         self.maxDiff = None
 
         skip_optimizations = {
-            "BetaBernoulliConjugateFixer",
-            "BetaBinomialConjugateFixer",
-            "NormalNormalConjugateFixer",
+            "beta_bernoulli_conjugate_fixer",
+            "beta_binomial_conjugate_fixer",
+            "normal_normal_conjugate_fixer",
         }
         report_w_optimization = get_report(skip_optimizations)
 
@@ -66,9 +66,9 @@ class BinaryVsMultiaryAdditionPerformanceTest(unittest.TestCase):
 
         skip_optimizations = {
             "multiary_addition_fixer",
-            "BetaBernoulliConjugateFixer",
-            "BetaBinomialConjugateFixer",
-            "NormalNormalConjugateFixer",
+            "beta_bernoulli_conjugate_fixer",
+            "beta_binomial_conjugate_fixer",
+            "normal_normal_conjugate_fixer",
         }
         report_wo_optimization = get_report(skip_optimizations)
         self.assertEqual(report_wo_optimization.node_count, 203)
