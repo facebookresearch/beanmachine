@@ -352,6 +352,7 @@ enum class DistributionType {
   GAMMA,
   BIMIXTURE,
   CATEGORICAL,
+  DUMMY,
 };
 
 enum class FactorType {

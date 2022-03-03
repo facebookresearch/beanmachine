@@ -6,6 +6,8 @@
  */
 
 #include "beanmachine/graph/marginalization/marginalized_graph.h"
+#include "beanmachine/graph/distribution/dummy_marginal.h"
+#include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/marginalization/subgraph.h"
 
 namespace beanmachine {
@@ -19,7 +21,8 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   Node* discrete_sample = get_node(discrete_sample_node_id);
   Node* discrete_distribution = discrete_sample->in_nodes[0];
 
-  SubGraph subgraph = SubGraph(*this);
+  std::unique_ptr<SubGraph> subgraph_ptr = std::make_unique<SubGraph>(*this);
+  SubGraph* subgraph = subgraph_ptr.get();
 
   // compute nodes up to and including stochastic children of discrete_sample
   std::set<uint> supp_ids = compute_full_support();
@@ -29,6 +32,11 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
       compute_children(discrete_sample->index, supp_ids);
 
   // create MarginalizedDistribution
+  std::unique_ptr<distribution::DummyMarginal> marginalized_node_pointer =
+      std::make_unique<distribution::DummyMarginal>(std::move(subgraph_ptr));
+  marginalized_node_pointer.get()->sample_type = AtomicType::REAL;
+  Node* marginalized_node = marginalized_node_pointer.get();
+  nodes.push_back(std::move(marginalized_node_pointer));
 
   // add nodes to subgraph
 
