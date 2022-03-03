@@ -16,6 +16,7 @@ class SubGraph : public Graph {
   explicit SubGraph(Graph& g);
   void add_node_by_id(uint node_id);
   void move_nodes_from_graph();
+  bool has_node(uint node_id);
 
  private:
   Graph& graph;

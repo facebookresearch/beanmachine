@@ -16,6 +16,11 @@ void SubGraph::add_node_by_id(uint node_id) {
   pending_node_ids.insert(node_id);
 }
 
+bool SubGraph::has_node(uint node_id) {
+  return std::find(pending_node_ids.begin(), pending_node_ids.end(), node_id) !=
+      pending_node_ids.end();
+}
+
 void SubGraph::move_nodes_from_graph() {
   // indices are from largest to smallest
   for (std::set<uint>::reverse_iterator rit = pending_node_ids.rbegin();
