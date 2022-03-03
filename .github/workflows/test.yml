@@ -43,9 +43,6 @@ jobs:
     - name: Install Bean Machine in editable mode
       run: pip install -v -e .[dev]
 
-    - name: Install pytest 7.0 (with a importlib patch in pytest-dev/pytest#7870)
-      run: pip install git+https://github.com/pytest-dev/pytest.git@7.0.0.dev0
-
     - name: Print out package info to help with debug
       run: pip list
 

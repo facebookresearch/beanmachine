@@ -55,8 +55,7 @@ docker run -it beanmachine:latest bash
 If you would like to run the builtin unit tests:
 
 ```bash
-# install pytest 7.0 from GitHub
-pip install git+https://github.com/pytest-dev/pytest.git@7.0.0.dev0
+pip install -U 'pytest>=7.0.0'
 pytest .
 ```
 
