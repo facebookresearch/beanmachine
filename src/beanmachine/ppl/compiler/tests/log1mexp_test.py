@@ -101,8 +101,10 @@ digraph "graph" {
         observations = {}
         with self.assertRaises(ValueError) as ex:
             observed = BMGInference().to_dot(queries, observations)
-        expected = """The operand of a log1mexp is required to be a negative real but is a positive real."""
-        self.assertEqual(expected.strip(), str(ex.exception))
+        expected = """
+The operand of a log1mexp is required to be a negative real but is a positive real.
+The log1mexp was created in function call wrong()."""
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
 
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, observations, 1, 1)
@@ -151,8 +153,10 @@ digraph "graph" {
         observations = {}
         with self.assertRaises(ValueError) as ex:
             observed = BMGInference().to_dot(queries, observations)
-        expected = """The operand of a log1mexp is required to be a negative real but is a positive real."""
-        self.assertEqual(expected.strip(), str(ex.exception))
+        expected = """
+The operand of a log1mexp is required to be a negative real but is a positive real.
+The log1mexp was created in function call math_wrong()."""
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
 
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer(queries, observations, 1, 1)

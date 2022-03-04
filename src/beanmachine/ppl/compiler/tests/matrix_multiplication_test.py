@@ -72,9 +72,9 @@ digraph "graph" {
 }"""
         expected_error = """
 The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
-The unsupported node is the left of a matrix multiplication (@).
+The unsupported node was created in function call mm().
 The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a query.
+The unsupported node was created in function call mm().
         """
 
         observed = BMGInference().to_dot([mm()], {}, after_transform=False)
@@ -83,11 +83,25 @@ The unsupported node is the operator of a query.
             BMGInference().to_dot([mm()], {}, after_transform=True)
         self.assertEqual(expected_error.strip(), str(ex.exception))
 
+        expected_error = """
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call matmul().
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call matmul().
+        """
+
         observed = BMGInference().to_dot([matmul()], {}, after_transform=False)
         self.assertEqual(expected_accumulation.strip(), observed.strip())
         with self.assertRaises(ValueError) as ex:
             BMGInference().to_dot([matmul()], {}, after_transform=True)
         self.assertEqual(expected_error.strip(), str(ex.exception))
+
+        expected_error = """
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call infix().
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call infix().
+        """
 
         observed = BMGInference().to_dot([infix()], {}, after_transform=False)
         self.assertEqual(expected_accumulation.strip(), observed.strip())
@@ -95,8 +109,15 @@ The unsupported node is the operator of a query.
             BMGInference().to_dot([infix()], {}, after_transform=True)
         self.assertEqual(expected_error.strip(), str(ex.exception))
 
+        expected_error = """
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call op_matmul().
+The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call op_matmul().
+        """
+
         observed = BMGInference().to_dot([op_matmul()], {}, after_transform=False)
         self.assertEqual(expected_accumulation.strip(), observed.strip())
         with self.assertRaises(ValueError) as ex:
-            BMGInference().to_dot([infix()], {}, after_transform=True)
+            BMGInference().to_dot([op_matmul()], {}, after_transform=True)
         self.assertEqual(expected_error.strip(), str(ex.exception))

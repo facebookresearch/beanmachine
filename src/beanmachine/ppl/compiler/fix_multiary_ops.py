@@ -3,24 +3,29 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Optional
+from typing import List
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.fix_problem import (
+    NodeFixer,
+    NodeFixerResult,
+    Inapplicable,
+)
 from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
-class MultiaryOperatorFixer(ProblemFixerBase):
+class MultiaryOperatorFixer:
     """This fixer transforms graphs with long chains of binary operator nodes
     into multiary operations. This greatly decreases both the number of nodes
     and the number of edges in the graph, which can lead to performance wins
     during inference."""
 
+    _bmg: BMGraphBuilder
     _operator: type
 
-    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase, operator: type) -> None:
-        ProblemFixerBase.__init__(self, bmg, typer)
+    def __init__(self, bmg: BMGraphBuilder, operator: type) -> None:
+        self._bmg = bmg
         self._operator = operator
 
     def _single_output_is_operator(self, n: bn.BMGNode) -> bool:
@@ -141,41 +146,36 @@ class MultiaryOperatorFixer(ProblemFixerBase):
         return acc
 
 
-class MultiaryAdditionFixer(MultiaryOperatorFixer):
+# TODO: typer is unused
+def multiary_addition_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> NodeFixer:
     """This fixer transforms graphs with long chains of binary addition nodes
-    into multiary additions. This greatly decreases both the number of nodes
+    into multiary addition. This greatly decreases both the number of nodes
     and the number of edges in the graph, which can lead to performance wins
     during inference."""
 
-    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
-        MultiaryOperatorFixer.__init__(self, bmg, typer, bn.AdditionNode)
+    maf = MultiaryOperatorFixer(bmg, bn.AdditionNode)
 
-    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
-        # We require that this algorithm be non-recursive because the
-        # path through the graph could be longer than the Python
-        # recursion limit.
-        assert isinstance(n, bn.AdditionNode)
-        assert len(n.inputs) == 2
-        acc = self.accumulate_input_nodes(n)
-        assert len(acc) >= 3
-        return self._bmg.add_multi_addition(*acc)
+    def fixer(node: bn.BMGNode) -> NodeFixerResult:
+        if not maf._needs_fixing(node):
+            return Inapplicable
+        acc = maf.accumulate_input_nodes(node)
+        return bmg.add_multi_addition(*acc)
+
+    return fixer
 
 
-class MultiaryMultiplicationFixer(MultiaryOperatorFixer):
+# TODO: typer is unused
+def multiary_multiplication_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> NodeFixer:
     """This fixer transforms graphs with long chains of binary multiplication nodes
     into multiary multiplication. This greatly decreases both the number of nodes
     and the number of edges in the graph, which can lead to performance wins
     during inference."""
+    maf = MultiaryOperatorFixer(bmg, bn.MultiplicationNode)
 
-    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
-        MultiaryOperatorFixer.__init__(self, bmg, typer, bn.MultiplicationNode)
+    def fixer(node: bn.BMGNode) -> NodeFixerResult:
+        if not maf._needs_fixing(node):
+            return Inapplicable
+        acc = maf.accumulate_input_nodes(node)
+        return bmg.add_multi_multiplication(*acc)
 
-    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
-        # We require that this algorithm be non-recursive because the
-        # path through the graph could be longer than the Python
-        # recursion limit.
-        assert isinstance(n, bn.MultiplicationNode)
-        assert len(n.inputs) == 2
-        acc = self.accumulate_input_nodes(n)
-        assert len(acc) >= 3
-        return self._bmg.add_multi_multiplication(*acc)
+    return fixer

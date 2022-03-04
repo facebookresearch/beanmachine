@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import math
+import warnings
 from typing import Callable, Optional, Tuple, cast, Set
 
 import torch
@@ -128,8 +129,27 @@ class HMCProposer(BaseProposer):
         for value in values:
             value.requires_grad = True
 
-        pe = self._potential_energy(positions)
-        grads = torch.autograd.grad(pe, values)
+        try:
+            pe = self._potential_energy(positions)
+            grads = torch.autograd.grad(pe, values)
+        # We return NaN on Cholesky factorization errors which can be gracefully
+        # handled by NUTS/HMC.
+        # TODO: Change to torch.linalg.LinAlgError when in release.
+        except RuntimeError as e:
+            err_msg = str(e)
+            if "singular U" in err_msg or "input is not positive-definite" in err_msg:
+                warnings.warn(
+                    "Numerical error in potential energy computation."
+                    " If automatic recovery does not happen, plese file an issue"
+                    " at https://github.com/facebookresearch/beanmachine/issues/."
+                )
+                grads = [torch.full_like(v, float("nan")) for v in values]
+                pe = torch.tensor(
+                    float("nan"), device=grads[0].device, dtype=grads[0].dtype
+                )
+            else:
+                raise e
+
         grads = dict(zip(nodes, grads))
 
         for value in values:

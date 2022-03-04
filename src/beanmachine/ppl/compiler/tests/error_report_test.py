@@ -17,7 +17,7 @@ class ErrorReportTest(unittest.TestCase):
         bmg = BMGraphBuilder()
         r = bmg.add_real(-2.5)
         b = bmg.add_bernoulli(r)
-        v = Violation(r, NegativeReal, Probability, b, "probability")
+        v = Violation(r, NegativeReal, Probability, b, "probability", {})
         e = ErrorReport()
         e.add_error(v)
         expected = """

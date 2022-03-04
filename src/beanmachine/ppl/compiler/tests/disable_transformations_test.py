@@ -42,7 +42,7 @@ class DisableTransformationsTest(unittest.TestCase):
         observations = {}
         queries = [sum_3(), sum_4()]
 
-        skip_optimizations = {"MultiaryAdditionFixer"}
+        skip_optimizations = {"multiary_addition_fixer"}
         observed = BMGInference().to_dot(
             queries, observations, skip_optimizations=skip_optimizations
         )
@@ -143,7 +143,7 @@ digraph "graph" {
         queries = [sum_3(), sum_4()]
         num_samples = 1000
 
-        skip_optimizations = {"MultiaryAdditionFixer"}
+        skip_optimizations = {"multiary_addition_fixer"}
         posterior_wo_opt = BMGInference().infer(
             queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
         )

@@ -32,6 +32,7 @@ def flip():
 
 
 class ErrorDist(torch.distributions.Distribution):
+    arg_constraints = {}
     support = torch.distributions.constraints.real
 
     def __init__(self):
@@ -45,8 +46,11 @@ class ErrorDist(torch.distributions.Distribution):
             torch.linalg.cholesky(torch.zeros(3, 3))
         return torch.randn(1)
 
-    def log_prob(self, *args):
-        return torch.randn(1)
+    def log_prob(self, value):
+        self.counter += 1
+        if self.counter == 5:
+            torch.linalg.cholesky(torch.zeros(3, 3))
+        return -(value ** 2)
 
 
 @bm.random_variable
@@ -144,5 +148,19 @@ def test_handle_cholesky_error():
         # Verify that the warning is triggered
         assert len(w) == 1
         assert "Proposal rejected" in str(w[-1])
+    # Verify that the inference finishes with the right number of samples
+    assert samples[bad()].shape == (1, 20, 1)
+
+
+def test_cholesky_error_nuts_adaptation():
+    nuts = bm.SingleSiteNoUTurnSampler()
+    with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
+        # Trigger a warning
+        samples = nuts.infer([bad()], {}, 20, num_chains=1, num_adaptive_samples=30)
+        # Verify that the warning is triggered
+        assert len(w) == 1
+        assert "Numerical error" in str(w[-1])
     # Verify that the inference finishes with the right number of samples
     assert samples[bad()].shape == (1, 20, 1)

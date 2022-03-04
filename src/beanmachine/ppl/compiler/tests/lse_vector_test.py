@@ -274,7 +274,7 @@ digraph "graph" {
         bmg = BMGRuntime().accumulate_graph([f2by1()], {})
         expected = """
 The model uses a logsumexp operation unsupported by Bean Machine Graph.
-The unsupported node is the operator of a query.
+The unsupported node was created in function call f2by1().
 """
         with self.assertRaises(ValueError) as ex:
             to_dot(bmg, after_transform=True)

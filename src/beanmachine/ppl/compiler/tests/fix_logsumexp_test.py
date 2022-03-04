@@ -59,6 +59,7 @@ def log_6():
 
 class FixLogSumExpTest(unittest.TestCase):
     def test_fix_log_sum_exp_1(self) -> None:
+        self.maxDiff = None
         observations = {}
         queries_observed = [log_2()]
 
@@ -71,6 +72,7 @@ class FixLogSumExpTest(unittest.TestCase):
         self.assertEqual(graph_observed.strip(), graph_expected.strip())
 
     def test_fix_log_sum_exp_2(self) -> None:
+        self.maxDiff = None
         observations = {}
         queries_observed = [log_5()]
 
@@ -106,6 +108,7 @@ digraph "graph" {
         self.assertEqual(graph_observed.strip(), graph_expected.strip())
 
     def test_fix_log_sum_exp_3(self) -> None:
+        self.maxDiff = None
         observations = {}
         queries_observed = [log_6()]
 

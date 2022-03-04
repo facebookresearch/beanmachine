@@ -141,13 +141,13 @@ class BMGRuntime:
     _context: ExecutionContext
 
     def __init__(self) -> None:
-        self._bmg = BMGraphBuilder()
+        self._context = ExecutionContext()
+        self._bmg = BMGraphBuilder(self._context)
         self._pd = None
         self.rv_map = {}
         self.lifted_map = {}
         self.in_flight = set()
         self._rv_to_query = {}
-        self._context = ExecutionContext()
         self._special_function_caller = SpecialFunctionCaller(self._bmg)
 
     def _begin(self, s: str) -> None:

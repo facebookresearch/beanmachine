@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, Callable, List, Dict, Optional
+from typing import Any, Callable, List, Dict, Optional, Set
 
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
 from beanmachine.ppl.utils.multidictionary import MultiDictionary
@@ -82,6 +82,9 @@ class ExecutionContext:
             site = self.current_site()
         if site is not None:
             self._node_locations.add(node, site)
+
+    def node_locations(self, node: BMGNode) -> Set[FunctionCall]:
+        return self._node_locations[node]
 
     def call(
         self, func: Callable, args: Any, kwargs: Dict[str, Any] = _empty_kwargs

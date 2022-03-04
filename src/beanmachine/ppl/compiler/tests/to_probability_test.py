@@ -101,11 +101,10 @@ digraph "graph" {
         # TODO: Raise a better error than a generic ValueError
         with self.assertRaises(ValueError) as ex:
             bmg.infer([bad_flip()], {}, 10)
-        self.assertEqual(
-            str(ex.exception),
-            "The probability of a Bernoulli is required to be a"
-            + " probability but is a positive real.",
-        )
+        expected = """
+The probability of a Bernoulli is required to be a probability but is a positive real.
+The Bernoulli was created in function call bad_flip()."""
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
 
     def test_to_neg_real_1(self) -> None:
         self.maxDiff = None

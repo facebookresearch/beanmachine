@@ -10,19 +10,31 @@ import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
-from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
-from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode, ErrorReport
+from beanmachine.ppl.compiler.fix_problem import (
+    Fatal,
+    NodeFixerResult,
+    NodeFixer,
+    GraphFixer,
+    ancestors_first_graph_fixer,
+    node_fixer_first_match,
+    type_guard,
+)
 from beanmachine.ppl.compiler.graph_labels import get_edge_label
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
-class UnsupportedNodeFixer(ProblemFixerBase):
+class UnsupportedNodeFixer:
     """This class takes a Bean Machine Graph builder and attempts to
     fix all uses of unsupported operators by replacing them with semantically
     equivalent nodes that are supported by BMG."""
 
+    _bmg: BMGraphBuilder
+    _typer: LatticeTyper
+
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
-        ProblemFixerBase.__init__(self, bmg, typer)
+        self._bmg = bmg
+        self._typer = typer
 
     def _replace_division(self, node: bn.DivisionNode) -> Optional[bn.BMGNode]:
         # BMG has no division node. We replace division by a constant with
@@ -277,121 +289,68 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         # turn into BMG nodes.
         return None
 
-    def _fix_matrix_scale(self, n: bn.BMGNode) -> bn.BMGNode:
-        # Double check we can proceed, and that exactly one is scalar
-        assert self._fixable_matrix_scale(n)
-        # We'll need to name the inputs and their types
-        left, right = n.inputs
-        left_type, right_type = [self._typer[i] for i in n.inputs]
-        # Let's assume the first is the scalr one
-        scalar, matrix = left, right
-        # Fix it if necessary
-        if right_type.is_singleton():
-            scalar = right
-            matrix = left
-        return self._bmg.add_matrix_scale(scalar, matrix)
 
-    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
-        # TODO:
-        # Not -> Complement
-        if isinstance(n, bn.Chi2Node):
-            return self._replace_chi2(n)
-        if isinstance(n, bn.DivisionNode):
-            return self._replace_division(n)
-        if isinstance(n, bn.IndexNode):
-            return self._replace_index(n)
-        if isinstance(n, bn.ItemNode):
-            return self._replace_item(n)
-        if isinstance(n, bn.LogSumExpTorchNode):
-            return self._replace_lse(n)
-        if isinstance(n, bn.SwitchNode):
-            return self._replace_switch(n)
-        if isinstance(n, bn.TensorNode):
-            return self._replace_tensor(n)
-        if isinstance(n, bn.UniformNode):
-            return self._replace_uniform(n)
+def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+    usnf = UnsupportedNodeFixer(bmg, typer)
+    return node_fixer_first_match(
+        [
+            type_guard(bn.Chi2Node, usnf._replace_chi2),
+            type_guard(bn.DivisionNode, usnf._replace_division),
+            type_guard(bn.IndexNode, usnf._replace_index),
+            type_guard(bn.ItemNode, usnf._replace_item),
+            type_guard(bn.LogSumExpTorchNode, usnf._replace_lse),
+            type_guard(bn.SwitchNode, usnf._replace_switch),
+            type_guard(bn.TensorNode, usnf._replace_tensor),
+            type_guard(bn.UniformNode, usnf._replace_uniform),
+        ]
+    )
 
-        # See note in _needs_fixing below.
-        if isinstance(n, bn.MultiplicationNode):
-            return self._fix_matrix_scale(n)
 
-        return None
+# TODO: We should make a rewriter that detects stochastic index
+# into list.  We will need to detect if the list is (1) all
+# numbers, in which case we can make a constant matrix out of it,
+# (2) mix of numbers and stochastic elements, in which case we can
+# make it into a TO_MATRIX node, or (3) wrong shape or contents,
+# in which case we must give an error.  We will likely want to
+# move this check for unsupported constant value to AFTER that rewrite.
 
-    def _fixable_matrix_scale(self, n: bn.BMGNode) -> bool:
-        # A matrix multiplication is fixable (to matrix_scale) if it is
-        # a binary multiplication with non-singlton result type
-        # and the type of one argument is matrix and the other is scalar
-        if not isinstance(n, bn.MultiplicationNode) or not (len(n.inputs) == 2):
-            return False
-        # The return type of the node should be matrix
-        if not (self._typer[n]).is_singleton():
-            return False
-        # Now let's check the types of the inputs
-        input_types = [self._typer[i] for i in n.inputs]
-        # If both are scalar, then there is nothing to do
-        if all(t.is_singleton() for t in input_types):
-            return False  # Both are scalar
-        # If both are matrices, then there is nothing to do
-        if all(not (t.is_singleton()) for t in input_types):
-            return False  # Both are matrices
-        return True
 
-    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+class UnsupportedNodeReporter:
+    _bmg: BMGraphBuilder
+    _graph_fixer: GraphFixer
+    errors: ErrorReport
+
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
+        # TODO: Typer is unused; remove it. Right now fix_problems assumes
+        # UnsupportedNodeRewriter __init__ takes a typer.
+        self._bmg = bmg
+        self._graph_fixer = ancestors_first_graph_fixer(
+            bmg, typer, self._needs_fixing, self._get_error
+        )
+        self.errors = ErrorReport()
+
+    def fix_problems(self) -> None:
+        _, self.errors = self._graph_fixer()
+
+    def _needs_fixing(self, n: bn.BMGNode) -> NodeFixerResult:
         # Constants that can be converted to constant nodes of the appropriate type
-        # will be converted in the requirements checking pass. For now, just detect
+        # will be converted in the requirements checking pass. Here we just detect
         # constants that cannot possibly be supported because they are the wrong
-        # dimensionality. We will fail to fix it in _get_replacement and report an error.
-
-        # TODO: We should make a rewriter that detects stochastic index
-        # into list.  We will need to detect if the list is (1) all
-        # numbers, in which case we can make a constant matrix out of it,
-        # (2) mix of numbers and stochastic elements, in which case we can
-        # make it into a TO_MATRIX node, or (3) wrong shape or contents,
-        # in which case we must give an error.  We will likely want to
-        # move this check for unsupported constant value to AFTER that rewrite.
+        # dimensionality.
 
         if isinstance(n, bn.ConstantNode):
             t = bt.type_of_value(n.value)
-            return t == bt.Tensor or t == bt.Untypable
-
-        # TODO: We have an ordering problem in the fixers:
-        # Consider a model with (tensor([[c(), c()],[c(), c()]]) * 10.0).exp() in it,
-        # where c() is a sample from Chi2(1.0).
-        #
-        # The devectorizer skips rewriting the tensor multiplied by scalar operation
-        # because matrix scale rewriter will do so. However it does devectorize the
-        # exp(); it adds index ops to extract the four values from the multiplication.
-        #
-        # Now, which runs first, the unsupported node fixer or the matrix scale fixer?
-        #
-        # * Unsupported node fixer must run first so that the Chi2(1.0) is rewritten into
-        #   supported Gamma(0.5, 0.5) before the matrix scale fixer needs to know the type
-        #   of the multiplication. But...
-        # * Matrix scale fixer must run first so that unsupported node fixer can correctly
-        #   rewrite and optimize the index operations.
-        #
-        # We have a chicken-and-egg problem here.
-        #
-        # The long-term solution is:
-        #
-        # * Extract the error reporting functionality from the unsupported node rewriter
-        #   into its own pass.  Unsupported node rewriter just makes a best effort to rewrite.
-        # * All rewriting passes run in turn making best efforts to rewrite until a fixpoint is
-        #   reached; THEN we check for remaining errors.
-        #
-        # However, that principled solution will require some minor rearchitecting of the
-        # graph rewriters. For now, what we'll do is move the matrix scale fixer INTO the
-        # unsupported node fixer. Since we rewrite from ancestors to descendants, we'll
-        # rewrite the chi2, and then the multiplication, and then the index nodes, which is
-        # the order we need to do them in.
-        if self._fixable_matrix_scale(n):
-            return True
-
-        # It's not a constant. If the node is not supported then try to fix it.
-        return not is_supported_by_bmg(n)
+            return Fatal if t == bt.Tensor or t == bt.Untypable else n
+        return n if is_supported_by_bmg(n) else Fatal
 
     def _get_error(self, n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
         # Consider fixing this.
-        return UnsupportedNode(n.inputs[index], n, get_edge_label(n, index))
+        unsupported_node = n.inputs[index]
+        return UnsupportedNode(
+            unsupported_node,
+            n,
+            get_edge_label(n, index),
+            self._bmg.execution_context.node_locations(unsupported_node),
+        )

@@ -352,6 +352,7 @@ enum class DistributionType {
   GAMMA,
   BIMIXTURE,
   CATEGORICAL,
+  DUMMY,
 };
 
 enum class FactorType {
@@ -675,7 +676,21 @@ struct Graph {
   std::vector<double>& get_elbo() {
     return elbo_vals;
   }
+  /*
+  The support of a graph is the set of operator and factor nodes that are
+  needed to determine the value of query and observed variables.
+  In other words, it is the set of queried and observed variables themselves
+  plus their ancestors that are operator and factor nodes.
+  */
   std::set<uint> compute_support();
+  /*
+  The full support of a graph includes *all* nodes, including distribution nodes
+  and constant nodes, that are needed to determine the value of query and
+  observed variables
+  */
+  std::set<uint> compute_full_support();
+
+  std::set<uint> _compute_support(bool operator_factor_only);
 
   /*
   Computes the _affected nodes_ of a root node.
@@ -711,16 +726,45 @@ struct Graph {
   :param node_id: the id (index in topological order) of the node for which
   we are computing the descendants
   :param support: the set of indices of the distribution support.
-  :returns: vector of intervening deterministic nodes and vector of stochastic
-  nodes that are operators and immediate stochastic descendants of the current
-  node and in the support
-  (that is to say, we don't return descendants of stochastic
-  descendants). The current node is included in result if it is in support and
-  is stochastic.
+  :returns: vector of intervening operator deterministic nodes and vector of
+  stochastic nodes that are operators and immediate stochastic descendants of
+  the current node and in the support (that is to say, we don't return
+  descendants of stochastic descendants). The current node is included in result
+  if it is in support and is stochastic.
   */
   std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
       uint node_id,
       const std::set<uint>& support);
+
+  /*
+  This function is almost the same as `compute_affected_nodes` above, with
+  a few key differences:
+  1. the deterministic nodes among the nodes returned by
+`compute_affected_nodes` only include operator deterministic nodes, which have
+  values which need to be re-calculated during inference. This function returns
+  *all* the deterministic nodes between the current node and its stochastic
+  children, including distribution nodes, constants, etc
+  2. `compute_affected_nodes` includes the current stochastic node, while this
+  function only includes its children
+  :param node_id: the id (index in topological order) of the node for which we
+  are computing the descendants
+  :param support: the set of indices of the distribution support.
+  :returns: vector of all intermediate deterministic nodes and vector of
+  stochastic nodes and immediate stochastic descendants of the current node and
+  in the support (that is to say, we don't return descendants of stochastic
+  descendants). The current node is included in result if it is in support and
+  is stochastic.
+  */
+  std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
+      uint node_id,
+      const std::set<uint>& support);
+
+  std::tuple<std::vector<uint>, std::vector<uint>>
+  _compute_nodes_until_stochastic(
+      uint node_id,
+      const std::set<uint>& support,
+      bool affected_only,
+      bool include_root_node);
 
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
@@ -892,6 +936,8 @@ struct Graph {
       profiler_data.finish(kind);
     }
   }
+
+  void reindex_nodes();
 };
 
 } // namespace graph
