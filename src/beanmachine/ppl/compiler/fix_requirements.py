@@ -17,6 +17,7 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
+from beanmachine.ppl.compiler.fix_problem import GraphFixer
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels
 from beanmachine.ppl.compiler.internal_error import InternalError
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
@@ -413,7 +414,8 @@ class RequirementsFixer:
         assert isinstance(node, bn.OperatorNode)
         return self._meet_operator_requirement(node, requirement, consumer, edge)
 
-    def fix_problems(self) -> None:
+    def fix_problems(self) -> bool:
+        made_progress = False
         nodes = self.bmg.all_ancestor_nodes()
         for node in nodes:
             requirements = self._reqs.requirements(node)
@@ -431,3 +433,14 @@ class RequirementsFixer:
                     node_was_updated = True
             if node_was_updated:
                 self._typer.update_type(node)
+                made_progress = True
+        return made_progress
+
+
+def requirements_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+    def graph_fixer():
+        rf = RequirementsFixer(bmg, typer)
+        made_progress = rf.fix_problems()
+        return made_progress, rf.errors
+
+    return graph_fixer

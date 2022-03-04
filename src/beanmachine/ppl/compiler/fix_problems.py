@@ -24,7 +24,7 @@ from beanmachine.ppl.compiler.fix_multiary_ops import (
 from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
     normal_normal_conjugate_fixer,
 )
-from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
+from beanmachine.ppl.compiler.fix_observations import observations_fixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_problem import (
     GraphFixer,
@@ -32,10 +32,10 @@ from beanmachine.ppl.compiler.fix_problem import (
     ancestors_first_graph_fixer,
     NodeFixer,
 )
-from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
+from beanmachine.ppl.compiler.fix_requirements import requirements_fixer
 from beanmachine.ppl.compiler.fix_unsupported import (
     unsupported_node_fixer,
-    UnsupportedNodeReporter,
+    unsupported_node_reporter,
 )
 from beanmachine.ppl.compiler.fix_vectorized_models import VectorizedModelFixer
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
@@ -107,10 +107,10 @@ def fix_problems(
     graph_fixer_factories: List[Callable] = [
         VectorizedModelFixer,
         arithmetic_graph_fixer(skip_optimizations),
-        UnsupportedNodeReporter,
+        unsupported_node_reporter,
         conjugacy_graph_fixer(skip_optimizations),
-        RequirementsFixer,
-        ObservationsFixer,
+        requirements_fixer,
+        observations_fixer,
     ]
 
     typer = LatticeTyper()
