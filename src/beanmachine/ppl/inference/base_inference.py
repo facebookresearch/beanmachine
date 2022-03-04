@@ -17,9 +17,12 @@ from beanmachine.ppl.inference.sampler import Sampler
 from beanmachine.ppl.inference.utils import (
     VerboseLevel,
     _verify_queries_and_observations,
+    seed as set_seed,
+    _execute_in_new_thread,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World, InitializeFn, init_to_uniform
+from torch import multiprocessing as mp
 from tqdm.auto import tqdm
 
 
@@ -27,6 +30,9 @@ class BaseInference(metaclass=ABCMeta):
     """
     Abstract class all inference methods should inherit from.
     """
+
+    # maximum value of a seed
+    _MAX_SEED_VAL: int = 2 ** 32 - 1
 
     @staticmethod
     def _initialize_world(
@@ -98,10 +104,11 @@ class BaseInference(metaclass=ABCMeta):
         initialize_fn: InitializeFn,
         max_init_retries: int,
         chain_id: int,
-    ) -> Tuple[RVDict, RVDict]:
+        seed: Optional[int] = None,
+    ) -> Tuple[List[torch.Tensor], List[torch.Tensor]]:
         """
-        Run a single chain of inference. Return a dictionary of samples and a
-        dictionary of log likelihood on observations.
+        Run a single chain of inference. Return a list of samples (in the same order as
+        the queries) and a list of log likelihood on observations
 
         Args:
             queries: A list of queries.
@@ -113,7 +120,17 @@ class BaseInference(metaclass=ABCMeta):
             max_init_retries: The number of attempts to make to initialize values for an
                 inference before throwing an error.
             chain_id: The index of the current chain.
+            seed: If provided, the seed will beused to initialize the state of the
+            random number generators for the current chain
         """
+        # A hack to fix the issue where tqdm doesn't render progress bar correctly in
+        # process in Jupyter notebook (https://github.com/tqdm/tqdm/issues/485)
+        if verbose == VerboseLevel.LOAD_BAR:
+            print(" ", end="", flush=True)
+
+        if seed is not None:
+            set_seed(seed)
+
         sampler = self.sampler(
             queries,
             observations,
@@ -121,8 +138,9 @@ class BaseInference(metaclass=ABCMeta):
             num_adaptive_samples,
             initialize_fn,
         )
-        samples = {query: [] for query in queries}
-        log_likelihoods = {obs: [] for obs in observations}
+        samples = [[] for _ in queries]
+        log_likelihoods = [[] for _ in observations]
+
         # Main inference loop
         for world in tqdm(
             sampler,
@@ -131,21 +149,19 @@ class BaseInference(metaclass=ABCMeta):
             disable=verbose == VerboseLevel.OFF,
             position=chain_id,
         ):
-            for obs in observations:
-                log_likelihoods[obs].append(world.log_prob([obs]))
+            for idx, obs in enumerate(observations):
+                log_likelihoods[idx].append(world.log_prob([obs]))
             # Extract samples
-            for query in queries:
+            for idx, query in enumerate(queries):
                 raw_val = world.call(query)
                 if not isinstance(raw_val, torch.Tensor):
                     raise TypeError(
                         "The value returned by a queried function must be a tensor."
                     )
-                samples[query].append(raw_val)
+                samples[idx].append(raw_val)
 
-        samples = {node: torch.stack(val) for node, val in samples.items()}
-        log_likelihoods = {
-            node: torch.stack(val) for node, val in log_likelihoods.items()
-        }
+        samples = [torch.stack(val) for val in samples]
+        log_likelihoods = [torch.stack(val) for val in log_likelihoods]
         return samples, log_likelihoods
 
     def infer(
@@ -158,6 +174,8 @@ class BaseInference(metaclass=ABCMeta):
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_fn: InitializeFn = init_to_uniform,
         max_init_retries: int = 100,
+        run_in_parallel: bool = False,
+        mp_context: Optional[str] = None,
     ) -> MonteCarloSamples:
         """
         Performs inference and returns a ``MonteCarloSamples`` object with samples from the posterior.
@@ -175,6 +193,10 @@ class BaseInference(metaclass=ABCMeta):
                 the support of the distribution.
             max_init_retries: The number of attempts to make to initialize values for an
                 inference before throwing an error (default to 100).
+            run_in_parallel: Whether to run multiple chains in parallel (with multiple
+                processes) or not.
+            mp_context: The `multiprocessing context <https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods>`_
+                to used for parallel inference.
         """
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
@@ -182,7 +204,6 @@ class BaseInference(metaclass=ABCMeta):
         if num_adaptive_samples is None:
             num_adaptive_samples = self._get_default_num_adaptive_samples(num_samples)
 
-        # bind data to method for later use
         single_chain_infer = partial(
             self._single_chain_infer,
             queries,
@@ -193,13 +214,42 @@ class BaseInference(metaclass=ABCMeta):
             initialize_fn,
             max_init_retries,
         )
+        if not run_in_parallel:
+            chain_results = map(single_chain_infer, range(num_chains))
+        else:
+            ctx = mp.get_context(mp_context)
+            # We'd like to explicitly set a different seed for each process to avoid
+            # duplicating the same RNG state for all chains
+            first_seed = torch.randint(self._MAX_SEED_VAL, ()).item()
+            seeds = [
+                (first_seed + 31 * chain_id) % self._MAX_SEED_VAL
+                for chain_id in range(num_chains)
+            ]
+            # run single chain inference in a new thread in subprocesses to avoid
+            # forking corrupted internal states
+            # (https://github.com/pytorch/pytorch/issues/17199)
+            single_chain_infer = partial(_execute_in_new_thread, single_chain_infer)
 
-        samples, log_likelihoods = zip(*map(single_chain_infer, range(num_chains)))
+            with ctx.Pool(
+                processes=num_chains, initializer=tqdm.set_lock, initargs=(ctx.Lock(),)
+            ) as p:
+                chain_results = p.starmap(single_chain_infer, enumerate(seeds))
+
+        all_samples, all_log_liklihoods = zip(*chain_results)
+        # the hash of RVIdentifier can change when it is being sent to another process,
+        # so we have to rely on the order of the returned list to determine which samples
+        # correspond to which RVIdentifier
+        all_samples = [dict(zip(queries, samples)) for samples in all_samples]
+        # in python the order of keys in a dict is fixed, so we can rely on it
+        all_log_liklihoods = [
+            dict(zip(observations.keys(), log_likelihoods))
+            for log_likelihoods in all_log_liklihoods
+        ]
 
         return MonteCarloSamples(
-            list(samples),
+            all_samples,
             num_adaptive_samples,
-            list(log_likelihoods),
+            all_log_liklihoods,
             observations,
         )
 
