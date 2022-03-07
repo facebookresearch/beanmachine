@@ -4,8 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import random
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Callable, Any
 
 import numpy.random
 import torch
@@ -118,3 +119,12 @@ def seed(seed: int) -> None:
     torch.manual_seed(seed)
     random.seed(seed)
     numpy.random.seed(seed)
+
+
+def _execute_in_new_thread(f: Callable, *args, **kwargs) -> Any:
+    """A helper function to execute the given function in a new thread. This is used
+    to resolve the deadlock issue with fork-based multiprocessing (see `this PyTorch
+    issue for details
+    <https://github.com/pytorch/pytorch/issues/17199#issuecomment-833226969>`_)"""
+    with ThreadPoolExecutor() as executor:
+        return executor.submit(f, *args, **kwargs).result()

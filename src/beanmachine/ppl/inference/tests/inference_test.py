@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import math
+import sys
 
 import beanmachine.ppl as bm
 import pytest
@@ -29,9 +30,16 @@ class SampleModel:
         return self.bar() * 2.0
 
 
-def test_inference():
+@pytest.mark.parametrize("multiprocess", [False, True])
+def test_inference(multiprocess):
+    if multiprocess and sys.platform.startswith("win"):
+        pytest.skip(
+            "Windows does not support fork-based multiprocessing (which is necessary "
+            "for running parallel inference within pytest."
+        )
+
     model = SampleModel()
-    nuts = bm.GlobalNoUTurnSampler()
+    nuts = bm.SingleSiteAncestralMetropolisHastings()
     queries = [model.foo(), model.baz()]
     observations = {model.bar(): torch.tensor(0.5)}
     num_samples = 30
@@ -42,12 +50,17 @@ def test_inference():
         num_samples,
         num_adaptive_samples=num_samples,
         num_chains=num_chains,
+        run_in_parallel=multiprocess,
     )
 
     assert model.foo() in samples
     assert isinstance(samples[model.foo()], torch.Tensor)
     assert samples[model.foo()].shape == (num_chains, num_samples)
     assert samples.get_num_samples(include_adapt_steps=True) == num_samples * 2
+    # make sure that the RNG state for each chain is different
+    assert not torch.equal(
+        samples.get_chain(0)[model.foo()], samples.get_chain(1)[model.foo()]
+    )
 
 
 def test_get_proposers():
