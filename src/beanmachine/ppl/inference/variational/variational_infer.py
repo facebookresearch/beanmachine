@@ -25,6 +25,61 @@ def kl_reverse(logu):
 def kl_forward(logu):
     return torch.exp(logu) * logu
 
+
+def monte_carlo_approximate_reparam(
+    observations,
+    num_samples: int,
+    discrepancy_fn,
+    queries_to_guides,
+    params,
+) -> torch.Tensor:
+    def init_from_guides_rsample(world: World, rv: RVIdentifier):
+        guide_rv = queries_to_guides[rv]
+        guide_dist, _ = world._run_node(guide_rv)
+        return guide_dist.rsample()
+
+    loss = torch.zeros(1)
+    for _ in range(num_samples):
+        world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides_rsample, params=params)
+
+        # form log density ratio logu = logp - logq
+        logu = world.log_prob(
+            itertools.chain(queries_to_guides.keys(), observations.keys()))
+        for rv in queries_to_guides:
+            guide_dist, _ = world._run_node(queries_to_guides[rv])
+            logu -= guide_dist.log_prob(world.get_variable(rv).value)
+        loss += discrepancy_fn(logu)  # reparameterized estimator
+    loss /= num_samples
+    return loss
+
+def monte_carlo_approximate_sf(
+    observations,
+    num_samples: int,
+    discrepancy_fn,
+    queries_to_guides,
+    params,
+) -> torch.Tensor:
+    def init_from_guides_sample(world: World, rv: RVIdentifier):
+        guide_rv = queries_to_guides[rv]
+        guide_dist, _ = world._run_node(guide_rv)
+        return guide_dist.sample()
+
+    loss = torch.zeros(1)
+    for _ in range(num_samples):
+        world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides_sample, params=params)
+
+        # form log density ratio logu = logp - logq
+        logu = world.log_prob(observations.keys())
+        logq = torch.zeros(1)
+        for rv in queries_to_guides:
+            guide_dist, _ = world._run_node(queries_to_guides[rv])
+            var = world.get_variable(rv)
+            logu += (var.log_prob - guide_dist.log_prob(var.value)).squeeze()
+            logq += guide_dist.log_prob(var.value)
+        loss += discrepancy_fn(logu).detach().clone() * logq
+    loss /= num_samples
+    return loss
+
 class VariationalInfer:
     def __init__(self) -> None:
         super().__init__()
@@ -37,6 +92,7 @@ class VariationalInfer:
         optimizer = lambda params: optim.Adam(params, lr=1e-2),
         num_samples: int = 1,
         discrepancy_fn = kl_reverse,
+        mc_approx = monte_carlo_approximate_reparam,
     ):
         """
         Performs variational inference using reparameterizable guides.
@@ -51,33 +107,18 @@ class VariationalInfer:
             discrepancy_fn: f-divergence to optimize.
         """
 
-        def init_from_guides(world: World, rv: RVIdentifier):
-            guide_rv = queries_to_guides[rv]
-            guide_dist, _ = world._run_node(guide_rv)
-            # TODO: support other non-reparameterization stochastic gradient estimators
-            return guide_dist.rsample()
-
         params = {}
-        world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides, params=params)
+        world = World(observations, params=params)
+        for guide in queries_to_guides.values():
+            world._run_node(guide)
+        # world = BaseInference._initialize_world(
+        #     queries_to_guides.keys(), observations, initialize_fn=init_from_guides_sample, params=params)
         opt = optimizer(params.values()) # TODO: assumes `params` is static and same across all worlds
 
         for _ in tqdm(range(num_steps)):
             opt.zero_grad()
-            loss = torch.zeros(1)
-
             # Monte-Carlo approximate E_q with `num_samples` draws
-            for _ in range(num_samples):
-                world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides, params=params)
-
-                # form log density ratio logu = logp - logq
-                logu = world.log_prob(
-                    itertools.chain(queries_to_guides.keys(), observations.keys()))
-                for rv in queries_to_guides:
-                    guide_dist, _ = world._run_node(queries_to_guides[rv])
-                    logu -= guide_dist.log_prob(world.get_variable(rv).value)
-                loss += discrepancy_fn(logu)
-
-            loss /= num_samples
+            loss = mc_approx(observations, num_samples, discrepancy_fn, queries_to_guides, params)
 
             if not torch.isnan(loss) and not torch.isinf(loss):
                 loss.backward()
