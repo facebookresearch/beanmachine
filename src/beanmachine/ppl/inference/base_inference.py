@@ -40,6 +40,7 @@ class BaseInference(metaclass=ABCMeta):
         observations: RVDict,
         initialize_fn: InitializeFn = init_to_uniform,
         max_retries: int = 100,
+        params: RVDict = {},
     ) -> World:
         """
         Initializes a world with all of the random variables (queries and observations).
@@ -57,7 +58,7 @@ class BaseInference(metaclass=ABCMeta):
                 error (default to 100).
         """
         for _ in range(max_retries):
-            world = World(observations, initialize_fn)
+            world = World(observations, initialize_fn, params=params)
             # recursively add parent nodes to the graph
             for node in queries:
                 world.call(node)

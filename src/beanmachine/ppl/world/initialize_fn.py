@@ -5,15 +5,17 @@
 
 # pyre-ignore-all-errors[16, 20]
 from typing import Callable
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import World
 
 import torch
 import torch.distributions as dist
 
 
-InitializeFn = Callable[[dist.Distribution], torch.Tensor]
+InitializeFn = Callable[[World, RVIdentifier], torch.Tensor]
 
 
-def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
+def init_to_uniform(world: World, rv: RVIdentifier) -> torch.Tensor:
     """
     Initializes a uniform distribution to sample from transformed to the
     support of ``distribution``.  A Categorical is used for discrete distributions,
@@ -27,6 +29,7 @@ def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
                       the prior distribution.
 
     """
+    distribution = world.get_variable(rv).distribution
     sample_val = distribution.sample()
     if distribution.has_enumerate_support:
         support = distribution.enumerate_support(expand=False).flatten()
@@ -36,10 +39,10 @@ def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
         return transform(torch.rand_like(transform.inv(sample_val)) * 4 - 2)
     else:
         # fall back to sample from prior
-        return init_from_prior(distribution)
+        return init_from_prior(world, rv)
 
 
-def init_from_prior(distribution: dist.Distribution) -> torch.Tensor:
+def init_from_prior(world: World, rv: RVIdentifier) -> torch.Tensor:
     """
     Samples from the distribution.
 
@@ -49,4 +52,5 @@ def init_from_prior(distribution: dist.Distribution) -> torch.Tensor:
         distribution: ``torch.distribution.Distribution`` corresponding to
                       the distribution to sample from
     """
+    distribution = world.get_variable(rv).distribution
     return distribution.sample()

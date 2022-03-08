@@ -6,7 +6,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple, Collection
+from functools import partialmethod
+from typing import Callable, Dict, Iterator, List, Mapping, Optional, Set, Tuple, Collection
 
 import torch
 import torch.distributions as dist
@@ -58,10 +59,12 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self,
         observations: Optional[RVDict] = None,
         initialize_fn: InitializeFn = init_from_prior,
+        params: RVDict = {},
     ):
         self.observations: RVDict = observations or {}
-        self._initialize_fn: InitializeFn = initialize_fn
+        self._initialize_fn = initialize_fn
         self._variables: Dict[RVIdentifier, Variable] = {}
+        self._params: RVDict = params
 
         self._call_stack: List[_TempVar] = []
 
@@ -85,6 +88,17 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
           in the world.
         """
         return self._variables[node]
+
+    def get_param(self, param: RVIdentifier) -> torch.Tensor:
+        "Gets a parameter or initializes it if not found."
+        if param not in self._params:
+            self._params[param] = param.function(*param.arguments)
+            self._params[param].requires_grad = True
+        return self._params[param]
+
+    def set_params(self, params: Dict[RVIdentifier, torch.Tensor]):
+        "Sets the parameters in this World to specified values."
+        self._params = params
 
     def replace(self, values: RVDict) -> World:
         """
@@ -150,7 +164,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         if node in self.observations:
             node_val = self.observations[node]
         else:
-            node_val = self._initialize_fn(distribution)
+            node_val = self._initialize_fn(self, node)
 
         self._variables[node] = Variable(
             value=node_val,

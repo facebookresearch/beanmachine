@@ -23,6 +23,9 @@ from .inference import (
     seed,
     simulate,
 )
+from .inference.variational import (
+    VariationalInfer,
+)
 from .model import (
     functional,
     get_beanmachine_logger,
@@ -50,6 +53,7 @@ __all__ = [
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
+    "VariationalInfer",
     "effective_sample_size",
     "empirical",
     "experimental",

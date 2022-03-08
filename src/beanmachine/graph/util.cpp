@@ -68,14 +68,6 @@ double Phi(double x) {
   return 0.5 * (1 + std::erf(x / M_SQRT2));
 }
 
-double Phi_approx(double x) {
-  return 1.0 / (1.0 + std::exp(-PHI_APPROX_GAMMA * x));
-}
-
-double Phi_approx_inv(double z) {
-  return (std::log(z) - std::log(1 - z)) / PHI_APPROX_GAMMA;
-}
-
 double log_sum_exp(const std::vector<double>& values) {
   // find the max and subtract it out
   double max = values[0];

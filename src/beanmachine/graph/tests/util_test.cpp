@@ -61,11 +61,7 @@ TEST(testutil, Phi) {
   // We will use the fact that Phi(-1.96) = 0.025 = 1 - Phi(1.96)
   // See https://en.wikipedia.org/wiki/Probit
   EXPECT_NEAR(util::Phi(-1.96), 0.025, 0.001);
-  EXPECT_NEAR(util::Phi_approx(-1.96), 0.025, 0.01);
   EXPECT_NEAR(util::Phi(1.96), 1 - 0.025, 0.001);
-  EXPECT_NEAR(util::Phi_approx(1.96), 1 - 0.025, 0.01);
-  EXPECT_NEAR(util::Phi_approx_inv(0.025), -1.96, 0.2);
-  EXPECT_NEAR(util::Phi_approx_inv(1 - 0.025), 1.96, 0.2);
 }
 
 TEST(testutil, log_sum_exp) {
