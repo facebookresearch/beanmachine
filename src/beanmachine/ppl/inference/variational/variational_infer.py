@@ -22,6 +22,9 @@ def kl_reverse(logu):
     """
     return -logu
 
+def kl_forward(logu):
+    return torch.exp(logu) * logu
+
 class VariationalInfer:
     def __init__(self) -> None:
         super().__init__()
@@ -33,11 +36,10 @@ class VariationalInfer:
         num_steps: int,
         optimizer = lambda params: optim.Adam(params, lr=1e-2),
         num_samples: int = 1,
-        num_importance_samples: int = 1,
         discrepancy_fn = kl_reverse,
     ):
         """
-        Performs variational inference.
+        Performs variational inference using reparameterizable guides.
 
         Args:
             queries_to_guides: Pairing between random variables and their variational guide/surrogate
@@ -52,24 +54,30 @@ class VariationalInfer:
         def init_from_guides(world: World, rv: RVIdentifier):
             guide_rv = queries_to_guides[rv]
             guide_dist, _ = world._run_node(guide_rv)
+            # TODO: support other non-reparameterization stochastic gradient estimators
             return guide_dist.rsample()
 
         params = {}
         world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides, params=params)
-        opt = optimizer(params.values())
+        opt = optimizer(params.values()) # TODO: assumes `params` is static and same across all worlds
+
         for _ in tqdm(range(num_steps)):
             opt.zero_grad()
-            world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides, params=params)
+            loss = torch.zeros(1)
 
-            # form discrepancy
-            loss = kl_reverse(world.log_prob(
-                itertools.chain(queries_to_guides.keys(), observations.keys())))
+            # Monte-Carlo approximate E_q with `num_samples` draws
+            for _ in range(num_samples):
+                world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides, params=params)
 
-            # add entropy H(q) term for ELBO
-            # TODO: how does tfp hide this, activity regularization?
-            for rv in queries_to_guides:
-                guide_dist, _ = world._run_node(queries_to_guides[rv])
-                loss += guide_dist.log_prob(world.get_variable(rv).value)
+                # form log density ratio logu = logp - logq
+                logu = world.log_prob(
+                    itertools.chain(queries_to_guides.keys(), observations.keys()))
+                for rv in queries_to_guides:
+                    guide_dist, _ = world._run_node(queries_to_guides[rv])
+                    logu -= guide_dist.log_prob(world.get_variable(rv).value)
+                loss += discrepancy_fn(logu)
+
+            loss /= num_samples
 
             if not torch.isnan(loss) and not torch.isinf(loss):
                 loss.backward()
