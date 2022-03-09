@@ -51,7 +51,12 @@ def monte_carlo_approximate_reparam(
         # form log density ratio logu = logp - logq
         logu = world.log_prob(observations.keys())
         for rv in queries_to_guides:
+            # STL
+            stop_grad_params = {p:params[p].detach().clone() for p in params}
+            world.set_params(stop_grad_params)
             guide_dist, _ = world._run_node(queries_to_guides[rv])
+            world.set_params(params)
+
             var = world.get_variable(rv)
             logu += (var.distribution.log_prob(var.value) - guide_dist.log_prob(var.value)).sum().squeeze()
         loss += discrepancy_fn(logu)  # reparameterized estimator
