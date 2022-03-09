@@ -62,8 +62,7 @@ class Delta(Distribution):
 
     def log_prob(self, x):
         v = self.v.expand(self.shape())
-        # FIXME: Add a small constant to avoid -inf
-        log_prob = ((x == v).type(x.dtype) + 1e-6).log()
+        log_prob = ((x == v).type(x.dtype)).log()
         log_prob = sum_rightmost(log_prob, self.event_dim)
         return log_prob + self.log_density
 
