@@ -5,11 +5,11 @@
 import itertools
 from typing import Dict
 
+import torch
 import torch.optim as optim
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.world import RVDict, InitializeFn, World, init_from_prior 
-import torch
+from beanmachine.ppl.world.world import RVDict, World
 from tqdm.auto import tqdm
 
 
@@ -43,11 +43,11 @@ def monte_carlo_approximate_reparam(
         world = BaseInference._initialize_world(queries_to_guides.keys(), observations, initialize_fn=init_from_guides_rsample, params=params)
 
         # form log density ratio logu = logp - logq
-        logu = world.log_prob(
-            itertools.chain(queries_to_guides.keys(), observations.keys()))
+        logu = world.log_prob(observations.keys())
         for rv in queries_to_guides:
             guide_dist, _ = world._run_node(queries_to_guides[rv])
-            logu -= guide_dist.log_prob(world.get_variable(rv).value)
+            var = world.get_variable(rv)
+            logu += (var.distribution.log_prob(var.value) - guide_dist.log_prob(var.value)).squeeze()
         loss += discrepancy_fn(logu)  # reparameterized estimator
     loss /= num_samples
     return loss
@@ -76,9 +76,10 @@ def monte_carlo_approximate_sf(
             var = world.get_variable(rv)
             logu += (var.log_prob - guide_dist.log_prob(var.value)).squeeze()
             logq += guide_dist.log_prob(var.value)
-        loss += discrepancy_fn(logu).detach().clone() * logq
+        loss += discrepancy_fn(logu).detach().clone() * logq # score function estimator + STL
     loss /= num_samples
     return loss
+
 
 class VariationalInfer:
     def __init__(self) -> None:
@@ -92,7 +93,7 @@ class VariationalInfer:
         optimizer = lambda params: optim.Adam(params, lr=1e-2),
         num_samples: int = 1,
         discrepancy_fn = kl_reverse,
-        mc_approx = monte_carlo_approximate_reparam,
+        mc_approx = monte_carlo_approximate_reparam, # TODO: support both reparam and SF in same guide
     ):
         """
         Performs variational inference using reparameterizable guides.
@@ -103,25 +104,26 @@ class VariationalInfer:
             num_steps: Number of steps of stochastic variational inference to perform.
             optimizer: A `torch.Optimizer` to use for optimizing variational parameters.
             num_samples: Number of samples used to Monte-Carlo approximate the discrepancy.
-            num_importance_samples: Number of samples used to form an importance-weighted divergence.
             discrepancy_fn: f-divergence to optimize.
+            mc_approx: Monte Carlo gradient estimator to use
         """
-
+        # runs all guides to reify `param`s for `optimizer`
+        # NOTE: assumes `params` is static and same across all worlds, consider MultiOptimizer (see Pyro)
         params = {}
         world = World(observations, params=params)
         for guide in queries_to_guides.values():
-            world._run_node(guide)
-        # world = BaseInference._initialize_world(
-        #     queries_to_guides.keys(), observations, initialize_fn=init_from_guides_sample, params=params)
-        opt = optimizer(params.values()) # TODO: assumes `params` is static and same across all worlds
+            world.call(guide)
+        opt = optimizer(params.values())
 
         for _ in tqdm(range(num_steps)):
             opt.zero_grad()
-            # Monte-Carlo approximate E_q with `num_samples` draws
             loss = mc_approx(observations, num_samples, discrepancy_fn, queries_to_guides, params)
-
             if not torch.isnan(loss) and not torch.isinf(loss):
                 loss.backward()
                 opt.step()
 
+        # update all guides' cached `Variable.distribution` to use latest `param`s so `.get_variable``
+        # returns correct distributions
+        for guide in queries_to_guides.values():
+            world.initialize_value(guide)
         return world
