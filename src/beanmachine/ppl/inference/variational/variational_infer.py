@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 import itertools
 from typing import Dict
+from beanmachine.ppl.world.initialize_fn import init_from_prior
 
 import torch
 import torch.optim as optim
@@ -34,6 +35,8 @@ def monte_carlo_approximate_reparam(
     params,
 ) -> torch.Tensor:
     def init_from_guides_rsample(world: World, rv: RVIdentifier):
+        if rv not in queries_to_guides:
+            return init_from_prior(world, rv)
         guide_rv = queries_to_guides[rv]
         guide_dist, _ = world._run_node(guide_rv)
         return guide_dist.rsample()
@@ -44,10 +47,12 @@ def monte_carlo_approximate_reparam(
 
         # form log density ratio logu = logp - logq
         logu = world.log_prob(observations.keys())
+        print(logu)
         for rv in queries_to_guides:
             guide_dist, _ = world._run_node(queries_to_guides[rv])
+            print(guide_dist)
             var = world.get_variable(rv)
-            logu += (var.distribution.log_prob(var.value) - guide_dist.log_prob(var.value)).squeeze()
+            logu += (var.distribution.log_prob(var.value) - guide_dist.log_prob(var.value)).sum().squeeze()
         loss += discrepancy_fn(logu)  # reparameterized estimator
     loss /= num_samples
     return loss
@@ -60,6 +65,8 @@ def monte_carlo_approximate_sf(
     params,
 ) -> torch.Tensor:
     def init_from_guides_sample(world: World, rv: RVIdentifier):
+        if rv not in queries_to_guides:
+            return init_from_prior(world, rv)
         guide_rv = queries_to_guides[rv]
         guide_dist, _ = world._run_node(guide_rv)
         return guide_dist.sample()
