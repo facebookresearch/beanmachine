@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import itertools
-from typing import Dict
+from typing import Any, Callable, Dict, Generator, Optional, Tuple
 from beanmachine.ppl.world.initialize_fn import init_from_prior
 
 import torch
@@ -27,6 +27,9 @@ def kl_forward(logu):
     return torch.exp(logu) * logu
 
 
+# NOTE: right now it is either all reparameterizable
+# or all score function gradient estimators. We should
+# be able to support both depending on the guide used.
 def monte_carlo_approximate_reparam(
     observations,
     num_samples: int,
@@ -87,18 +90,11 @@ def monte_carlo_approximate_sf(
 
 
 class VariationalInfer:
-    def __init__(self) -> None:
-        super().__init__()
-
-    def infer(
+    def __init__(
         self,
         queries_to_guides: Dict[RVIdentifier, RVIdentifier],
         observations: RVDict,
-        num_steps: int,
         optimizer = lambda params: optim.Adam(params, lr=1e-2),
-        num_samples: int = 1,
-        discrepancy_fn = kl_reverse,
-        mc_approx = monte_carlo_approximate_reparam, # TODO: support both reparam and SF in same guide
     ):
         """
         Performs variational inference using reparameterizable guides.
@@ -112,23 +108,50 @@ class VariationalInfer:
             discrepancy_fn: f-divergence to optimize.
             mc_approx: Monte Carlo gradient estimator to use
         """
+        super().__init__()
+
         # runs all guides to reify `param`s for `optimizer`
         # NOTE: assumes `params` is static and same across all worlds, consider MultiOptimizer (see Pyro)
-        params = {}
-        world = World(observations, params=params)
-        for guide in queries_to_guides.values():
-            world.call(guide)
-        opt = optimizer(params.values())
+        self.params = {}
+        self.observations = observations
+        self.queries_to_guides = queries_to_guides
 
+        self._world = World(observations, params=self.params)
+
+        for guide in queries_to_guides.values():
+            self._world.call(guide)
+        self._optimizer = optimizer(self.params.values())
+
+    def infer(
+        self,
+        num_steps: int,
+        num_samples: int = 1,
+        discrepancy_fn = kl_reverse,
+        mc_approx = monte_carlo_approximate_reparam, # TODO: support both reparam and SF in same guide
+        on_step: Optional[Callable[[torch.Tensor, "VariationalInfer"],Any]] = None,
+    ):
         for _ in tqdm(range(num_steps)):
-            opt.zero_grad()
-            loss = mc_approx(observations, num_samples, discrepancy_fn, queries_to_guides, params)
-            if not torch.isnan(loss) and not torch.isinf(loss):
-                loss.backward()
-                opt.step()
+            loss, self = self.step(num_samples, discrepancy_fn, mc_approx)
+            if on_step:
+                on_step(loss, self)
 
-        # update all guides' cached `Variable.distribution` to use latest `param`s so `.get_variable``
-        # returns correct distributions
-        for guide in queries_to_guides.values():
-            world.initialize_value(guide)
-        return world
+        # NOTE: we skip reinitializing guide `Variable`s in the `World` within
+        # the main optimization loop, but for `Variable.distribution` to use the
+        # latest `params` we need to recompute them before returning
+        for guide in self.queries_to_guides.values():
+            self._world.initialize_value(guide)
+
+        return self._world
+
+    def step(
+        self,
+        num_samples: int = 1,
+        discrepancy_fn = kl_reverse,
+        mc_approx = monte_carlo_approximate_reparam, # TODO: support both reparam and SF in same guide
+    ) -> Tuple[torch.Tensor, "VariationalInfer"]:
+        self._optimizer.zero_grad()
+        loss = mc_approx(self.observations, num_samples, discrepancy_fn, self.queries_to_guides, self.params)
+        if not torch.isnan(loss) and not torch.isinf(loss):
+            loss.backward()
+            self._optimizer.step()
+        return loss, self
