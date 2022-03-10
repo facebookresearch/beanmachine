@@ -87,9 +87,9 @@ def monte_carlo_approximate_sf(
         for rv in queries_to_guides:
             guide_dist, _ = world._run_node(queries_to_guides[rv])
             var = world.get_variable(rv)
-            logu += (var.log_prob - guide_dist.log_prob(var.value)).squeeze()
+            logu += (var.distribution.log_prob(var.value) - guide_dist.log_prob(var.value)).squeeze()
             logq += guide_dist.log_prob(var.value)
-        loss += discrepancy_fn(logu).detach().clone() * logq # score function estimator + STL
+        loss += discrepancy_fn(logu).detach().clone() * logq + discrepancy_fn(logu) # score function estimator
     loss /= num_samples
     return loss
 
