@@ -28,14 +28,14 @@ class _Tree(NamedTuple):
     log_weight: torch.Tensor
     sum_momentums: RVDict
     sum_accept_prob: torch.Tensor
-    num_proposals: int
-    turned_or_diverged: bool
+    num_proposals: torch.Tensor
+    turned_or_diverged: torch.Tensor
 
 
 class _TreeArgs(NamedTuple):
     log_slice: torch.Tensor
-    direction: int
-    step_size: float
+    direction: torch.tensor
+    step_size: torch.tensor
     initial_energy: torch.Tensor
     mass_inv: RVDict
 
@@ -100,6 +100,10 @@ class NUTSProposer(HMCProposer):
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
         self._multinomial_sampling = multinomial_sampling
+        if nnc_compile and True:
+            from .nnc_utils import nnc_jit
+
+            self._build_tree_base_case = nnc_jit(self._build_tree_base_case)
 
     def _is_u_turning(
         self,
@@ -146,17 +150,23 @@ class NUTSProposer(HMCProposer):
             log_weight=log_weight,
             sum_momentums=momentums,
             sum_accept_prob=torch.clamp(torch.exp(-delta_energy), max=1.0),
-            num_proposals=1,
-            turned_or_diverged=bool(
+            num_proposals=torch.tensor(1),
+            turned_or_diverged=
                 args.log_slice >= self._max_delta_energy - new_energy
-            ),
+            ,
         )
 
     def _build_tree(self, root: _TreeNode, tree_depth: int, args: _TreeArgs) -> _Tree:
         """Build the binary tree by recursively build the left and right subtrees and
         combine the two."""
         if tree_depth == 0:
-            return self._build_tree_base_case(root, args)
+            import time
+            begin = time.perf_counter()
+            iters = 100
+            for _ in range(iters):
+                out = self._build_tree_base_case(root, args)
+            print((time.perf_counter()-begin)*1e6/iters, flush=True)
+            return out
 
         # build the first half of the tree
         sub_tree = self._build_tree(root, tree_depth - 1, args)
@@ -178,7 +188,7 @@ class NUTSProposer(HMCProposer):
         self,
         old_tree: _Tree,
         new_tree: _Tree,
-        direction: int,
+        direction: torch.Tensor,
         mass_inv: RVDict,
         biased: bool,
     ) -> _Tree:
@@ -292,14 +302,14 @@ class NUTSProposer(HMCProposer):
             log_weight=torch.tensor(0.0),  # log accept prob of staying at current state
             sum_momentums=momentums,
             sum_accept_prob=torch.tensor(0.0),
-            num_proposals=0,
-            turned_or_diverged=False,
+            num_proposals=torch.tensor(0),
+            turned_or_diverged=torch.tensor(False),
         )
 
         for j in range(self._max_tree_depth):
             direction = 1 if torch.rand(()) > 0.5 else -1
             tree_args = _TreeArgs(
-                log_slice, direction, self.step_size, current_energy, self._mass_inv
+                log_slice, torch.tensor(direction), torch.tensor(self.step_size), current_energy, self._mass_inv
             )
             if direction == -1:
                 new_tree = self._build_tree(tree.left, j, tree_args)

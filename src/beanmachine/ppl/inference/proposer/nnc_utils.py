@@ -7,7 +7,7 @@ import functorch
 import torch
 import torch.jit
 import torch.utils._pytree as pytree
-from functorch.compile import nop, aot_function
+from functorch.compile import nop, aot_function, decomposition_table, register_decomposition
 
 # override the usage of torch.jit.script, which has a bit of issue handling
 # empty lists (functorch#440)
@@ -20,6 +20,16 @@ def simple_ts_compile(fx_g, example_inps):
 def nnc_jit(f, static_argnums=None):
     return aot_function(f, simple_ts_compile, nop, static_argnums=static_argnums)
 
+aten = torch.ops.aten
+decompositions = [aten.detach]
+bm_decompositions = {k: v for k,v in decomposition_table.items() if k in decompositions}
+
+@register_decomposition(aten.mv, bm_decompositions)
+def mv(a, b):
+    return (a * b).sum(dim=-1)
+
+def nnc_jit(f, static_argnums=None):
+    return aot_function(f, simple_ts_compile, nop, static_argnums=static_argnums, decompositions=bm_decompositions)
 
 functorch._src.compilers.simple_ts_compile = simple_ts_compile
 

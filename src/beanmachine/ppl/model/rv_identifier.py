@@ -20,6 +20,9 @@ class RVIdentifier:
     def __str__(self):
         return str(self.function.__name__) + str(self.arguments)
 
+    def __lt__(self, other):
+        return len(self.arguments) < len(other.arguments)
+
     @property
     def function(self):
         return self.wrapper.__wrapped__
