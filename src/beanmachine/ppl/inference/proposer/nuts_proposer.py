@@ -100,7 +100,7 @@ class NUTSProposer(HMCProposer):
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
         self._multinomial_sampling = multinomial_sampling
-        if nnc_compile and True:
+        if nnc_compile:
             from .nnc_utils import nnc_jit
 
             self._build_tree_base_case = nnc_jit(self._build_tree_base_case)
@@ -160,6 +160,7 @@ class NUTSProposer(HMCProposer):
         """Build the binary tree by recursively build the left and right subtrees and
         combine the two."""
         if tree_depth == 0:
+            return self._build_tree_base_case(root, args)
             import time
             begin = time.perf_counter()
             iters = 100

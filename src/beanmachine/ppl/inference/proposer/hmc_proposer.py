@@ -68,10 +68,6 @@ class HMCProposer(BaseProposer):
             {node: initial_world[node] for node in self._target_rvs}
         )
         # cache pe and pe_grad to prevent re-computation
-        if nnc_compile and False:
-            from .nnc_utils import nnc_jit
-
-            self._potential_grads = nnc_jit(self._potential_grads)
 
         self._pe, self._pe_grad = self._potential_grads(self._positions)
         # initialize parameters
