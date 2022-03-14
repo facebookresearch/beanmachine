@@ -162,8 +162,10 @@ class NUTSProposer(HMCProposer):
         if tree_depth == 0:
             return self._build_tree_base_case(root, args)
             import time
+            for _ in range(5):
+                self._build_tree_base_case(root, args)
             begin = time.perf_counter()
-            iters = 100
+            iters = 10000
             for _ in range(iters):
                 out = self._build_tree_base_case(root, args)
             print((time.perf_counter()-begin)*1e6/iters, flush=True)
