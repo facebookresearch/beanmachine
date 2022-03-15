@@ -151,11 +151,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             # flip(flip(H^-1)) = flip((L^-1)') @ flip(L^-1)
             # H^-1 = flip(L^-1)' @ flip(L^-1)
             # flip(L^-1)' is the lower triangular cholesky factor for H^-1.
-            L_inv = torch.triangular_solve(
-                torch.eye(L.size(-1)).to(dtype=neg_hessian.dtype, device=node_device),
+            L_inv = torch.linalg.solve_triangular(
                 L,
+                torch.eye(L.size(-1)).to(dtype=neg_hessian.dtype, device=node_device),
                 upper=False,
-            ).solution
+            )
             L_chol = L_inv.flip([0, 1]).T
             distance = torch.cholesky_solve(first_gradient.unsqueeze(1), L).t()
             _arguments["distance"] = distance

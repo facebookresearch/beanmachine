@@ -10,7 +10,6 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.gp import kernels, likelihoods
 from beanmachine.ppl.experimental.gp.models import BoTorchGP, SimpleGP
-from beanmachine.ppl.legacy.inference import SingleSiteNoUTurnSampler
 from botorch.posteriors.gpytorch import GPyTorchPosterior
 
 
@@ -34,7 +33,7 @@ class ModelTest(unittest.TestCase):
 
     def test_infer(self):
         self.model.train()
-        SingleSiteNoUTurnSampler().infer([self.p()], {}, num_samples=2, num_chains=1)
+        bm.SingleSiteNoUTurnSampler().infer([self.p()], {}, num_samples=2, num_chains=1)
 
     def test_load_and_predict(self):
         self.model.eval()
