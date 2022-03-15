@@ -450,7 +450,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
         def q_y():
             weights = w()
             data = x()
-            p = torch.sigmoid(data @ weights.T)
+            p = torch.sigmoid(data @ weights)
             return dist.Bernoulli(p)
 
         opt_params = VariationalInference().infer(

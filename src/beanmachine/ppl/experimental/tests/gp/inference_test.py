@@ -14,7 +14,6 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.gp import likelihoods
 from beanmachine.ppl.experimental.gp.kernels import PeriodicKernel, ScaleKernel
 from beanmachine.ppl.experimental.gp.models import SimpleGP
-from beanmachine.ppl.legacy.inference import SingleSiteNoUTurnSampler
 from gpytorch.distributions import MultivariateNormal
 
 
@@ -78,7 +77,7 @@ class InferenceTests(unittest.TestCase):
             self.lengthscale_prior(),
             self.period_length_prior(),
         ]
-        samples = SingleSiteNoUTurnSampler().infer(
+        samples = bm.SingleSiteNoUTurnSampler().infer(
             queries, obs, n_samples, num_chains=1
         )
 
