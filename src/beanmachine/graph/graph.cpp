@@ -407,8 +407,7 @@ void set_value(double& variable, double value) {
   variable = value;
 }
 
-template <class T>
-void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
+void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   // TODO: As of May 2021, this method is being used for testing only.
   // Refactor code so that we test the code actually being used for the
   // normal functionality of the class.
@@ -420,13 +419,6 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
     throw std::runtime_error(
         "gradient_log_prob only supported on stochastic nodes");
   }
-  uint size = src_node->value.type.cols * src_node->value.type.rows;
-  bool is_src_scalar = (size == 0);
-  // start gradient
-  if (!is_src_scalar) {
-    src_node->Grad1 = Eigen::MatrixXd::Ones(size, 1);
-    src_node->Grad2 = Eigen::MatrixXd::Zero(size, 1);
-  }
   src_node->grad1 = 1;
   src_node->grad2 = 0;
 
@@ -434,12 +426,6 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
   std::tie(det_nodes, sto_nodes) = compute_affected_nodes(src_idx, supp);
-  if (!is_src_scalar and det_nodes.size() > 0) {
-    throw std::runtime_error(
-        "compute_gradients has not been implemented for vector source node");
-    // TODO: remove this error message and leave it to compute_gradients
-    // to issue an error if needed.
-  }
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     // passing generator for signature,
@@ -459,23 +445,12 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   // if we seem to be computing them from scratch when needed.
 
   // end gradient computation reset grads
-  if (!is_src_scalar) {
-    src_node->Grad1.setZero();
-  }
   src_node->grad1 = 0;
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
-    if (!is_src_scalar) {
-      node->Grad1.setZero(1, 1);
-      node->Grad2.setZero(1, 1);
-    } else {
-      node->grad1 = node->grad2 = 0;
-    }
+    node->grad1 = node->grad2 = 0;
   }
 }
-
-template void
-Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
 
 double Graph::log_prob(uint src_idx) {
   // TODO: also used in tests only
