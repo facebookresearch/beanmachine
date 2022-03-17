@@ -333,6 +333,7 @@ enum class OperatorType {
   TO_NEG_REAL,
   CHOICE,
   TO_INT,
+  CHOLESKY,
 };
 
 enum class DistributionType {

@@ -288,5 +288,32 @@ void BroadcastAdd::eval(std::mt19937& /* gen */) {
       in_nodes[0]->value._double + in_nodes[1]->value._matrix.array();
 }
 
+Cholesky::Cholesky(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::CHOLESKY) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("CHOLESKY requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of CHOLESKY must be a BROADCAST_MATRIX");
+  }
+  if (type.rows != type.cols) {
+    throw std::invalid_argument(
+        "the parent of CHOLESKY must be a square BROADCAST_MATRIX");
+  }
+  CHECK_TYPE_DOUBLE(type.atomic_type, "CHOLESKY")
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::REAL,
+      type.rows,
+      type.cols));
+}
+
+void Cholesky::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = in_nodes[0]->value._matrix.llt().matrixL();
+}
+
 } // namespace oper
 } // namespace beanmachine
