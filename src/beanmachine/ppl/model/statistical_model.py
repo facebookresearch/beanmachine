@@ -4,13 +4,20 @@
 # LICENSE file in the root directory of this source tree.
 
 from functools import wraps
+from typing import Callable, Union
 
+import torch
+import torch.distributions as dist
 from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import get_world_context
+from typing_extensions import ParamSpec
 
 
-class StatisticalModel(object):
+P = ParamSpec("P")
+
+
+class StatisticalModel:
     """
     Parent class to all statistical models implemented in Bean Machine.
 
@@ -40,7 +47,9 @@ class StatisticalModel(object):
         return RVIdentifier(wrapper=wrapper, arguments=arguments)
 
     @staticmethod
-    def random_variable(f):
+    def random_variable(
+        f: Callable[P, dist.Distribution]
+    ) -> Callable[P, Union[RVIdentifier, torch.Tensor]]:
         """
         Decorator to be used for every stochastic random variable defined in
         all statistical models. E.g.::
@@ -55,8 +64,10 @@ class StatisticalModel(object):
         """
 
         @wraps(f)
-        def wrapper(*args):
-            func_key = StatisticalModel.get_func_key(wrapper, args)
+        def wrapper(
+            *args: P.args, **kwargs: P.kwargs
+        ) -> Union[RVIdentifier, torch.Tensor]:
+            func_key = StatisticalModel.get_func_key(wrapper, args, **kwargs)
             world = get_world_context()
             if world is None:
                 return func_key
@@ -68,7 +79,9 @@ class StatisticalModel(object):
         return wrapper
 
     @staticmethod
-    def functional(f):
+    def functional(
+        f: Callable[P, torch.Tensor]
+    ) -> Callable[P, Union[RVIdentifier, torch.Tensor]]:
         """
         Decorator to be used for every query defined in statistical model, which are
         functions of ``bm.random_variable`` ::
@@ -83,14 +96,16 @@ class StatisticalModel(object):
         """
 
         @wraps(f)
-        def wrapper(*args):
+        def wrapper(
+            *args: P.args, **kwargs: P.kwargs
+        ) -> Union[RVIdentifier, torch.Tensor]:
             world = get_world_context()
             if world is None:
-                return StatisticalModel.get_func_key(wrapper, args)
+                return StatisticalModel.get_func_key(wrapper, args, **kwargs)
             elif isinstance(world, World) and world.get_cache_functionals():
-                return world.update_cached_functionals(f, *args)
+                return world.update_cached_functionals(f, *args, **kwargs)
             else:
-                return f(*args)
+                return f(*args, **kwargs)
 
         wrapper.is_functional = True
         wrapper.is_random_variable = False

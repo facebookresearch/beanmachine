@@ -8,7 +8,7 @@ import torch.distributions as dist
 from torch import Tensor
 
 
-class BetaBinomialModel(object):
+class BetaBinomialModel:
     """This Bean Machine model is an example of conjugacy, where
     the prior and the likelihood are the Beta and the Binomial
     distributions respectively. Conjugacy means the posterior
@@ -20,15 +20,15 @@ class BetaBinomialModel(object):
     https://en.wikipedia.org/wiki/Conjugate_prior
     """
 
-    def __init__(self, alpha: Tensor, beta: Tensor, n: Tensor):
+    def __init__(self, alpha: Tensor, beta: Tensor, n: Tensor) -> None:
         self.alpha_ = alpha
         self.beta_ = beta
         self.n_ = n
 
     @bm.random_variable
-    def theta(self):
+    def theta(self) -> dist.Distribution:
         return dist.Beta(self.alpha_, self.beta_)
 
     @bm.random_variable
-    def x(self):
+    def x(self) -> dist.Distribution:
         return dist.Binomial(self.n_, self.theta())
