@@ -388,5 +388,9 @@ void BroadcastAdd::compute_gradients() {
   }
 }
 
+void Cholesky::compute_gradients() {
+  // TODO: fill this in
+}
+
 } // namespace oper
 } // namespace beanmachine

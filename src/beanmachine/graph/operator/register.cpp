@@ -133,10 +133,14 @@ bool ColumnIndex::is_registered = OperatorFactory::register_op(
     graph::OperatorType::COLUMN_INDEX,
     &(ColumnIndex::new_op));
 
-// matrix index
 bool ToMatrix::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_MATRIX,
     &(ToMatrix::new_op));
+
+// Cholesky decomposition
+bool Cholesky::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::CHOLESKY,
+    &(Cholesky::new_op));
 
 } // namespace oper
 } // namespace beanmachine
