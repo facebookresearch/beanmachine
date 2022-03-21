@@ -6,23 +6,21 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING
+from typing import Optional
 
 import torch
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
-if TYPE_CHECKING:
-    from beanmachine.ppl.model.rv_identifier import RVIdentifier
-
-_WORLD_STACK = []
+_WORLD_STACK: list[BaseWorld] = []
 
 
-def get_world_context():
+def get_world_context() -> Optional[BaseWorld]:
     return _WORLD_STACK[-1] if _WORLD_STACK else None
 
 
 class BaseWorld(metaclass=ABCMeta):
-    def __enter__(self):
+    def __enter__(self) -> BaseWorld:
         """
         This method, together with __exit__, allow us to use world as a context, e.g.
         ```
@@ -43,7 +41,7 @@ class BaseWorld(metaclass=ABCMeta):
         _WORLD_STACK.append(self)
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         _WORLD_STACK.pop()
 
     def call(self, node: RVIdentifier):

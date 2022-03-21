@@ -8,14 +8,14 @@ import torch.distributions as dist
 from torch import Tensor
 
 
-class CategoricalDirichletModel(object):
-    def __init__(self, alpha: Tensor):
+class CategoricalDirichletModel:
+    def __init__(self, alpha: Tensor) -> None:
         self.alpha_ = alpha
 
     @bm.random_variable
-    def dirichlet(self):
+    def dirichlet(self) -> dist.Distribution:
         return dist.Dirichlet(self.alpha_)
 
     @bm.random_variable
-    def categorical(self):
+    def categorical(self) -> dist.Distribution:
         return dist.Categorical(self.dirichlet())

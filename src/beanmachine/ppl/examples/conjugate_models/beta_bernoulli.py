@@ -8,15 +8,15 @@ import torch.distributions as dist
 from torch import Tensor
 
 
-class BetaBernoulliModel(object):
-    def __init__(self, alpha: Tensor, beta: Tensor):
+class BetaBernoulliModel:
+    def __init__(self, alpha: Tensor, beta: Tensor) -> None:
         self.alpha_ = alpha
         self.beta_ = beta
 
     @bm.random_variable
-    def theta(self):
+    def theta(self) -> dist.Distribution:
         return dist.Beta(self.alpha_, self.beta_)
 
     @bm.random_variable
-    def y(self, i):
+    def y(self, i: int) -> dist.Distribution:
         return dist.Bernoulli(self.theta())
