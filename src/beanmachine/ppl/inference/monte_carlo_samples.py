@@ -253,6 +253,15 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             )
 
     def add_groups(self, mcs: "MonteCarloSamples"):
+        if self.observations is None:
+            self.observations = mcs.observations
+
+        if self.log_likelihoods is None:
+            self.log_likelihoods = mcs.log_likelihoods
+
+        if self.adaptive_log_likelihoods is None:
+            self.adaptive_log_likelihoods = mcs.adaptive_log_likelihoods
+
         for n in mcs.namespaces:
             if n not in self.namespaces:
                 self.namespaces[n] = mcs.namespaces[n]
