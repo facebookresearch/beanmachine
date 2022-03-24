@@ -271,5 +271,9 @@ void BroadcastAdd::backward() {
   }
 }
 
+void Cholesky::backward() {
+  // TODO: fill this in
+}
+
 } // namespace oper
 } // namespace beanmachine

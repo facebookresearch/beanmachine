@@ -1540,3 +1540,42 @@ TEST(testoperator, to_pos_real) {
   g1.query(sample);
   EXPECT_THROW(g1.infer(2, InferenceType::REJECTION), std::runtime_error);
 }
+
+TEST(testoperator, cholesky) {
+  Graph g;
+  Eigen::MatrixXd m1(2, 2);
+  m1 << 1.0, 2.0, 3.0, 4.0;
+  auto constant_matrix = g.add_constant_real_matrix(m1);
+  // Cholesky requires one parent
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::CHOLESKY, {constant_matrix, constant_matrix}),
+      std::invalid_argument);
+  // Cholesky requires a real matrix
+  Eigen::MatrixXb boolean_matrix(2, 2);
+  boolean_matrix << true, false, true, true;
+  auto constant_boolean_matrix = g.add_constant_bool_matrix(boolean_matrix);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::CHOLESKY, {constant_boolean_matrix}),
+      std::invalid_argument);
+  // Cholesky requires a square matrix
+  Eigen::MatrixXd non_square(3, 2);
+  auto constant_non_square = g.add_constant_real_matrix(non_square);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::CHOLESKY, {constant_non_square}),
+      std::invalid_argument);
+
+  Eigen::MatrixXd positive_definite(3, 3);
+  positive_definite << 4.0, 12, -16, 12, 37, -43, -16, -43, 98;
+  auto positive_definite_matrix = g.add_constant_real_matrix(positive_definite);
+  auto l = g.add_operator(OperatorType::CHOLESKY, {positive_definite_matrix});
+  g.query(l);
+  auto l_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  Eigen::MatrixXd l_expected(3, 3);
+  l_expected << 2.0, 0, 0, 6, 1, 0, -8, 5, 3;
+  for (uint i = 0; i < l_infer.type.rows; i++) {
+    for (uint j = 0; j < l_infer.type.cols; j++) {
+      EXPECT_NEAR(l_expected(i, j), l_infer._matrix(i, j), 1e-4);
+    }
+  }
+}

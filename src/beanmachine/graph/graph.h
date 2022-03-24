@@ -333,6 +333,7 @@ enum class OperatorType {
   TO_NEG_REAL,
   CHOICE,
   TO_INT,
+  CHOLESKY,
 };
 
 enum class DistributionType {
@@ -815,8 +816,7 @@ struct Graph {
   :param grad2: Output value of the second gradient (double), or the diagonal
                 terms of the gradient matrix (Eigen::MatrixXd).
   */
-  template <class T>
-  void gradient_log_prob(uint src_idx, T& grad1, T& grad2);
+  void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
   the sum of logprob of all stochastic descendants in the support including

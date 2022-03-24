@@ -1,0 +1,2 @@
+# Mark Jupyter notebooks as documentation instead of source code
+*.ipynb linguist-documentation

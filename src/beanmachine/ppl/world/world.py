@@ -60,7 +60,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         observations: Optional[RVDict] = None,
         initialize_fn: InitializeFn = init_from_prior,
         params: RVDict = {},
-    ):
+    ) -> None:
         self.observations: RVDict = observations or {}
         self._initialize_fn = initialize_fn
         self._variables: Dict[RVIdentifier, Variable] = {}

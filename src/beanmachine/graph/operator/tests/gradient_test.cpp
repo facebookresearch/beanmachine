@@ -503,8 +503,8 @@ TEST(testgradient, forward_to_matrix) {
      grad  w.r.t. m : (x - m) / s^2 = 0.6
      grad2 w.r.t. m : -1 / s^2 = -2
   */
-  double grad1;
-  double grad2;
+  double grad1 = 0.0;
+  double grad2 = 0.0;
   g.gradient_log_prob(norm_sample, grad1, grad2);
   EXPECT_NEAR(grad1, 0.6, 1e-3);
   EXPECT_NEAR(grad2, -2, 1e-3);
@@ -619,8 +619,8 @@ TEST(testgradient, forward_matrix_scale) {
   uint new_norm_sample = g.add_operator(OperatorType::SAMPLE, {new_norm_dist});
   g.observe(new_norm_sample, 0.6);
 
-  double grad1;
-  double grad2;
+  double grad1 = 0.0;
+  double grad2 = 0.0;
   g.gradient_log_prob(norm_sample, grad1, grad2);
   EXPECT_NEAR(grad1, 0.6, 1e-3);
   EXPECT_NEAR(grad2, -2, 1e-3);
@@ -661,8 +661,8 @@ TEST(testgradient, forward_broadcast_add) {
     grad1 = torch.autograd.functional.jacobian(f, torch.tensor(-0.5)) -> 1.0
     grad2 = torch.autograd.functional.hessian(f, torch.tensor(-0.5)) -> -4.5
   */
-  double grad1;
-  double grad2;
+  double grad1 = 0.0;
+  double grad2 = 0.0;
   g.gradient_log_prob(norm_sample, grad1, grad2);
   EXPECT_NEAR(grad1, 1.0, 1e-3);
   EXPECT_NEAR(grad2, -4.5, 1e-3);

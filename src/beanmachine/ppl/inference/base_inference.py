@@ -24,6 +24,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World, InitializeFn, init_to_uniform
 from torch import multiprocessing as mp
 from tqdm.auto import tqdm
+from tqdm.notebook import tqdm as notebook_tqdm
 
 
 class BaseInference(metaclass=ABCMeta):
@@ -124,13 +125,13 @@ class BaseInference(metaclass=ABCMeta):
             seed: If provided, the seed will be used to initialize the state of the
             random number generators for the current chain
         """
-        # A hack to fix the issue where tqdm doesn't render progress bar correctly in
-        # process in Jupyter notebook (https://github.com/tqdm/tqdm/issues/485)
-        if verbose == VerboseLevel.LOAD_BAR:
-            print(" ", end="", flush=True)
-
         if seed is not None:
             set_seed(seed)
+
+            # A hack to fix the issue where tqdm doesn't render progress bar correctly in
+            # subprocess in Jupyter notebook (https://github.com/tqdm/tqdm/issues/485)
+            if verbose == VerboseLevel.LOAD_BAR and issubclass(tqdm, notebook_tqdm):
+                print(" ", end="", flush=True)
 
         sampler = self.sampler(
             queries,
@@ -138,6 +139,7 @@ class BaseInference(metaclass=ABCMeta):
             num_samples,
             num_adaptive_samples,
             initialize_fn,
+            max_init_retries,
         )
         samples = [[] for _ in queries]
         log_likelihoods = [[] for _ in observations]
