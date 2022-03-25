@@ -281,6 +281,11 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             posterior = None
             warmup_posterior = None
 
+        if self.num_adaptive_samples > 0:
+            warmup_log_likelihood = self.adaptive_log_likelihoods
+        else:
+            warmup_log_likelihood = None
+
         if "posterior_predictive" in self.namespaces:
             posterior_predictive = self.namespaces["posterior_predictive"].samples
             if self.num_adaptive_samples > 0:
@@ -305,7 +310,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             warmup_posterior_predictive=warmup_posterior_predictive,
             prior_predictive=prior_predictive,
             save_warmup=include_adapt_steps,
-            warmup_log_likelihood=self.adaptive_log_likelihoods,
+            warmup_log_likelihood=warmup_log_likelihood,
             log_likelihood=self.log_likelihoods,
             observed_data=self.observations,
         )
