@@ -6,6 +6,7 @@
 from typing import NamedTuple, Set, Tuple
 
 import torch
+from beanmachine.ppl.experimental.nnc import nnc_jit
 from beanmachine.ppl.inference.proposer.hmc_proposer import (
     HMCProposer,
 )
@@ -28,14 +29,14 @@ class _Tree(NamedTuple):
     log_weight: torch.Tensor
     sum_momentums: RVDict
     sum_accept_prob: torch.Tensor
-    num_proposals: int
-    turned_or_diverged: bool
+    num_proposals: torch.Tensor
+    turned_or_diverged: torch.Tensor
 
 
 class _TreeArgs(NamedTuple):
     log_slice: torch.Tensor
-    direction: int
-    step_size: float
+    direction: torch.Tensor
+    step_size: torch.Tensor
     initial_energy: torch.Tensor
     mass_inv: RVDict
 
@@ -67,6 +68,8 @@ class NUTSProposer(HMCProposer):
         adapt_mass_matrix: Whether to adapt mass matrix using Welford Scheme, defaults to True.
         multinomial_sampling: Whether to use multinomial sampling as in [2], defaults to True.
         target_accept_prob: Target accept probability. Increasing this would lead to smaller step size. Defaults to 0.8.
+        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
+            inference (defaults to False).
     """
 
     def __init__(
@@ -81,6 +84,7 @@ class NUTSProposer(HMCProposer):
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
@@ -92,10 +96,14 @@ class NUTSProposer(HMCProposer):
             adapt_step_size=adapt_step_size,
             adapt_mass_matrix=adapt_mass_matrix,
             target_accept_prob=target_accept_prob,
+            nnc_compile=False,  # we will use NNC at NUTS level, not at HMC level
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
         self._multinomial_sampling = multinomial_sampling
+        if nnc_compile:
+            # pyre-ignore[8]
+            self._build_tree_base_case = nnc_jit(self._build_tree_base_case)
 
     def _is_u_turning(
         self,
@@ -103,12 +111,12 @@ class NUTSProposer(HMCProposer):
         left_momentums: RVDict,
         right_momentums: RVDict,
         sum_momentums: RVDict,
-    ) -> bool:
+    ) -> torch.Tensor:
         """The generalized U-turn condition, as described in [2] Appendix 4.2"""
         left_r = torch.cat([left_momentums[node] for node in mass_inv])
         right_r = torch.cat([right_momentums[node] for node in mass_inv])
         rho = torch.cat([mass_inv[node] * sum_momentums[node] for node in mass_inv])
-        return bool((torch.dot(left_r, rho) <= 0) or (torch.dot(right_r, rho) <= 0))
+        return (torch.dot(left_r, rho) <= 0) or (torch.dot(right_r, rho) <= 0)
 
     def _build_tree_base_case(self, root: _TreeNode, args: _TreeArgs) -> _Tree:
         """Base case of the recursive tree building algorithm: take a single leapfrog
@@ -142,10 +150,8 @@ class NUTSProposer(HMCProposer):
             log_weight=log_weight,
             sum_momentums=momentums,
             sum_accept_prob=torch.clamp(torch.exp(-delta_energy), max=1.0),
-            num_proposals=1,
-            turned_or_diverged=bool(
-                args.log_slice >= self._max_delta_energy - new_energy
-            ),
+            num_proposals=torch.tensor(1),
+            turned_or_diverged=args.log_slice >= self._max_delta_energy - new_energy,
         )
 
     def _build_tree(self, root: _TreeNode, tree_depth: int, args: _TreeArgs) -> _Tree:
@@ -174,7 +180,7 @@ class NUTSProposer(HMCProposer):
         self,
         old_tree: _Tree,
         new_tree: _Tree,
-        direction: int,
+        direction: torch.Tensor,
         mass_inv: RVDict,
         biased: bool,
     ) -> _Tree:
@@ -288,14 +294,18 @@ class NUTSProposer(HMCProposer):
             log_weight=torch.tensor(0.0),  # log accept prob of staying at current state
             sum_momentums=momentums,
             sum_accept_prob=torch.tensor(0.0),
-            num_proposals=0,
-            turned_or_diverged=False,
+            num_proposals=torch.tensor(0),
+            turned_or_diverged=torch.tensor(False),
         )
 
         for j in range(self._max_tree_depth):
-            direction = 1 if torch.rand(()) > 0.5 else -1
+            direction = torch.tensor(1 if torch.rand(()) > 0.5 else -1)
             tree_args = _TreeArgs(
-                log_slice, direction, self.step_size, current_energy, self._mass_inv
+                log_slice,
+                direction,
+                self.step_size,
+                current_energy,
+                self._mass_inv,
             )
             if direction == -1:
                 new_tree = self._build_tree(tree.left, j, tree_args)

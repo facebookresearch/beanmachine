@@ -12,7 +12,7 @@ ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
 # NOTE: Since we cannot ignore the no-duplicates warning specifically
 # we use a Bash hack for the same purpose. Note, ! is to invert error
 # status of grep
-BASHHACK	  = 2>&1 >/dev/null | grep -v -E "(use :noindex:)|(more than one target found)"
+BASHHACK	  = 2>&1 >/dev/null | grep -v -E "(use :noindex:)|(more than one target found)|(warnings.warn)|(experimental)"
 
 
 # Put it first so that "make" without argument is like "make help".

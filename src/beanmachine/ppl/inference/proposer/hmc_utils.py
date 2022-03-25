@@ -75,19 +75,19 @@ class DualAverageAdapter:
             https://arxiv.org/abs/1111.4246
     """
 
-    def __init__(self, initial_epsilon: float, delta: float = 0.8):
-        self._log_avg_epsilon = 0.0
-        self._H = 0.0
-        self._mu = math.log(10 * initial_epsilon)
+    def __init__(self, initial_epsilon: torch.Tensor, delta: float = 0.8):
+        self._log_avg_epsilon = torch.zeros_like(initial_epsilon)
+        self._H = torch.zeros_like(initial_epsilon)
+        self._mu = torch.log(10 * initial_epsilon)
         self._t0 = 10
         self._delta = delta  # target mean accept prob
         self._gamma = 0.05
         self._kappa = 0.75
         self._m = 1.0  # iteration count
 
-    def step(self, alpha: torch.Tensor) -> float:
+    def step(self, alpha: torch.Tensor) -> torch.Tensor:
         H_frac = 1.0 / (self._m + self._t0)
-        self._H = ((1 - H_frac) * self._H) + H_frac * (self._delta - alpha.item())
+        self._H = ((1 - H_frac) * self._H) + H_frac * (self._delta - alpha)
 
         log_epsilon = self._mu - (math.sqrt(self._m) / self._gamma) * self._H
         step_frac = self._m ** (-self._kappa)
@@ -95,10 +95,10 @@ class DualAverageAdapter:
             step_frac * log_epsilon + (1 - step_frac) * self._log_avg_epsilon
         )
         self._m += 1
-        return math.exp(log_epsilon)
+        return torch.exp(cast(torch.Tensor, log_epsilon))
 
-    def finalize(self) -> float:
-        return math.exp(self._log_avg_epsilon)
+    def finalize(self) -> torch.Tensor:
+        return torch.exp(self._log_avg_epsilon)
 
 
 class MassMatrixAdapter:
@@ -232,7 +232,7 @@ class DictTransform:
         """Computes the sum of log det jacobian `log |dy/dx|` on the pairs of Tensors"""
         jacobian = torch.tensor(0.0)
         for node in untransformed_vals:
-            jacobian += (
+            jacobian = jacobian + (
                 self.transforms[node]
                 .log_abs_det_jacobian(untransformed_vals[node], transformed_vals[node])
                 .sum()

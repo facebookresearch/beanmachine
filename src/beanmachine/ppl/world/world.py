@@ -194,7 +194,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
         log_prob = torch.tensor(0.0)
         for node in set(nodes):
-            log_prob += torch.sum(self._variables[node].log_prob)
+            log_prob = log_prob + torch.sum(self._variables[node].log_prob)
         return log_prob
 
     def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:

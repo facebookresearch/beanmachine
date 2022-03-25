@@ -16,7 +16,24 @@ from setuptools import find_packages, setup
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
 
-
+INSTALL_REQUIRES = [
+    "arviz>=0.11.0",
+    "astor>=0.7.1",
+    "botorch>=0.5.1",
+    "flowtorch>=0.3",
+    "gpytorch>=1.3.0",
+    "graphviz>=0.17",
+    "numpy>=1.18.1",
+    "pandas>=0.24.2",
+    "parameterized>=0.8.1",
+    "plotly>=2.2.1",
+    "scipy>=0.16",
+    "statsmodels>=0.12.0",
+    "torch>=1.9.0",
+    "tqdm>=4.46.0",
+    "typing-extensions>=3.10",
+    "xarray>=0.16.0",
+]
 TEST_REQUIRES = ["pytest>=7.0.0", "pytest-cov"]
 TUTORIALS_REQUIRES = [
     "bokeh",
@@ -48,6 +65,7 @@ if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
 else:
     CPP_COMPILE_ARGS = ["-std=c++17", "-Werror"]
+    INSTALL_REQUIRES.append("functorch>=0.1.0")
 
 
 # Check for python version
@@ -125,24 +143,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">={}.{}".format(REQUIRED_MAJOR, REQUIRED_MINOR),
-    install_requires=[
-        "arviz>=0.11.0",
-        "astor>=0.7.1",
-        "botorch>=0.5.1",
-        "flowtorch>=0.3",
-        "gpytorch>=1.3.0",
-        "graphviz>=0.17",
-        "numpy>=1.18.1",
-        "pandas>=0.24.2",
-        "parameterized>=0.8.1",
-        "plotly>=2.2.1",
-        "scipy>=0.16",
-        "statsmodels>=0.12.0",
-        "torch>=1.9.0",
-        "tqdm>=4.46.0",
-        "typing-extensions>=3.10",
-        "xarray>=0.16.0",
-    ],
+    install_requires=INSTALL_REQUIRES,
     packages=find_packages("src"),
     package_dir={"": "src"},
     ext_modules=[
