@@ -8,6 +8,7 @@ import warnings
 from typing import Callable, Optional, Tuple, cast, Set
 
 import torch
+from beanmachine.ppl.experimental.nnc import nnc_jit
 from beanmachine.ppl.inference.proposer.base_proposer import (
     BaseProposer,
 )
@@ -46,6 +47,8 @@ class HMCProposer(BaseProposer):
         adapt_step_size: Flag whether to adapt step size, defaults to True.
         adapt_mass_matrix: Flat whether to adapt mass matrix, defaults to True.
         target_accept_prob: Target accept prob, defaults to 0.8.
+        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
+            inference (defaults to False).
     """
 
     def __init__(
@@ -58,6 +61,7 @@ class HMCProposer(BaseProposer):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.world = initial_world
         self._target_rvs = target_rvs
@@ -76,19 +80,26 @@ class HMCProposer(BaseProposer):
         self._mass_matrix_adapter = MassMatrixAdapter()
         if self.adapt_step_size:
             self.step_size = self._find_reasonable_step_size(
-                initial_step_size, self._positions, self._pe, self._pe_grad
+                torch.as_tensor(initial_step_size),
+                self._positions,
+                self._pe,
+                self._pe_grad,
             )
             self._step_size_adapter = DualAverageAdapter(
                 self.step_size, target_accept_prob
             )
         else:
-            self.step_size = initial_step_size
+            self.step_size = torch.as_tensor(initial_step_size)
         if self.adapt_mass_matrix:
             self._window_scheme = WindowScheme(num_adaptive_samples)
         else:
             self._window_scheme = None
         # alpha will store the accept prob and will be used to adapt step size
         self._alpha = None
+
+        if nnc_compile:
+            # pyre-ignore[8]
+            self._leapfrog_step = nnc_jit(self._leapfrog_step)
 
     @property
     def _initialize_momentums(self) -> Callable:
@@ -117,7 +128,7 @@ class HMCProposer(BaseProposer):
         current values)"""
         constrained_vals = self._to_unconstrained.inv(positions)
         log_joint = self.world.replace(constrained_vals).log_prob()
-        log_joint -= self._to_unconstrained.log_abs_det_jacobian(
+        log_joint = log_joint - self._to_unconstrained.log_abs_det_jacobian(
             constrained_vals, positions
         )
         return -log_joint
@@ -175,7 +186,7 @@ class HMCProposer(BaseProposer):
         self,
         positions: RVDict,
         momentums: RVDict,
-        step_size: float,
+        step_size: torch.Tensor,
         mass_inv: RVDict,
         pe_grad: Optional[RVDict] = None,
     ) -> Tuple[RVDict, RVDict, torch.Tensor, RVDict]:
@@ -206,28 +217,28 @@ class HMCProposer(BaseProposer):
         positions: RVDict,
         momentums: RVDict,
         trajectory_length: float,
-        step_size: float,
+        step_size: torch.Tensor,
         mass_inv: RVDict,
         pe_grad: Optional[RVDict] = None,
     ) -> Tuple[RVDict, RVDict, torch.Tensor, RVDict]:
         """Run multiple iterations of leapfrog integration until the length of the
         trajectory is greater than the specified trajectory_length."""
         # we should run at least 1 step
-        num_steps = max(math.ceil(trajectory_length / step_size), 1)
+        num_steps = max(math.ceil(trajectory_length / step_size.item()), 1)
         for _ in range(num_steps):
             positions, momentums, pe, pe_grad = self._leapfrog_step(
                 positions, momentums, step_size, mass_inv, pe_grad
             )
-        # pyre-fixme[61]: `pe` may not be initialized here.
+        # pyre-ignore[61]: `pe` may not be initialized here.
         return positions, momentums, pe, cast(RVDict, pe_grad)
 
     def _find_reasonable_step_size(
         self,
-        initial_step_size: float,
+        initial_step_size: torch.Tensor,
         positions: RVDict,
         pe: torch.Tensor,
         pe_grad: RVDict,
-    ) -> float:
+    ) -> torch.Tensor:
         """A heuristic of finding a reasonable initial step size (epsilon) as introduced
         in Algorithm 4 of [2]."""
         step_size = initial_step_size
