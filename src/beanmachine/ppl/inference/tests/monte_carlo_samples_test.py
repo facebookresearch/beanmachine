@@ -231,6 +231,16 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(samples.get(model.foo(), chain=0).shape, (20,))
         self.assertEqual(samples.get(model.foo(), chain=0, thinning=4).shape, (5,))
 
+    def test_add_group(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([model.foo()], {}, num_samples=20, num_chains=1)
+        bar_samples = MonteCarloSamples(samples.samples, default_namespace="bar")
+        bar_samples.add_groups(samples)
+        self.assertEqual(samples.observations, bar_samples.observations)
+        self.assertEqual(samples.log_likelihoods, bar_samples.log_likelihoods)
+        self.assertIn("posterior", bar_samples.namespaces)
+
     def test_to_inference_data(self):
         model = self.SampleModel()
         mh = bm.SingleSiteAncestralMetropolisHastings()
