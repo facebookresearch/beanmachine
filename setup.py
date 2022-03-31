@@ -16,7 +16,25 @@ from setuptools import find_packages, setup
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
 
-
+INSTALL_REQUIRES = [
+    "arviz>=0.11.0",
+    "astor>=0.7.1",
+    "black==21.4b2",
+    "botorch>=0.5.1",
+    "flowtorch>=0.3",
+    "gpytorch>=1.3.0",
+    "graphviz>=0.17",
+    "numpy>=1.18.1",
+    "pandas>=0.24.2",
+    "parameterized>=0.8.1",
+    "plotly>=2.2.1",
+    "scipy>=0.16",
+    "statsmodels>=0.12.0",
+    "torch>=1.9.0",
+    "tqdm>=4.46.0",
+    "typing-extensions>=3.10",
+    "xarray>=0.16.0",
+]
 TEST_REQUIRES = ["pytest>=7.0.0", "pytest-cov"]
 TUTORIALS_REQUIRES = [
     "bokeh",
@@ -32,15 +50,17 @@ DEV_REQUIRES = (
     TEST_REQUIRES
     + TUTORIALS_REQUIRES
     + [
-        "black==20.8b1",
-        "flake8",
+        "flake8==4.0.1",
         "flake8-bugbear",
+        "libcst==0.4.1",
         "nbval",
         "sphinx==4.2.0",
         "sphinx-autodoc-typehints",
         "sphinx_rtd_theme",
         "toml>=0.10.2",
-        "usort",
+        # `black` is included in `INSTALL_REQUIRES` above.
+        "ufmt==1.3.2",
+        "usort==0.6.4",
     ]
 )
 
@@ -48,6 +68,7 @@ if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
 else:
     CPP_COMPILE_ARGS = ["-std=c++17", "-Werror"]
+    INSTALL_REQUIRES.append("functorch>=0.1.0")
 
 
 # Check for python version
@@ -125,24 +146,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">={}.{}".format(REQUIRED_MAJOR, REQUIRED_MINOR),
-    install_requires=[
-        "arviz>=0.11.0",
-        "astor>=0.7.1",
-        "botorch>=0.5.1",
-        "flowtorch>=0.3",
-        "gpytorch>=1.3.0",
-        "graphviz>=0.17",
-        "numpy>=1.18.1",
-        "pandas>=0.24.2",
-        "parameterized>=0.8.1",
-        "plotly>=2.2.1",
-        "scipy>=0.16",
-        "statsmodels>=0.12.0",
-        "torch>=1.9.0",
-        "tqdm>=4.46.0",
-        "typing-extensions>=3.10",
-        "xarray>=0.16.0",
-    ],
+    install_requires=INSTALL_REQUIRES,
     packages=find_packages("src"),
     package_dir={"": "src"},
     ext_modules=[

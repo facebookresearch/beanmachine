@@ -31,15 +31,15 @@ class SampleModel:
 
 
 def test_dual_average_adapter():
-    adapter = DualAverageAdapter(0.1)
+    adapter = DualAverageAdapter(torch.tensor(0.1))
     epsilon1 = adapter.step(torch.tensor(1.0))
     epsilon2 = adapter.step(torch.tensor(0.0))
     assert epsilon2 < adapter.finalize() < epsilon1
 
 
 def test_dual_average_with_different_delta():
-    adapter1 = DualAverageAdapter(1.0, delta=0.8)
-    adapter2 = DualAverageAdapter(1.0, delta=0.2)
+    adapter1 = DualAverageAdapter(torch.tensor(1.0), delta=0.8)
+    adapter2 = DualAverageAdapter(torch.tensor(1.0), delta=0.2)
     prob = torch.tensor(0.5)
     # prob > delta means we can increase the step size, wherease prob < delta means
     # we need to decrease the step size
