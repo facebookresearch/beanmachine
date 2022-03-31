@@ -19,6 +19,7 @@ REQUIRED_MINOR = 7
 INSTALL_REQUIRES = [
     "arviz>=0.11.0",
     "astor>=0.7.1",
+    "black==21.4b2",
     "botorch>=0.5.1",
     "flowtorch>=0.3",
     "gpytorch>=1.3.0",
@@ -49,15 +50,17 @@ DEV_REQUIRES = (
     TEST_REQUIRES
     + TUTORIALS_REQUIRES
     + [
-        "black==20.8b1",
-        "flake8",
+        "flake8==4.0.1",
         "flake8-bugbear",
+        "libcst==0.4.1",
         "nbval",
         "sphinx==4.2.0",
         "sphinx-autodoc-typehints",
         "sphinx_rtd_theme",
         "toml>=0.10.2",
-        "usort",
+        # `black` is included in `INSTALL_REQUIRES` above.
+        "ufmt==1.3.2",
+        "usort==0.6.4",
     ]
 )
 
