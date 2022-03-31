@@ -10,11 +10,11 @@ import torch.distributions as dist
 
 @pytest.fixture(autouse=True)
 def fix_random_seed():
-    """Fix the random state for every test in the test suite"""
+    """Fix the random state for every test in the test suite."""
     bm.seed(0)
 
 
 @pytest.fixture(autouse=True)
 def disable_torch_distribution_validation():
-    """ """
+    """Disables validation of Torch distribution arguments."""
     dist.Distribution.set_default_validate_args(False)

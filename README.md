@@ -19,7 +19,7 @@ Bean Machine supports Python 3.7-3.9 and PyTorch 1.10.
 ### Install the Latest Release with Pip
 
 ```bash
-pip install beanmachine
+python -m pip install beanmachine
 ```
 
 ### Install from Source
@@ -40,7 +40,7 @@ We recommend using [conda](https://docs.conda.io/en/latest/) to manage the virtu
 ```bash
 conda create -n {env name} python=3.7; conda activate {env name}
 conda install boost eigen
-pip install .
+python -m pip install .
 ```
 
 #### Docker
@@ -55,8 +55,8 @@ docker run -it beanmachine:latest bash
 If you would like to run the builtin unit tests:
 
 ```bash
-pip install -U 'pytest>=7.0.0'
-pytest .
+python -m pip install "beanmachine[test]"
+pytest src
 ```
 
 ## License
