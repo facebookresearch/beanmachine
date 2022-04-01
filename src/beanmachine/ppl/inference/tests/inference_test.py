@@ -51,6 +51,7 @@ def test_inference(multiprocess):
         num_adaptive_samples=num_samples,
         num_chains=num_chains,
         run_in_parallel=multiprocess,
+        mp_context="fork",
     )
 
     assert model.foo() in samples
