@@ -25,6 +25,7 @@ from beanmachine.ppl.world import RVDict, World, InitializeFn, init_to_uniform
 from torch import multiprocessing as mp
 from tqdm.auto import tqdm
 from tqdm.notebook import tqdm as notebook_tqdm
+from typing_extensions import Literal
 
 
 class BaseInference(metaclass=ABCMeta):
@@ -177,7 +178,7 @@ class BaseInference(metaclass=ABCMeta):
         initialize_fn: InitializeFn = init_to_uniform,
         max_init_retries: int = 100,
         run_in_parallel: bool = False,
-        mp_context: Optional[str] = None,
+        mp_context: Optional[Literal["fork", "spawn", "forkserver"]] = None,
     ) -> MonteCarloSamples:
         """
         Performs inference and returns a ``MonteCarloSamples`` object with samples from the posterior.
