@@ -373,7 +373,6 @@ def plot_trailing_team_committing(df):
         ColumnDataSource({"x": x, "y": plot_data["Yes"].values}),
     ]
     labels = plot_data.columns.values
-    colors = ["steelblue", "orange"]
     tooltips = [
         [("Rate", "@y{0.000}"), ("Time", "@x")],
         [("Rate", "@y{0.000}"), ("Time", "@x")],
@@ -412,7 +411,6 @@ def plot_trailing_possessions(df):
         ColumnDataSource({"x": x, "y": plot_data[3].values}),
     ]
     labels = plot_data.columns.astype(str).values
-    colors = ["steelblue", "orange", "brown"]
     tooltips = [
         [("Rate", "@y{0.000}"), ("Time left", "@x")],
         [("Rate", "@y{0.000}"), ("Time left", "@x")],

@@ -227,8 +227,7 @@ def histogram_plot(
     return fig
 
 
-
-def scatter_plot(
+def scatter_plot(  # noqa flake8 C901 too complex
     plot_sources: Union[ColumnDataSource, List[ColumnDataSource]],
     figure_kwargs: Union[Dict[str, Any], None] = None,
     plot_kwargs: Union[Dict[str, Any], None] = None,
@@ -1256,9 +1255,7 @@ def marginal_2d(
         )
         central_fig.add_tools(true_tips)
     if title_div is not None:
-        layout = gridplot(
-            [[title_div, None], [x_fig, None], [central_fig, y_fig]]
-        )
+        layout = gridplot([[title_div, None], [x_fig, None], [central_fig, y_fig]])
     else:
         layout = gridplot([[x_fig, None], [central_fig, y_fig]])
 
