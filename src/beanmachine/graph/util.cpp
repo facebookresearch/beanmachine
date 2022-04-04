@@ -39,7 +39,8 @@ bool sample_logprob(std::mt19937& gen, double logprob) {
   if (logprob > 0)
     return true;
   else {
-    std::bernoulli_distribution dist(std::exp(logprob));
+    std::bernoulli_distribution dist(
+        std::isnan(logprob) ? 0.0 : std::exp(logprob));
     return dist(gen);
   }
 }
