@@ -175,6 +175,8 @@ class PredictiveTest(unittest.TestCase):
             vectorized=True,
         ).to_inference_data()
         assert "posterior" in predictives
+        assert "observed_data" in predictives
+        assert "log_likelihood" in predictives
         assert "posterior_predictive" in predictives
         assert predictives.posterior_predictive[self.likelihood_2(0)].shape == (
             2,
