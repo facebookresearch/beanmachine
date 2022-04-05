@@ -87,7 +87,9 @@ class DualAverageAdapter:
 
     def step(self, alpha: torch.Tensor) -> torch.Tensor:
         H_frac = 1.0 / (self._m + self._t0)
-        self._H = ((1 - H_frac) * self._H) + H_frac * (self._delta - alpha)
+        self._H = ((1 - H_frac) * self._H) + H_frac * (
+            self._delta - alpha.to(self._log_avg_epsilon)
+        )
 
         log_epsilon = self._mu - (math.sqrt(self._m) / self._gamma) * self._H
         step_frac = self._m ** (-self._kappa)

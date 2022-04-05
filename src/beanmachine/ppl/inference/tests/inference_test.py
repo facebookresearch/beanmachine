@@ -30,6 +30,16 @@ class SampleModel:
         return self.bar() * 2.0
 
 
+class SampleDoubleModel:
+    @bm.random_variable
+    def foo(self):
+        return dist.Normal(torch.tensor(0.0).double(), torch.tensor(1.0).double())
+
+    @bm.random_variable
+    def bar(self):
+        return dist.Normal(self.foo(), torch.tensor(1.0).double())
+
+
 @pytest.mark.parametrize("multiprocess", [False, True])
 def test_inference(multiprocess):
     if multiprocess and sys.platform.startswith("win"):
@@ -39,12 +49,12 @@ def test_inference(multiprocess):
         )
 
     model = SampleModel()
-    nuts = bm.SingleSiteAncestralMetropolisHastings()
+    mh = bm.SingleSiteAncestralMetropolisHastings()
     queries = [model.foo(), model.baz()]
     observations = {model.bar(): torch.tensor(0.5)}
     num_samples = 30
     num_chains = 2
-    samples = nuts.infer(
+    samples = mh.infer(
         queries,
         observations,
         num_samples,
@@ -123,3 +133,27 @@ def test_initialization_resampling():
 
     with pytest.raises(ValueError, match="Cannot find a valid initialization"):
         mh.infer([foo()], {}, num_samples=10, initialize_fn=init_to_zero)
+
+
+@pytest.mark.parametrize(
+    "algorithm",
+    [
+        bm.GlobalNoUTurnSampler(),
+        bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0),
+        bm.SingleSiteAncestralMetropolisHastings(),
+        bm.SingleSiteNewtonianMonteCarlo(),
+        bm.SingleSiteUniformMetropolisHastings(),
+    ],
+)
+def test_inference_with_double_dtype(algorithm):
+    model = SampleDoubleModel()
+    queries = [model.foo()]
+    bar_val = torch.tensor(0.5).double()
+    # make sure that the inference can run successfully
+    samples = algorithm.infer(
+        queries,
+        {model.bar(): bar_val},
+        num_samples=20,
+        num_chains=1,
+    )
+    assert samples[model.foo()].dtype == bar_val.dtype
