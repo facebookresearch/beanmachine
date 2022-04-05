@@ -240,10 +240,7 @@ def make_rst(config_path: str = "../../website/documentation.toml") -> None:
     # Generate index.rst
     modules = [m for m in modules if m.count(".") < 3]
     modules = "\n   ".join(modules)
-    index_rst = f""".. BeanMachine documentation master file, created by a \
-tool by stefanwebb.
-
-Welcome to BeanMachine's documentation!
+    index_rst = f"""Welcome to BeanMachine's documentation!
 =======================================
 
 .. toctree::
