@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.stats
@@ -24,7 +24,7 @@ from beanmachine.ppl.testlib.hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,
     variance_equality_hypothesis_confidence_interval,
 )
-from torch import Tensor, tensor
+from beanmachine.ppl.utils.typeguards import is_rvidentifier_dict, is_rvidentifier_list
 
 
 class AbstractConjugateTests(metaclass=ABCMeta):
@@ -36,7 +36,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
     Note: Whenever possible, we will use same variable names as on that page.
     """
 
-    def compute_statistics(self, predictions: Tensor) -> Tuple[Tensor, Tensor]:
+    def compute_statistics(
+        self, predictions: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Computes mean and standard deviation of a given tensor of samples.
 
@@ -50,17 +52,22 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_beta_binomial_moments(
         self,
-    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        List[Union[RVIdentifier, torch.Tensor]],
+        Dict[Union[RVIdentifier, torch.Tensor], torch.Tensor],
+    ]:
         """
         Computes mean and standard deviation of a small beta binomial model.
 
         :return: expected mean, expected standard deviation, conjugate model
         queries and observations
         """
-        alpha = tensor([2.0, 2.0])
-        beta = tensor([1.0, 1.0])
-        n = tensor([1.0, 1.0])
-        obs = tensor([1.0, 0.0])
+        alpha = torch.tensor([2.0, 2.0])
+        beta = torch.tensor([1.0, 1.0])
+        n = torch.tensor([1.0, 1.0])
+        obs = torch.tensor([1.0, 0.0])
         model = BetaBinomialModel(alpha, beta, n)
         queries = [model.theta()]
         observations = {model.x(): obs}
@@ -76,17 +83,22 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_gamma_gamma_moments(
         self,
-    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        List[Union[RVIdentifier, torch.Tensor]],
+        Dict[Union[RVIdentifier, torch.Tensor], torch.Tensor],
+    ]:
         """
         Computes mean and standard deviation of a small gamma gamma model.
 
         :return: expected mean, expected standard deviation, conjugate model
         queries and observations
         """
-        shape = tensor([2.0, 2.0])
-        rate = tensor([2.0, 2.0])
-        alpha = tensor([1.5, 1.5])
-        obs = tensor([2.0, 4.0])
+        shape = torch.tensor([2.0, 2.0])
+        rate = torch.tensor([2.0, 2.0])
+        alpha = torch.tensor([1.5, 1.5])
+        obs = torch.tensor([2.0, 4.0])
         model = GammaGammaModel(shape, rate, alpha)
         queries = [model.gamma_p()]
         observations = {model.gamma(): obs}
@@ -98,21 +110,26 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_gamma_normal_moments(
         self,
-    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        List[Union[RVIdentifier, torch.Tensor]],
+        Dict[Union[RVIdentifier, torch.Tensor], torch.Tensor],
+    ]:
         """
         Computes mean and standard deviation of a small gamma normal model.
 
         :return: expected mean, expected standard deviation, conjugate model
         queries and observations
         """
-        shape = tensor([1.0, 1.0])
-        rate = tensor([2.0, 2.0])
-        mu = tensor([1.0, 2.0])
-        obs = tensor([1.5, 2.5])
+        shape = torch.tensor([1.0, 1.0])
+        rate = torch.tensor([2.0, 2.0])
+        mu = torch.tensor([1.0, 2.0])
+        obs = torch.tensor([1.5, 2.5])
         model = GammaNormalModel(shape, rate, mu)
         queries = [model.gamma()]
         observations = {model.normal(): obs}
-        shape = shape + tensor([0.5, 0.5])
+        shape = shape + torch.tensor([0.5, 0.5])
         deviations = (obs - mu).pow(2.0)
         rate = rate + (deviations * (0.5))
         expected_mean = shape / rate
@@ -121,30 +138,39 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_normal_normal_moments(
         self,
-    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        List[Union[RVIdentifier, torch.Tensor]],
+        Dict[Union[RVIdentifier, torch.Tensor], torch.Tensor],
+    ]:
         """
         Computes mean and standard deviation of a small normal normal model.
 
         :return: expected mean, expected standard deviation, conjugate model
         queries and observations
         """
-        mu = tensor([1.0, 1.0])
-        std = tensor([1.0, 1.0])
-        sigma = tensor([1.0, 1.0])
-        obs = tensor([1.5, 2.5])
+        mu = torch.tensor([1.0, 1.0])
+        std = torch.tensor([1.0, 1.0])
+        sigma = torch.tensor([1.0, 1.0])
+        obs = torch.tensor([1.5, 2.5])
         model = NormalNormalModel(mu, std, sigma)
         queries = [model.normal_p()]
         observations = {model.normal(): obs}
-        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
-            mu / std.pow(2.0) + obs / sigma.pow(2.0)
+        expected_mean = (mu / std.pow(2.0) + obs / sigma.pow(2.0)) / (
+            1.0 / sigma.pow(2.0) + 1.0 / std.pow(2.0)
         )
         expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
-        # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, List[RVIdentifier],
-        #  Dict[RVIdentifier, Tensor]]` but got `Tuple[float, typing.Any,
-        #  List[typing.Any], Dict[typing.Any, typing.Any]]`.
         return (expected_mean, expected_std, queries, observations)
 
-    def compute_dirichlet_categorical_moments(self):
+    def compute_dirichlet_categorical_moments(
+        self,
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        List[Union[RVIdentifier, torch.Tensor]],
+        Dict[Union[RVIdentifier, torch.Tensor], torch.Tensor],
+    ]:
         """
         Computes mean and standard deviation of a small dirichlet categorical
         model.
@@ -152,12 +178,12 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :return: expected mean, expected standard deviation, conjugate model
         queries and observations
         """
-        alpha = tensor([0.5, 0.5])
+        alpha = torch.tensor([0.5, 0.5])
         model = CategoricalDirichletModel(alpha)
-        obs = tensor([1.0])
+        obs = torch.tensor([1.0])
         queries = [model.dirichlet()]
         observations = {model.categorical(): obs}
-        alpha = alpha + tensor([0.0, 1.0])
+        alpha = alpha + torch.tensor([0.0, 1.0])
         expected_mean = alpha / alpha.sum()
         expected_std = (expected_mean * (1 - expected_mean) / (alpha.sum() + 1)).pow(
             0.5
@@ -166,7 +192,12 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def _compare_run(
         self,
-        moments: Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]],
+        moments: Tuple[
+            torch.Tensor,
+            torch.Tensor,
+            List[RVIdentifier],
+            Dict[RVIdentifier, torch.Tensor],
+        ],
         mh: BaseInference,
         num_chains: int,
         num_samples: int,
@@ -199,14 +230,14 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         for i in range(predictions.num_chains):
             sample = predictions.get_chain(i)[queries[0]]
             mean, std = self.compute_statistics(sample)
-            total_samples = tensor(sample.size())[0].item()
+            total_samples = torch.tensor(sample.size())[0].item()
             n_eff = effective_sample_size(sample.unsqueeze(dim=0))
 
-            # For out purposes, it seems more appropriate to use n_eff ONLY
+            # For our purposes, it seems more appropriate to use n_eff ONLY
             # to discount sample size. In particular, we should not allow
             # n_eff > total_samples
 
-            n_eff = torch.min(n_eff, tensor(total_samples))
+            n_eff = torch.min(n_eff, torch.tensor(total_samples))
 
             # Hypothesis Testing
             # First, let's start by making sure that we can assume normalcy of means
@@ -320,9 +351,16 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_chains: number of chains
         :param random_seed: seed for pytorch random number generator
         """
-        moments = self.compute_beta_binomial_moments()
+        (
+            expected_mean,
+            expected_std,
+            queries,
+            observations,
+        ) = self.compute_beta_binomial_moments()
+        assert is_rvidentifier_list(queries)
+        assert is_rvidentifier_dict(observations)
         self._compare_run(
-            moments,
+            (expected_mean, expected_std, queries, observations),
             mh,
             num_chains,
             num_samples,
@@ -346,9 +384,16 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_chains: number of chains
         :param random_seed: seed for pytorch random number generator
         """
-        moments = self.compute_gamma_gamma_moments()
+        (
+            expected_mean,
+            expected_std,
+            queries,
+            observations,
+        ) = self.compute_gamma_gamma_moments()
+        assert is_rvidentifier_list(queries)
+        assert is_rvidentifier_dict(observations)
         self._compare_run(
-            moments,
+            (expected_mean, expected_std, queries, observations),
             mh,
             num_chains,
             num_samples,
@@ -372,9 +417,16 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_chains: number of chains
         :param random_seed: seed for pytorch random number generator
         """
-        moments = self.compute_gamma_normal_moments()
+        (
+            expected_mean,
+            expected_std,
+            queries,
+            observations,
+        ) = self.compute_gamma_normal_moments()
+        assert is_rvidentifier_list(queries)
+        assert is_rvidentifier_dict(observations)
         self._compare_run(
-            moments,
+            (expected_mean, expected_std, queries, observations),
             mh,
             num_chains,
             num_samples,
@@ -398,9 +450,16 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_chains: number of chains
         :param random_seed: seed for pytorch random number generator
         """
-        moments = self.compute_normal_normal_moments()
+        (
+            expected_mean,
+            expected_std,
+            queries,
+            observations,
+        ) = self.compute_normal_normal_moments()
+        assert is_rvidentifier_list(queries)
+        assert is_rvidentifier_dict(observations)
         self._compare_run(
-            moments,
+            (expected_mean, expected_std, queries, observations),
             mh,
             num_chains,
             num_samples,
@@ -424,9 +483,16 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_chains: number of chains
         :param random_seed: seed for pytorch random number generator
         """
-        moments = self.compute_dirichlet_categorical_moments()
+        (
+            expected_mean,
+            expected_std,
+            queries,
+            observations,
+        ) = self.compute_dirichlet_categorical_moments()
+        assert is_rvidentifier_list(queries)
+        assert is_rvidentifier_dict(observations)
         self._compare_run(
-            moments,
+            (expected_mean, expected_std, queries, observations),
             mh,
             num_chains,
             num_samples,

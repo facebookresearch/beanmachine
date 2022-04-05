@@ -6,11 +6,12 @@
 import random
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
-from typing import Dict, List, Callable, Any
+from typing import Any, Callable, Dict, List, Union
 
 import numpy.random
 import torch
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.utils.typeguards import is_rvidentifier_dict, is_rvidentifier_list
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
@@ -95,6 +96,20 @@ def safe_log_prob_sum(distrib, value: torch.Tensor) -> torch.Tensor:
             return torch.tensor(float("-Inf")).to(value.device)
         else:
             raise e
+
+
+def make_queries(rvs: List[Union[RVIdentifier, torch.Tensor]]) -> List[RVIdentifier]:
+    if not is_rvidentifier_list(rvs):
+        raise TypeError("`rvs` must be of type List[RVIdentifier]")
+    return rvs
+
+
+def make_observations(
+    obs_dict: Dict[Union[RVIdentifier, torch.Tensor], torch.Tensor]
+) -> Dict[RVIdentifier, torch.Tensor]:
+    if not is_rvidentifier_dict(obs_dict):
+        raise TypeError("`obs_dict` must be of type Dict[RVIdentifier, torch.Tensor].")
+    return obs_dict
 
 
 def merge_dicts(

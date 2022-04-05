@@ -13,7 +13,7 @@ from beanmachine.ppl.model.statistical_model import RVIdentifier
 
 
 class StatisticalModelTest(unittest.TestCase):
-    class SampleModel(object):
+    class SampleModel:
         @bm.random_variable
         def foo(self):
             return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
@@ -26,7 +26,7 @@ class StatisticalModelTest(unittest.TestCase):
         def baz(self):
             return dist.Normal(self.foo(), self.bar().abs())
 
-    class SampleLargeModel(object):
+    class SampleLargeModel:
         @bm.random_variable
         def foo(self):
             return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))

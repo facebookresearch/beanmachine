@@ -149,6 +149,7 @@ setup(
     install_requires=INSTALL_REQUIRES,
     packages=find_packages("src"),
     package_dir={"": "src"},
+    package_data={"beanmachine/ppl": ["py.typed"]},
     ext_modules=[
         Pybind11Extension(
             name="beanmachine.graph",
