@@ -26,7 +26,6 @@ INSTALL_REQUIRES = [
     "graphviz>=0.17",
     "numpy>=1.18.1",
     "pandas>=0.24.2",
-    "parameterized>=0.8.1",
     "plotly>=2.2.1",
     "scipy>=0.16",
     "statsmodels>=0.12.0",
@@ -65,9 +64,9 @@ DEV_REQUIRES = (
 )
 
 if platform.system() == "Windows":
-    CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
+    CPP_COMPILE_ARGS = ["/WX", "/permissive-", "/std:c++20"]
 else:
-    CPP_COMPILE_ARGS = ["-std=c++17", "-Werror"]
+    CPP_COMPILE_ARGS = ["-std=c++2a", "-Werror"]
     INSTALL_REQUIRES.append("functorch>=0.1.0")
 
 
