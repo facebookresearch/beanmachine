@@ -1,5 +1,3 @@
-.. BeanMachine documentation master file, created by a tool by stefanwebb.
-
 Welcome to BeanMachine's documentation!
 =======================================
 
