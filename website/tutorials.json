@@ -78,5 +78,13 @@
     "nb_path": "tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
     "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
     "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
+  },
+  "Neals_funnel": {
+    "title": "Neal's funnel",
+    "sidebar_label": "Neal's funnel",
+    "path": "overview/tutorials/Neals_funnel/NealsFunnel",
+    "nb_path": "tutorials/Neals_funnel.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb"
   }
 }
