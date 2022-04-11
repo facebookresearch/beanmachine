@@ -10,8 +10,11 @@ from bokeh.models.callbacks import CustomJS
 from bokeh.models.glyphs import Quad
 from bokeh.models.sources import ColumnDataSource
 from bokeh.models.tools import HoverTool
-from bokeh.models.widgets import RangeSlider, Select
-from bokeh.plotting import show
+from bokeh.models.widgets.inputs import Select
+from bokeh.models.widgets.markups import Div
+from bokeh.models.widgets.panels import Panel, Tabs
+from bokeh.models.widgets.sliders import RangeSlider
+from bokeh.plotting import gridplot, show
 from bokeh.plotting.figure import figure, Figure
 
 from . import utils
@@ -212,6 +215,25 @@ class AutocorrelationWidget:
             fig = figs[key]
             fig.title.text = " ".join([rv_name] + fig.title.text.split()[1:])
 
+    def help_page(self):
+        text = """
+            <h2>
+              Autocorrelation plots
+            </h2>
+            <p style="margin-bottom: 10px">
+              Autocorrelation plots measure how predictive the last several samples are
+              of the current sample. Autocorrelation may vary between -1.0
+              (deterministically anticorrelated) and 1.0 (deterministically correlated).
+              We compute autocorrelation approximately, so it may sometimes exceed these
+              bounds. In an ideal world, the current sample is chosen independently of
+              the previous samples: an autocorrelation of zero. This is not possible in
+              practice, due to stochastic noise and the mechanics of how inference
+              works.
+            </p>
+        """
+        div = Div(text=text, disable_math=False, min_width=800)
+        return div
+
     def modify_doc(self, doc) -> None:
         """Modify the document by adding the widget."""
         # Set the initial view.
@@ -281,13 +303,16 @@ class AutocorrelationWidget:
         )
 
         rows = [
-            row(*fig_row) for fig_row in np.array(list(figs.values())).reshape((2, -1))
+            [*fig_row] for fig_row in np.array(list(figs.values())).reshape((2, -1))
         ]
-        layout = column(
-            rv_select,
-            range_slider,
-            *rows,
+        plots = gridplot(rows)
+        widget_panel = Panel(
+            child=column(rv_select, range_slider, plots),
+            title="Autocorrelation",
         )
+        help_panel = Panel(child=self.help_page(), title="Help")
+        tabs = Tabs(tabs=[widget_panel, help_panel])
+        layout = column(tabs)
         doc.add_root(layout)
 
     def show_widget(self):

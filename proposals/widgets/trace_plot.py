@@ -10,7 +10,10 @@ from bokeh.models.callbacks import CustomJS
 from bokeh.models.glyphs import Circle, Line, Quad
 from bokeh.models.sources import ColumnDataSource
 from bokeh.models.tools import HoverTool
-from bokeh.models.widgets import Div, Panel, Select, Slider, Tabs
+from bokeh.models.widgets.inputs import Select
+from bokeh.models.widgets.markups import Div
+from bokeh.models.widgets.panels import Panel, Tabs
+from bokeh.models.widgets.sliders import Slider
 from bokeh.plotting import show
 from bokeh.plotting.figure import figure, Figure
 
@@ -725,6 +728,40 @@ class TracePlotWidget:
                 for source_key, source in source_dict.items():
                     old_sources[fig_key][chain_key][source_key].data = dict(source.data)
 
+    def help_page(self):
+        text = """
+            <h2>Rank plots</h2>
+            <p style="margin-bottom: 10px">
+              Rank plots are a histogram of the samples over time. All samples across
+              all chains are ranked and then we plot the average rank for each chain on
+              regular intervals. If the chains are mixing well this histogram should
+              look roughly uniform. If it looks highly irregular that suggests chains
+              might be getting stuck and not adequately exploring the sample space.
+              See the paper by Vehtari <em>et al</em> for more information.
+            </p>
+            <h2>Trace plots</h2>
+            <p style="margin-bottom: 10px">
+              The more familiar trace plots are also included in this widget. You can
+              click on the legend to show/hide different chains and compare them to the
+              rank plots.
+            </p>
+            <ul>
+              <li>
+                McElreath R (2020)
+                <b>
+                  Statistical Rethinking: A Bayesian Course with Examples in R and Stan
+                  2nd edition.
+                </b>
+                <em>Chapman and Hall/CRC</em>
+                <a href=https://dx.doi.org/10.1201/9780429029608 style="color: blue">
+                  doi: 10.1201/9780429029608
+                </a>.
+              </li>
+            </ul>
+        """
+        div = Div(text=text, disable_math=False, min_width=800)
+        return div
+
     def modify_doc(self, doc) -> None:
         """Modify the document by adding the widget."""
         # Set the initial view.
@@ -856,12 +893,11 @@ class TracePlotWidget:
         )
         forest_tab = Panel(child=column(figs["forest"], hdi_slider), title="Forest")
         marginal_forest_tabs = Tabs(tabs=[marginal_tab, forest_tab])
-        layout = column(
-            rv_select,
-            row(marginal_forest_tabs, rank_trace_tabs),
-        )
-
-        doc.add_root(layout)
+        widget_layout = column(rv_select, row(marginal_forest_tabs, rank_trace_tabs))
+        widget_panel = Panel(child=widget_layout, title="Trace/Rank widget")
+        help_panel = Panel(child=self.help_page(), title="Help")
+        tabs = Tabs(tabs=[widget_panel, help_panel])
+        doc.add_root(tabs)
 
     def show_widget(self) -> None:
         """Display the widget."""

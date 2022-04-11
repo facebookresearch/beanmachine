@@ -10,7 +10,10 @@ from bokeh.models.callbacks import CustomJS
 from bokeh.models.glyphs import Circle, Line
 from bokeh.models.sources import ColumnDataSource
 from bokeh.models.tools import HoverTool
-from bokeh.models.widgets import Div, Select, Slider
+from bokeh.models.widgets.inputs import Select
+from bokeh.models.widgets.markups import Div
+from bokeh.models.widgets.panels import Panel, Tabs
+from bokeh.models.widgets.sliders import Slider
 from bokeh.plotting import show
 from bokeh.plotting.figure import figure, Figure
 from scipy import interpolate
@@ -496,6 +499,39 @@ class PosteriorWidget:
         fig.title.text = " ".join([rv_name] + fig.title.text.split()[1:])
         fig.xaxis.axis_label = rv_name
 
+    def help_page(self):
+        text = """
+            <h2>
+              Highest density interval
+            </h2>
+            <p style="margin-bottom: 10px">
+              The highest density interval region is not equal tailed like a typical
+              equal tailed interval of 2.5%. Thus it will include the mode(s) of the
+              posterior distribution.
+            </p>
+            <p style="margin-bottom: 10px">
+              There is nothing particularly specific about having a default HDI of 89%.
+              If fact, the only remarkable thing about defaulting to 89% is that it is
+              the highest prime number that does not exceed the unstable 95% threshold.
+              See the link to McElreath's book below for further discussion.
+            </p>
+            <ul>
+              <li>
+                McElreath R (2020)
+                <b>
+                  Statistical Rethinking: A Bayesian Course with Examples in R and Stan
+                  2nd edition.
+                </b>
+                <em>Chapman and Hall/CRC</em>
+                <a href=https://dx.doi.org/10.1201/9780429029608 style="color: blue">
+                  doi: 10.1201/9780429029608
+                </a>.
+              </li>
+            </ul>
+        """
+        div = Div(text=text, disable_math=False, min_width=800)
+        return div
+
     def modify_doc(self, doc) -> None:
         """Modify the document by adding the widget."""
         # Set the initial view.
@@ -658,13 +694,17 @@ class PosteriorWidget:
         bw_slider.on_change("value", update_bw)
         hdi_slider.on_change("value", update_hdi)
 
-        layout = column(
+        widget_layout = column(
             rv_select,
             row(pdf_fig, cdf_fig),
             bw_slider,
             bw_div,
             hdi_slider,
         )
+        widget_panel = Panel(child=widget_layout, title="Posterior")
+        help_panel = Panel(child=self.help_page(), title="Help")
+        tabs = Tabs(tabs=[widget_panel, help_panel])
+        layout = column(tabs)
 
         doc.add_root(layout)
 

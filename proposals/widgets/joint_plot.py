@@ -8,7 +8,10 @@ from bokeh.models.callbacks import CustomJS
 from bokeh.models.glyphs import Circle, Image, Line
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.models.sources import ColumnDataSource
-from bokeh.models.widgets import RadioButtonGroup, Select
+from bokeh.models.widgets.groups import RadioButtonGroup
+from bokeh.models.widgets.inputs import Select
+from bokeh.models.widgets.markups import Div
+from bokeh.models.widgets.panels import Panel, Tabs
 from bokeh.plotting import gridplot, show
 from bokeh.plotting.figure import figure, Figure
 
@@ -408,6 +411,19 @@ class JointPlotWidget:
         # Update the scatter plot
         old_sources["scatter"].data = dict(new_sources["scatter"].data)
 
+    def help_page(self):
+        text = """
+            <h2>
+              Joint plot
+            </h2>
+            <p style="margin-bottom: 10px">
+              A joint plot shows univariate marginals along the x and y axes. The
+              central figure shows the bivariate marginal of both random variables.
+            </p>
+        """
+        div = Div(text=text, disable_math=False, min_width=800)
+        return div
+
     def modify_doc(self, doc) -> None:
         """Modify the document by adding the widget."""
         # Set the initial view.
@@ -467,12 +483,6 @@ class JointPlotWidget:
             ]
         figures_grid = gridplot(figures)
 
-        layout = column(
-            row(marginal_x_select, marginal_y_select),
-            button_group,
-            figures_grid,
-        )
-
         def update_button(attr, old, new):
             if new == 1:
                 layout.children[-1].children[-1].children[1] = (figs["scatter"], 1, 0)
@@ -505,6 +515,17 @@ class JointPlotWidget:
             ),
         )
 
+        widget_panel = Panel(
+            child=column(
+                row(marginal_x_select, marginal_y_select),
+                button_group,
+                figures_grid,
+            ),
+            title="Joint plot",
+        )
+        help_panel = Panel(child=self.help_page(), title="Help")
+        tabs = Tabs(tabs=[widget_panel, help_panel])
+        layout = column(tabs)
         doc.add_root(layout)
 
     def show_widget(self) -> None:
