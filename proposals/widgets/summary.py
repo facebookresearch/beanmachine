@@ -1,3 +1,4 @@
+# flake8: noqa
 """Summary statistics widget."""
 import arviz as az
 import pandas as pd

@@ -1,3 +1,4 @@
+# flake8: noqa
 """Effective sample size widget."""
 from typing import Dict, List, Union
 

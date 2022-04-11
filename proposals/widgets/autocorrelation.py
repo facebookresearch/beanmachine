@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import arviz as az
 import numpy as np
-from bokeh.layouts import column, row
+from bokeh.layouts import column
 from bokeh.models import Annotation, Glyph
 from bokeh.models.annotations import BoxAnnotation
 from bokeh.models.callbacks import CustomJS
