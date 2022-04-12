@@ -51,9 +51,9 @@ def plot_current_hits(df: pd.DataFrame) -> Figure:
 
     # Create the figure.
     p = plots.scatter_plot(
-        plot_source=source,
+        plot_sources=[source],
         figure_kwargs=figure_kwargs,
-        tooltips=tips,
+        tooltips=[tips],
     )
 
     # Style the figure.

@@ -7,6 +7,30 @@
     "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb",
     "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb"
   },
+  "Robust_Linear_Regression": {
+    "title": "Robust linear regression",
+    "sidebar_label": "Robust linear regression",
+    "path": "overview/tutorials/Robust_Linear_Regression/RobustLinearRegression",
+    "nb_path": "tutorials/Robust_Linear_Regression.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb"
+  },
+  "Bayesian_Logistic_Regression": {
+    "title": "Logistic regression",
+    "sidebar_label": "Logistic regression",
+    "path": "overview/tutorials/Bayesian_Logistic_Regression/BayesianLogisticRegression",
+    "nb_path": "tutorials/Bayesian_Logistic_Regression.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb"
+  },
+  "Sparse_Logistic_Regression": {
+    "title": "Sparse logistic regression",
+    "sidebar_label": "Sparse logistic regression",
+    "path": "overview/tutorials/Sparse_Logistic_Regression/SparseLogisticRegression",
+    "nb_path": "tutorials/Sparse_Logistic_Regression.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb"
+  },
   "Hierarchical_regression": {
     "title": "Hierarchical regression",
     "sidebar_label": "Hierarchical regression",
@@ -14,5 +38,53 @@
     "nb_path": "tutorials/Hierarchical_regression.ipynb",
     "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb",
     "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
+  },
+  "Hierarchical_modeling": {
+    "title": "Hierarchical modeling",
+    "sidebar_label": "Hierarchical modeling",
+    "path": "overview/tutorials/Hierarchical_modeling/HierarchicalModeling",
+    "nb_path": "tutorials/Hierarchical_modeling.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_modeling.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_modeling.ipynb"
+  },
+  "Item_Response_Theory": {
+    "title": "Item Response Theory",
+    "sidebar_label": "Item Response Theory",
+    "path": "overview/tutorials/Item_Response_Theory/ItemResponseTheory",
+    "nb_path": "tutorials/Item_Response_Theory.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb"
+  },
+  "Zero_inflated_count_data": {
+    "title": "Zero inflated count data",
+    "sidebar_label": "Zero inflated count data",
+    "path": "overview/tutorials/Zero_inflated_count_data/ZeroInflatedCountData",
+    "nb_path": "tutorials/Zero_inflated_count_data.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb"
+  },
+  "Hidden_Markov_model": {
+    "title": "Hidden Markov Model",
+    "sidebar_label": "Hidden Markov Model",
+    "path": "overview/tutorials/Hidden_Markov_model/HiddenMarkovModel",
+    "nb_path": "tutorials/Hidden_Markov_model.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hidden_Markov_model.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hidden_Markov_model.ipynb"
+  },
+  "GMM_with_2_dimensions_and_4_components": {
+    "title": "Gaussian mixture model",
+    "sidebar_label": "Gaussian mixture model",
+    "path": "overview/tutorials/GMM_with_2_dimensions_and_4_components/GmmWith2DimensionsAnd4Components",
+    "nb_path": "tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
+  },
+  "Neals_funnel": {
+    "title": "Neal's funnel",
+    "sidebar_label": "Neal's funnel",
+    "path": "overview/tutorials/Neals_funnel/NealsFunnel",
+    "nb_path": "tutorials/Neals_funnel.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb"
   }
 }
