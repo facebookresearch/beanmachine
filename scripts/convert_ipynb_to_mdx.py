@@ -114,7 +114,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
     cell: NotebookNode,
     plot_data_folder: Union[PathLike, str],
     filename: Union[PathLike, str],
-    keep_tqdm_output: bool = False,
 ) -> Dict[str, Union[str, bool]]:
     """Transform the given Jupyter code cell.
 
@@ -123,8 +122,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
         plot_data_folder (Union[PathLike, str]): Path to the `plot_data` folder for the
             tutorial.
         filename (str): File name to use for the mdx and jsx output.
-        keep_tqdm_output (bool): (optional, default is False) Flag to keep or remove
-            `tqdm` output from the mdx conversion.
 
     Returns:
         Tuple[str, str]: First object is for mdx inclusion, and the second is for jsx if
@@ -196,7 +193,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
         # Cycle through the cell outputs and transform them for inclusion in the mdx
         # string.
-        tqdm_outputs = []
+        display_data_outputs = []
         for i, cell_output in enumerate(cell_outputs):
             data_object = (
                 ordered_cell_output_dtypes[i][0]
@@ -205,10 +202,8 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 else "text/plain"
             )
             data_category, data_type = data_object.split("/")
-            cell_output_data = cell_output.get("data", {}).get(data_object, None)
+            cell_output_data = cell_output.get("data", {}).get(data_object, "")
             cell_output_type = cell_output_types[i]
-            if not cell_output_data:
-                continue
 
             # Handle "display_data".
             if cell_output_type == "display_data":
@@ -224,7 +219,8 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                     # Handle tqdm progress bars.
                     if data_type == "vnd.jupyter.widget-view+json":
                         cell_output_data = cell_output["data"]["text/plain"]
-                        tqdm_outputs.append(cell_output_data)
+                        display_data_outputs.append(cell_output_data)
+
                 # Handle plotly images.
                 if plotly_flag:
                     cell_output_data = cell_output["data"]
@@ -332,9 +328,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         cell_output_data = "\n".join(
                             [line for line in cell_output_data.splitlines() if line]
                         )
-                        mdx_output += (
-                            f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
-                        )
+                        display_data_outputs.append(cell_output_data)
                     # Handle markdown.
                     if data_type == "markdown":
                         mdx_output += f"{cell_output_data}\n\n"
@@ -344,15 +338,15 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 # Ignore if the output is an error.
                 if cell_output["name"] == "stderr":
                     continue
-                cell_output_data = cell_output.get("text", "")
-                cell_output_data = "\n".join(
-                    [line for line in cell_output_data.splitlines() if line]
-                )
-                mdx_output += (
-                    f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
-                )
-        if tqdm_outputs and keep_tqdm_output:
-            cell_output_data = "\n".join(tqdm_outputs)
+                cell_output_data = cell_output.get("text", None)
+                if cell_output_data is not None:
+                    cell_output_data = "\n".join(
+                        [line for line in cell_output_data.splitlines() if line]
+                    )
+                    display_data_outputs.append(cell_output_data)
+
+        if display_data_outputs:
+            cell_output_data = "\n".join(display_data_outputs)
             mdx_output += f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
 
     return {
