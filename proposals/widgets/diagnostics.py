@@ -7,7 +7,6 @@ from .effective_sample_size import EffectiveSampleSizeWidget
 from .joint_plot import JointPlotWidget
 from .posterior import PosteriorWidget
 from .summary import SummaryWidget
-
 from .trace_plot import TracePlotWidget
 
 
