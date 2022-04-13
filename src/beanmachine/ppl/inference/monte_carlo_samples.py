@@ -273,8 +273,15 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
 
         if "posterior" in self.namespaces:
             posterior = self.namespaces["posterior"].samples
+            posterior = {
+                key: value.detach().numpy() for key, value in posterior.items()
+            }
             if self.num_adaptive_samples > 0:
                 warmup_posterior = self.namespaces["posterior"].adaptive_samples
+                warmup_posterior = {
+                    key: value.detach().numpy()
+                    for key, value in warmup_posterior.items()
+                }
             else:
                 warmup_posterior = None
         else:
@@ -283,15 +290,28 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
 
         if self.num_adaptive_samples > 0:
             warmup_log_likelihood = self.adaptive_log_likelihoods
+            if warmup_log_likelihood is not None:
+                warmup_log_likelihood = {
+                    key: value.detach().numpy()
+                    for key, value in warmup_log_likelihood.items()
+                }
         else:
             warmup_log_likelihood = None
 
         if "posterior_predictive" in self.namespaces:
             posterior_predictive = self.namespaces["posterior_predictive"].samples
+            posterior_predictive = {
+                key: value.detach().numpy()
+                for key, value in posterior_predictive.items()
+            }
             if self.num_adaptive_samples > 0:
                 warmup_posterior_predictive = self.namespaces[
                     "posterior"
                 ].adaptive_samples
+                warmup_posterior_predictive = {
+                    key: value.detach().numpy()
+                    for key, value in warmup_posterior_predictive.items()
+                }
             else:
                 warmup_posterior_predictive = None
         else:
@@ -300,8 +320,25 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
 
         if "prior_predictive" in self.namespaces:
             prior_predictive = self.namespaces["prior_predictive"].samples
+            prior_predictive = {
+                key: value.detach().numpy() for key, value in prior_predictive.items()
+            }
         else:
             prior_predictive = None
+
+        if self.log_likelihoods is not None:
+            log_likelihoods = {
+                key: value.detach().numpy()
+                for key, value in self.log_likelihoods.items()
+            }
+        else:
+            log_likelihoods = None
+        if self.observations is not None:
+            observed_data = {
+                key: value.detach().numpy() for key, value in self.observations.items()
+            }
+        else:
+            observed_data = None
 
         return az.from_dict(
             posterior=posterior,
@@ -311,6 +348,6 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             prior_predictive=prior_predictive,
             save_warmup=include_adapt_steps,
             warmup_log_likelihood=warmup_log_likelihood,
-            log_likelihood=self.log_likelihoods,
-            observed_data=self.observations,
+            log_likelihood=log_likelihoods,
+            observed_data=observed_data,
         )
