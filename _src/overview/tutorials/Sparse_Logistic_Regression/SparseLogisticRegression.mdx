@@ -1,0 +1,1241 @@
+---
+title: Sparse logistic regression
+sidebar_label: Sparse logistic regression
+path: overview/tutorials/Sparse_Logistic_Regression/SparseLogisticRegression
+nb_path: tutorials/Sparse_Logistic_Regression.ipynb
+github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
+colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
+---
+import { BetaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
+import { BetaMarginalsPlot } from "./SparseLogisticRegression.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { LogProbMhPlot } from "./SparseLogisticRegression.jsx";
+import { LambdaMarginalsPlot } from "./SparseLogisticRegression.jsx";
+import { GermanLogProbPlot } from "./SparseLogisticRegression.jsx";
+import { GermanBetasDensityPlot } from "./SparseLogisticRegression.jsx";
+import { RocPlot } from "./SparseLogisticRegression.jsx";
+import { SyntheticDataPlot } from "./SparseLogisticRegression.jsx";
+import { DataPoint11Plot } from "./SparseLogisticRegression.jsx";
+import { PredictedDataPlot } from "./SparseLogisticRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { LogProbPlot } from "./SparseLogisticRegression.jsx";
+import { BetasDensityPlot } from "./SparseLogisticRegression.jsx";
+import { LambdaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
+
+<LinkButtons
+  githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb"
+  colabUrl="https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb"
+/>
+
+## Tutorial: **Sparse Logistic Regression**
+
+
+This tutorial demonstrates modeling and running inference on a sparse logistic
+regression model in Bean Machine. This tutorial showcases the inference techniques in
+Bean Machine, and applies the model to a public dataset to evaluate performance. It also
+introduces the `@bm.functional` decorator, which can be used to deterministically
+transform random variables which can be convenient for post-processing.
+
+
+## Problem
+
+
+Logistic regression is a commonly used statistical method that allows us to predict a
+binary output from a set of independent variables. The sparse logistic regression is a
+type of logistic regression model which embeds feature selection in classification by
+adding overall and per-dimension scale factors. It is very applicable when dealing with
+high-dimensional data, such as classifying credit scores.
+
+Sparse logistic regression is a hierarchical model with a sparse prior. We will use a
+horseshoe prior, [Carvalho CM, Polson NG, Scott JG](#references) which induces sparsity
+using a combination of a global shrinkage scale factor that pushes the posterior mass of
+most model parameters to zero and a local scale that allows some of them to escape
+shrinkage.
+
+
+## Prerequisites
+
+
+We will be using the following packages within this tutorial.
+
+* [arviz](https://arviz-devs.github.io/arviz/) and
+  [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations;
+* [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), and
+  [scikit-learn](https://scikit-learn.org/) for data manipulation.
+
+Please import the following code packages for the rest of the code in the tutorial to
+work.
+
+
+```python
+# Install Bean Machine in Colab if using Colab.
+import sys
+
+
+if "google.colab" in sys.modules and "beanmachine" not in sys.modules:
+    !pip install beanmachine
+```
+
+```python
+import os
+import warnings
+
+import arviz as az
+import beanmachine.ppl as bm
+import numpy as np
+import sklearn
+import sklearn.model_selection
+import torch
+import torch.distributions as dist
+from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.tutorials.utils import plots
+from bokeh.io import output_notebook
+from bokeh.models import ColumnDataSource, Span
+from bokeh.plotting import show
+from IPython.display import Markdown
+from sklearn.metrics import RocCurveDisplay
+```
+
+The next cell includes convenient configuration settings to improve the notebook
+presentation as well as setting a manual seed for reproducibility.
+
+
+```python
+# Eliminate excess UserWarnings from ArviZ.
+warnings.filterwarnings("ignore")
+
+# Plotting settings
+az.rcParams["plot.backend"] = "bokeh"
+az.rcParams["stats.hdi_prob"] = 0.89
+
+# Manual seed
+bm.seed(17)
+
+# Other settings for the notebook
+smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
+```
+
+## Model
+
+
+We have the following definitions.
+
+* $N$: Size of the dataset.
+* $D$: Number of features of the dataset.
+* $\tau$: Global shrinkage of the model (input from the user).
+* $\beta_d$: Coefficient corresponding to dimension $d\in D$.
+* $\lambda_d$: Local shrinkage for the coefficient corresponding to dimension $d\in D$.
+
+The model is defined mathematically as follows:
+
+* $\lambda_d\stackrel{iid}{\sim}\text{HalfCauchy}(0,1)$
+* $\beta_d\stackrel{iid}{\sim}\mathcal{N}(0,\tau\lambda)$
+* $y_n\stackrel{iid}{\sim}\text{Bernoulli}(\sigma({X}^\textsf{T}\beta))$
+
+A few notes:
+
+* $\sigma(s)=\frac{1}{1+e^{-s}}$ is the logistic function. Its purpose is to
+  translate an unconstrained score $s\in(-\infty,\infty)$ predicted by the model into
+  a probability $\sigma(s)\in(0,1)$.
+* $\tau$ can be an input from the user which depends on the expected number of
+  non-zeros coefficients in the model. Alternatively, we can have a full Bayesian
+  treatment of $\tau$ as suggested by [Piironen and Vehtari](#references). For
+  simplicity, this is simply a constant in this tutorial but this can be replaced with
+  a `HalfNormal` prior with the same scale as $\tau$. This parameter is responsible for
+  global shrinkage, whereas $\lambda_d$ tends to shrink the influence of $\beta_d$ but
+  since the Cauchy distribution has fat tails, it can also help coefficients escape
+  shrinkage.
+
+We can implement this model in Bean Machine by defining random variable objects with the
+`@bm.random_variable` decorator. These functions behave differently than ordinary Python
+functions.
+
+
+<div
+  style={
+    {
+      background: "#daeaf3",
+      border_left: "3px solid #2980b9",
+      display: "block",
+      margin: "16px 0",
+      padding: "12px",
+    }
+  }
+>
+  Semantics for <code>@bm.random_variable</code> functions:
+  <ul>
+    <li>
+      They must return PyTorch <code>Distribution</code> objects.
+    </li>
+    <li>
+      Though they return distributions, callees actually receive <i>samples</i> from the
+      distribution. The machinery for obtaining samples from distributions is handled
+      internally by Bean Machine.
+    </li>
+    <li>
+      Inference runs the model through many iterations. During a particular inference
+      iteration, a distinct random variable will correspond to exactly one sampled
+      value: <b>calls to the same random variable function with the same arguments will
+      receive the same sampled value within one inference iteration</b>. This makes it
+      easy for multiple components of your model to refer to the same logical random
+      variable.
+    </li>
+    <li>
+      Consequently, to define distinct random variables that correspond to different
+      sampled values during a particular inference iteration, an effective practice is
+      to add a dummy "indexing" parameter to the function. Distinct random variables
+      can be referred to with different values for this index.
+    </li>
+    <li>
+      Please see the documentation for more information about this decorator.
+    </li>
+  </ul>
+  Semantics for <code>@bm.functional</code>:
+  <ul>
+    <li>
+      This decorator is used to deterministically transform the results of one or more
+      random variables.
+    </li>
+  </ul>
+</div>
+
+
+To implement sparse logistic regression model in Bean Machine, we provide
+`@bm.random_variable` definitions for $\lambda$, $\beta$, and $y$. The value of $\tau$
+is estimated from the number of expected non-zero coefficients and is an input from the
+user.
+
+This is all you have to do to define the model. However, we'll also make use of the
+`@bm.functional` decorator to make it very easy to store the predictions (rather than
+the binary outcome, we'll store the probability score of being labeled 1) on the test
+data and for computing the log likelihood. This decorator has the same semantics as
+`@bm.random_variable`, except that it does not return a distribution. Instead, it
+returns a deterministically-computed function from other random variables. It can be
+used to conveniently compute values that would typically be computed in a
+post-processing pass. Here, we use it to compute the log probability of test data, using
+inferences made on training data.
+
+
+```python
+class SparseLogisticRegression:
+    def __init__(self, X_train, X_test, Y_test, nonzero_frac=0.3):
+        self.X_train = X_train
+        self.X_test = X_test
+        self.Y_test = Y_test
+        # See: Piironen and Vehtari
+        self.tau = (
+            2 * nonzero_frac / ((1 - nonzero_frac) * np.sqrt(self.X_train.shape[1]))
+        )
+
+    @bm.random_variable
+    def lambda_(self):
+        return dist.HalfCauchy(1.0).expand([self.X_train.shape[1], 1])
+
+    @bm.random_variable
+    def eps(self):
+        return dist.Normal(0, 1).expand([self.X_train.shape[1], 1])
+
+    @bm.random_variable
+    def y(self):
+        return dist.Bernoulli(logits=self.X_train @ self.beta())
+
+    @bm.functional
+    def beta(self):
+        return self.tau * self.lambda_() * self.eps()
+
+    @bm.functional
+    def log_prob_test(self):
+        return (
+            dist.Bernoulli(logits=self.X_test @ self.beta()).log_prob(self.Y_test).sum()
+        )
+
+    @bm.functional
+    def y_probs(self):
+        return torch.sigmoid(self.X_test @ self.beta())
+
+    def __repr__(self):
+        return f"SparseLogisticRegression with {self.X_train.shape[1]} covariates"
+```
+
+## Data
+
+
+With the model defined, we need to collect some observed data in order to learn about
+values of interest in our model. For this tutorial, we'll use 1,000 five-dimensional
+data points where the response only depends on the first two, so that we can visualize
+what's going on.
+
+We will generate a dataset where items have true label 0 and true label 1. For
+demonstrative purposes, we will use a synthetically generated dataset of observed
+values. In practice, you would gather real data and classify results by-hand, for
+example using human labelers.
+
+
+```python
+X = dist.Normal(0, 5).expand([1000, 5]).sample()
+
+tau0 = 2 * 0.3 / (0.7 * np.sqrt(1000))
+lambda0 = torch.tensor([-70, 40, 0, 0, 0]).unsqueeze(-1)
+true_beta = tau0 * lambda0
+
+Y = dist.Bernoulli(logits=X @ true_beta).sample()
+
+print(f"τ0: {tau0}")
+print(f" β: {true_beta}")
+```
+
+<CellOutput>
+{`τ0: 0.02710523708715754
+ β: tensor([[-1.8974],
+        [ 1.0842],
+        [ 0.0000],
+        [ 0.0000],
+        [ 0.0000]])`}
+</CellOutput>
+
+Let's take a moment to visualize our dataset.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+red_x = X[:, :2][Y[:, 0] == 0, 0]
+red_y = X[:, :2][Y[:, 0] == 0, 1]
+red_label = ["red"] * len(red_x)
+red_cds = ColumnDataSource(
+    {"x": red_x.tolist(), "y": red_y.tolist(), "label": red_label}
+)
+red_tips = [("y", "@y{0.000}"), ("x", "@x{0.000}"), ("Label", "@label")]
+green_x = X[:, :2][Y[:, 0] == 1, 0]
+green_y = X[:, :2][Y[:, 0] == 1, 1]
+green_label = ["green"] * len(green_x)
+green_cds = ColumnDataSource(
+    {"x": green_x.tolist(), "y": green_y.tolist(), "label": green_label}
+)
+green_tips = [("y", "@y{0.000}"), ("x", "@x{0.000}"), ("Label", "@label")]
+
+synthetic_data_plot = plots.scatter_plot(
+    plot_sources=[red_cds, green_cds],
+    tooltips=[red_tips, green_tips],
+    figure_kwargs={
+        "title": "Synthetic data",
+        "x_axis_label": "x",
+        "y_axis_label": "y",
+    },
+    legend_items=["Label 0", "Label 1"],
+    plot_kwargs={"fill_color": "label", "fill_alpha": 0.5},
+)
+
+show(synthetic_data_plot)
+```
+
+<SyntheticDataPlot />
+
+Now, we will split the dataset into a training set and a test set.
+
+
+```python
+X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y)
+```
+
+Now that we've got our data defined, we can instantiate an instance of the model.
+
+
+```python
+model = SparseLogisticRegression(X_train, X_test, Y_test)
+```
+
+Our inference algorithms expect observations in the form of a dictionary. This
+dictionary should consist of `@bm.random_variable` invocations as keys, and tensor data
+as values. In order to bind this data, first we'll instantiate the model.
+
+
+```python
+observations = {model.y(): Y_train}
+```
+
+## Inference
+
+
+Inference is the process of combining _model_ with _data_ to obtain _insights_, in the
+form of probability distributions over values of interest. Bean Machine offers a
+powerful and general inference framework to enable fitting arbitrary models to data.
+
+Since this model is comprised entirely of differentiable random variables, we'll make
+use of the No U-Turn Sampler (NUTS) (Hoffman & Gelman, 2011).
+
+Running inference consists of a few arguments:
+
+| Name           | Usage                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------- |
+| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                                |
+| `observations` | A dictionary of observations, as built above.                                                            |
+| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in `queries`. |
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly.  |
+
+Let's run inference:
+
+
+```python
+num_samples = 2 if smoke_test else 1000
+num_adaptive_samples = 0 if smoke_test else num_samples // 2
+num_chains = 1 if smoke_test else 2
+```
+
+```python
+queries = [model.lambda_(), model.beta(), model.log_prob_test(), model.y_probs()]
+
+samples = bm.GlobalNoUTurnSampler().infer(
+    queries=queries,
+    observations=observations,
+    num_adaptive_samples=num_adaptive_samples,
+    num_samples=num_samples,
+    num_chains=num_chains,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
+</CellOutput>
+
+## Analysis
+
+
+`samples` now contains our inference results.
+
+First, we'll just print previews of the results. This should give a sense of how to work
+with the `samples` object, and also an idea of the shapes of the inferred values.
+
+
+```python
+lambda_marginal = samples[model.lambda_()].flatten(start_dim=0, end_dim=1).detach()
+beta_marginal = samples[model.beta()].flatten(start_dim=0, end_dim=1).detach()
+log_prob_test_results = samples[model.log_prob_test()][0].detach()
+
+print(
+    f"lambda_marginal:\n{lambda_marginal}\n\n"
+    f"beta_marginal:\n{beta_marginal}\n\n"
+    f"log_prob_test_results:\n{log_prob_test_results[:20]}"
+)
+```
+
+<CellOutput>
+{`lambda_marginal:
+tensor([[[ 2.6198],
+         [ 1.3287],
+         [ 0.0938],
+         [ 1.0506],
+         [ 0.0587]],
+        [[13.2534],
+         [ 4.6418],
+         [ 0.4788],
+         [ 0.4512],
+         [ 0.3465]],
+        [[ 8.1153],
+         [ 6.5786],
+         [ 1.1769],
+         [ 0.9143],
+         [ 0.2002]],
+        ...,
+        [[ 5.1651],
+         [ 4.2968],
+         [ 1.4736],
+         [ 0.1063],
+         [ 0.1456]],
+        [[ 3.4234],
+         [ 7.4883],
+         [ 0.1332],
+         [ 0.1061],
+         [ 3.3683]],
+        [[ 3.8088],
+         [ 4.0945],
+         [ 0.0326],
+         [ 0.0855],
+         [ 2.1101]]])
+beta_marginal:
+tensor([[[-1.7338e+00],
+         [ 1.0886e+00],
+         [ 3.2757e-02],
+         [ 2.7897e-02],
+         [-3.0284e-02]],
+        [[-1.6925e+00],
+         [ 1.0110e+00],
+         [ 2.9174e-02],
+         [ 5.3729e-02],
+         [-4.8737e-02]],
+        [[-1.7951e+00],
+         [ 1.1043e+00],
+         [ 3.2932e-02],
+         [ 3.5600e-02],
+         [-9.5285e-02]],
+        ...,
+        [[-2.1309e+00],
+         [ 1.3129e+00],
+         [ 7.0064e-02],
+         [-1.0239e-03],
+         [-7.4444e-02]],
+        [[-2.0386e+00],
+         [ 1.2802e+00],
+         [ 3.3466e-02],
+         [-5.0192e-03],
+         [-9.6416e-02]],
+        [[-1.9325e+00],
+         [ 1.3206e+00],
+         [ 2.4385e-03],
+         [-1.9932e-03],
+         [-2.7120e-02]]])
+log_prob_test_results:
+tensor([-30.7586, -31.6717, -32.9846, -33.8448, -30.6982, -32.3251, -32.6041,
+        -30.4404, -33.2512, -33.7011, -30.9789, -32.0142, -30.2897, -30.1203,
+        -31.2295, -30.9763, -30.2639, -37.4670, -31.7164, -33.8429])`}
+</CellOutput>
+
+Next, let's visualize the inferred random variables.
+
+
+Below we plot the joint of the first two components of $\beta$ and $\lambda$ (as a
+reminder, the remaining components are noise which the outcome variable doesn't depend
+on).
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+beta_marginals_plot = plots.marginal_2d(
+    x=beta_marginal[:, :2][:, 0].flatten().numpy(),
+    y=beta_marginal[:, :2][:, 1].flatten().numpy(),
+    x_label="β0",
+    y_label="β1",
+    title="β0 - β1 joint plot",
+    true_x=float(true_beta[:2, :].flatten()[0]),
+    true_y=float(true_beta[:2, :].flatten()[1]),
+)
+show(beta_marginals_plot)
+```
+
+<BetaMarginalsPlot />
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+lambda_marginals_plot = plots.marginal_2d(
+    x=lambda_marginal[:, :2][:, 0].flatten().numpy(),
+    y=lambda_marginal[:, :2][:, 1].flatten().numpy(),
+    x_label="λ0",
+    y_label="λ1",
+    title="λ0 - λ1 joint plot",
+)
+show(lambda_marginals_plot)
+```
+
+<LambdaMarginalsPlot />
+
+The marginals and the joint for $\beta$ and $\lambda$ look reasonable. We note that
+posterior mean for $\beta$ closely matches the true values used to generate the data.
+Note that the $\lambda$ values can be fairly large if needed since we place a
+`HalfCauchy` prior over it. Even in the presence of strong global shrinkage, this lets
+local parameters take on larger values if needed.
+
+Now let us look at the histogram for the remaining values of $\beta$, i.e. the
+coefficients for variables which have no effect on the outcome.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+betas = samples[model.beta()].squeeze(-1).reshape(-1, 5)
+plot_sources = []
+labels = []
+tooltips = []
+for i in range(5):
+    b = betas[:, i].numpy()
+    support, density = az.stats.density_utils.kde(b)
+    density /= density.max()
+    cds = ColumnDataSource({"x": support.tolist(), "y": density.tolist()})
+    label = f"β{i}"
+    tips = [(f"{label}", "@support{0.000}")]
+    plot_sources.append(cds)
+    labels.append(label)
+    tooltips.append(tips)
+
+betas_density_plot = plots.line_plot(
+    plot_sources=plot_sources,
+    labels=labels,
+    tooltips=tooltips,
+    plot_kwargs={"line_width": 2},
+    figure_kwargs={
+        "title": "Histogram of some sample model coefficients",
+        "x_axis_label": "β",
+    },
+)
+betas_density_plot.yaxis.visible = False
+betas_density_plot.legend.click_policy = "mute"
+show(betas_density_plot)
+```
+
+<BetasDensityPlot />
+
+We note that the majority of the posterior mass on all the variables that the outcome
+doesn't depend on is centered at 0 and the only non-zero values are the first two
+variables. This validates how the horseshoe prior helps induce sparsity.
+
+Lastly, let's plot the first thousand log probabilities on test data that we generated
+per-iteration during inference. We'll also overlay the log probability that the test
+dataset would score on the ground truth parameters.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+ground_truth_log_prob = float(
+    dist.Bernoulli(logits=X_test @ true_beta).log_prob(Y_test).sum()
+)
+y = log_prob_test_results.numpy()
+x = np.arange(len(y))
+cds = ColumnDataSource({"x": x.tolist(), "y": y.tolist()})
+tips = [("Log probability", "@y{0.000}"), ("Iteration", "@x")]
+log_prob_plot = plots.line_plot(
+    plot_sources=[cds],
+    labels=[f"Using true params = {ground_truth_log_prob :.2f}"],
+    tooltips=[tips],
+    figure_kwargs={
+        "title": "Log probability",
+        "plot_width": 800,
+        "x_axis_label": "Iteration",
+        "y_axis_label": "Log probability",
+    },
+    plot_kwargs={"line_alpha": 0.5},
+)
+# Add a line showing the ground truth.
+span = Span(
+    location=ground_truth_log_prob,
+    dimension="width",
+    line_color="black",
+    line_width=3,
+)
+log_prob_plot.add_layout(span)
+log_prob_plot.legend.location = "bottom_left"
+show(log_prob_plot)
+```
+
+<LogProbPlot />
+
+Let us plot the predictions from the model on the test dataset as a sanity check. For
+simplicity, we will compute the mean of the probability score (computed as `y_probs` in
+the model) on each test data point and assume a label of 0 if the score is less than 0.5
+and conversely a label of 1 if the score is above 0.5.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+y_probs = samples[model.y_probs()].mean([0, 1])
+predicted_red_x = X_test[y_probs[:, 0] < 0.5, 0]
+predicted_red_y = X_test[y_probs[:, 0] < 0.5, 1]
+predicted_red_label = ["red"] * len(predicted_red_x)
+predicted_red_cds = ColumnDataSource(
+    {
+        "x": predicted_red_x.tolist(),
+        "y": predicted_red_y.tolist(),
+        "label": predicted_red_label,
+    }
+)
+predicted_red_tips = [("y", "@y{0.000}"), ("x", "@x{0.000}"), ("Label", "@label")]
+predicted_green_x = X_test[y_probs[:, 0] >= 0.5, 0]
+predicted_green_y = X_test[y_probs[:, 0] >= 0.5, 1]
+predicted_green_label = ["green"] * len(predicted_green_x)
+predicted_green_cds = ColumnDataSource(
+    {
+        "x": predicted_green_x.tolist(),
+        "y": predicted_green_y.tolist(),
+        "label": predicted_green_label,
+    }
+)
+predicted_green_tips = [("y", "@y{0.000}"), ("x", "@x{0.000}"), ("Label", "@label")]
+predicted_data_plot = plots.scatter_plot(
+    plot_sources=[predicted_red_cds, predicted_green_cds],
+    tooltips=[predicted_red_tips, predicted_green_tips],
+    figure_kwargs={
+        "title": "Synthetic data",
+        "x_axis_label": "x",
+        "y_axis_label": "y",
+    },
+    legend_items=["Predicted 0", "Predicted 1"],
+    plot_kwargs={"fill_color": "label", "fill_alpha": 0.5},
+)
+# Select one point and annotate it.
+predicted_data_plot.circle(
+    x=[float(X_test[11, 0])],
+    y=[float(X_test[11, 1])],
+    size=20,
+    fill_color=None,
+    line_color="steelblue",
+    line_width=2,
+    line_alpha=1,
+)
+predicted_data_plot.legend.location = "bottom_left"
+show(predicted_data_plot)
+```
+
+<PredictedDataPlot />
+
+As we can see, the model seems to have recovered the same decision boundary, and MCMC
+has converged to parameters that correctly predicted the test dataset. This was just a
+sanity check. Since we have built a probabilistic model, the probability that each
+data point has label 1 is itself a distribution! Let us see this for one of the test
+data points (marked by a blue circle above).
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+data_point11_plot = plots.histogram_plot(
+    data=samples[model.y_probs()][..., 11, 0].reshape(-1).numpy(),
+    figure_kwargs={"title": "Probability of test datapoint 11 having Label 1"},
+)
+show(data_point11_plot)
+```
+
+<DataPoint11Plot />
+
+The `MonteCarloSamples` from Bean Machine's inference can be converted to arviz's
+internal `InferenceData` format so that we can make use of its inference statistics and
+plotting utilities for diagnostics.
+
+
+```python
+filtered_samples = {
+    k: v for k, v in samples.items() if k in {model.beta(), model.lambda_()}
+}
+az_data = MonteCarloSamples(filtered_samples).to_inference_data()
+summary_df = az.summary(az_data, round_to=3)
+Markdown(summary_df.to_markdown())
+```
+
+|                                                           |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:----------------------------------------------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| beta(SparseLogisticRegression with 5 covariates,)[0,0]    | -1.831 | 0.189 |     -2.139 |      -1.54  |       0.004 |     0.003 |   2262.41  |   1633.88  |   1.001 |
+| beta(SparseLogisticRegression with 5 covariates,)[1,0]    |  1.125 | 0.117 |      0.938 |       1.306 |       0.002 |     0.002 |   2326.46  |   1467.7   |   1.001 |
+| beta(SparseLogisticRegression with 5 covariates,)[2,0]    |  0.019 | 0.032 |     -0.027 |       0.073 |       0.001 |     0.001 |   1632.42  |   1789.54  |   1     |
+| beta(SparseLogisticRegression with 5 covariates,)[3,0]    |  0.037 | 0.033 |     -0.017 |       0.086 |       0.001 |     0.001 |    868.043 |   1139.73  |   1     |
+| beta(SparseLogisticRegression with 5 covariates,)[4,0]    | -0.055 | 0.039 |     -0.116 |       0.003 |       0.001 |     0.001 |    873.499 |    699.275 |   1.011 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[0,0] |  5.474 | 4.262 |      1.481 |       9.959 |       0.186 |     0.142 |    553.895 |    768.156 |   1.002 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[1,0] |  3.525 | 2.733 |      0.881 |       6.448 |       0.107 |     0.075 |    702.637 |    873.822 |   1.005 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[2,0] |  0.468 | 0.741 |      0     |       1.044 |       0.026 |     0.019 |    415.185 |    704.298 |   1.002 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[3,0] |  0.574 | 1.026 |      0.001 |       1.197 |       0.035 |     0.025 |    327.898 |    451.965 |   1.003 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[4,0] |  0.627 | 0.914 |      0     |       1.3   |       0.032 |     0.023 |    453.222 |    418.09  |   1.007 |
+
+The summary above includes useful statistics about each marginal distribution. Below we
+describe what some of these useful statistics are.
+
+
+#### $\hat{R}$ diagnostic
+
+
+$\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
+is a test that indicates a lack of convergence by comparing the variance between
+multiple chains to the variance within each chain. If the parameters are successfully
+exploring the full space for each chain, then $\hat{R}\approx 1$, since the
+between-chain and within-chain variance should be equal. $\hat{R}$ is calculated as
+
+$$
+\hat{R}=\frac{\hat{V}}{W}
+$$
+
+where $W$ is the within-chain variance and $\hat{V}$ is the posterior variance estimate
+for the pooled rank-traces. The take-away here is that $\hat{R}$ converges towards 1
+when each of the Markov chains approaches perfect adaptation to the true posterior
+distribution. We do not recommend using inference results if $\hat{R}>1.01$. More
+information about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
+
+
+#### Effective sample size $ess$ diagnostic
+
+
+MCMC samplers do not draw independent samples from the target distribution, which means
+that our samples are correlated. In an ideal situation all samples would be independent,
+but we do not have that luxury. We can, however, measure the number of _effectively
+independent_ samples we draw, which is called the effective sample size. You can read
+more about how this value is calculated in the [Vehtari _et al_](#references) paper,
+briefly it is a measure that combines information from the $\hat{R}$ value with the
+autocorrelation estimates within the chains. There are many ways to estimate effective
+samples sizes, however, we will be using the method defined in the [Vehtari _et
+al_](#references) paper.
+
+The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
+average. Since we ran four chains, we need `ess_bulk` to be greater than 200 for each
+parameter. The `ess_tail` is an estimate for effectively independent samples considering
+the more extreme values of the posterior. This is not the number of samples that landed
+in the tails of the posterior. It is a measure of the number of effectively independent
+samples if we sampled the tails of the posterior. The rule of thumb for this value is
+also to be greater than 100 per chain on average.
+
+For comparison, let's check out the model's performance using a couple of different
+inference methods.
+
+
+## Single-site Metropolis-Hastings
+
+
+Let's retry this problem, using ancestral Metropolis-Hastings as the inference algorithm
+to compare performance.
+
+Ancestral Metropolis-Hastings is a simple inference algorithm, which proposes child
+random variables conditional on values for the parent random variables. The most
+ancestral random variables are simply sampled from the prior distribution.
+
+
+```python
+queries_mh = [model.lambda_(), model.beta(), model.log_prob_test()]
+num_samples_mh = 2 * num_samples
+
+samples_mh = bm.SingleSiteAncestralMetropolisHastings().infer(
+    queries=queries_mh,
+    observations=observations,
+    num_samples=num_samples_mh,
+    num_chains=num_chains,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/2000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/2000 [00:00<?, ?it/s]`}
+</CellOutput>
+
+```python
+lambda_marginal_mh = (
+    samples_mh[model.lambda_()].flatten(start_dim=0, end_dim=1).detach()
+)
+beta_marginal_mh = samples_mh[model.beta()].flatten(start_dim=0, end_dim=1).detach()
+log_prob_test_results_mh = (
+    samples_mh[model.log_prob_test()].flatten(start_dim=0, end_dim=1).detach()
+)
+```
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+beta_marginals_mh_plot = plots.marginal_2d(
+    x=beta_marginal_mh[:, :2][:, 0].flatten().numpy(),
+    y=beta_marginal_mh[:, :2][:, 1].flatten().numpy(),
+    x_label="β0",
+    y_label="β1",
+    title="β0 - β1 joint plot / Single Site Ancestral Metropolis Hastings",
+    true_x=float(true_beta[:2, :].flatten()[0]),
+    true_y=float(true_beta[:2, :].flatten()[1]),
+)
+show(beta_marginals_mh_plot)
+```
+
+<BetaMarginalsMhPlot />
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+lambda_marginals_mh_plot = plots.marginal_2d(
+    x=lambda_marginal_mh[:, :2][:, 0].flatten().numpy(),
+    y=lambda_marginal_mh[:, :2][:, 1].flatten().numpy(),
+    x_label="λ0",
+    y_label="λ1",
+    title="λ0 - λ1 joint plot / Single Site Ancestral Metropolis Hastings",
+)
+show(lambda_marginals_mh_plot)
+```
+
+<LambdaMarginalsMhPlot />
+
+From all of the above plots, we see that ancestral Metropolis-Hastings does a
+significantly worse job at recovering the true parameters! Not only do regions of
+uncertainty tend to _exclude_ the true values, the samples that are actually drawn are
+very sparse. This means that the algorithm is achieving a very poor representation of
+the posterior surface.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+y = log_prob_test_results_mh.numpy()[:1000]
+x = np.arange(len(y))
+cds = ColumnDataSource({"x": x.tolist(), "y": y.tolist()})
+tips = [("Log probability", "@y{0.000}"), ("Iteration", "@x")]
+log_prob_mh_plot = plots.line_plot(
+    plot_sources=[cds],
+    labels=[f"Using true params = {ground_truth_log_prob :.2f}"],
+    tooltips=[tips],
+    figure_kwargs={
+        "title": "Log probability",
+        "plot_width": 800,
+        "x_axis_label": "Iteration",
+        "y_axis_label": "Log probability",
+    },
+    plot_kwargs={"line_alpha": 0.5},
+)
+# Add a line showing the ground truth.
+span = Span(
+    location=ground_truth_log_prob,
+    dimension="width",
+    line_color="black",
+    line_width=3,
+)
+log_prob_mh_plot.add_layout(span)
+log_prob_mh_plot.legend.location = "bottom_left"
+show(log_prob_mh_plot)
+```
+
+<LogProbMhPlot />
+
+Surprisingly, the algorithm does eventually discover — and settle in on — parameters
+that seem to describe the test data well.
+
+
+```python
+summary_mh_df = az.summary(samples_mh.to_inference_data(), round_to=3)
+Markdown(summary_mh_df.to_markdown())
+```
+
+|                                                            |    mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:-----------------------------------------------------------|--------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| log_prob_test(SparseLogisticRegression with 5 covariates,) | -38.816 | 21.506 |    -41.575 |     -30.58  |       2.221 |     1.575 |      5.885 |     26.663 |   1.779 |
+| beta(SparseLogisticRegression with 5 covariates,)[0,0]     |  -1.575 |  0.581 |     -2.209 |      -1.052 |       0.32  |     0.25  |      2.733 |      2.291 |   2.86  |
+| beta(SparseLogisticRegression with 5 covariates,)[1,0]     |   0.984 |  0.342 |      0.622 |       1.466 |       0.206 |     0.165 |      2.758 |      2.26  |   2.878 |
+| beta(SparseLogisticRegression with 5 covariates,)[2,0]     |   0.059 |  0.059 |      0.034 |       0.128 |       0.025 |     0.019 |      3.09  |      2.256 |   1.715 |
+| beta(SparseLogisticRegression with 5 covariates,)[3,0]     |  -0.007 |  0.071 |     -0.132 |       0.035 |       0.042 |     0.034 |      2.512 |      2.734 |   2.415 |
+| beta(SparseLogisticRegression with 5 covariates,)[4,0]     |  -0.089 |  0.093 |     -0.155 |       0.094 |       0.056 |     0.045 |      3.528 |      7.811 |   1.616 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[0,0]  |  13.094 | 10.699 |      2.435 |      23.854 |       7.51  |     6.351 |      2.341 |      6.02  |   3.662 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[1,0]  |   4.865 |  1.49  |      3.563 |       6.107 |       0.878 |     0.697 |      2.442 |      5.908 |   3.053 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[2,0]  |   0.263 |  0.116 |      0.173 |       0.383 |       0.055 |     0.041 |      3.965 |      2.598 |   3.019 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[3,0]  |   0.596 |  0.256 |      0.26  |       0.603 |       0.051 |     0.037 |      7.271 |     19.964 |   2.755 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[4,0]  |   0.773 |  0.112 |      0.681 |       0.867 |       0.066 |     0.053 |      2.643 |     20.873 |   2.168 |
+
+$\hat{R}$ values are extremely far from $1.0$. Further, the $ess$ and values for
+our sampled random variables are extremely small. As a result, these inference results
+would be unusable for any real application.
+
+In comparison, NUTS seems to have developed a much more complete representation of the
+posterior surface. Now that we have validated the model on a synthetic dataset, we will
+look at a real-world example.
+
+
+## German-numeric data
+
+
+In the above examples, we used a 2D dataset, simply to make visualizing the inferences
+more intuitive. Let's retry our sparse logistic regression on a real-world dataset, the
+German credit dataset.
+
+The German credit dataset is a collection of 1,000 data points. Each data point
+represents a person who borrows from a bank. Each person is classified as either a good
+or a bad credit risk according to the bank. Each person contains 24 numeric covariates
+that may or may not be useful predictors for credit risk. Example covariates include
+age, sex, and savings. The response variable is either 1, indicating good credit, or 2,
+indicating bad credit. You can read more about this dataset, and in particular what each
+of the first 24 covariate columns represent in the
+[documentation](https://archive.ics.uci.edu/ml/machine-learning-
+databases/statlog/german/german.doc).
+
+
+```python
+input_data = np.genfromtxt(
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data-numeric"
+)
+```
+
+Let's scale covariates to range between -1 and 1, and add a constant factor. This yields
+a total of 25 covariates. We'll also translate the response variable to [0, 1].
+
+
+```python
+X_all = torch.from_numpy(
+    np.hstack(
+        [
+            np.ones((input_data.shape[0], 1)),
+            sklearn.preprocessing.minmax_scale(
+                input_data[:, :-1],
+                feature_range=(-1, 1),
+            ),
+        ]
+    )
+).float()
+Y_all = torch.from_numpy(sklearn.preprocessing.minmax_scale(input_data[:, -1:])).float()
+```
+
+Now, we'll split into training and test data.
+
+
+```python
+X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(
+    X_all,
+    Y_all,
+)
+```
+
+The rest of the setup is the same as the tutorial with synthetic data.
+
+First, we'll instantiate our model.
+
+
+```python
+model = SparseLogisticRegression(X_train, X_test, Y_test)
+```
+
+Next, we'll bind our observations.
+
+
+```python
+observations = {model.y(): Y_train}
+```
+
+Now, we're ready to fit the model.
+
+
+```python
+german_queries = [
+    model.lambda_(),
+    model.beta(),
+    model.log_prob_test(),
+    model.y_probs(),
+]
+german_samples = bm.GlobalNoUTurnSampler().infer(
+    queries=german_queries,
+    observations=observations,
+    num_adaptive_samples=num_adaptive_samples,
+    num_samples=num_samples,
+    num_chains=num_chains,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
+</CellOutput>
+
+```python
+german_lambda_marginal = (
+    german_samples[model.lambda_()].flatten(start_dim=0, end_dim=1).detach()
+)
+german_beta_marginal = (
+    german_samples[model.beta()].flatten(start_dim=0, end_dim=1).detach()
+)
+german_log_prob_test_results = (
+    german_samples[model.log_prob_test()].flatten(start_dim=0, end_dim=1).detach()
+)
+```
+
+This model is too high-dimensional to plot the same way that we did with the previous
+examples. Let us look at the log density of the samples generated by MCMC. Sometimes the
+chains can get stuck making little progress, which can be seen from this plot. We
+observe that NUTS is able to draw samples quite efficiently from across the posterior
+distribution (compare with Metropolis-Hastings above).
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+german_y = german_log_prob_test_results[:1000]
+german_x = np.arange(len(y))
+german_cds = ColumnDataSource({"x": german_x.tolist(), "y": german_y.tolist()})
+german_tips = [("Log probability", "@y{0.000}"), ("Iteration", "@x")]
+german_log_prob_plot = plots.line_plot(
+    plot_sources=[german_cds],
+    tooltips=[german_tips],
+    figure_kwargs={
+        "title": "Log probability for German credit risk data",
+        "plot_width": 800,
+        "x_axis_label": "Iteration",
+        "y_axis_label": "Log probability",
+    },
+    plot_kwargs={"line_alpha": 0.5},
+)
+show(german_log_prob_plot)
+```
+
+<GermanLogProbPlot />
+
+Let us also look at the diagnostics to ensure that the MCMC chains have converged to the
+posterior distribution. We note that $\hat{R}$ are all close to 1 and the $ess$ values
+look reasonable.
+
+
+```python
+filtered_samples = {
+    k: v for k, v in german_samples.items() if k in {model.beta(), model.lambda_()}
+}
+az_data = MonteCarloSamples(filtered_samples).to_inference_data()
+german_summary_df = az.summary(az_data, round_to=3)
+Markdown(german_summary_df.to_markdown())
+```
+
+|                                                             |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:------------------------------------------------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| beta(SparseLogisticRegression with 25 covariates,)[0,0]     | -0.257 | 0.364 |     -0.904 |       0.118 |       0.024 |     0.017 |    327.533 |    947.81  |   1.003 |
+| beta(SparseLogisticRegression with 25 covariates,)[1,0]     | -0.782 | 0.126 |     -0.969 |      -0.572 |       0.004 |     0.003 |    993.558 |   1018.18  |   1.005 |
+| beta(SparseLogisticRegression with 25 covariates,)[2,0]     |  1.314 | 0.346 |      0.786 |       1.955 |       0.033 |     0.023 |    124.884 |     43.634 |   1.014 |
+| beta(SparseLogisticRegression with 25 covariates,)[3,0]     | -0.469 | 0.202 |     -0.813 |      -0.146 |       0.007 |     0.005 |    844.349 |    484.053 |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[4,0]     |  0.056 | 0.2   |     -0.234 |       0.36  |       0.009 |     0.006 |    401.454 |    222.23  |   1.004 |
+| beta(SparseLogisticRegression with 25 covariates,)[5,0]     | -0.28  | 0.147 |     -0.475 |       0.007 |       0.009 |     0.006 |    290.008 |    210.753 |   1.007 |
+| beta(SparseLogisticRegression with 25 covariates,)[6,0]     | -0.368 | 0.179 |     -0.658 |      -0.091 |       0.01  |     0.008 |    341.976 |    587.985 |   1.01  |
+| beta(SparseLogisticRegression with 25 covariates,)[7,0]     | -0.146 | 0.165 |     -0.445 |       0.056 |       0.01  |     0.007 |    371.074 |    445.044 |   1.006 |
+| beta(SparseLogisticRegression with 25 covariates,)[8,0]     | -0.012 | 0.081 |     -0.139 |       0.124 |       0.002 |     0.002 |    956.043 |   1341.31  |   1.004 |
+| beta(SparseLogisticRegression with 25 covariates,)[9,0]     |  0.202 | 0.155 |     -0.025 |       0.444 |       0.009 |     0.007 |    327.15  |    910.979 |   1.004 |
+| beta(SparseLogisticRegression with 25 covariates,)[10,0]    | -0.063 | 0.149 |     -0.309 |       0.139 |       0.004 |     0.003 |   1145.82  |   1631.66  |   1.005 |
+| beta(SparseLogisticRegression with 25 covariates,)[11,0]    | -0.206 | 0.138 |     -0.413 |       0.008 |       0.007 |     0.005 |    457.306 |    573.639 |   1.005 |
+| beta(SparseLogisticRegression with 25 covariates,)[12,0]    |  0.134 | 0.184 |     -0.087 |       0.459 |       0.009 |     0.006 |    567.971 |    661.122 |   1.009 |
+| beta(SparseLogisticRegression with 25 covariates,)[13,0]    |  0.013 | 0.076 |     -0.106 |       0.137 |       0.002 |     0.001 |   1310.4   |   1372.91  |   1     |
+| beta(SparseLogisticRegression with 25 covariates,)[14,0]    | -0.089 | 0.089 |     -0.229 |       0.033 |       0.004 |     0.003 |    563.973 |   1200.21  |   1.005 |
+| beta(SparseLogisticRegression with 25 covariates,)[15,0]    | -0.287 | 0.287 |     -0.708 |       0.066 |       0.011 |     0.008 |    664.084 |   1441.4   |   1.006 |
+| beta(SparseLogisticRegression with 25 covariates,)[16,0]    |  0.238 | 0.12  |      0.035 |       0.429 |       0.005 |     0.004 |    631.085 |    245.302 |   1.013 |
+| beta(SparseLogisticRegression with 25 covariates,)[17,0]    | -0.328 | 0.201 |     -0.61  |       0.018 |       0.007 |     0.005 |    816.273 |    647.448 |   1.007 |
+| beta(SparseLogisticRegression with 25 covariates,)[18,0]    |  0.228 | 0.211 |     -0.052 |       0.561 |       0.015 |     0.01  |    215.62  |    731.942 |   1.01  |
+| beta(SparseLogisticRegression with 25 covariates,)[19,0]    |  0.268 | 0.288 |     -0.105 |       0.703 |       0.017 |     0.012 |    249.571 |    635.769 |   1.007 |
+| beta(SparseLogisticRegression with 25 covariates,)[20,0]    |  0.159 | 0.136 |     -0.037 |       0.376 |       0.006 |     0.004 |    581.773 |   1174.78  |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[21,0]    | -0.058 | 0.104 |     -0.243 |       0.076 |       0.004 |     0.003 |    730.588 |   1267.43  |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[22,0]    |  0.001 | 0.134 |     -0.215 |       0.207 |       0.006 |     0.004 |    483.626 |    988.748 |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[23,0]    |  0.019 | 0.084 |     -0.115 |       0.157 |       0.002 |     0.002 |   1315.77  |   1791.4   |   1     |
+| beta(SparseLogisticRegression with 25 covariates,)[24,0]    | -0.012 | 0.072 |     -0.141 |       0.087 |       0.002 |     0.001 |    972.324 |   1486.99  |   1.004 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[0,0]  |  2.213 | 2.457 |      0.002 |       5.479 |       0.174 |     0.123 |    231.224 |    491.148 |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[1,0]  |  5.197 | 4.801 |      1.199 |       9.358 |       0.243 |     0.179 |    421.515 |    703.647 |   1.005 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[2,0]  |  8.149 | 6.18  |      1.794 |      14.644 |       0.264 |     0.186 |    299.806 |    791.507 |   1.004 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[3,0]  |  3.722 | 3.409 |      0.008 |       6.791 |       0.125 |     0.089 |    521.049 |    462.994 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[4,0]  |  1.492 | 1.934 |      0.003 |       3.329 |       0.087 |     0.062 |    350.104 |    891.827 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[5,0]  |  2.396 | 2.545 |      0.007 |       4.373 |       0.103 |     0.073 |    246.491 |    183.791 |   1.009 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[6,0]  |  3.04  | 3.051 |      0.102 |       6.302 |       0.139 |     0.098 |    381.574 |    803.806 |   1.007 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[7,0]  |  1.638 | 2.081 |      0.001 |       3.482 |       0.079 |     0.056 |    403.794 |    819.543 |   1.005 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[8,0]  |  0.863 | 1.511 |      0     |       1.733 |       0.05  |     0.036 |    522.334 |    659.002 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[9,0]  |  1.631 | 1.61  |      0.001 |       3.211 |       0.047 |     0.033 |    752.121 |    819.585 |   1.005 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[10,0] |  1.297 | 2.226 |      0.001 |       2.605 |       0.082 |     0.067 |    774.449 |    697.494 |   1.005 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[11,0] |  3.782 | 9.022 |      0.005 |       4.797 |       1.621 |     1.158 |    135.4   |     28.453 |   1.011 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[12,0] |  1.467 | 1.927 |      0.001 |       2.97  |       0.063 |     0.045 |    888.637 |    994.141 |   1.004 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[13,0] |  1.017 | 2.082 |      0.002 |       1.927 |       0.118 |     0.09  |    642.431 |    618.869 |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[14,0] |  1.733 | 4.737 |      0     |       2.354 |       0.695 |     0.495 |    125.406 |     88.659 |   1.019 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[15,0] |  2.388 | 2.629 |      0.004 |       4.609 |       0.107 |     0.077 |    540.253 |    743.749 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[16,0] |  2.033 | 2.071 |      0.003 |       3.626 |       0.083 |     0.059 |    302.466 |    298.963 |   1.008 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[17,0] |  2.719 | 2.839 |      0.005 |       5.281 |       0.099 |     0.07  |    662.68  |    752.652 |   1     |
+| lambda_(SparseLogisticRegression with 25 covariates,)[18,0] |  1.898 | 2.082 |      0.018 |       3.728 |       0.073 |     0.052 |    392.019 |    700.61  |   1.004 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[19,0] |  2.306 | 2.863 |      0.001 |       5.072 |       0.166 |     0.118 |    205.816 |    365.135 |   1.004 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[20,0] |  1.703 | 1.924 |      0.002 |       3.871 |       0.123 |     0.087 |    255.59  |    481.833 |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[21,0] |  1.076 | 1.32  |      0.002 |       2.111 |       0.036 |     0.025 |    913.277 |   1031.38  |   1.001 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[22,0] |  1.127 | 1.334 |      0     |       2.384 |       0.043 |     0.03  |    554.778 |    658.389 |   1.012 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[23,0] |  0.835 | 1.344 |      0.002 |       1.606 |       0.045 |     0.034 |    482.742 |    723.521 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[24,0] |  0.881 | 1.639 |      0.003 |       1.646 |       0.073 |     0.053 |    456.937 |    761.319 |   1.003 |
+
+To check for sparsity, let us plot the histogram of the marginals for a selection of
+coefficients ($\beta$) in the model. We note that many of the parameters have their
+posterior probability mass concentrated at 0, resulting in a sparse model, as we
+desired.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+german_betas = german_samples[model.beta()].squeeze(-1).reshape(-1, 25)
+german_plot_sources = []
+german_labels = []
+german_tooltips = []
+for i in range(25):
+    b = german_betas[:, i].numpy()
+    support, density = az.stats.density_utils.kde(b)
+    density /= density.max()
+    cds = ColumnDataSource({"x": support.tolist(), "y": density.tolist()})
+    label = f"β{i}"
+    tips = [(f"{label}", "@support{0.000}")]
+    german_plot_sources.append(cds)
+    german_labels.append(label)
+    german_tooltips.append(tips)
+
+german_betas_density_plot = plots.line_plot(
+    plot_sources=german_plot_sources,
+    labels=german_labels,
+    tooltips=german_tooltips,
+    plot_kwargs={"line_width": 1, "line_alpha": 0.4},
+    figure_kwargs={
+        "title": "Histogram of some sample model coefficients",
+        "x_axis_label": "β",
+        "plot_height": 700,
+    },
+)
+german_betas_density_plot.yaxis.visible = False
+german_betas_density_plot.legend.click_policy = "mute"
+show(german_betas_density_plot)
+```
+
+<GermanBetasDensityPlot />
+
+Finally, let us evaluate the mean predictions from the model using the
+[ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) (Receiver
+Operating Characteristic) plot. The area under the curve (AUC) is 0.83 which shows that
+the model is able to achieve a good classification accuracy. This is merely evaluating
+the mean forecast from the model, but as we saw earlier, we have a full distribution of
+the probability scores corresponding to each test data.
+
+
+```python
+y_true = Y_test.squeeze(-1).numpy()
+y_pred_mean = german_samples[model.y_probs()].squeeze(-1).mean([0, 1]).numpy()
+false_positive_rate, true_positive_rate, _ = sklearn.metrics._ranking.roc_curve(
+    y_true,
+    y_pred_mean,
+)
+roc_score = sklearn.metrics.roc_auc_score(y_true, y_pred_mean)
+roc_cds = ColumnDataSource(
+    {
+        "x": false_positive_rate.tolist(),
+        "y": true_positive_rate.tolist(),
+    }
+)
+roc_tips = [("TPF", "@y{0.000}"), ("FPR", "@x{0.000}")]
+roc_plot = plots.line_plot(
+    plot_sources=[roc_cds],
+    tooltips=[roc_tips],
+    labels=[f"Classifier (AUC = {roc_score:.2f})"],
+    figure_kwargs={
+        "title": "Receiver Operator Characteristic",
+        "x_axis_label": "False positive rate (positive label: 1)",
+        "y_axis_label": "True positive rate (positive label: 1)",
+    },
+    plot_kwargs={
+        "line_width": 3,
+        "line_alpha": 0.7,
+        "hover_line_color": "orange",
+        "hover_line_alpha": 1,
+    },
+)
+roc_plot.legend.location = "bottom_right"
+show(roc_plot)
+```
+
+<RocPlot />
+
+<a id="references"></a>
+
+# References
+
+
+* Carvalho CM, Polson NG, Scott JG. **Handling sparsity via the horseshoe**. In:
+  van Dyk D, Welling M, editors. _Proceedings of the Twelfth International Conference on
+  Artificial Intelligence and Statistics_; 2009.
+  pp. 73–80. Available from
+  [http://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf](http://proceedings.mlr.p
+ress/v5/carvalho09a/carvalho09a.pdf).
+* Piironen J, Vehtari A. **Sparsity information and regularization in the horseshoe and
+  other shrinkage priors**. _Electronic Journal of Statistics_. 2017;11(2) 5018–5051.
+  [doi: 10.1214/17-EJS1337SI](https://dx.doi.org/10.1214/17-EJS1337SI).
+

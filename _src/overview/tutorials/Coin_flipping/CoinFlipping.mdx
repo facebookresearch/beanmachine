@@ -6,17 +6,17 @@ nb_path: tutorials/Coin_flipping.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { PlotlyFigure785e46188801407f9b4399e964737c97 } from "./CoinFlipping.jsx";
-import { PlotlyFigure8f0c0f4310574f60a566b3c294996d33 } from "./CoinFlipping.jsx";
+import { PlotlyFigure5dbf412f605944d08dd90b7ca0bc0888 } from "./CoinFlipping.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { PlotlyFiguref7d97d16eb8c4c47a5da016ceeb5642e } from "./CoinFlipping.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb"
   colabUrl="https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb"
 />
 
-## Tutorial: Estimating heads rate of a coin
+## Tutorial: **Estimating heads rate of a coin**
 
 
 This tutorial demonstrates modeling and running inference on a simple coin-flipping
@@ -41,11 +41,16 @@ PyTorch classes.
 
 
 ```python
-import os
+# Install Bean Machine in Colab if using Colab.
 import sys
+
 
 if "google.colab" in sys.modules and "beanmachine" not in sys.modules:
     !pip install beanmachine
+```
+
+```python
+import os
 
 import beanmachine.ppl as bm
 import beanmachine.ppl.inference.monte_carlo_samples
@@ -53,16 +58,24 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 import torch.distributions as dist
-from torch import tensor
 from IPython.display import Markdown
+from torch import tensor
+```
+
+The next cell includes convenient configuration settings to improve the notebook
+presentation as well as setting a manual seed for reproducibility.
 
 
+```python
+# Plotting settings
 plt.rc("figure", figsize=[8, 6])
 plt.rc("font", size=14)
 plt.rc("lines", linewidth=2.5)
-pd.set_option("precision", 3)
+
+# Manual seed
 bm.seed(11)
-# for CI testing
+
+# Other settings for the notebook.
 smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
@@ -310,6 +323,17 @@ samples = bm.SingleSiteAncestralMetropolisHastings().infer(
 )
 ```
 
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]`}
+</CellOutput>
+
 ## Analysis
 
 
@@ -421,9 +445,9 @@ look:
 bm.Diagnostics(samples).plot(display=True);
 ```
 
-<PlotlyFigure785e46188801407f9b4399e964737c97 />
+<PlotlyFigure5dbf412f605944d08dd90b7ca0bc0888 />
 
-<PlotlyFigure8f0c0f4310574f60a566b3c294996d33 />
+<PlotlyFiguref7d97d16eb8c4c47a5da016ceeb5642e />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
@@ -471,8 +495,16 @@ samples = bm.SingleSiteNewtonianMonteCarlo().infer(
 ```
 
 <CellOutput>
-{`CPU times: user 4.42 s, sys: 20.3 ms, total: 4.44 s
-Wall time: 4.06 s`}
+{` 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1000 [00:00<?, ?it/s]
+CPU times: user 5.42 s, sys: 24.7 ms, total: 5.44 s
+Wall time: 5.04 s`}
 </CellOutput>
 
 To run our model using `BMGInference`, the only change needed is the following:
@@ -491,8 +523,12 @@ samples_bmg = BMGInference().infer(
 ```
 
 <CellOutput>
-{`CPU times: user 475 ms, sys: 0 ns, total: 475 ms
-Wall time: 468 ms`}
+{`CPU times: user 407 ms, sys: 0 ns, total: 407 ms
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+*
+Wall time: 405 ms
+**************************************************`}
 </CellOutput>
 
 Wall time numbers will naturally vary on different platforms, but with with these

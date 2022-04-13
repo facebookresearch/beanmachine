@@ -1,0 +1,438 @@
+---
+title: Gaussian mixture model
+sidebar_label: Gaussian mixture model
+path: overview/tutorials/GMM_with_2_dimensions_and_4_components/GmmWith2DimensionsAnd4Components
+nb_path: tutorials/GMM_with_2_dimensions_and_4_components.ipynb
+github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb
+colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb
+---
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { PlotlyFigure4806e049ad494f84823e329d35190bc7 } from "./GmmWith2DimensionsAnd4Components.jsx";
+import { PlotlyFigure88340bdf42f049a993a7fedeaa2632dc } from "./GmmWith2DimensionsAnd4Components.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { PlotlyFigureedec8ff59bbd4e82b96dfdcc537ad772 } from "./GmmWith2DimensionsAnd4Components.jsx";
+
+<LinkButtons
+  githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
+  colabUrl="https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
+/>
+
+## Tutorial: **Gaussian Mixture Model** with 2 dimensions and 4 components
+
+
+ The purpose of this tutorial is to introduce some of Bean Machine's support for
+ Gaussian Mixture Processes (GMM) problems.
+
+
+## Problem
+
+
+A simple example of an open universe model is a Gaussian Mixture Model (GMM) where the
+number of mixture components is unknown.
+[Mixture models](https://en.wikipedia.org/wiki/Mixture_model) are useful in problems
+where individuals from multiple sub-populations are aggregated together. A common use
+case for GMMs is unsupervised clustering, where one seeks to infer which sub-population
+an individual belongs without any labeled training data. Using the bean machine open
+universe probabilistic programming language, we are able to provide a Bayesian treatment
+of this problem and draw posterior samples representing a distribution over not only the
+cluster assignments but also the number of clusters itself.
+
+In this tutorial, we will cover (all mathematical symbols defined in "Model" section):
+
+1. How to generate data $\{y_j\}_{j\in[n]}$ from the model, conditioned on the number
+   of clusters $K$ being fixed.
+2. Given $\{y_j\}_{j\in[n]}$, how to draw posterior samples of the latent (unobserved)
+   variables $\mu_i$,$\sigma_i$, and $c_j$.
+
+
+## Prerequisites
+
+
+The code presented in this tutorial can be executed in the order presented, as long as
+certain packages are imported as follows:
+
+
+```python
+# Install Bean Machine in Colab if using Colab.
+import sys
+
+
+if "google.colab" in sys.modules and "beanmachine" not in sys.modules:
+    !pip install beanmachine
+```
+
+```python
+import logging
+import os
+
+import beanmachine.ppl as bm
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import torch
+import torch.distributions as dist
+from torch import tensor
+```
+
+The next cell includes convenient configuration settings to improve the notebook
+presentation as well as setting a manual seed for reproducibility.
+
+
+```python
+# Eliminate excess inference logging from Bean Machinen.
+logging.getLogger("beanmachine").setLevel(50)
+
+# Manual seed
+torch.manual_seed(42)
+
+# Other settings for the notebook.
+smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
+```
+
+## Model
+
+
+Concretely, we will consider a GMM where:
+
+* Number of mixture components $K=4$
+* The mixing weights $\alpha\sim\text{Dirichlet}([5,\ldots,5])$
+* For $i\in[K]$, each mixture component is a 2-dimensional isotropic Gaussian
+  $\mathcal{N}(\mu_i,\sigma_i^2 I)$ where
+
+  * $\mu_i\overset{\text{iid}}{\sim}\mathcal{N}(0,10I)$
+  * $\sigma_i\overset{\text{iid}}{\sim}\text{Gamma}(1,10)$
+
+
+* For $j \in [n]$:
+
+  * Conditioned on $\alpha$, the component membership
+    $c_j\mid\alpha\overset{\text{iid}}{\sim}\text{Cat}(\alpha)$
+  * Conditioned on component membership, the data
+    $y_j\mid c_j=i\sim\mathcal{N}(\mu_i,\sigma_i^2+0.001)$; we add $0.001$ here to
+    ensure the covariance matrix is positive definite
+
+
+**`NOTE`** We can implement this model in Bean Machine by defining random variable
+objects with the `@bm.random_variable` and `@bm.functional` decorators. These functions
+behave differently than ordinary Python functions.
+
+
+<div
+  style={
+    {
+      background: "#daeaf3",
+      border_left: "3px solid #2980b9",
+      display: "block",
+      margin: "16px 0",
+      padding: "12px",
+    }
+  }
+>
+  Semantics for <code>@bm.random_variable</code> functions:
+  <ul>
+    <li>
+      They must return PyTorch <code>Distribution</code> objects.
+    </li>
+    <li>
+      Though they return distributions, callees actually receive <i>samples</i> from the
+      distribution. The machinery for obtaining samples from distributions is handled
+      internally by Bean Machine.
+    </li>
+    <li>
+      Inference runs the model through many iterations. During a particular inference
+      iteration, a distinct random variable will correspond to exactly one sampled
+      value: <b>calls to the same random variable function with the same arguments will
+      receive the same sampled value within one inference iteration</b>. This makes it
+      easy for multiple components of your model to refer to the same logical random
+      variable.
+    </li>
+    <li>
+      Consequently, to define distinct random variables that correspond to different
+      sampled values during a particular inference iteration, an effective practice is
+      to add a dummy "indexing" parameter to the function. Distinct random variables
+      can be referred to with different values for this index.
+    </li>
+    <li>
+      Please see the documentation for more information about this decorator.
+    </li>
+  </ul>
+  Semantics for <code>@bm.functional</code>:
+  <ul>
+    <li>
+      This decorator is used to deterministically transform the results of one or more
+      random variables.
+    </li>
+    <li>
+      This follows the same naming practice as <code>@bm.random_variable</code> where
+      variables are distinguished by their argument call values.
+    </li>
+  </ul>
+</div>
+
+
+```python
+# unittest
+class GaussianMixtureModel(object):
+    def __init__(self, K):
+        self.K = k
+
+    @bm.random_variable
+    def alpha(self, k):
+        return dist.Dirichlet(5 * torch.ones(k))
+
+    @bm.random_variable
+    def mu(self, c):
+        return dist.MultivariateNormal(
+            loc=torch.zeros(2), covariance_matrix=10.0 * torch.eye(2)
+        )
+
+    @bm.random_variable
+    def sigma(self, c):
+        return dist.Gamma(1, 10)
+
+    @bm.random_variable
+    def component(self, i):
+        alpha = self.alpha(self.K)
+        return dist.Categorical(alpha)
+
+    @bm.random_variable
+    def y(self, i):
+        c = self.component(i).item()
+        return dist.MultivariateNormal(
+            loc=self.mu(c), covariance_matrix=self.sigma(c) ** 2 * torch.eye(2) + 1e-3
+        )
+```
+
+Notice that `alpha`, which is of dimension $k$ conditioned on $K=k$, is parameterized by
+$k$. This is a current limitation of Bean Machine: any instantiation of a
+`random_variable` must always have fixed dimension (_e.g._ `gmm.alpha(3)` is
+3-dimensional).
+
+
+## Observed Sample
+
+
+Here we generate some observations by conditioning on some latents and running MCMC to
+sample the prior for the remaining latent variables as well as the data
+$\{y_j\}_{j\in[n]}$.
+
+
+```python
+n = 32  # num observations
+k = 4  # true number of clusters
+
+gmm = GaussianMixtureModel(K=4)
+
+# fix the settings of latent variables
+ground_truth = {
+    **{
+        gmm.alpha(k): torch.ones(k) * 1.0 / k,
+    },
+    **{gmm.mu(i): tensor([1.0 * int(i / 2), i % 2]) for i in range(k)},
+    **{gmm.sigma(i): tensor(0.1) for i in range(k)},
+    **{gmm.component(i): tensor(i % k) for i in range(n)},
+}
+
+# forward sampling under these latent variables' values
+queries = (
+    [gmm.y(i) for i in range(n)]
+    + [gmm.component(i) for i in range(n)]
+    + [gmm.mu(i) for i in range(k)]
+    + [gmm.sigma(i) for i in range(k)]
+)
+prior_sample = bm.SingleSiteAncestralMetropolisHastings().infer(
+    queries, ground_truth, num_samples=2, num_chains=1
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/2 [00:00<?, ?it/s]`}
+</CellOutput>
+
+Below we visualize the distribution of the generated data points $\{x_j\}_{j\in[n]}$
+and use the color to denote the component memberships $\{c_j\}_{j\in[n]}$ of each
+point. In addition, we display contours at one standard deviation for each of the
+Gaussians in the mixture.
+
+
+```python
+def draw_points_and_components(ys, components, mus, sigmas):
+    df = pd.DataFrame(
+        {
+            "y0": ys[:, 0],
+            "y1": ys[:, 1],
+            "component": components.astype(str),
+        }
+    ).sort_values(by="component")
+    palette = px.colors.qualitative.G10
+    fig = px.scatter(
+        df, x="y0", y="y1", color="component", color_discrete_sequence=palette
+    )
+
+    shapes = list()
+    _k = mus.shape[0]
+    for l in range(_k):
+        x0, y0 = mus[l, :] - 2 * sigmas[l]  # 2 sigma for 95% contour
+        x1, y1 = mus[l, :] + 2 * sigmas[l]
+        shapes.append(
+            dict(
+                type="circle",
+                xref="x",
+                yref="y",
+                x0=x0,
+                y0=y0,
+                x1=x1,
+                y1=y1,
+                line_color=palette[l],
+            )
+        )
+    fig.update_layout(shapes=shapes)
+    return fig
+
+
+fig = draw_points_and_components(
+    np.vstack(
+        [
+            prior_sample.get_variable(gmm.y(i)).squeeze()[-1].detach().numpy()
+            for i in range(n)
+        ]
+    ),
+    np.array(
+        [
+            prior_sample.get_variable(gmm.component(i)).squeeze()[-1].item()
+            for i in range(n)
+        ]
+    ),
+    np.vstack(
+        [
+            prior_sample.get_variable(gmm.mu(i)).squeeze()[-1].detach().numpy()
+            for i in range(k)
+        ]
+    ),
+    np.array(
+        [prior_sample.get_variable(gmm.sigma(i)).squeeze()[-1].item() for i in range(k)]
+    ),
+)
+fig.show()
+```
+
+<PlotlyFigure88340bdf42f049a993a7fedeaa2632dc />
+
+## Inference
+
+
+Now we can condition on the observations $\{y_j\}$ and draw samples of the latent
+variables from the induced posterior.
+
+
+```python
+torch.manual_seed(42)
+
+n_samples = 2 if smoke_test else 100
+
+queries = (
+    [gmm.alpha(gmm.K)]
+    + [gmm.component(j) for j in range(n)]
+    + [gmm.mu(i) for i in range(k)]
+    + [gmm.sigma(i) for i in range(k)]
+)
+mh = bm.SingleSiteRandomWalk()
+posterior_samples = mh.infer(
+    queries,
+    {gmm.y(i): prior_sample.get_variable(gmm.y(i)) for i in range(n)},
+    num_samples=n_samples,
+    num_chains=1,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/100 [00:00<?, ?it/s]`}
+</CellOutput>
+
+## Analysis
+
+
+Let's visualize the mixture components (`mu`, `sigma`) and component memberships
+(`component`) for each of the data points (`y`) at the start of MCMC. This likely won't
+be very good, since we haven't burned in the chain.
+
+
+```python
+t = 0
+components = np.array(
+    [
+        posterior_samples.get_variable(gmm.component(i)).squeeze()[t].item()
+        for i in range(n)
+    ]
+)
+_k = gmm.K
+fig = draw_points_and_components(
+    np.vstack(
+        [
+            prior_sample.get_variable(gmm.y(i)).squeeze()[-1].detach().numpy()
+            for i in range(n)
+        ]
+    ),
+    components,
+    np.vstack(
+        [
+            posterior_samples.get_variable(gmm.mu(i)).squeeze()[t, :].detach().numpy()
+            for i in range(_k)
+            if i in np.unique(components)
+        ]
+    ),
+    np.array(
+        [
+            posterior_samples.get_variable(gmm.sigma(i)).squeeze()[t].item()
+            for i in range(_k)
+            if i in np.unique(components)
+        ]
+    ),
+)
+fig.show()
+```
+
+<PlotlyFigureedec8ff59bbd4e82b96dfdcc537ad772 />
+
+After running `n_samples` MCMC steps, the effects of initialization should be
+diminished.
+
+
+```python
+t = n_samples - 1
+components = np.array(
+    [
+        posterior_samples.get_variable(gmm.component(i)).squeeze()[t].item()
+        for i in range(n)
+    ]
+)
+_k = gmm.K
+fig = draw_points_and_components(
+    np.vstack(
+        [
+            prior_sample.get_variable(gmm.y(i)).squeeze()[-1].detach().numpy()
+            for i in range(n)
+        ]
+    ),
+    components,
+    np.vstack(
+        [
+            posterior_samples.get_variable(gmm.mu(i)).squeeze()[t, :].detach().numpy()
+            for i in range(_k)
+            if i in np.unique(components)
+        ]
+    ),
+    np.array(
+        [
+            posterior_samples.get_variable(gmm.sigma(i)).squeeze()[t].item()
+            for i in range(_k)
+            if i in np.unique(components)
+        ]
+    ),
+)
+fig.show()
+```
+
+<PlotlyFigure4806e049ad494f84823e329d35190bc7 />

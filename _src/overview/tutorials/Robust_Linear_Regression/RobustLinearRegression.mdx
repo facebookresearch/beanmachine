@@ -1,0 +1,754 @@
+---
+title: Robust linear regression
+sidebar_label: Robust linear regression
+path: overview/tutorials/Robust_Linear_Regression/RobustLinearRegression
+nb_path: tutorials/Robust_Linear_Regression.ipynb
+github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
+colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
+---
+import { AlphaBetaJointPlot } from "./RobustLinearRegression.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { SyntheticDataPlot } from "./RobustLinearRegression.jsx";
+import { PredictionPlot } from "./RobustLinearRegression.jsx";
+import { TestDataMhPlot } from "./RobustLinearRegression.jsx";
+import { SyntheticCleanDataPlot } from "./RobustLinearRegression.jsx";
+import { SigmaPlot } from "./RobustLinearRegression.jsx";
+import { SamplesDiagnosticPlots } from "./RobustLinearRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { GammaPriorPlot } from "./RobustLinearRegression.jsx";
+
+<LinkButtons
+  githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb"
+  colabUrl="https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb"
+/>
+
+## Tutorial: **Robust Linear regression**
+
+
+This tutorial demonstrates modeling and running inference on a robust linear regression
+model in Bean Machine. This should offer a simple modification from the standard
+regression model to incorporate heavy tailed error models that are more robust to
+outliers and demonstrates modifying base models.
+
+
+## Problem
+
+
+In this classical extension to the linear regression problem, the goal still is to
+estimate some unobserved response variable from an observed covariate. The twist from
+the basic linear regression model is that we now believe that errors can occasionally be
+large and we would like the model to be more robust to such error sources through an
+adequate observation model. We'll construct a Bayesian model for this problem, which
+will yield not only point estimates but also measures of uncertainty in our predictions.
+We will also explore different inference procedures for this tutorial.
+
+We'll restrict this tutorial to the univariate case, to aid with clarity and
+visualization. We will follow the outline of the tutorial by
+[Adrian Baez-Ortega](#references) for comparison.
+
+
+## Prerequisites
+
+
+We will be using the following packages within this tutorial.
+
+* [arviz](https://arviz-devs.github.io/arviz/) and
+  [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations; and
+* [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), and
+  [scikit-learn](https://scikit-learn.org/) for data manipulation.
+
+Let's code this in Bean Machine! Import the Bean Machine library and some fundamental
+PyTorch classes.
+
+
+```python
+# Install Bean Machine in Colab if using Colab.
+import sys
+
+
+if "google.colab" in sys.modules and "beanmachine" not in sys.modules:
+    !pip install beanmachine
+```
+
+```python
+import os
+
+import arviz as az
+import beanmachine.ppl as bm
+import numpy as np
+import pandas as pd
+import sklearn.model_selection
+import torch
+import torch.distributions as dist
+from beanmachine.tutorials.utils import plots
+from bokeh.io import output_notebook
+from bokeh.models import ColumnDataSource
+from bokeh.palettes import Colorblind3
+from bokeh.plotting import gridplot, show
+from IPython.display import Markdown
+```
+
+The next cell includes convenient configuration settings to improve the notebook
+presentation as well as setting a manual seed for `torch` for reproducibility.
+
+
+```python
+# Plotting settings
+az.rcParams["plot.backend"] = "bokeh"
+az.rcParams["stats.hdi_prob"] = 0.89
+
+# Manual seed
+torch.manual_seed(11)
+
+# Other settings for the notebook
+smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
+```
+
+## Model
+
+
+We're interested in predicting a response variable $y$ given an observed covariate $x$:
+
+* $y = \beta x + \alpha + \text{error}$
+
+If we assume the error to stem from a heavy-tailed distribution, for instance a
+[Student's T](#references), we can reframe this as:
+
+* $y \sim \mathcal{T}(\beta x + \alpha, \sigma, \nu)$
+
+Here, $\beta$ is a coefficient for $x$, $\alpha$ is a bias term, $\sigma$ is a term
+indicating a deviation, and $\nu$ is a term describing degrees of freedom. Specifically:
+
+* $N \in \mathbb{Z}^+$ is the size of the training data.
+* $x_i \in \mathbb{R}$ is the observed covariate.
+* $\beta \in \mathbb{R}$ is the coefficient for $x$. We'll use a prior of
+  $\mathcal{N}(0,1000)$.
+* $\alpha \in \mathbb{R}$ is the bias term. We'll use a prior of $\mathcal{N}(0,1000)$.
+* $\sigma \in \mathbb{R}^+$ is the error deviation. We'll use a Half-Normal prior
+  $\text{H}\mathcal{N}(0, 1000)$.
+* $\nu \in \mathbb{R}^+$ is the degrees of freedom of the Student's T. We'll use a Gamma
+  prior $\text{G}(2,0.1)$.
+* $y_i \stackrel{iid}{\sim} \mathcal{T}(\beta x_i + \alpha, \sigma, \nu) \in \mathbb{R}$
+  is the prediction.
+
+We are interested in fitting posterior distributions for $\beta$, $\alpha$, $\sigma$,
+and $\nu$ given a collection of training data $\{x, y\}_{i=1}^N$.
+
+Let's visualize the Gamma distribution that we used as our prior for $\epsilon$:
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+concentration = 2
+rate = 0.1
+x = torch.arange(0, 5, 0.01)
+y = dist.Gamma(concentration, rate).log_prob(x).exp()
+cds = ColumnDataSource({"x": x.tolist(), "y": y.tolist()})
+
+gamma_prior_plot = plots.line_plot(
+    plot_sources=[cds],
+    tooltips=[[("Density", "@y{0.000}"), ("ϵ", "@x{0.000}")]],
+    figure_kwargs={
+        "x_axis_label": "epsilon",
+        "y_axis_label": "density",
+        "title": f"Γ({concentration}, {rate}) prior",
+    },
+    plot_kwargs={"line_width": 2, "hover_line_color": "orange"},
+)
+show(gamma_prior_plot)
+```
+
+<GammaPriorPlot />
+
+We can implement this model in Bean Machine by defining random variable objects with the
+`@bm.random_variable` decorator. These functions behave differently than ordinary Python
+functions.
+
+<div
+  style={
+    {
+      background: "#daeaf3",
+      border_left: "3px solid #2980b9",
+      display: "block",
+      margin: "16px 0",
+      padding: "12px",
+    }
+  }
+>
+  Semantics for <code>@bm.random_variable</code> functions:
+  <ul>
+    <li>
+      They must return PyTorch <code>Distribution</code> objects.
+    </li>
+    <li>
+      Though they return distributions, callees actually receive <i>samples</i> from the
+      distribution. The machinery for obtaining samples from distributions is handled
+      internally by Bean Machine.
+    </li>
+    <li>
+      Inference runs the model through many iterations. During a particular inference
+      iteration, a distinct random variable will correspond to exactly one sampled
+      value: <b>calls to the same random variable function with the same arguments will
+      receive the same sampled value within one inference iteration</b>. This makes it
+      easy for multiple components of your model to refer to the same logical random
+      variable.
+    </li>
+    <li>
+      Consequently, to define distinct random variables that correspond to different
+      sampled values during a particular inference iteration, an effective practice is
+      to add a dummy "indexing" parameter to the function. Distinct random variables
+      can be referred to with different values for this index.
+    </li>
+    <li>
+      Please see the documentation for more information about this decorator.
+    </li>
+  </ul>
+</div>
+
+
+```python
+@bm.random_variable
+def beta():
+    """
+    Regression Coefficient
+    """
+    return dist.Normal(0, 1000)
+
+
+@bm.random_variable
+def alpha():
+    """
+    Regression Bias/Offset
+    """
+    return dist.Normal(0, 1000)
+
+
+@bm.random_variable
+def sigma_regressor():
+    """
+    Deviation parameter for Student's T
+    Controls the magnitude of the errors.
+    """
+    return dist.HalfNormal(1000)
+
+
+@bm.random_variable
+def df_nu():
+    """
+    Degrees of Freedom of a Student's T
+    Check https://en.wikipedia.org/wiki/Student%27s_t-distribution for effect
+    """
+    return dist.Gamma(2, 0.1)
+
+
+@bm.random_variable
+def y_robust(X):
+    """
+    Heavy-Tailed Noise model for regression utilizing StudentT
+    Student's T : https://en.wikipedia.org/wiki/Student%27s_t-distribution
+    """
+    return dist.StudentT(df=df_nu(), loc=beta() * X + alpha(), scale=sigma_regressor())
+```
+
+## Data
+
+
+With the model defined, we need to collect some observed data in order to learn about
+values of interest in our model.
+
+In this case, we will observe a few samples of inputs and outputs. For demonstrative
+purposes, we will use a synthetically generated dataset of observed values. In practice,
+you would gather a collection of covariate and response variables, and then you could
+construct a model to predict a new, unobserved response variable from a new, observed
+covariate.
+
+For our synthetic dataset, we will assume the following parameters to the relationship
+between inputs and outputs.
+
+
+```python
+true_beta = 2.0
+true_alpha = 5.0
+true_epsilon = 1.0
+N = 200
+
+X = X_clean = dist.Normal(0, 1).expand([N, 1]).sample()
+Y = Y_clean = dist.Normal(true_beta * X + true_alpha, true_epsilon).sample()
+```
+
+We can visualize the data as follows:
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+clean_cds = ColumnDataSource(
+    {
+        "x": X.flatten().tolist(),
+        "y": Y.flatten().tolist(),
+        "color": ["steelblue"] * len(X.flatten()),
+    }
+)
+clean_tips = [("y", "@y{0.000}"), ("x", "@x{0.000}")]
+synthetic_clean_data_plot = plots.scatter_plot(
+    plot_sources=[clean_cds],
+    tooltips=[clean_tips],
+    figure_kwargs={
+        "title": "Synthetic clean data",
+        "x_axis_label": "x",
+        "y_axis_label": "y",
+        "plot_width": 500,
+        "plot_height": 500,
+        "x_range": [-6, 6],
+        "y_range": [-11, 16],
+    },
+    legend_items="Clean data",
+)
+synthetic_clean_data_plot.legend.location = "bottom_left"
+show(synthetic_clean_data_plot)
+```
+
+<SyntheticCleanDataPlot />
+
+We will now corrupt this data with some extreme outliers.
+
+
+```python
+X_corr, Y_corr = X_clean, Y_clean
+X_corr[0], Y_corr[0] = 5, 15
+X_corr[1], Y_corr[1] = -5, -10
+X_corr[2], Y_corr[2] = -3, 10
+```
+
+Let's visualize the data now again after adding outliers.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+corrupted_cds = ColumnDataSource(
+    {"x": [5, -5, -3], "y": [15, -10, 10], "color": ["orange"] * 3}
+)
+corrupted_tips = [("y", "@y{0.000}"), ("x", "@x{0.000}")]
+synthetic_corrupted_data_plot = plots.scatter_plot(
+    plot_sources=[clean_cds, corrupted_cds],
+    tooltips=[clean_tips, corrupted_tips],
+    figure_kwargs={
+        "title": "Synthetic corrupted data",
+        "x_axis_label": "x",
+        "y_axis_label": "y",
+        "plot_width": 500,
+        "plot_height": 500,
+        "x_range": synthetic_clean_data_plot.x_range,
+        "y_range": synthetic_clean_data_plot.y_range,
+    },
+    legend_items=["Clean data", "Corrupted data"],
+    plot_kwargs={"fill_color": "color"},
+)
+
+# Compare clean vs corrupted data.
+synthetic_clean_data_plot.legend.visible = False
+synthetic_corrupted_data_plot.legend.location = "bottom_right"
+synthetic_data_plot = gridplot(
+    [[synthetic_clean_data_plot, synthetic_corrupted_data_plot]]
+)
+show(synthetic_data_plot)
+```
+
+<SyntheticDataPlot />
+
+Let's split the dataset into a training and test set, which we'll use later to evaluate
+predictive performance.
+
+
+```python
+X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y)
+```
+
+Our inference algorithms expect observations in the form of a dictionary. This
+dictionary should consist of `@bm.random_variable` invocations as keys, and tensor data
+as values.
+
+You can see this in the code snippet below, where we bind the observed values to a key
+representing the random variable that was observed.
+
+
+```python
+observations = {y_robust(X_train): Y_train}
+```
+
+## Inference: Take 1
+
+
+Inference is the process of combining _model_ with _data_ to obtain _insights_, in the
+form of probability distributions over values of interest. Bean Machine offers a
+powerful and general inference framework to enable fitting arbitrary models to data.
+
+As a starting point for running inference, we will use the basic Metropolis-Hastings
+inference algorithm. Ancestral Metropolis-Hastings is a simple inference algorithm,
+which proposes child random variables conditional on values for the parent random
+variables. The most ancestral random variables are simply sampled from the prior
+distribution.
+
+Running inference consists of a few arguments:
+
+| Name           | Usage                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------- |
+| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                                |
+| `observations` | A dictionary of observations, as built above.                                                            |
+| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in `queries`. |
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly.  |
+
+Let's run inference:
+
+
+```python
+queries = [beta(), alpha(), sigma_regressor(), df_nu()]
+num_samples = 2 if smoke_test else 2000
+num_chains = 1 if smoke_test else 4
+num_adaptive_samples = 0 if smoke_test else num_samples // 2
+
+samples = bm.GlobalNoUTurnSampler().infer(
+    queries=queries,
+    observations=observations,
+    num_samples=num_samples,
+    num_adaptive_samples=num_adaptive_samples,
+    num_chains=num_chains,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`}
+</CellOutput>
+
+## Analysis
+
+
+`samples` now contains our inference results.
+
+
+```python
+beta_marginal = samples[beta()].flatten(start_dim=0, end_dim=1).detach()
+alpha_marginal = samples[alpha()].flatten(start_dim=0, end_dim=1).detach()
+sigma_marginal = samples[sigma_regressor()].flatten(start_dim=0, end_dim=1).detach()
+nu_marginal = samples[df_nu()].flatten(start_dim=0, end_dim=1).detach()
+
+print(
+    f"β marginal: {beta_marginal}\n"
+    f"α marginal: {alpha_marginal}\n"
+    f"σ marginal: {sigma_marginal}\n"
+    f"ν marginal: {nu_marginal}"
+)
+```
+
+<CellOutput>
+{`β marginal: tensor([2.0662, 2.1385, 2.1161,  ..., 2.0776, 2.0551, 2.1739])
+α marginal: tensor([4.9729, 5.0066, 4.9666,  ..., 4.9667, 5.0000, 4.9756])
+σ marginal: tensor([1.0213, 0.8203, 0.8965,  ..., 0.9114, 0.9041, 0.9503])
+ν marginal: tensor([20.7076, 10.4356,  7.2460,  ...,  8.4249, 14.0951, 17.3018])`}
+</CellOutput>
+
+Next, let's visualize the inferred random variables.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+alpha_beta_joint_plot = plots.plot_marginal(
+    queries=[alpha(), beta()],
+    samples=samples,
+    true_values=[true_alpha, true_beta],
+    bandwidth=0.1,
+    joint_plot_title="α-β marginal",
+)
+show(alpha_beta_joint_plot)
+```
+
+<AlphaBetaJointPlot />
+
+We seem to have faithfully recovered $\alpha$ and $\beta$. Let's see what the model
+predicts for the variance.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+sigma_plot = plots.plot_marginal(
+    queries=[sigma_regressor()],
+    samples=samples,
+    true_values=[true_epsilon],
+    n_bins=100,
+    bandwidth=0.025,
+)
+show(sigma_plot)
+```
+
+<SigmaPlot />
+
+We seem to have recovered a reasonably good understanding of the variance.
+
+We can also compute log probability on the held-out test data. This isn't particularly
+useful on its own, but is useful for comparing different approaches. Thus, here, we will
+also plot a baseline for comparison: the log probability implied on the test dataset
+using the ground truth parameters.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+test_data_y = (
+    dist.Normal(
+        (
+            X_test @ beta_marginal[:num_samples].unsqueeze(0)
+            + alpha_marginal[:num_samples].unsqueeze(0)
+        ),
+        sigma_marginal[:num_samples],
+    )
+    .log_prob(Y_test)
+    .sum(dim=0)
+)
+test_data_x = list(range(len(test_data_y.tolist())))
+test_data_cds = ColumnDataSource({"x": test_data_x, "y": test_data_y.tolist()})
+
+ground_truth_y = (
+    dist.Normal(X_test * true_beta + true_alpha, true_epsilon)
+    .log_prob(Y_test)
+    .sum(dim=0)
+    .item()
+)
+ground_truth_cds = ColumnDataSource(
+    {"x": test_data_x, "y": [ground_truth_y] * len(test_data_x)}
+)
+
+test_data_mh_plot = plots.line_plot(
+    plot_sources=[ground_truth_cds, test_data_cds],
+    labels=[f"Ground truth = {ground_truth_y:.2f}", "MH"],
+    figure_kwargs={
+        "y_axis_label": "Log probability",
+        "x_axis_label": "Draw",
+        "title": "Log probability on test data",
+    },
+    plot_kwargs={"line_width": 3, "line_alpha": 0.7},
+)
+test_data_mh_plot.legend.location = "bottom_right"
+
+show(test_data_mh_plot)
+```
+
+<TestDataMhPlot />
+
+The posterior samples seems to capture the log probability using the ground truth
+parameters.
+
+ArviZ provides helpful statistics about the results of inference, which we show below.
+
+
+```python
+Markdown(az.summary(samples.to_inference_data(), round_to=4).to_markdown())
+```
+
+|                   |    mean |      sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:------------------|--------:|--------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| sigma_regressor() |  0.9472 |  0.0692 |     0.8334 |      1.0537 |      0.0009 |    0.0006 |    6055.61 |    5072.9  |  1.0007 |
+| alpha()           |  4.9884 |  0.0836 |     4.8539 |      5.1191 |      0.0009 |    0.0007 |    7809.74 |    4979.74 |  1.0005 |
+| df_nu()           | 18.9074 | 11.8847 |     4.6037 |     33.9716 |      0.1612 |    0.1144 |    5241.97 |    6050.47 |  1.0001 |
+| beta()            |  2.1329 |  0.0733 |     2.0114 |      2.2478 |      0.0009 |    0.0007 |    6205.17 |    5309.87 |  1.0009 |
+
+#### $\hat{R}$ diagnostic
+
+
+$\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
+is a test that indicates a lack of convergence by comparing the variance between
+multiple chains to the variance within each chain. If the parameters are successfully
+exploring the full space for each chain, then $\hat{R}\approx 1$, since the
+between-chain and within-chain variance should be equal. $\hat{R}$ is calculated as
+
+$$
+\hat{R}=\frac{\hat{V}}{W}
+$$
+
+where $W$ is the within-chain variance and $\hat{V}$ is the posterior variance estimate
+for the pooled rank-traces. The take-away here is that $\hat{R}$ converges towards 1
+when each of the Markov chains approaches perfect adaptation to the true posterior
+distribution. We do not recommend using inference results if $\hat{R}>1.01$. More
+information about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
+
+
+#### Effective sample size $ess$ diagnostic
+
+
+MCMC samplers do not draw independent samples from the target distribution, which means
+that our samples are correlated. In an ideal situation all samples would be independent,
+but we do not have that luxury. We can, however, measure the number of _effectively
+independent_ samples we draw, which is called the effective sample size. You can read
+more about how this value is calculated in the [Vehtari _et al_](#references) paper,
+briefly it is a measure that combines information from the $\hat{R}$ value with the
+autocorrelation estimates within the chains. There are many ways to estimate effective
+samples sizes, however, we will be using the method defined in the [Vehtari _et
+al_](#references) paper.
+
+The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
+average. Since we ran four chains, we need `ess_bulk` to be greater than 400 for each
+parameter. The `ess_tail` is an estimate for effectively independent samples considering
+the more extreme values of the posterior. This is not the number of samples that landed
+in the tails of the posterior. It is a measure of the number of effectively independent
+samples if we sampled the tails of the posterior. The rule of thumb for this value is
+also to be greater than 100 per chain on average.
+
+
+We can plot diagnostic information to assess model fit using ArviZ. Let's take a look:
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+samples_diagnostic_plots = gridplot(plots.plot_diagnostics(samples))
+show(samples_diagnostic_plots)
+```
+
+<SamplesDiagnosticPlots />
+
+The diagnostics output shows two diagnostic plots for individual random variables: trace
+plots and autocorrelation plots.
+
+* **Rank plots** are a histogram of the samples over time. All samples across
+  all chains are ranked and then we plot the average rank for each chain on
+  regular intervals. If the chains are mixing well this histogram should look
+  roughly uniform. If it looks highly irregular that suggests chains might be
+  getting stuck and not adequately exploring the sample space.
+
+* **Autocorrelation plots** measure how predictive the last several samples are
+  of the current sample. Autocorrelation may vary between -1.0
+  (deterministically anticorrelated) and 1.0 (deterministically correlated). We
+  compute autocorrelation approximately, so it may sometimes exceed these
+  bounds. In an ideal world, the current sample is chosen independently of the
+  previous samples: an autocorrelation of zero. This is not possible in
+  practice, due to stochastic noise and the mechanics of how inference works.
+
+From the trace plots, we see each of the chains are relatively healthy: they don't get
+stuck, and do not explore a chain-specific subset of the space.
+
+
+## Prediction
+
+
+We've built and evaluated our model. Lastly, let's take a quick look at how to predict
+with it.
+
+
+```python
+def predict(x):
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x).float()
+    return pd.DataFrame(
+        np.percentile(
+            dist.Normal(
+                x.view([-1, 1]) @ beta_marginal.unsqueeze(0)
+                + alpha_marginal.unsqueeze(0),
+                sigma_marginal.unsqueeze(0),
+            )
+            .sample([10])
+            .transpose(0, 1)
+            .flatten(1),
+            [2.5, 50, 97.5],
+            axis=1,
+        ).T,
+        index=x.view(-1).numpy(),
+        columns=["2.5%", "50%", "97.5%"],
+    )
+```
+
+Predict for a single value:
+
+
+```python
+Markdown(predict(4).to_markdown())
+```
+
+|    |   2.5% |     50% |   97.5% |
+|---:|-------:|--------:|--------:|
+|  4 | 11.563 | 13.5149 | 15.4869 |
+
+Or for a range:
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+predicted_df = predict(torch.linspace(-10, 10, 100))
+low_cds = ColumnDataSource(
+    {"x": predicted_df.index.tolist(), "y": predicted_df["2.5%"].tolist()}
+)
+med_cds = ColumnDataSource(
+    {"x": predicted_df.index.tolist(), "y": predicted_df["50%"].tolist()}
+)
+high_cds = ColumnDataSource(
+    {"x": predicted_df.index.tolist(), "y": predicted_df["97.5%"].tolist()}
+)
+prediction_plot = plots.line_plot(
+    plot_sources=[low_cds, med_cds, high_cds],
+    labels=predicted_df.columns.tolist(),
+    figure_kwargs={"x_axis_label": "x", "y_axis_label": "y", "title": "Predictions"},
+    plot_kwargs={"line_width": 2, "line_alpha": 0.6},
+)
+prediction_plot.legend.location = "top_left"
+# Add the clean and corrupted data.
+prediction_plot.circle(
+    x="x",
+    y="y",
+    source=clean_cds,
+    fill_color=Colorblind3[0],
+    line_color="white",
+    fill_alpha=0.6,
+    size=7,
+    legend_label="Clean data",
+)
+prediction_plot.circle(
+    x="x",
+    y="y",
+    source=corrupted_cds,
+    fill_color=Colorblind3[1],
+    line_color="white",
+    fill_alpha=0.6,
+    size=10,
+    legend_label="Corrupted data",
+)
+
+show(prediction_plot)
+```
+
+<PredictionPlot />
+
+<a id="references"></a>
+
+## References
+
+
+* Baez-Ortega, A (2018) **Robust Bayesian linear regression with Stan in R**.
+  Available from :
+   [https://baezortega.github.io/2018/08/06/robust_regression/](https://baezortega.githu
+b.io/2018/08/06/robust_regression/)
+* **Student's T distribution**
+  [https://en.wikipedia.org/wiki/Student's_t-
+distribution](https://en.wikipedia.org/wiki/Student's_t-distribution)
+* Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021)
+  **Rank-Normalization, Folding, and Localization: An Improved $\hat{R}$ for
+  Assessing Convergence of MCMC (with Discussion)**. Bayesian Analysis 16(2)
+  667–718. [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
+

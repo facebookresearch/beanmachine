@@ -1,0 +1,521 @@
+{
+  "target_id": "current-hits",
+  "root_id": "1003",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "1014"
+              }
+            ],
+            "center": [
+              {
+                "id": "1017"
+              },
+              {
+                "id": "1021"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "1018"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "1041"
+              }
+            ],
+            "title": {
+              "id": "1004"
+            },
+            "toolbar": {
+              "id": "1029"
+            },
+            "width": 700,
+            "x_range": {
+              "id": "1006"
+            },
+            "x_scale": {
+              "id": "1010"
+            },
+            "y_range": {
+              "id": "1008"
+            },
+            "y_scale": {
+              "id": "1012"
+            }
+          },
+          "id": "1003",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "1006",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "1028"
+            }
+          },
+          "id": "1024",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "1022",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "1037",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1014"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1017",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "1002"
+            }
+          },
+          "id": "1042",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "data": {
+              "name": [
+                "Max Alvis",
+                "Thurman Munson",
+                "Bert Campaneris",
+                "Billy Williams",
+                "Del Unser",
+                "George Scott",
+                "Ellie Rodriguez",
+                "Rico Petrocelli",
+                "Ron Swaboda",
+                "Ron Santo",
+                "Luis Alvarado",
+                "Don Kessinger",
+                "Jim Spencer",
+                "Ken Berry",
+                "Jay Johnstone",
+                "Frank Howard",
+                "Frank Robinson",
+                "Roberto Clemente"
+              ],
+              "x": {
+                "__ndarray__": "AAAAAAAAAADi4eHh4eHxP+Lh4eHh4QFA09LS0tLSCkDi4eHh4eERQFpaWlpaWhZA09LS0tLSGkBMS0tLS0sfQOLh4eHh4SFAHh4eHh4eJEBaWlpaWlomQJeWlpaWlihA09LS0tLSKkAPDw8PDw8tQExLS0tLSy9AxMPDw8PDMEDi4eHh4eExQAAAAAAAADNA",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "y": [
+                7,
+                8,
+                9,
+                10,
+                10,
+                10,
+                10,
+                10,
+                11,
+                11,
+                12,
+                13,
+                14,
+                14,
+                15,
+                16,
+                17,
+                18
+              ]
+            },
+            "selected": {
+              "id": "1053"
+            },
+            "selection_policy": {
+              "id": "1052"
+            }
+          },
+          "id": "1002",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "1019",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "1023",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "1008",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1018"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1021",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "axis_label": "Hits",
+            "coordinates": null,
+            "formatter": {
+              "id": "1047"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "1048"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "1019"
+            }
+          },
+          "id": "1018",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "axis_label": "Player",
+            "coordinates": null,
+            "formatter": {
+              "id": "1050"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "1051"
+            },
+            "major_label_text_font_size": "0pt",
+            "major_tick_line_color": null,
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "1015"
+            }
+          },
+          "id": "1014",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "1022"
+              },
+              {
+                "id": "1023"
+              },
+              {
+                "id": "1024"
+              },
+              {
+                "id": "1025"
+              },
+              {
+                "id": "1026"
+              },
+              {
+                "id": "1027"
+              },
+              {
+                "id": "1043"
+              }
+            ]
+          },
+          "id": "1029",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "1012",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "1002"
+            },
+            "glyph": {
+              "id": "1037"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "1039"
+            },
+            "muted_glyph": {
+              "id": "1040"
+            },
+            "nonselection_glyph": {
+              "id": "1038"
+            },
+            "view": {
+              "id": "1042"
+            }
+          },
+          "id": "1041",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "1027",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "1051",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "1040",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "1048",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "1050",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "1015",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "1047",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "1041"
+              }
+            ],
+            "tooltips": [
+              [
+                "Name",
+                "@name"
+              ],
+              [
+                "Hits",
+                "@y"
+              ]
+            ]
+          },
+          "id": "1043",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "1052",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "1010",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "line_width": {
+              "value": 2
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "1039",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Current hits"
+          },
+          "id": "1004",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "1028",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "1038",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "1025",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "1026",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "1053",
+          "type": "Selection"
+        }
+      ],
+      "root_ids": [
+        "1003"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}

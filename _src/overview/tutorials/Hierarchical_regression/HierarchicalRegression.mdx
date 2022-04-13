@@ -7,16 +7,16 @@ github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hier
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 ---
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { SampleOfPriors } from "./HierarchicalRegression.jsx";
-import { QueryEss } from "./HierarchicalRegression.jsx";
+import { BetaGamma } from "./HierarchicalRegression.jsx";
 import { CountyPosteriors } from "./HierarchicalRegression.jsx";
 import { Uranium } from "./HierarchicalRegression.jsx";
-import { BetaGamma } from "./HierarchicalRegression.jsx";
-import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
-import { FloorPlot } from "./HierarchicalRegression.jsx";
-import { TraceRanks } from "./HierarchicalRegression.jsx";
 import { LogPlotComparison } from "./HierarchicalRegression.jsx";
+import { QueryEss } from "./HierarchicalRegression.jsx";
+import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
+import { TraceRanks } from "./HierarchicalRegression.jsx";
+import { SampleOfPriors } from "./HierarchicalRegression.jsx";
+import { FloorPlot } from "./HierarchicalRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
@@ -101,7 +101,6 @@ presentation as well as setting a manual seed for `torch` for reproducibility.
 ```python
 # Plotting settings
 az.rcParams["plot.backend"] = "bokeh"
-az.rcParams["plot.bokeh.figure.dpi"] = 60
 az.rcParams["stats.hdi_prob"] = 0.89
 az.rcParams["plot.max_subplots"] = 85
 
@@ -109,8 +108,7 @@ az.rcParams["plot.max_subplots"] = 85
 torch.manual_seed(1199)
 
 # Other settings for the notebook
-output_notebook()
-smoke_test = ('SANDCASTLE_NEXUS' in os.environ or 'CI' in os.environ)
+smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Data
@@ -125,7 +123,7 @@ preprocessed version ready for our Bean Machine model here.
 
 ```python
 df = radon.load_data()
-Markdown(df.head().set_index('county_index').to_markdown())
+Markdown(df.head().set_index("county_index").to_markdown())
 ```
 
 |   county_index | county   |   floor |   activity |   log_activity |     Uppm |   log_Uppm |
@@ -375,7 +373,7 @@ showing what these priors look like are shown below.
 
 ```python
 # Needed for Colab
-output_notebook()
+output_notebook(hide_banner=True)
 
 sample_of_priors = radon.sample_of_priors()
 show(sample_of_priors)
@@ -433,6 +431,17 @@ samples = bm.GlobalNoUTurnSampler().infer(
 )
 ```
 
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`}
+</CellOutput>
+
 ### Analysis
 
 
@@ -446,17 +455,17 @@ summary_df = az.summary(samples.to_xarray(), round_to=3)
 Markdown(summary_df.sample(20).T.to_markdown())
 ```
 
-|           |   alpha_hat()[690] |   y_hat()[754] |   y_hat()[723] |   alpha_hat()[261] |   y_hat()[181] |   alpha()[55] |   alpha_hat()[19] |   y_hat()[234] |   alpha()[73] |   alpha_hat()[700] |   alpha_hat()[841] |   alpha_hat()[789] |   alpha_hat()[230] |   alpha_hat()[639] |   y_hat()[641] |   alpha_hat()[851] |   alpha_hat()[550] |   y_hat()[243] |   alpha_hat()[895] |   y_hat()[888] |
-|:----------|-------------------:|---------------:|---------------:|-------------------:|---------------:|--------------:|------------------:|---------------:|--------------:|-------------------:|-------------------:|-------------------:|-------------------:|-------------------:|---------------:|-------------------:|-------------------:|---------------:|-------------------:|---------------:|
-| mean      |              0.965 |          0.965 |          0.327 |              1.752 |          1.4   |         1.46  |             0.918 |          1.505 |         1.389 |              0.965 |              1.369 |              1.543 |              1.642 |              1.632 |          1.632 |              1.369 |              1.409 |          1.777 |              1.756 |          1.75  |
-| sd        |              0.067 |          0.067 |          0.091 |              0.132 |          0.079 |         0.15  |             0.087 |          0.169 |         0.153 |              0.067 |              0.086 |              0.106 |              0.131 |              0.132 |          0.132 |              0.086 |              0.15  |          0.145 |              0.128 |          0.167 |
-| hdi_5.5%  |              0.862 |          0.862 |          0.185 |              1.551 |          1.271 |         1.216 |             0.778 |          1.245 |         1.154 |              0.862 |              1.232 |              1.368 |              1.438 |              1.428 |          1.428 |              1.232 |              1.167 |          1.554 |              1.551 |          1.504 |
-| hdi_94.5% |              1.075 |          1.075 |          0.474 |              1.965 |          1.524 |         1.696 |             1.055 |          1.77  |         1.63  |              1.075 |              1.507 |              1.706 |              1.852 |              1.842 |          1.842 |              1.507 |              1.647 |          2.008 |              1.957 |          2.019 |
-| mcse_mean |              0.001 |          0.001 |          0.002 |              0.002 |          0.001 |         0.001 |             0.001 |          0.003 |         0.002 |              0.001 |              0.001 |              0.001 |              0.001 |              0.002 |          0.002 |              0.001 |              0.001 |          0.002 |              0.001 |          0.003 |
-| mcse_sd   |              0.001 |          0.001 |          0.002 |              0.002 |          0     |         0.001 |             0.001 |          0.002 |         0.001 |              0.001 |              0     |              0.001 |              0.001 |              0.001 |          0.001 |              0     |              0.001 |          0.002 |              0.001 |          0.002 |
-| ess_bulk  |           2714.28  |       2714.28  |       1968.43  |           3279.48  |      13564.7   |     20267.5   |          9491.38  |       2829.43  |      8117.78  |           2714.28  |          16151.2   |          15522.6   |          12168.8   |           4617.43  |       4617.43  |          16151.2   |          20793.6   |       3781.4   |          13435.2   |       3418.39  |
-| ess_tail  |           2206.28  |       2206.28  |       1983.23  |           8353.32  |      12606.6   |     10353.2   |         14270.7   |       8004.69  |      9553.92  |           2206.28  |          11643.2   |          12197.6   |          10664.7   |           9966.77  |       9966.77  |          11643.2   |          10119.8   |       9174.35  |          11733     |       8004.11  |
-| r_hat     |              1.002 |          1.002 |          1.004 |              1.003 |          1.001 |         1.001 |             1.001 |          1.002 |         1.001 |              1.002 |              1.001 |              1     |              1.001 |              1.002 |          1.002 |              1.001 |              1.001 |          1.002 |              1.001 |          1.004 |
+|           |   alpha_hat()[255] |   alpha_hat()[104] |   alpha_hat()[903] |   alpha_hat()[603] |   y_hat()[469] |   alpha_hat()[314] |   alpha_hat()[577] |   y_hat()[621] |   y_hat()[301] |   alpha_hat()[128] |   y_hat()[785] |   y_hat()[803] |   alpha_hat()[585] |   y_hat()[169] |   y_hat()[741] |   y_hat()[593] |   alpha_hat()[778] |   alpha_hat()[557] |   alpha_hat()[374] |   alpha()[33] |
+|:----------|-------------------:|-------------------:|-------------------:|-------------------:|---------------:|-------------------:|-------------------:|---------------:|---------------:|-------------------:|---------------:|---------------:|-------------------:|---------------:|---------------:|---------------:|-------------------:|-------------------:|-------------------:|--------------:|
+| mean      |              1.756 |              1.558 |              1.757 |              1.796 |          0.849 |              1.396 |              1.195 |          1.821 |          1.396 |              1.832 |          1.542 |          1.66  |              1.195 |          1.401 |          0.963 |          1.195 |              1.542 |              1.258 |              1.832 |         1.51  |
+| sd        |              0.129 |              0.142 |              0.128 |              0.149 |          0.14  |              0.064 |              0.099 |          0.164 |          0.064 |              0.13  |          0.105 |          0.134 |              0.099 |          0.079 |          0.066 |          0.099 |              0.105 |              0.151 |              0.148 |         0.151 |
+| hdi_5.5%  |              1.551 |              1.328 |              1.539 |              1.561 |          0.634 |              1.295 |              1.04  |          1.553 |          1.295 |              1.637 |          1.372 |          1.441 |              1.04  |          1.274 |          0.863 |          1.04  |              1.372 |              1.007 |              1.605 |         1.275 |
+| hdi_94.5% |              1.96  |              1.779 |              1.948 |              2.03  |          1.077 |              1.501 |              1.352 |          2.076 |          1.501 |              2.047 |          1.705 |          1.866 |              1.352 |          1.527 |          1.071 |          1.352 |              1.705 |              1.482 |              2.072 |         1.752 |
+| mcse_mean |              0.002 |              0.001 |              0.002 |              0.002 |          0.002 |              0.001 |              0.001 |          0.002 |          0.001 |              0.002 |          0.001 |          0.002 |              0.001 |          0.001 |          0.001 |          0.001 |              0.001 |              0.003 |              0.002 |         0.002 |
+| mcse_sd   |              0.002 |              0.001 |              0.001 |              0.001 |          0.002 |              0.001 |              0.001 |          0.001 |          0.001 |              0.001 |          0.001 |          0.001 |              0.001 |          0.001 |          0.001 |          0.001 |              0.001 |              0.002 |              0.001 |         0.001 |
+| ess_bulk  |           3561.52  |           9038.89  |           5316.27  |           8864.5   |       4150.88  |           7428.35  |           9090.79  |       6369.87  |       7428.35  |           4900.65  |       7687.77  |       7639.56  |           9090.79  |       5387.17  |       2343.95  |       9090.79  |           7687.77  |           3467.65  |           8042.52  |      8651.97  |
+| ess_tail  |           7165.82  |           6955.54  |           7293.73  |           7257.53  |       7108.52  |           6847.56  |           9981.5   |       5529.83  |       6847.56  |           7133.11  |       8316.36  |       7662.2   |           9981.5   |       5451.52  |       3791.57  |       9981.5   |           8316.36  |           7059.14  |           8028.94  |      7126     |
+| r_hat     |              1.001 |              1     |              1     |              1     |          1.001 |              1     |              1.001 |          1.001 |          1     |              1.001 |          1     |          1.001 |              1.001 |          1.001 |          1.001 |          1.001 |              1     |              1.001 |              1.001 |         1     |
 
 #### $\hat{R}$ diagnostic
 
@@ -508,7 +517,7 @@ converging properly, both the bulk and tail lines should be _roughly_ linear.
 
 ```python
 # Needed for Colab
-output_notebook()
+output_notebook(hide_banner=True)
 
 keys = ["μ_α", "σ_α", "β", "γ", "σ_y"]
 values = [mu_alpha(), sigma_alpha(), beta(), gamma(), sigma_y()]
@@ -537,7 +546,7 @@ parameter, we will do so for a sample.
 
 ```python
 # Needed for Colab
-output_notebook()
+output_notebook(hide_banner=True)
 
 sample_counties = {
     item["county_index"]: item["county"]
@@ -620,14 +629,12 @@ subject.
 # Needed for Colab
 output_notebook()
 
-beta_posterior = az.plot_posterior(
-    {"β": samples.get(beta()).numpy()},
-    show=False,
-)[0][0]
-gamma_posterior = az.plot_posterior(
-    {"γ": samples.get(gamma()).numpy()},
-    show=False,
-)[0][0]
+beta_posterior = az.plot_posterior({"β": samples.get(beta()).numpy()}, show=False,)[
+    0
+][0]
+gamma_posterior = az.plot_posterior({"γ": samples.get(gamma()).numpy()}, show=False,)[
+    0
+][0]
 beta_gamma = gridplot([[beta_posterior, gamma_posterior]])
 show(beta_gamma)
 ```
@@ -644,8 +651,7 @@ output_notebook()
 
 alphas = samples.get(alpha()).numpy()
 data = {
-    f"α[{county}]": alphas[:, :, index]
-    for index, county in sample_counties.items()
+    f"α[{county}]": alphas[:, :, index] for index, county in sample_counties.items()
 }
 county_posteriors = gridplot([*az.plot_posterior(data, show=False)])
 show(county_posteriors)

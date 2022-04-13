@@ -1,0 +1,2694 @@
+{
+  "target_id": "model-plots",
+  "root_id": "56872",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "children": [
+              {
+                "id": "56871"
+              },
+              {
+                "id": "56869"
+              }
+            ]
+          },
+          "id": "56872",
+          "type": "Column"
+        },
+        {
+          "attributes": {
+            "axis_label": "Observed hits / at-bats",
+            "coordinates": null,
+            "formatter": {
+              "id": "2675"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "2676"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "2643"
+            }
+          },
+          "id": "2642",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "toolbars": [
+              {
+                "id": "2657"
+              },
+              {
+                "id": "25174"
+              },
+              {
+                "id": "56743"
+              }
+            ],
+            "tools": [
+              {
+                "id": "2650"
+              },
+              {
+                "id": "2651"
+              },
+              {
+                "id": "2652"
+              },
+              {
+                "id": "2653"
+              },
+              {
+                "id": "2654"
+              },
+              {
+                "id": "2655"
+              },
+              {
+                "id": "2709"
+              },
+              {
+                "id": "25167"
+              },
+              {
+                "id": "25168"
+              },
+              {
+                "id": "25169"
+              },
+              {
+                "id": "25170"
+              },
+              {
+                "id": "25171"
+              },
+              {
+                "id": "25172"
+              },
+              {
+                "id": "25249"
+              },
+              {
+                "id": "56736"
+              },
+              {
+                "id": "56737"
+              },
+              {
+                "id": "56738"
+              },
+              {
+                "id": "56739"
+              },
+              {
+                "id": "56740"
+              },
+              {
+                "id": "56741"
+              },
+              {
+                "id": "56818"
+              }
+            ]
+          },
+          "id": "56870",
+          "type": "ProxyToolbar"
+        },
+        {
+          "attributes": {},
+          "id": "2651",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "base": {
+              "field": "x"
+            },
+            "coordinates": null,
+            "fill_alpha": 0.2,
+            "fill_color": "orange",
+            "group": null,
+            "level": "underlay",
+            "line_color": "orange",
+            "line_width": 0.2,
+            "lower": {
+              "field": "lower_std"
+            },
+            "source": {
+              "id": "25147"
+            },
+            "upper": {
+              "field": "upper_std"
+            }
+          },
+          "id": "25199",
+          "type": "Band"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "y": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              }
+            },
+            "selected": {
+              "id": "56786"
+            },
+            "selection_policy": {
+              "id": "56785"
+            }
+          },
+          "id": "56770",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "2638",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "grey",
+            "line_width": 2.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25204",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "25216",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Partial pooling"
+          },
+          "id": "56718",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "grey",
+            "line_width": 2.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56772",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "56737",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "56728"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "56731",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "56729",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "25194",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "end": 0.41,
+            "start": 0.14
+          },
+          "id": "2634",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "56724",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "No-pooling"
+          },
+          "id": "25149",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "end": 0.55,
+            "start": 0.05
+          },
+          "id": "56722",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "25190",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis_label": "Predicted chance of a hit",
+            "coordinates": null,
+            "formatter": {
+              "id": "56758"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "56759"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "56733"
+            }
+          },
+          "id": "56732",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "end": 0.41,
+            "start": 0.14
+          },
+          "id": "25151",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "56770"
+            },
+            "glyph": {
+              "id": "56771"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "56773"
+            },
+            "nonselection_glyph": {
+              "id": "56772"
+            },
+            "view": {
+              "id": "56775"
+            }
+          },
+          "id": "56774",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "axis_label": "Observed hits / at-bats",
+            "coordinates": null,
+            "formatter": {
+              "id": "56761"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "56762"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "56729"
+            }
+          },
+          "id": "56728",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25229",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Current hits / Current at-bats"
+            },
+            "renderers": [
+              {
+                "id": "56774"
+              }
+            ]
+          },
+          "id": "56790",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "2665",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "56736",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "25147"
+            },
+            "glyph": {
+              "id": "25227"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "25229"
+            },
+            "nonselection_glyph": {
+              "id": "25228"
+            },
+            "view": {
+              "id": "25231"
+            }
+          },
+          "id": "25230",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "56742"
+            }
+          },
+          "id": "56738",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "25159"
+              }
+            ],
+            "center": [
+              {
+                "id": "25162"
+              },
+              {
+                "id": "25166"
+              },
+              {
+                "id": "25197"
+              },
+              {
+                "id": "25199"
+              },
+              {
+                "id": "25222"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "25163"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "25185"
+              },
+              {
+                "id": "25205"
+              },
+              {
+                "id": "25230"
+              }
+            ],
+            "title": {
+              "id": "25149"
+            },
+            "toolbar": {
+              "id": "25174"
+            },
+            "toolbar_location": null,
+            "width": 500,
+            "x_range": {
+              "id": "25151"
+            },
+            "x_scale": {
+              "id": "25155"
+            },
+            "y_range": {
+              "id": "25153"
+            },
+            "y_scale": {
+              "id": "25157"
+            }
+          },
+          "id": "25148",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25227",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "56726",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "56739",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "grey",
+            "line_width": 2.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56773",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "56741",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "25193",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "25225",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {
+            "toolbar": {
+              "id": "56870"
+            },
+            "toolbar_location": "above"
+          },
+          "id": "56871",
+          "type": "ToolbarBox"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "56742",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "56732"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "56735",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "56733",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "25192",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "25224",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "56716"
+            }
+          },
+          "id": "56800",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "56789",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "56740",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25228",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "base": {
+              "field": "x"
+            },
+            "coordinates": null,
+            "fill_alpha": 0.2,
+            "fill_color": "orange",
+            "group": null,
+            "level": "underlay",
+            "line_color": "orange",
+            "line_width": 0.2,
+            "lower": {
+              "field": "lower_std"
+            },
+            "source": {
+              "id": "2630"
+            },
+            "upper": {
+              "field": "upper_std"
+            }
+          },
+          "id": "2682",
+          "type": "Band"
+        },
+        {
+          "attributes": {},
+          "id": "25170",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "base": {
+              "field": "x"
+            },
+            "coordinates": null,
+            "group": null,
+            "line_color": {
+              "value": "steelblue"
+            },
+            "lower": {
+              "field": "lower_hdi"
+            },
+            "lower_head": {
+              "id": "25225"
+            },
+            "source": {
+              "id": "25147"
+            },
+            "upper": {
+              "field": "upper_hdi"
+            },
+            "upper_head": {
+              "id": "25224"
+            }
+          },
+          "id": "25222",
+          "type": "Whisker"
+        },
+        {
+          "attributes": {
+            "base": {
+              "field": "x"
+            },
+            "coordinates": null,
+            "group": null,
+            "line_color": {
+              "value": "steelblue"
+            },
+            "lower": {
+              "field": "lower_hdi"
+            },
+            "lower_head": {
+              "id": "2687"
+            },
+            "source": {
+              "id": "2630"
+            },
+            "upper": {
+              "field": "upper_hdi"
+            },
+            "upper_head": {
+              "id": "2686"
+            }
+          },
+          "id": "2684",
+          "type": "Whisker"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "56799"
+              }
+            ],
+            "tooltips": [
+              [
+                "Name",
+                "@name"
+              ],
+              [
+                "Posterior Upper HDI",
+                "@upper_hdi{0.000}"
+              ],
+              [
+                "Posterior Mode",
+                "@mode{0.000}"
+              ],
+              [
+                "Posterior Lower HDI",
+                "@lower_hdi{0.000}"
+              ]
+            ]
+          },
+          "id": "56818",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "25171",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "2687",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "25147"
+            }
+          },
+          "id": "25231",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "56736"
+              },
+              {
+                "id": "56737"
+              },
+              {
+                "id": "56738"
+              },
+              {
+                "id": "56739"
+              },
+              {
+                "id": "56740"
+              },
+              {
+                "id": "56741"
+              },
+              {
+                "id": "56818"
+              }
+            ]
+          },
+          "id": "56743",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "25173"
+            }
+          },
+          "id": "25169",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "2630"
+            }
+          },
+          "id": "2693",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "2690",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "2686",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {},
+          "id": "25167",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "25201"
+            }
+          },
+          "id": "25206",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "2689",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "2691",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Complete-pooling"
+          },
+          "id": "2632",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "2630"
+            },
+            "glyph": {
+              "id": "2689"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "2691"
+            },
+            "nonselection_glyph": {
+              "id": "2690"
+            },
+            "view": {
+              "id": "2693"
+            }
+          },
+          "id": "2692",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Players"
+            },
+            "renderers": [
+              {
+                "id": "2692"
+              }
+            ]
+          },
+          "id": "2708",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "25172",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": [
+                0,
+                1
+              ],
+              "y": [
+                0.26543209876543217,
+                0.26543209876543217
+              ]
+            },
+            "selected": {
+              "id": "2678"
+            },
+            "selection_policy": {
+              "id": "2677"
+            }
+          },
+          "id": "2664",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "56794",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "2642"
+              }
+            ],
+            "center": [
+              {
+                "id": "2645"
+              },
+              {
+                "id": "2649"
+              },
+              {
+                "id": "2680"
+              },
+              {
+                "id": "2682"
+              },
+              {
+                "id": "2684"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "2646"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "2668"
+              },
+              {
+                "id": "2692"
+              }
+            ],
+            "title": {
+              "id": "2632"
+            },
+            "toolbar": {
+              "id": "2657"
+            },
+            "toolbar_location": null,
+            "width": 500,
+            "x_range": {
+              "id": "2634"
+            },
+            "x_scale": {
+              "id": "2638"
+            },
+            "y_range": {
+              "id": "2636"
+            },
+            "y_scale": {
+              "id": "2640"
+            }
+          },
+          "id": "2631",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "grey",
+            "line_width": 2.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25203",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "25189",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Players"
+            },
+            "renderers": [
+              {
+                "id": "56799"
+              }
+            ]
+          },
+          "id": "56817",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "data": {
+              "lower_hdi": {
+                "__ndarray__": "AAAAIAXhzj8AAAAgBeHOPwAAACAF4c4/AAAAIAXhzj8AAAAgBeHOPwAAACAF4c4/AAAAIAXhzj8AAAAgBeHOPwAAACAF4c4/AAAAIAXhzj8AAAAgBeHOPwAAACAF4c4/AAAAIAXhzj8AAAAgBeHOPwAAACAF4c4/AAAAIAXhzj8AAAAgBeHOPwAAACAF4c4/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "lower_std": [
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277,
+                0.19579366238731277
+              ],
+              "name": [
+                "Roberto Clemente",
+                "Frank Robinson",
+                "Frank Howard",
+                "Jay Johnstone",
+                "Ken Berry",
+                "Jim Spencer",
+                "Don Kessinger",
+                "Luis Alvarado",
+                "Ron Santo",
+                "Ron Swaboda",
+                "Rico Petrocelli",
+                "Ellie Rodriguez",
+                "George Scott",
+                "Del Unser",
+                "Billy Williams",
+                "Bert Campaneris",
+                "Thurman Munson",
+                "Max Alvis"
+              ],
+              "upper_hdi": {
+                "__ndarray__": "AAAAwBeU0j8AAADAF5TSPwAAAMAXlNI/AAAAwBeU0j8AAADAF5TSPwAAAMAXlNI/AAAAwBeU0j8AAADAF5TSPwAAAMAXlNI/AAAAwBeU0j8AAADAF5TSPwAAAMAXlNI/AAAAwBeU0j8AAADAF5TSPwAAAMAXlNI/AAAAwBeU0j8AAADAF5TSPwAAAMAXlNI/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "upper_std": [
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156,
+                0.33507053514355156
+              ],
+              "x": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "y": [
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363,
+                0.266363
+              ]
+            },
+            "selected": {
+              "id": "2706"
+            },
+            "selection_policy": {
+              "id": "2705"
+            }
+          },
+          "id": "2630",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "25201"
+            },
+            "glyph": {
+              "id": "25202"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "25204"
+            },
+            "nonselection_glyph": {
+              "id": "25203"
+            },
+            "view": {
+              "id": "25206"
+            }
+          },
+          "id": "25205",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "25164",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "2705",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "axis_label": "Predicted chance of a hit",
+            "coordinates": null,
+            "formatter": {
+              "id": "2672"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "2673"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "2647"
+            }
+          },
+          "id": "2646",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "2706",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.7,
+            "line_color": "grey",
+            "line_width": 2.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25202",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "25163"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "25166",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "y": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              }
+            },
+            "selected": {
+              "id": "25217"
+            },
+            "selection_policy": {
+              "id": "25216"
+            }
+          },
+          "id": "25201",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56798",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "56716"
+            },
+            "glyph": {
+              "id": "56796"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "56798"
+            },
+            "nonselection_glyph": {
+              "id": "56797"
+            },
+            "view": {
+              "id": "56800"
+            }
+          },
+          "id": "56799",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "56758",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56796",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "axis_label": "Predicted chance of a hit",
+            "coordinates": null,
+            "formatter": {
+              "id": "25189"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "25190"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "25164"
+            }
+          },
+          "id": "25163",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Current hits / Current at-bats"
+            },
+            "renderers": [
+              {
+                "id": "25205"
+              }
+            ]
+          },
+          "id": "25221",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "2667",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "25168",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": [
+                0,
+                1
+              ],
+              "y": [
+                0.26543209876543217,
+                0.26543209876543217
+              ]
+            },
+            "selected": {
+              "id": "56764"
+            },
+            "selection_policy": {
+              "id": "56763"
+            }
+          },
+          "id": "56750",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "56785",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "56762",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis_label": "Observed hits / at-bats",
+            "coordinates": null,
+            "formatter": {
+              "id": "25192"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "25193"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "25160"
+            }
+          },
+          "id": "25159",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "2672",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "56786",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "25217",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "25157",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "56761",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56751",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "25230"
+              }
+            ],
+            "tooltips": [
+              [
+                "Name",
+                "@name"
+              ],
+              [
+                "Posterior Upper HDI",
+                "@upper_hdi{0.000}"
+              ],
+              [
+                "Posterior Mean",
+                "@y{0.000}"
+              ],
+              [
+                "Posterior Lower HDI",
+                "@lower_hdi{0.000}"
+              ]
+            ]
+          },
+          "id": "25249",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "lower_hdi": {
+                "__ndarray__": "AAAAAOJi0z8AAACAxivRPwAAAAD4YdA/AAAAwBL0zT8AAABg8tnKPwAAAIAMJcs/AAAA4MZFyT8AAACACjvHPwAAAGBLbsM/AAAAYMfZwz8AAADg22fCPwAAAEDTccE/AAAAAPEUwj8AAABAm7bBPwAAAODaB8E/AAAAIC1VvD8AAADAn9+4PwAAAKDETbU/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "name": [
+                "Roberto Clemente",
+                "Frank Robinson",
+                "Frank Howard",
+                "Jay Johnstone",
+                "Ken Berry",
+                "Jim Spencer",
+                "Don Kessinger",
+                "Luis Alvarado",
+                "Ron Santo",
+                "Ron Swaboda",
+                "Rico Petrocelli",
+                "Ellie Rodriguez",
+                "George Scott",
+                "Del Unser",
+                "Billy Williams",
+                "Bert Campaneris",
+                "Thurman Munson",
+                "Max Alvis"
+              ],
+              "upper_hdi": {
+                "__ndarray__": "AAAAAFMw4T8AAAAgi3/fPwAAAED0JN4/AAAAgMzV3D8AAADg77faPwAAACDL/to/AAAAIIzH2T8AAABgRGPYPwAAAMBAR9Y/AAAAQPjs1j8AAABgIq/VPwAAAAC2p9Q/AAAAgFYN1T8AAABA6rnUPwAAACDqsNU/AAAAYGQT0z8AAADgH3jRPwAAAKDuLtA/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "x": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "y": {
+                "__ndarray__": "7FG4HoXr2T+3Yn/ZPXnYP6HWNO84Rdc/h6dXyjLE1T9xGw3gLZDUP3EbDeAtkNQ/q8/VVuwv0z+7Jw8LtabRP1K4HoXrUdA/fT81XrpJ0D8UrkfhehTOP0tZhjjWxc0/OGdEaW/wzT99rrZif9nNP/Mf0m9fB84/8BZIUPwYyz/Y8PRKWYbIP6Fns+pztcU/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              }
+            },
+            "selected": {
+              "id": "25220"
+            },
+            "selection_policy": {
+              "id": "25219"
+            }
+          },
+          "id": "25147",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56753",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "children": [
+              [
+                {
+                  "id": "2631"
+                },
+                0,
+                0
+              ],
+              [
+                {
+                  "id": "25148"
+                },
+                0,
+                1
+              ],
+              [
+                {
+                  "id": "56717"
+                },
+                1,
+                0
+              ]
+            ]
+          },
+          "id": "56869",
+          "type": "GridBox"
+        },
+        {
+          "attributes": {},
+          "id": "56759",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "56788",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "2677",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "25220",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "56764",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "data": {
+              "lower_hdi": {
+                "__ndarray__": "AAAAgMEUzz8AAABgCVDOPwAAAKCFLs0/AAAAgBEVzD8AAABAk5rLPwAAAMD3hss/AAAAAI1nyj8AAACAduLIPwAAAECLx8c/AAAAAPDpxz8AAADAxC7HPwAAAAAxwsY/AAAAgJ3Jxj8AAAAgzgvHPwAAAMCUnMY/AAAAwA1TxT8AAACA3HHEPwAAACD+XMM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "name": [
+                "Roberto Clemente",
+                "Frank Robinson",
+                "Frank Howard",
+                "Jay Johnstone",
+                "Ken Berry",
+                "Jim Spencer",
+                "Don Kessinger",
+                "Luis Alvarado",
+                "Ron Santo",
+                "Ron Swaboda",
+                "Rico Petrocelli",
+                "Ellie Rodriguez",
+                "George Scott",
+                "Del Unser",
+                "Billy Williams",
+                "Bert Campaneris",
+                "Thurman Munson",
+                "Max Alvis"
+              ],
+              "upper_hdi": {
+                "__ndarray__": "AAAAICXZ2T8AAACAzWDZPwAAAIBPTNg/AAAAQCxx1z8AAABguALXPwAAAMDb7tY/AAAAwOJe1j8AAADASX/VPwAAAABQxNQ/AAAAgDjn1D8AAACAI3DUPwAAAOAQRdQ/AAAAIDNG1D8AAAAgH23UPwAAAACoT9Q/AAAAgFuH0z8AAACAES3TPwAAACC/wtI/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "x": {
+                "__ndarray__": "mpmZmZmZ2T/Ygi3Ygi3YPxdswRZswdY/VVVVVVVV1T+UPumTPunTP5Q+6ZM+6dM/0id90id90j8RERERERHRP5/0SZ/0Sc8/n/RJn/RJzz8cx3Ecx3HMPxzHcRzHccw/HMdxHMdxzD8cx3Ecx3HMPxzHcRzHccw/mpmZmZmZyT8XbMEWbMHGP5Q+6ZM+6cM/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              },
+              "y": {
+                "__ndarray__": "PZtVn6ut1D/3Bl+YTBXUPznWxW00gNM/LpCg+DHm0j8jSnuDL0zSPxKDwMqhRdI/GQRWDi2y0T9b07zjFB3RP7dif9k9edA/exSuR+F60D+94xQdyeXPPzSAt0CC4s8/io7k8h/Szz+KjuTyH9LPPyS5/If0288/hslUwaikzj8KaCJseHrNP+QUHcnlP8w/",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  18
+                ]
+              }
+            },
+            "selected": {
+              "id": "56789"
+            },
+            "selection_policy": {
+              "id": "56788"
+            }
+          },
+          "id": "56716",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "56793",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {},
+          "id": "25219",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "click_policy": "mute",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "2681"
+              },
+              {
+                "id": "2708"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "2680",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "2692"
+              }
+            ],
+            "tooltips": [
+              [
+                "Name",
+                "@name"
+              ],
+              [
+                "Posterior Upper HDI",
+                "@upper_hdi{0.000}"
+              ],
+              [
+                "Posterior Mean",
+                "@y{0.000}"
+              ],
+              [
+                "Posterior Lower HDI",
+                "@lower_hdi{0.000}"
+              ]
+            ]
+          },
+          "id": "2709",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "25167"
+              },
+              {
+                "id": "25168"
+              },
+              {
+                "id": "25169"
+              },
+              {
+                "id": "25170"
+              },
+              {
+                "id": "25171"
+              },
+              {
+                "id": "25172"
+              },
+              {
+                "id": "25249"
+              }
+            ]
+          },
+          "id": "25174",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "2678",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56797",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "2664"
+            }
+          },
+          "id": "2669",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "56750"
+            }
+          },
+          "id": "56755",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "base": {
+              "field": "x"
+            },
+            "coordinates": null,
+            "group": null,
+            "line_color": {
+              "value": "steelblue"
+            },
+            "lower": {
+              "field": "lower_hdi"
+            },
+            "lower_head": {
+              "id": "56794"
+            },
+            "source": {
+              "id": "56716"
+            },
+            "upper": {
+              "field": "upper_hdi"
+            },
+            "upper_head": {
+              "id": "56793"
+            }
+          },
+          "id": "56791",
+          "type": "Whisker"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "2666",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "25181"
+            },
+            "glyph": {
+              "id": "25182"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "level": "underlay",
+            "muted_glyph": {
+              "id": "25184"
+            },
+            "nonselection_glyph": {
+              "id": "25183"
+            },
+            "view": {
+              "id": "25186"
+            }
+          },
+          "id": "25185",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "25173",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "click_policy": "mute",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "25198"
+              },
+              {
+                "id": "25221"
+              },
+              {
+                "id": "25248"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "25197",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "56750"
+            },
+            "glyph": {
+              "id": "56751"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "level": "underlay",
+            "muted_glyph": {
+              "id": "56753"
+            },
+            "nonselection_glyph": {
+              "id": "56752"
+            },
+            "view": {
+              "id": "56755"
+            }
+          },
+          "id": "56754",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "2650"
+              },
+              {
+                "id": "2651"
+              },
+              {
+                "id": "2652"
+              },
+              {
+                "id": "2653"
+              },
+              {
+                "id": "2654"
+              },
+              {
+                "id": "2655"
+              },
+              {
+                "id": "2709"
+              }
+            ]
+          },
+          "id": "2657",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "56763",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": [
+                0,
+                1
+              ],
+              "y": [
+                0.26543209876543217,
+                0.26543209876543217
+              ]
+            },
+            "selected": {
+              "id": "25195"
+            },
+            "selection_policy": {
+              "id": "25194"
+            }
+          },
+          "id": "25181",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "base": {
+              "field": "x"
+            },
+            "coordinates": null,
+            "fill_alpha": 0.2,
+            "fill_color": "orange",
+            "group": null,
+            "level": "underlay",
+            "line_color": "orange",
+            "line_width": 0.2,
+            "lower": {
+              "field": "lower_std"
+            },
+            "source": {
+              "id": "56716"
+            },
+            "upper": {
+              "field": "upper_std"
+            }
+          },
+          "id": "56768",
+          "type": "Band"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "25181"
+            }
+          },
+          "id": "25186",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Population mean"
+            },
+            "renderers": [
+              {
+                "id": "2668"
+              }
+            ]
+          },
+          "id": "2681",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "click_policy": "mute",
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "56767"
+              },
+              {
+                "id": "56790"
+              },
+              {
+                "id": "56817"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "56766",
+          "type": "Legend"
+        },
+        {
+          "attributes": {},
+          "id": "25155",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "2656",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "end": 0.55,
+            "start": 0.05
+          },
+          "id": "25153",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Population mean"
+            },
+            "renderers": [
+              {
+                "id": "25185"
+              }
+            ]
+          },
+          "id": "25198",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56752",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "25159"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "25162",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "56770"
+            }
+          },
+          "id": "56775",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25182",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "2656"
+            }
+          },
+          "id": "2652",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "2653",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "2654",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "25160",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Population mean"
+            },
+            "renderers": [
+              {
+                "id": "56754"
+              }
+            ]
+          },
+          "id": "56767",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "end": 0.41,
+            "start": 0.14
+          },
+          "id": "56720",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "2676",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "2664"
+            },
+            "glyph": {
+              "id": "2665"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "level": "underlay",
+            "muted_glyph": {
+              "id": "2667"
+            },
+            "nonselection_glyph": {
+              "id": "2666"
+            },
+            "view": {
+              "id": "2669"
+            }
+          },
+          "id": "2668",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "2655",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "56728"
+              }
+            ],
+            "center": [
+              {
+                "id": "56731"
+              },
+              {
+                "id": "56735"
+              },
+              {
+                "id": "56766"
+              },
+              {
+                "id": "56768"
+              },
+              {
+                "id": "56791"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "56732"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "56754"
+              },
+              {
+                "id": "56774"
+              },
+              {
+                "id": "56799"
+              }
+            ],
+            "title": {
+              "id": "56718"
+            },
+            "toolbar": {
+              "id": "56743"
+            },
+            "toolbar_location": null,
+            "width": 500,
+            "x_range": {
+              "id": "56720"
+            },
+            "x_scale": {
+              "id": "56724"
+            },
+            "y_range": {
+              "id": "56722"
+            },
+            "y_scale": {
+              "id": "56726"
+            }
+          },
+          "id": "56717",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "2646"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "2649",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25183",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "2650",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "2647",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "orange",
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "25184",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Players"
+            },
+            "renderers": [
+              {
+                "id": "25230"
+              }
+            ]
+          },
+          "id": "25248",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "2673",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.7,
+            "line_color": "grey",
+            "line_width": 2.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "56771",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "2675",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "end": 0.55,
+            "start": 0.05
+          },
+          "id": "2636",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "25195",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "2642"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "2645",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "2640",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "2643",
+          "type": "BasicTicker"
+        }
+      ],
+      "root_ids": [
+        "56872"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}

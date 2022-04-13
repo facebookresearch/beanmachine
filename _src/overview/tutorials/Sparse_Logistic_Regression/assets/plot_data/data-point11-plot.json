@@ -1,0 +1,584 @@
+{
+  "target_id": "data-point11-plot",
+  "root_id": "3231",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "3242"
+              }
+            ],
+            "center": [
+              {
+                "id": "3245"
+              },
+              {
+                "id": "3249"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "3246"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "3269"
+              }
+            ],
+            "title": {
+              "id": "3232"
+            },
+            "toolbar": {
+              "id": "3257"
+            },
+            "width": 800,
+            "x_range": {
+              "id": "3234"
+            },
+            "x_scale": {
+              "id": "3238"
+            },
+            "y_range": {
+              "id": "3236"
+            },
+            "y_scale": {
+              "id": "3240"
+            }
+          },
+          "id": "3231",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "axis_label": "Counts",
+            "coordinates": null,
+            "formatter": {
+              "id": "3415"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "3416"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3247"
+            }
+          },
+          "id": "3246",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3419",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "3230"
+            },
+            "glyph": {
+              "id": "3265"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "3267"
+            },
+            "muted_glyph": {
+              "id": "3268"
+            },
+            "nonselection_glyph": {
+              "id": "3266"
+            },
+            "view": {
+              "id": "3270"
+            }
+          },
+          "id": "3269",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "3250"
+              },
+              {
+                "id": "3251"
+              },
+              {
+                "id": "3252"
+              },
+              {
+                "id": "3253"
+              },
+              {
+                "id": "3254"
+              },
+              {
+                "id": "3255"
+              },
+              {
+                "id": "3271"
+              }
+            ]
+          },
+          "id": "3257",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "3268",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3246"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3249",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "3269"
+              }
+            ],
+            "tooltips": [
+              [
+                "Counts",
+                "@top"
+              ],
+              [
+                "Bin",
+                "@label"
+              ]
+            ]
+          },
+          "id": "3271",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "3243",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "3418",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "3420",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3242"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3245",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Probability of test datapoint 11 having Label 1"
+          },
+          "id": "3232",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "3234",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "3416",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "3421",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "3240",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "3250",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "3238",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "3247",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "3266",
+          "type": "Quad"
+        },
+        {
+          "attributes": {},
+          "id": "3255",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3256"
+            }
+          },
+          "id": "3252",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "3253",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "3230"
+            }
+          },
+          "id": "3270",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "3256",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "3236",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "3418"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "3419"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3243"
+            }
+          },
+          "id": "3242",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3254",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "left": {
+              "field": "left"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "3267",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "3265",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "data": {
+              "bottom": {
+                "__ndarray__": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  23
+                ]
+              },
+              "label": [
+                "0.001 - 0.002",
+                "0.002 - 0.004",
+                "0.004 - 0.006",
+                "0.006 - 0.008",
+                "0.008 - 0.010",
+                "0.010 - 0.012",
+                "0.012 - 0.014",
+                "0.014 - 0.015",
+                "0.015 - 0.017",
+                "0.017 - 0.019",
+                "0.019 - 0.021",
+                "0.021 - 0.023",
+                "0.023 - 0.025",
+                "0.025 - 0.027",
+                "0.027 - 0.028",
+                "0.028 - 0.030",
+                "0.030 - 0.032",
+                "0.032 - 0.034",
+                "0.034 - 0.036",
+                "0.036 - 0.038",
+                "0.038 - 0.040",
+                "0.040 - 0.041",
+                "0.041 - 0.043"
+              ],
+              "left": [
+                0.0005558676784858108,
+                0.0024162742774933577,
+                0.004276680760085583,
+                0.0061370874755084515,
+                0.00799749419093132,
+                0.009857900440692902,
+                0.011718307621777058,
+                0.013578713871538639,
+                0.015439121052622795,
+                0.017299527302384377,
+                0.019159933552145958,
+                0.02102033980190754,
+                0.02288074791431427,
+                0.02474115416407585,
+                0.026601560413837433,
+                0.028461966663599014,
+                0.030322374776005745,
+                0.03218277916312218,
+                0.03404318541288376,
+                0.03590359538793564,
+                0.03776400163769722,
+                0.0396244078874588,
+                0.04148481413722038
+              ],
+              "right": [
+                0.0024162742774933577,
+                0.004276680760085583,
+                0.0061370874755084515,
+                0.00799749419093132,
+                0.009857900440692902,
+                0.011718307621777058,
+                0.013578713871538639,
+                0.015439121052622795,
+                0.017299527302384377,
+                0.019159933552145958,
+                0.02102033980190754,
+                0.02288074791431427,
+                0.02474115416407585,
+                0.026601560413837433,
+                0.028461966663599014,
+                0.030322374776005745,
+                0.03218277916312218,
+                0.03404318541288376,
+                0.03590359538793564,
+                0.03776400163769722,
+                0.0396244078874588,
+                0.04148481413722038,
+                0.043345220386981964
+              ],
+              "top": [
+                169,
+                411,
+                413,
+                304,
+                228,
+                159,
+                103,
+                61,
+                47,
+                40,
+                22,
+                12,
+                7,
+                6,
+                6,
+                1,
+                3,
+                1,
+                1,
+                0,
+                2,
+                3,
+                1
+              ]
+            },
+            "selected": {
+              "id": "3421"
+            },
+            "selection_policy": {
+              "id": "3420"
+            }
+          },
+          "id": "3230",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "3415",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "3251",
+          "type": "WheelZoomTool"
+        }
+      ],
+      "root_ids": [
+        "3231"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}

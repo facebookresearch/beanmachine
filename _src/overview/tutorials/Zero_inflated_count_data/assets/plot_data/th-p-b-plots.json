@@ -1,0 +1,2549 @@
+{
+  "target_id": "th-p-b-plots",
+  "root_id": "67525",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "children": [
+              {
+                "id": "67524"
+              },
+              {
+                "id": "67522"
+              }
+            ]
+          },
+          "id": "67525",
+          "type": "Column"
+        },
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "67353"
+              }
+            ],
+            "center": [
+              {
+                "id": "67356"
+              },
+              {
+                "id": "67360"
+              }
+            ],
+            "height": 240,
+            "left": [
+              {
+                "id": "67357"
+              }
+            ],
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "67384"
+              },
+              {
+                "id": "67390"
+              },
+              {
+                "id": "67396"
+              },
+              {
+                "id": "67402"
+              }
+            ],
+            "title": {
+              "id": "67404"
+            },
+            "toolbar": {
+              "id": "67371"
+            },
+            "toolbar_location": null,
+            "width": 360,
+            "x_range": {
+              "id": "67345"
+            },
+            "x_scale": {
+              "id": "67349"
+            },
+            "y_range": {
+              "id": "67347"
+            },
+            "y_scale": {
+              "id": "67351"
+            }
+          },
+          "id": "67344",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "67488",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67460"
+            },
+            "glyph": {
+              "id": "67461"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67463"
+            },
+            "nonselection_glyph": {
+              "id": "67462"
+            },
+            "view": {
+              "id": "67465"
+            }
+          },
+          "id": "67464",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "67515",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "67489",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "data": {
+              "text": [
+                "mean=0.39"
+              ],
+              "x": [
+                0.38631460070610046
+              ],
+              "y": [
+                5.263184913018751
+              ]
+            },
+            "selected": {
+              "id": "67482"
+            },
+            "selection_policy": {
+              "id": "67481"
+            }
+          },
+          "id": "67398",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "67471",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "67492",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67454"
+            }
+          },
+          "id": "67459",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "67308",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "67494",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "67409",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.1
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67456",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67448"
+            }
+          },
+          "id": "67453",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "67370",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "67299"
+              },
+              {
+                "id": "67300"
+              },
+              {
+                "id": "67301"
+              },
+              {
+                "id": "67302"
+              },
+              {
+                "id": "67303"
+              },
+              {
+                "id": "67304"
+              },
+              {
+                "id": "67305"
+              },
+              {
+                "id": "67306"
+              }
+            ]
+          },
+          "id": "67309",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "67307",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67450",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67493",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67451",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67491",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67327",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67455",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67304",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.2
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67457",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67495",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "67481",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "67475",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67380"
+            },
+            "glyph": {
+              "id": "67381"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67383"
+            },
+            "nonselection_glyph": {
+              "id": "67382"
+            },
+            "view": {
+              "id": "67385"
+            }
+          },
+          "id": "67384",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "67507",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "67476",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "67428",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "67506"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "67507"
+            },
+            "major_label_text_font_size": "0pt",
+            "major_tick_line_color": null,
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "67420"
+            },
+            "visible": false
+          },
+          "id": "67419",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "67407",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67399",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "67431"
+            }
+          },
+          "id": "67425",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67380"
+            }
+          },
+          "id": "67385",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "67369"
+            }
+          },
+          "id": "67363",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.2
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67333",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67362",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "67361"
+              },
+              {
+                "id": "67362"
+              },
+              {
+                "id": "67363"
+              },
+              {
+                "id": "67364"
+              },
+              {
+                "id": "67365"
+              },
+              {
+                "id": "67366"
+              },
+              {
+                "id": "67367"
+              },
+              {
+                "id": "67368"
+              }
+            ]
+          },
+          "id": "67371",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "67287",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "67291"
+              }
+            ],
+            "center": [
+              {
+                "id": "67294"
+              },
+              {
+                "id": "67298"
+              }
+            ],
+            "height": 240,
+            "left": [
+              {
+                "id": "67295"
+              }
+            ],
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "67322"
+              },
+              {
+                "id": "67328"
+              },
+              {
+                "id": "67334"
+              },
+              {
+                "id": "67340"
+              }
+            ],
+            "title": {
+              "id": "67342"
+            },
+            "toolbar": {
+              "id": "67309"
+            },
+            "toolbar_location": null,
+            "width": 360,
+            "x_range": {
+              "id": "67283"
+            },
+            "x_scale": {
+              "id": "67287"
+            },
+            "y_range": {
+              "id": "67285"
+            },
+            "y_scale": {
+              "id": "67289"
+            }
+          },
+          "id": "67282",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "67498",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.1
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67338",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67477",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "67497",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "67302",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67331",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67398"
+            },
+            "glyph": {
+              "id": "67399"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67401"
+            },
+            "nonselection_glyph": {
+              "id": "67400"
+            },
+            "view": {
+              "id": "67403"
+            }
+          },
+          "id": "67402",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "67429",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {},
+          "id": "67292",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "67432"
+            }
+          },
+          "id": "67427",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "67289",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "67424",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "67430",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "67308"
+            }
+          },
+          "id": "67303",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {},
+          "id": "67500",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "67291"
+            },
+            "coordinates": null,
+            "grid_line_color": null,
+            "group": null,
+            "ticker": null
+          },
+          "id": "67294",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "67510",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "67299",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "67496",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "67305",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67392"
+            }
+          },
+          "id": "67397",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "67499",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "67411",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "67347",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "67416",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "67482",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "67479",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "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",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  512
+                ]
+              },
+              "y": {
+                "__ndarray__": "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",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  512
+                ]
+              }
+            },
+            "selected": {
+              "id": "67476"
+            },
+            "selection_policy": {
+              "id": "67475"
+            }
+          },
+          "id": "67380",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "67415"
+              }
+            ],
+            "center": [
+              {
+                "id": "67418"
+              },
+              {
+                "id": "67422"
+              }
+            ],
+            "height": 240,
+            "left": [
+              {
+                "id": "67419"
+              }
+            ],
+            "output_backend": "webgl",
+            "renderers": [
+              {
+                "id": "67446"
+              },
+              {
+                "id": "67452"
+              },
+              {
+                "id": "67458"
+              },
+              {
+                "id": "67464"
+              }
+            ],
+            "title": {
+              "id": "67466"
+            },
+            "toolbar": {
+              "id": "67433"
+            },
+            "toolbar_location": null,
+            "width": 360,
+            "x_range": {
+              "id": "67407"
+            },
+            "x_scale": {
+              "id": "67411"
+            },
+            "y_range": {
+              "id": "67409"
+            },
+            "y_scale": {
+              "id": "67413"
+            }
+          },
+          "id": "67406",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "67512",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "67473"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "67474"
+            },
+            "ticker": {
+              "id": "67354"
+            }
+          },
+          "id": "67353",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "67509",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "67516",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "67509"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "67510"
+            },
+            "ticker": {
+              "id": "67416"
+            }
+          },
+          "id": "67415",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67337",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67480",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67386"
+            }
+          },
+          "id": "67391",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b2"
+          },
+          "id": "67466",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "syncable": false,
+            "xs_units": "screen",
+            "ys_units": "screen"
+          },
+          "id": "67432",
+          "type": "PolyAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "67478",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "67306",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67388",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67367",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "67470"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "67471"
+            },
+            "major_label_text_font_size": "0pt",
+            "major_tick_line_color": null,
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "67358"
+            },
+            "visible": false
+          },
+          "id": "67357",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "67369",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67387",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "data": {
+              "text": [
+                "0.37",
+                "0.82",
+                "89% HDI"
+              ],
+              "x": [
+                0.36750009655952454,
+                0.8244182467460632,
+                0.5959591865539551
+              ],
+              "y": [
+                0.22486744844479706,
+                0.22486744844479706,
+                0.9637176361919872
+              ]
+            },
+            "selected": {
+              "id": "67498"
+            },
+            "selection_policy": {
+              "id": "67497"
+            }
+          },
+          "id": "67330",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67389",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67426",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "67488"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "67489"
+            },
+            "major_label_text_font_size": "0pt",
+            "major_tick_line_color": null,
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "67296"
+            },
+            "visible": false
+          },
+          "id": "67295",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67386"
+            },
+            "glyph": {
+              "id": "67387"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67389"
+            },
+            "nonselection_glyph": {
+              "id": "67388"
+            },
+            "view": {
+              "id": "67391"
+            }
+          },
+          "id": "67390",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "67423",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "67285",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "67431",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "67506",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67392"
+            },
+            "glyph": {
+              "id": "67393"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67395"
+            },
+            "nonselection_glyph": {
+              "id": "67394"
+            },
+            "view": {
+              "id": "67397"
+            }
+          },
+          "id": "67396",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "67295"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_color": null,
+            "group": null,
+            "ticker": null
+          },
+          "id": "67298",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.2
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67401",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "67370"
+            }
+          },
+          "id": "67365",
+          "type": "LassoSelectTool"
+        },
+        {
+          "attributes": {
+            "callback": null
+          },
+          "id": "67368",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "67413",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "data": {
+              "text": [
+                "0.29",
+                "0.49",
+                "89% HDI"
+              ],
+              "x": [
+                0.285705029964447,
+                0.4903791546821594,
+                0.3880420923233032
+              ],
+              "y": [
+                0.4605286798891407,
+                0.4605286798891407,
+                1.9736943423820312
+              ]
+            },
+            "selected": {
+              "id": "67480"
+            },
+            "selection_policy": {
+              "id": "67479"
+            }
+          },
+          "id": "67392",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67319",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67296",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "67300",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "67345",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67318"
+            }
+          },
+          "id": "67323",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "67423"
+              },
+              {
+                "id": "67424"
+              },
+              {
+                "id": "67425"
+              },
+              {
+                "id": "67426"
+              },
+              {
+                "id": "67427"
+              },
+              {
+                "id": "67428"
+              },
+              {
+                "id": "67429"
+              },
+              {
+                "id": "67430"
+              }
+            ]
+          },
+          "id": "67433",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67382",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67321",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67383",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67393",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "data": {
+              "text": [
+                "0.36",
+                "0.91",
+                "89% HDI"
+              ],
+              "x": [
+                0.35941219329833984,
+                0.90622478723526,
+                0.6328184604644775
+              ],
+              "y": [
+                0.17994394105524053,
+                0.17994394105524053,
+                0.7711883188081735
+              ]
+            },
+            "selected": {
+              "id": "67516"
+            },
+            "selection_policy": {
+              "id": "67515"
+            }
+          },
+          "id": "67454",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "67511",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67326",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67336"
+            }
+          },
+          "id": "67341",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67336"
+            },
+            "glyph": {
+              "id": "67337"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67339"
+            },
+            "nonselection_glyph": {
+              "id": "67338"
+            },
+            "view": {
+              "id": "67341"
+            }
+          },
+          "id": "67340",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67461",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67358",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67324"
+            }
+          },
+          "id": "67329",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "67420",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "67491"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "67492"
+            },
+            "ticker": {
+              "id": "67292"
+            }
+          },
+          "id": "67291",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "67514",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "toolbars": [
+              {
+                "id": "67371"
+              },
+              {
+                "id": "67309"
+              },
+              {
+                "id": "67433"
+              }
+            ],
+            "tools": [
+              {
+                "id": "67361"
+              },
+              {
+                "id": "67362"
+              },
+              {
+                "id": "67363"
+              },
+              {
+                "id": "67364"
+              },
+              {
+                "id": "67365"
+              },
+              {
+                "id": "67366"
+              },
+              {
+                "id": "67367"
+              },
+              {
+                "id": "67368"
+              },
+              {
+                "id": "67299"
+              },
+              {
+                "id": "67300"
+              },
+              {
+                "id": "67301"
+              },
+              {
+                "id": "67302"
+              },
+              {
+                "id": "67303"
+              },
+              {
+                "id": "67304"
+              },
+              {
+                "id": "67305"
+              },
+              {
+                "id": "67306"
+              },
+              {
+                "id": "67423"
+              },
+              {
+                "id": "67424"
+              },
+              {
+                "id": "67425"
+              },
+              {
+                "id": "67426"
+              },
+              {
+                "id": "67427"
+              },
+              {
+                "id": "67428"
+              },
+              {
+                "id": "67429"
+              },
+              {
+                "id": "67430"
+              }
+            ]
+          },
+          "id": "67523",
+          "type": "ProxyToolbar"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "67419"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_color": null,
+            "group": null,
+            "ticker": null
+          },
+          "id": "67422",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.1
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67400",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "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",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  512
+                ]
+              },
+              "y": {
+                "__ndarray__": "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",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  512
+                ]
+              }
+            },
+            "selected": {
+              "id": "67494"
+            },
+            "selection_policy": {
+              "id": "67493"
+            }
+          },
+          "id": "67318",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "7keSPvoS+z4=",
+                "dtype": "float32",
+                "order": "little",
+                "shape": [
+                  2
+                ]
+              },
+              "y": [
+                0.13157962282546876,
+                0.13157962282546876
+              ]
+            },
+            "selected": {
+              "id": "67478"
+            },
+            "selection_policy": {
+              "id": "67477"
+            }
+          },
+          "id": "67386",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "67513",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "\u03b8"
+          },
+          "id": "67342",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "67283",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67442"
+            },
+            "glyph": {
+              "id": "67443"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67445"
+            },
+            "nonselection_glyph": {
+              "id": "67444"
+            },
+            "view": {
+              "id": "67447"
+            }
+          },
+          "id": "67446",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.1
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67462",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.1
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67332",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "67357"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_color": null,
+            "group": null,
+            "ticker": null
+          },
+          "id": "67360",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "children": [
+              [
+                {
+                  "id": "67344"
+                },
+                0,
+                0
+              ],
+              [
+                {
+                  "id": "67282"
+                },
+                0,
+                1
+              ],
+              [
+                {
+                  "id": "67406"
+                },
+                0,
+                2
+              ]
+            ]
+          },
+          "id": "67522",
+          "type": "GridBox"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67320",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "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",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  512
+                ]
+              },
+              "y": {
+                "__ndarray__": "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",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  512
+                ]
+              }
+            },
+            "selected": {
+              "id": "67512"
+            },
+            "selection_policy": {
+              "id": "67511"
+            }
+          },
+          "id": "67442",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "67366",
+          "type": "UndoTool"
+        },
+        {
+          "attributes": {
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67449",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67454"
+            },
+            "glyph": {
+              "id": "67455"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67457"
+            },
+            "nonselection_glyph": {
+              "id": "67456"
+            },
+            "view": {
+              "id": "67459"
+            }
+          },
+          "id": "67458",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67443",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67448"
+            },
+            "glyph": {
+              "id": "67449"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67451"
+            },
+            "nonselection_glyph": {
+              "id": "67450"
+            },
+            "view": {
+              "id": "67453"
+            }
+          },
+          "id": "67452",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "67349",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "67518",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "data": {
+              "text": [
+                "mean=0.58"
+              ],
+              "x": [
+                0.5764297246932983
+              ],
+              "y": [
+                2.569913696511966
+              ]
+            },
+            "selected": {
+              "id": "67500"
+            },
+            "selection_policy": {
+              "id": "67499"
+            }
+          },
+          "id": "67336",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67442"
+            }
+          },
+          "id": "67447",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "toolbar": {
+              "id": "67523"
+            },
+            "toolbar_location": "above"
+          },
+          "id": "67524",
+          "type": "ToolbarBox"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "p"
+          },
+          "id": "67404",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.2
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67463",
+          "type": "Text"
+        },
+        {
+          "attributes": {},
+          "id": "67351",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67444",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "67415"
+            },
+            "coordinates": null,
+            "grid_line_color": null,
+            "group": null,
+            "ticker": null
+          },
+          "id": "67418",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67445",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67517",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67398"
+            }
+          },
+          "id": "67403",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.2
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67395",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67324"
+            },
+            "glyph": {
+              "id": "67325"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67327"
+            },
+            "nonselection_glyph": {
+              "id": "67326"
+            },
+            "view": {
+              "id": "67329"
+            }
+          },
+          "id": "67328",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "67354",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "4AS4Pln+Zz8=",
+                "dtype": "float32",
+                "order": "little",
+                "shape": [
+                  2
+                ]
+              },
+              "y": [
+                0.05141255458721157,
+                0.05141255458721157
+              ]
+            },
+            "selected": {
+              "id": "67514"
+            },
+            "selection_policy": {
+              "id": "67513"
+            }
+          },
+          "id": "67448",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67330"
+            },
+            "glyph": {
+              "id": "67331"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67333"
+            },
+            "nonselection_glyph": {
+              "id": "67332"
+            },
+            "view": {
+              "id": "67335"
+            }
+          },
+          "id": "67334",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67460"
+            }
+          },
+          "id": "67465",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "67474",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.1
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67394",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "line_width": 3.0,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67325",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "67330"
+            }
+          },
+          "id": "67335",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": {
+                "__ndarray__": "+Si8PhMNUz8=",
+                "dtype": "float32",
+                "order": "little",
+                "shape": [
+                  2
+                ]
+              },
+              "y": [
+                0.06424784241279916,
+                0.06424784241279916
+              ]
+            },
+            "selected": {
+              "id": "67496"
+            },
+            "selection_policy": {
+              "id": "67495"
+            }
+          },
+          "id": "67324",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "text_align": {
+              "value": "center"
+            },
+            "text_alpha": {
+              "value": 0.2
+            },
+            "text_color": {
+              "value": "black"
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67339",
+          "type": "Text"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "67353"
+            },
+            "coordinates": null,
+            "grid_line_color": null,
+            "group": null,
+            "ticker": null
+          },
+          "id": "67356",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "67364",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "67318"
+            },
+            "glyph": {
+              "id": "67319"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "67321"
+            },
+            "nonselection_glyph": {
+              "id": "67320"
+            },
+            "view": {
+              "id": "67323"
+            }
+          },
+          "id": "67322",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "data": {
+              "text": [
+                "mean=0.65"
+              ],
+              "x": [
+                0.6476810574531555
+              ],
+              "y": [
+                2.056502183488463
+              ]
+            },
+            "selected": {
+              "id": "67518"
+            },
+            "selection_policy": {
+              "id": "67517"
+            }
+          },
+          "id": "67460",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {
+            "line_color": "#1f77b4",
+            "line_width": 1.5,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "67381",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "67361",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "67470",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "67473",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "67307"
+            }
+          },
+          "id": "67301",
+          "type": "BoxZoomTool"
+        }
+      ],
+      "root_ids": [
+        "67525"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}

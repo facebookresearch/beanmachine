@@ -1,0 +1,555 @@
+{
+  "target_id": "type-plot",
+  "root_id": "5495",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "5504"
+              }
+            ],
+            "center": [
+              {
+                "id": "5507"
+              },
+              {
+                "id": "5511"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "5508"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "5531"
+              }
+            ],
+            "title": {
+              "id": "5790"
+            },
+            "toolbar": {
+              "id": "5519"
+            },
+            "width": 700,
+            "x_range": {
+              "id": "5496"
+            },
+            "x_scale": {
+              "id": "5500"
+            },
+            "y_range": {
+              "id": "5498"
+            },
+            "y_scale": {
+              "id": "5502"
+            }
+          },
+          "id": "5495",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "5518"
+            }
+          },
+          "id": "5514",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "5795",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "end": 0.6121896162528216,
+            "start": 0.11657866948257656
+          },
+          "id": "5496",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "5796",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "5530",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "5531"
+              }
+            ],
+            "tooltips": [
+              [
+                "Call type",
+                "@tick_labels"
+              ],
+              [
+                "Rate",
+                "@x{0.000}"
+              ]
+            ]
+          },
+          "id": "5533",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "5528",
+          "type": "Quad"
+        },
+        {
+          "attributes": {},
+          "id": "5792",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "axis_label": "Call type",
+            "coordinates": null,
+            "formatter": {
+              "id": "5792"
+            },
+            "group": null,
+            "major_label_overrides": {
+              "0": "Away from Play",
+              "1": "Loose Ball",
+              "2": "Offensive",
+              "3": "Personal",
+              "4": "Shooting"
+            },
+            "major_label_policy": {
+              "id": "5793"
+            },
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "5535"
+            }
+          },
+          "id": "5508",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "5494"
+            },
+            "glyph": {
+              "id": "5527"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "5529"
+            },
+            "muted_glyph": {
+              "id": "5530"
+            },
+            "nonselection_glyph": {
+              "id": "5528"
+            },
+            "view": {
+              "id": "5532"
+            }
+          },
+          "id": "5531",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "5494"
+            }
+          },
+          "id": "5532",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "5797",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "5798",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "5527",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_width": {
+              "value": 2
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "5529",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "5518",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "5505",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "ticks": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "id": "5535",
+          "type": "FixedTicker"
+        },
+        {
+          "attributes": {},
+          "id": "5515",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "axis_label": "Observed foul call rate",
+            "coordinates": null,
+            "formatter": {
+              "id": "5795"
+            },
+            "group": null,
+            "major_label_orientation": 0.7853981633974483,
+            "major_label_policy": {
+              "id": "5796"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "5505"
+            }
+          },
+          "id": "5504",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "5498",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "5516",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "5517",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "5512",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "5502",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "5512"
+              },
+              {
+                "id": "5513"
+              },
+              {
+                "id": "5514"
+              },
+              {
+                "id": "5515"
+              },
+              {
+                "id": "5516"
+              },
+              {
+                "id": "5517"
+              },
+              {
+                "id": "5533"
+              }
+            ]
+          },
+          "id": "5519",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "5793",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5508"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5511",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "5500",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "5504"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "5507",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "5513",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null
+          },
+          "id": "5790",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "data": {
+              "bottom": {
+                "__ndarray__": "AAAAAAAA4L8AAAAAAADgPwAAAAAAAPg/AAAAAAAABEAAAAAAAAAMQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "left": {
+                "__ndarray__": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "right": {
+                "__ndarray__": "bd6nuGQI1j+Gs+ANO2jVP7A3BvMPp8I/INj+5TZT4D/ptL1u/6HVPw==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "tick_labels": [
+                "Away from Play",
+                "Loose Ball",
+                "Offensive",
+                "Personal",
+                "Shooting"
+              ],
+              "top": {
+                "__ndarray__": "AAAAAAAA4D8AAAAAAAD4PwAAAAAAAARAAAAAAAAADEAAAAAAAAASQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "x": {
+                "__ndarray__": "bd6nuGQI1j+Gs+ANO2jVP7A3BvMPp8I/INj+5TZT4D/ptL1u/6HVPw==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "y": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "selected": {
+              "id": "5798"
+            },
+            "selection_policy": {
+              "id": "5797"
+            }
+          },
+          "id": "5494",
+          "type": "ColumnDataSource"
+        }
+      ],
+      "root_ids": [
+        "5495"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}

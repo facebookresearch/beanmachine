@@ -1,0 +1,1101 @@
+---
+title: Item Response Theory
+sidebar_label: Item Response Theory
+path: overview/tutorials/Item_Response_Theory/ItemResponseTheory
+nb_path: tutorials/Item_Response_Theory.ipynb
+github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb
+colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb
+---
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { PossResidPlot } from "./ItemResponseTheory.jsx";
+import { FoulFreqPlot } from "./ItemResponseTheory.jsx";
+import { BasicAutocorrPlot } from "./ItemResponseTheory.jsx";
+import { PossAutocorrPlot } from "./ItemResponseTheory.jsx";
+import { TypePlot } from "./ItemResponseTheory.jsx";
+import { TrailingTeamCommittingPlot } from "./ItemResponseTheory.jsx";
+import { IrtResidPlot } from "./ItemResponseTheory.jsx";
+import { StrTracePlot } from "./ItemResponseTheory.jsx";
+import { BasicModelPosteriorPlot } from "./ItemResponseTheory.jsx";
+import { TrailingPossPlot } from "./ItemResponseTheory.jsx";
+import { BasicResidPlot } from "./ItemResponseTheory.jsx";
+import { CallTypePlot } from "./ItemResponseTheory.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { FoulTypesPlot } from "./ItemResponseTheory.jsx";
+
+<LinkButtons
+  githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb"
+  colabUrl="https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb"
+/>
+
+## Tutorial: Modeling NBA foul calls using **Item Response Theory**
+
+
+This tutorial demonstrates how to use Bean Machine to predict when NBA players
+will receive a foul call from a referee. This model and exposition is based on
+[Austin Rochford's 2018 analysis](#references) of the [2015/2016 NBA season
+games](#references) data.
+
+
+## Learning Outcomes
+
+
+On completion of this tutorial, you should be able:
+
+* to prepare data for running an Item Response Theory model (IRT) with Bean
+  Machine;
+* to execute an IRT model with Bean Machine;
+* to show the advantage of an IRT model over regular regression;
+* to run diagnostics to understand what Bean Machine is doing; and
+* to generalize the techniques demonstrated to build an IRT model
+  based on new data.
+
+
+## Prerequisites
+
+
+We will be using the following packages within this tutorial.
+
+* [arviz](https://arviz-devs.github.io/arviz/) and
+  [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive
+  visualizations.
+
+
+```python
+# Install Bean Machine in Colab if using Colab.
+import sys
+
+
+if "google.colab" in sys.modules and "beanmachine" not in sys.modules:
+    !pip install beanmachine
+```
+
+```python
+import os
+import warnings
+
+import arviz as az
+import beanmachine.ppl as bm
+import torch
+import torch.distributions as dist
+from arviz.utils import Numba
+from beanmachine.ppl.model import RVIdentifier
+from beanmachine.tutorials.utils import nba
+from bokeh.io import output_notebook
+from bokeh.plotting import gridplot, show
+from IPython.display import Markdown
+```
+
+The next cell includes convenient configuration settings to improve the notebook
+presentation as well as setting a manual seed for `torch` for reproducibility.
+
+
+```python
+# Eliminate excess UserWarnings from ArviZ.
+warnings.simplefilter("ignore")
+
+# Plotting settings
+az.rcParams["plot.backend"] = "bokeh"
+az.rcParams["stats.hdi_prob"] = 0.89
+
+# Manual seed for torch
+torch.manual_seed(1199)
+
+# Other settings for the notebook.\
+Numba.disable_numba()
+smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
+```
+
+## Data
+
+
+Our data consist of every foul recorded in the last two minutes of every NBA
+game for the 2015/16 and 2016/17 seasons. The data consists of records for when
+the foul happened, which player committed it and against which other player,
+the current score when it happened, and the team each player was playing for.
+
+Raw data can be found at [2015/2016 NBA season games](#references), and the
+official data is from [Last 2 minute reports](#references). Here we will load
+data that has been cleaned for the tutorial. The following columns and their
+descriptions are given below. As we treat many of the columns as categoricals,
+an `_id` column is often added that is the categorical encoding of the
+respective column.
+
+| Column name                 | Description                                                        |
+| --------------------------- | ------------------------------------------------------------------ |
+| **seconds_left**            | Number of seconds remaining in the game.                           |
+| **call_type**               | Type of call made (all are classified as fouls).                   |
+| **call_type_id**            | ID for the call.                                                   |
+| **foul_called**             | 0 = no-foul, 1 = foul.                                             |
+| **committing_player**       | Name of the committing player.                                     |
+| **committing_player_id**    | ID of the committing player.                                       |
+| **disadvantaged_player**    | Name of the disadvantaged player.                                  |
+| **disadvantaged_player_id** | ID of the disadvantaged player.                                    |
+| **score_committing**        | Team's score of the committing player.                             |
+| **score_disadvantaged**     | Team's score of the disadvantaged player.                          |
+| **season**                  | Season name; "2015-2016" or "2016-2017".                           |
+| **season_id**               | ID of the seson.                                                   |
+| **trailing_committing**     | Flag to indicate if the trailing team committed the foul.          |
+| **score_diff**              | Difference between the disadvantaged and committing team's scores. |
+| **trailing_poss**           | Number of trailing possessions.                                    |
+| **trailing_poss_id**        | ID for trailing possessions.                                       |
+| **remaining_poss**          | Remaining number of possessions.                                   |
+| **remaining_poss_id**       | ID for the remaining number of possessions.                        |
+
+
+```python
+df = nba.load_data()
+Markdown(df.head().to_markdown())
+```
+
+|    |   seconds_left | call_type   |   call_type_id |   foul_called | committing_player   |   committing_player_id | disadvantaged_player   |   disadvantaged_player_id |   score_committing |   score_disadvantaged | season    |   season_id |   trailing_committing |   score_diff |   trailing_poss |   trailing_poss_id |   remaining_poss |   remaining_poss_id |
+|---:|---------------:|:------------|---------------:|--------------:|:--------------------|-----------------------:|:-----------------------|--------------------------:|-------------------:|----------------------:|:----------|------------:|----------------------:|-------------:|----------------:|-------------------:|-----------------:|--------------------:|
+|  0 |             89 | Shooting    |              4 |             1 | Ian Mahinmi         |                    162 | DeMar DeRozan          |                        98 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                4 |                   3 |
+|  1 |             73 | Shooting    |              4 |             0 | Bismack Biyombo     |                     36 | Paul George            |                       358 |                106 |                    99 | 2015-2016 |           0 |                     0 |           -7 |              -2 |                  2 |                3 |                   2 |
+|  2 |             38 | Loose Ball  |              1 |             1 | Jordan Hill         |                    229 | Jonas Valanciunas      |                       222 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                2 |                   1 |
+|  3 |             30 | Offensive   |              2 |             0 | Jordan Hill         |                    229 | DeMar DeRozan          |                        98 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                2 |                   1 |
+|  4 |             24 | Offensive   |              2 |             0 | Jordan Hill         |                    229 | DeMarre Carroll        |                       100 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                1 |                   0 |
+
+Below is a figure showing the number of fouls within our data, and the observed
+foul call rate.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+foul_types_plot = nba.plot_foul_types(df["call_type"].value_counts())
+show(foul_types_plot)
+```
+
+<FoulTypesPlot />
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+call_type_plot = nba.plot_call_type_means(df.groupby("call_type").mean()["foul_called"])
+show(call_type_plot)
+```
+
+<CallTypePlot />
+
+Next we investigate the frequency with which fouls are called for each of the
+NBA seasons in our data. The difference between the foul rates in the 2015/16
+and 2016/17 seasons is easily shown below. We will account for this in our first
+model.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+foul_freq_plot = nba.plot_foul_frequency(df.groupby("season").mean()["foul_called"])
+show(foul_freq_plot)
+```
+
+<FoulFreqPlot />
+
+## Basic model
+
+
+The initial model is a hierarchical logistic regression with a per-season
+latent variable to predict foul calls. This model just tries to predict how
+likely a play $k$ is to lead to a foul purely based on what season it is.
+There are two $\beta^{\textrm{season}}_s$ variables, one for each season. We
+include a $\eta^{\textrm{game}}_k$ variable for every game, but set it for now
+equal to $\beta^{\textrm{season}}_{s(k)}$ associated with which season the play
+happened during. Finally, we pass $eta^{\textrm{game}}_k$ into a sigmoid
+function to effectively turn it into a probability $p_k$ which we pass to a
+Bernoulli distribution so we can observe $y_k$ which models whether play $k$
+lead to a foul.
+
+$$
+\begin{aligned}
+\beta^{\textrm{season}}_s & \sim N(0, 5) \\
+\eta^{\textrm{game}}_k    & =    \beta^{\textrm{season}}_{s(k)} \\
+p_k                       & =    \textrm{sigmoid}\left(\eta^{\textrm{game}}_k\right) \\
+y_k                       & \sim \textrm{Bernoulli}(p_k) .
+\end{aligned}
+$$
+
+This is model is now roughly equivalent to using `LogisticRegression` in
+`scikit-learn` where the only feature is which season did the foul occur
+during.
+
+**`NOTE`** We can implement this model in Bean Machine by defining random
+variable objects with the `@bm.random_variable` and `@bm.functional`
+decorators. These functions behave differently than ordinary Python functions.
+
+
+<div
+  style={
+    {
+      background: "#daeaf3",
+      border_left: "3px solid #2980b9",
+      display: "block",
+      margin: "16px 0",
+      padding: "12px",
+    }
+  }
+>
+  Semantics for <code>@bm.random_variable</code> functions:
+  <ul>
+    <li>
+      They must return PyTorch <code>Distribution</code> objects.
+    </li>
+    <li>
+      Though they return distributions, callees actually receive <i>samples</i> from the
+      distribution. The machinery for obtaining samples from distributions is handled
+      internally by Bean Machine.
+    </li>
+    <li>
+      Inference runs the model through many iterations. During a particular inference
+      iteration, a distinct random variable will correspond to exactly one sampled
+      value: <b>calls to the same random variable function with the same arguments will
+      receive the same sampled value within one inference iteration</b>. This makes it
+      easy for multiple components of your model to refer to the same logical random
+      variable.
+    </li>
+    <li>
+      Consequently, to define distinct random variables that correspond to different
+      sampled values during a particular inference iteration, an effective practice is
+      to add a dummy "indexing" parameter to the function. Distinct random variables
+      can be referred to with different values for this index.
+    </li>
+    <li>
+      Please see the documentation for more information about this decorator.
+    </li>
+  </ul>
+  Semantics for <code>@bm.functional</code>:
+  <ul>
+    <li>
+      This decorator is used to deterministically transform the results of one or more
+      random variables.
+    </li>
+  </ul>
+</div>
+
+
+```python
+class BasicModel:
+    def __init__(self, df):
+        self.df = df
+        self.n_season = len(self.df["season"].unique())
+
+    def __repr__(self):
+        return ""
+
+    @bm.random_variable
+    def beta(self) -> RVIdentifier:
+        return dist.Normal(0.0, 5.0).expand((self.n_season,))
+
+    @bm.functional
+    def p(self) -> RVIdentifier:
+        b_season = self.beta()
+        return torch.sigmoid(b_season)
+
+    @bm.random_variable
+    def y(self) -> RVIdentifier:
+        return dist.Bernoulli(self.p()[self.df["season_id"]])
+```
+
+We make use of the `expand` method on pytorch distribution objects to perform
+batch sampling. This has the advantage of being more computationally-efficient
+than explicit iteration. Bean Machine is also able to take advantage of the
+implicit broadcasting of pytorch tensors and pytorch samplers like
+`dist.Bernoulli` allowing us to sample or observe all $y$ values at once.
+
+
+## Inference
+
+
+Inference is the process of combining model and data to obtain insights, in the
+form of probability distributions over values of interest. Bean Machine offers
+a powerful and general inference framework to enable fitting arbitrary models
+to data.
+
+Our inference algorithms expect a list of query variables and observations in
+the form of a dictionary. The query list and the keys for the observation
+dictionary should consist of `@bm.random_variable` invocations as keys, and
+tensor data as values. You can see this in the example below.
+
+
+```python
+basic_model = BasicModel(df)
+basic_model_queries = [basic_model.p()]
+basic_model_observations = {
+    basic_model.y(): torch.tensor(df["foul_called"].astype(float).values)
+}
+```
+
+Now, we're ready to run inference! Although Bean Machine supports a rich library
+of inference methods, they all support a common `infer` method, with these
+arguments:
+
+| Name           | Usage                                                                                                    | 
+| -------------- | -------------------------------------------------------------------------------------------------------- | 
+| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                                | 
+| `observations` | A dictionary of observations, as built above.                                                            | 
+| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in queries.   | 
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly.  |
+
+For the models in this tutorial we will use the `GlobalNoUTurnSampler`
+inference algorithm, as it is particularly well-suited to handle hierarchical
+models with partial pooling and without discrete latent variables.
+
+
+```python
+num_samples = 1 if smoke_test else 1000
+num_adaptive_samples = 0 if smoke_test else num_samples // 2
+num_chains = 1 if smoke_test else 3
+
+basic_samples = bm.GlobalNoUTurnSampler().infer(
+    queries=basic_model_queries,
+    observations=basic_model_observations,
+    num_samples=num_samples,
+    num_chains=num_chains,
+    num_adaptive_samples=num_adaptive_samples,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
+</CellOutput>
+
+## Analysis
+
+
+`basic_samples` now contains our inference results. We begin our analysis by
+printing out summary statistics. Two important statistics to take note of are
+the $\hat{R}$ (`r_hat`) and effective sample size (`ess`) values in the below
+dataframe, see [Vehtari _et al_](#references).
+
+
+```python
+basic_trace = basic_samples.to_inference_data()
+
+basic_summary_df = az.summary(basic_trace, round_to=3)
+Markdown(basic_summary_df.to_markdown())
+```
+
+|         |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:--------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| p(,)[0] |  0.414 | 0.008 |      0.402 |       0.426 |           0 |         0 |    1625.85 |    1810.62 |   1.004 |
+| p(,)[1] |  0.309 | 0.007 |      0.298 |       0.32  |           0 |         0 |    2627.56 |    1656.68 |   1.001 |
+
+### Measuring variance between and within chains with $\hat{R}$
+
+
+$\hat{R}$ is a diagnostic tool that measures the between- and within-chain
+variances. It is a test that indicates a lack of convergence by comparing the
+variance between multiple chains to the variance within each chain. If the
+parameters are successfully exploring the full space for each chain, then
+$\hat{R}\approx 1$, since the between-chain and within-chain variance should be
+equal. $\hat{R}$ is calculated from $N$ samples as
+
+$$
+\hat{R}=\frac{\hat{V}}{W} \\
+\hat{V} = \frac{N-1}{N} W + \frac{1}{N} B
+$$
+
+where $W$ is the within-chain variance, $B$ is the between-chain variance
+and $\hat{V}$ is the estimate of the posterior variance of the samples.
+The take-away here is that $\hat{R}$ converges to 1 when each of the chains
+begins to empirically approximate the same posterior distribution. We do not
+recommend using inference results if $\hat{R}>1.01$. More information
+about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
+
+
+### Effective sample size $ess$
+
+
+MCMC samplers do not draw truly independent samples from the target
+distribution, which means that our samples are correlated. In an ideal
+situation all samples would be independent, but we do not have that luxury. We
+can, however, measure the number of _effectively independent_ samples we draw,
+which is called the effective sample size. You can read more about how this
+value is calculated in the [Vehtari _et al_](#references) paper. In brief, it
+is a measure that combines information from the $\hat{R}$ value with the
+autocorrelation estimates within the chains.
+
+ESS estimates come in two variants, `ess_bulk` and `ess_tail`. The former is
+the default, but the latter can be useful if you need good estimates of the
+tails of your posterior distribution. The rule of thumb for `ess_bulk` is for
+this value to be greater than 100 per chain on average. Since we ran four
+chains, we need `ess_bulk` to be greater than 400 for each parameter. The
+`ess_tail` is an estimate for effectively independent samples considering the
+more extreme values of the posterior. This is not the number of samples that
+landed in the tails of the posterior, but rather a measure of the number of
+effectively independent samples if we sampled the tails of the posterior. The
+rule of thumb for this value is also to be greater than 100 per chain on
+average.
+
+
+### Posterior plot of the Basic model
+
+
+With samples in hand, we can observe the posteriors of $\beta$s and see that
+fouls are slightly more likely during the earlier NBA season.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+basic_model_posterior_plot = gridplot(list(az.plot_posterior(basic_trace, show=False)))
+show(basic_model_posterior_plot)
+```
+
+<BasicModelPosteriorPlot />
+
+Below we have two diagnostic plots for individual random variables: Rank plots
+and autocorrelation plots.
+
+* Rank plots are a histogram of the samples over time. All samples across all
+  chains are ranked and then we plot the average rank for each chain on regular
+  intervals. If the chains are mixing well this histogram should look roughly
+  uniform. If it looks highly irregular that suggests chains might be getting
+  stuck and not adequately exploring the sample space.
+
+* Autocorrelation plots measure how predictive the last several samples are of
+  the current sample. Autocorrelation may vary between -1.0 (deterministically
+  anticorrelated) and 1.0 (deterministically correlated). We compute
+  autocorrelation approximately, so it may sometimes exceed these bounds. In an
+  ideal world, the current sample is chosen independently of the previous
+  samples: an autocorrelation of zero. This is not possible in practice, due to
+  stochastic noise and the mechanics of how inference works.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+str_trace = basic_trace.rename({basic_model.p(): str(basic_model.p())})
+str_trace_plot = gridplot(list(az.plot_trace(str_trace, kind="rank_bars", show=False)))
+show(str_trace_plot)
+```
+
+<StrTracePlot />
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+basic_autocorr_plot = gridplot(list(az.plot_autocorr(basic_trace, show=False)))
+show(basic_autocorr_plot)
+```
+
+<BasicAutocorrPlot />
+
+Now let's take our basic model and measure how well it predicts when fouls are
+called. As we can see, because the prediction can only depend on the season it
+doesn't do the greatest.
+
+
+```python
+phat = basic_samples[basic_model.p()]
+```
+
+```python
+resid_df = df.assign(
+    p_hat=phat.numpy().mean(axis=0)[:, df.season_id].mean(axis=0)
+).assign(resid=lambda df: df["foul_called"] - df["p_hat"])
+```
+
+```python
+idx = resid_df.index.tolist()[:5] + resid_df.index.tolist()[-5:]
+Markdown(resid_df[["season", "foul_called", "p_hat", "resid"]].loc[idx].to_markdown())
+```
+
+|      | season    |   foul_called |    p_hat |     resid |
+|-----:|:----------|--------------:|---------:|----------:|
+|    0 | 2015-2016 |             1 | 0.414142 |  0.585858 |
+|    1 | 2015-2016 |             0 | 0.414142 | -0.414142 |
+|    2 | 2015-2016 |             1 | 0.414142 |  0.585858 |
+|    3 | 2015-2016 |             0 | 0.414142 | -0.414142 |
+|    4 | 2015-2016 |             0 | 0.414142 | -0.414142 |
+| 8625 | 2016-2017 |             1 | 0.309371 |  0.690629 |
+| 8626 | 2016-2017 |             0 | 0.309371 | -0.309371 |
+| 8627 | 2016-2017 |             1 | 0.309371 |  0.690629 |
+| 8628 | 2016-2017 |             0 | 0.309371 | -0.309371 |
+| 8629 | 2016-2017 |             1 | 0.309371 |  0.690629 |
+
+```python
+basic_model_resid_df = resid_df.pivot_table("resid", "season")
+Markdown(basic_model_resid_df.to_markdown())
+```
+
+| season    |       resid |
+|:----------|------------:|
+| 2015-2016 | 3.51132e-05 |
+| 2016-2017 | 3.07744e-05 |
+
+So what other features could we use? Let's plot residuals versus how many
+seconds are left in the game. If there is any trend in this plot, we can try to
+incorporate it into our model and likely improve the quality of our predictions.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+temp_df = resid_df.groupby("seconds_left").mean()
+basic_resid_plot = nba.plot_basic_model_residuals(temp_df)
+show(basic_resid_plot)
+```
+
+<BasicResidPlot />
+
+## Improving on the Basic Model
+
+
+We can get a sense of how to improve the model by noticing that it is the team
+that is behind that has a greater incentive to make a foul.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+trailing_team_committing_plot = nba.plot_trailing_team_committing(df)
+show(trailing_team_committing_plot)
+```
+
+<TrailingTeamCommittingPlot />
+
+Let's model that difference as a feature. To drive home how significant the
+trailing team's observed foul rate is within the final two minutes of a game, we
+will plot the foul rate _vs_ the number of trailing possessions over time.
+Trailing possessions is the number of points the trailing team would need to
+make before the shot-clock times out, which is 20 seconds.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+trailing_poss_plot = nba.plot_trailing_possessions(df)
+show(trailing_poss_plot)
+```
+
+<TrailingPossPlot />
+
+As we can see, teams behind by a single possession have a lower observed foul
+rate than those that are behind by three possessions.
+
+We also notice that certain calls are much more associated with fouls. We will
+include this in our model as well.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+type_plot = nba.plot_call_type_means(df.groupby("call_type").mean()["foul_called"])
+show(type_plot)
+```
+
+<TypePlot />
+
+## Possesion model
+
+
+In the improved model, we explore if who has possession of the ball determines
+how likely it is for a foul to be committed. This model incorporates a latent
+variable $\beta^{\textrm{call}}_{c}$ for each call-type, as well as latent
+variable $\beta^{\textrm{poss}}_{\textrm{t,r,c}}$ for each combination of call
+type $c$, how many possessions the committing team is trailing by $t$, and how
+many possessions $r$ are left in the game. Together all these $\beta$ variables
+are added to create a score $\eta^{\textrm{game}}_k$ which is converted into a
+probability of a foul call $p_k$, which is finally called into a Bernoulli to
+make our observation.
+
+$$
+\begin{aligned}
+\beta^{\textrm{season}}_s & \sim N(0, 5) \\
+\sigma_{\textrm{call}} & \sim \textrm{HalfNormal}(5) \\
+\beta^{\textrm{call}}_{c} & \sim N(0, \sigma_{\textrm{call}}) \\
+\sigma_{\textrm{poss,c}} & \sim \textrm{HalfNormal}(5) \\
+\beta^{\textrm{poss}}_{\textrm{t,r,c}} & \sim N(0, \sigma_{\textrm{poss,c}}) \\
+\eta^{\textrm{game}}_k    & =    \beta^{\textrm{season}}_{s(k)} + \beta^{\textrm{call}}_{c(k)} + \beta^{\textrm{poss}}_{\textrm{t(k),r(k),c(k)}}\\
+p_k                       & =    \textrm{sigmoid}\left(\eta^{\textrm{game}}_k\right) \\
+y_k                       & \sim \textrm{Bernoulli}(p_k) .
+\end{aligned}
+$$
+
+
+```python
+class PossesionModel:
+    def __init__(self, df):
+        self.df = df
+        self.n_season = len(self.df["season"].unique())
+        self.n_call_type = len(self.df["call_type"].unique())
+        self.n_trailing_poss = len(self.df["trailing_poss"].unique())
+        self.n_remaining_poss = len(self.df["remaining_poss"].unique())
+
+    def __repr__(self):
+        return ""
+
+    @bm.random_variable
+    def beta_season(self) -> RVIdentifier:
+        return dist.Normal(0.0, 5.0).expand((self.n_season,))
+
+    @bm.random_variable
+    def sigma_call(self) -> RVIdentifier:
+        return dist.HalfNormal(5.0)
+
+    @bm.random_variable
+    def beta_call(self) -> RVIdentifier:
+        return dist.Normal(0, 1).expand((self.n_call_type,))
+
+    @bm.random_variable
+    def sigma_poss(self) -> RVIdentifier:
+        return dist.HalfNormal(5.0).expand((1, 1, self.n_call_type))
+
+    @bm.random_variable
+    def beta_poss(self) -> RVIdentifier:
+        return dist.Normal(0, 1).expand(
+            (self.n_trailing_poss, self.n_remaining_poss, self.n_call_type)
+        )
+
+    @bm.functional
+    def p(self) -> RVIdentifier:
+        b_season = self.beta_season()
+        b_call = self.beta_call() * self.sigma_call()
+        b_poss = self.beta_poss() * self.sigma_poss()
+        eta_game = (
+            b_season[self.df["season_id"].values]
+            + b_call[self.df["call_type_id"].values]
+            + b_poss[
+                self.df["trailing_poss_id"].values,
+                self.df["remaining_poss_id"].values,
+                self.df["call_type_id"].values,
+            ]
+        )
+        return torch.sigmoid(eta_game)
+
+    @bm.random_variable
+    def y(self) -> RVIdentifier:
+        return dist.Bernoulli(self.p())
+```
+
+You may have noticed that the Bean Machine program is not a direct translation
+of the model. We do this since the NUTS sampler works best when most of the
+latent variables are at roughly the same scale. So instead of sampling from $x
+\sim \mathcal{N}(0, \sigma)$, we sample from $y \sim \mathcal{N}(0,1)$ and
+assign $x = y \cdot \sigma$. The effective distribution of $x$ remains the
+same, but the scale of the algorithmically sampled random variable $y$ is no
+longer directly dependent on $\sigma$. This is called a *non-centered
+reparameterization* and is an encouraged change to make to any model you intend
+to use with NUTS.
+
+
+```python
+poss_model = PossesionModel(df)
+poss_model_queries = [poss_model.p()]
+poss_model_observations = {
+    poss_model.y(): torch.tensor(df["foul_called"].astype(float).values)
+}
+```
+
+```python
+poss_samples = bm.GlobalNoUTurnSampler(target_accept_prob=0.90).infer(
+    queries=poss_model_queries,
+    observations=poss_model_observations,
+    num_samples=num_samples,
+    num_chains=num_chains,
+    num_adaptive_samples=num_adaptive_samples,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
+</CellOutput>
+
+```python
+poss_trace = poss_samples.to_inference_data()
+```
+
+When we check diagnostics, we see the $ess$ is decent and $\hat{R}$ isn't too
+high.
+
+
+```python
+poss_summary_df = az.summary(poss_trace, round_to=3)
+```
+
+```python
+idx = poss_summary_df.index.tolist()[:5] + poss_summary_df.index.tolist()[-5:]
+Markdown(poss_summary_df.loc[idx].to_markdown())
+```
+
+|            |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:-----------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| p(,)[0]    |  0.49  | 0.061 |      0.395 |       0.585 |       0.001 |     0.001 |    2021.83 |    919.995 |   1.001 |
+| p(,)[1]    |  0.406 | 0.052 |      0.322 |       0.488 |       0.001 |     0.001 |    5155.17 |   2233.06  |   1.001 |
+| p(,)[2]    |  0.407 | 0.043 |      0.343 |       0.476 |       0.001 |     0.001 |    3356.64 |   2363.58  |   1     |
+| p(,)[3]    |  0.197 | 0.035 |      0.143 |       0.251 |       0.001 |     0.001 |    2480.76 |   2266.18  |   1     |
+| p(,)[4]    |  0.2   | 0.037 |      0.148 |       0.254 |       0.001 |     0.001 |    3328.37 |   2297.56  |   1     |
+| p(,)[8625] |  0.85  | 0.018 |      0.82  |       0.877 |       0     |     0     |    2662.36 |   2368.85  |   1     |
+| p(,)[8626] |  0.266 | 0.034 |      0.212 |       0.321 |       0     |     0     |    5509.76 |   2359.46  |   1     |
+| p(,)[8627] |  0.85  | 0.018 |      0.82  |       0.877 |       0     |     0     |    2662.36 |   2368.85  |   1     |
+| p(,)[8628] |  0.268 | 0.032 |      0.215 |       0.315 |       0.001 |     0.001 |    1818.66 |   2569.17  |   1.001 |
+| p(,)[8629] |  0.299 | 0.032 |      0.246 |       0.345 |       0.001 |     0     |    3484.79 |   2482.37  |   1     |
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+poss_autocorr_plot = gridplot(list(az.plot_autocorr(poss_trace, show=False)))
+show(poss_autocorr_plot)
+```
+
+<PossAutocorrPlot />
+
+```python
+phat = poss_samples[poss_model.p()]
+```
+
+We also check if the per-season residuals have improved.
+
+
+```python
+resid_df = df.assign(p_hat=phat.numpy().mean(axis=0).mean(axis=0)).assign(
+    resid=lambda df: df.foul_called - df.p_hat
+)
+```
+
+```python
+print("Possession model")
+possession_model_resid_df = resid_df.pivot_table("resid", "season")
+display(Markdown(possession_model_resid_df.to_markdown()))
+print("Basic model")
+display(Markdown(basic_model_resid_df.to_markdown()))
+```
+
+<CellOutput>
+{`Possession model
+Basic model`}
+</CellOutput>
+
+We also check if our residuals are sensitive to how many seconds are left in the
+game. Since they are not, it means our possession model better captures the
+connection between fouls and how many seconds remain in the game.
+
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+poss_resid_plot = nba.plot_possession_model_residuals(resid_df)
+show(poss_resid_plot)
+```
+
+<PossResidPlot />
+
+We now compare these the possession model to the basic model. To do this we
+will use the Watanabe-Akaike or widely available information criterion (WAIC).
+An information criterion is a way of scoring how well does a model explain some
+data. WAIC in particular is defined as:
+
+$$
+\text{WAIC} = -2 \frac{1}{n} \sum_{i=1}^n \log \mu(y_i) - \sigma_{\text{log}}^2(y_i) \\
+\mu(y_i) = \mathbb{E}_{p(\theta \mid y)}\left[p(y_i \mid \theta)\right] \\
+\sigma_{\text{log}}^2(y_i) = \mathbb{E}_{p(\theta \mid y)}(\log p(y_i \mid \theta))
+$$
+
+
+We can approximate the expectations in this equation using samples from our
+posterior.
+
+When we compare these models we see that the possession model better explains
+the data and is given a higher rank.
+
+
+```python
+Markdown(az.compare({"possession": poss_trace, "basic": basic_trace}, ic="waic").to_markdown())
+```
+
+|            |   rank |     waic |    p_waic |   d_waic |   weight |   se |   dse | warning   | waic_scale   |
+|:-----------|-------:|---------:|----------:|---------:|---------:|-----:|------:|:----------|:-------------|
+| possession |      0 | -4831.86 | 63.6791   |    0     |      0.5 |    0 |     0 | True      | log          |
+| basic      |      1 | -5576.24 |  0.937265 |  744.379 |      0.5 |    0 |     0 | True      | log          |
+
+## Player item-response theory model
+
+
+We now try to improve our model once more by modeling the players involved in
+the foul calls. To do this we will associate with each player two latent
+variables, a propensity to foul another player $a$, and a propensity to be
+fouled by another player $b$. We can then have of a latent variable that for
+pairs of players $i$ and $j$ that models that interaction
+$\eta^{\textrm{player}}_{i,j} = a_i - b_j$. We further model this propensity on
+a per-season basis. This new factor is added to the $\eta$ from the possession
+model where the sum is passed into a sigmoid to turn it into a probability
+$p_k$. As in all the other models, this $p_k$ is passed to a Bernoulli which is
+observed.
+
+$$
+\begin{aligned}
+\sigma_{\textrm{a}} & \sim \textrm{HalfNormal}(5) \\
+a^{\textrm{player}}_{\textrm{i,s}} & \sim N(0, \sigma_{\textrm{a}}) \\
+\sigma_{\textrm{b}} & \sim \textrm{HalfNormal}(5) \\
+b^{\textrm{player}}_{\textrm{j,s}} & \sim N(0, \sigma_{\textrm{b}}) \\
+\beta^{\textrm{season}}_s & \sim N(0, 5) \\
+\sigma_{\textrm{call}} & \sim \textrm{HalfNormal}(5) \\
+\beta^{\textrm{call}}_{c} & \sim N(0, \sigma_{\textrm{call}}) \\
+\sigma_{\textrm{poss,c}} & \sim \textrm{HalfNormal}(5) \\
+\beta^{\textrm{poss}}_{\textrm{t,r,c}} & \sim N(0, \sigma_{\textrm{poss,c}}) \\
+\eta^{\textrm{player}}_{l, s} & = a^{\textrm{player}}_{l, s} - b^{\textrm{player}}_{l, s} \\
+\eta^{\textrm{game}}_k    & =    \beta^{\textrm{season}}_{s(k)} + \beta^{\textrm{call}}_{c(k)} + \beta^{\textrm{poss}}_{\textrm{t(k),r(k),c(k)}} + \eta^{\textrm{player}}_{l(k), s(k)}\\
+p_k                       & =    \textrm{sigmoid}\left(\eta^{\textrm{game}}_k\right) \\
+y_k                       & \sim \textrm{Bernoulli}(p_k) .
+\end{aligned}
+$$
+
+
+```python
+class IRTModel:
+    def __init__(self, df):
+        self.df = df
+        self.n_season = len(self.df["season"].unique())
+        self.n_player = len(
+            set(df["committing_player"].tolist() + df["disadvantaged_player"].tolist())
+        )
+        self.n_call_type = len(self.df["call_type"].unique())
+        self.n_trailing_poss = len(self.df["trailing_poss"].unique())
+        self.n_remaining_poss = len(self.df["remaining_poss"].unique())
+
+    def __repr__(self):
+        return ""
+
+    @bm.random_variable
+    def sigma_a(self) -> RVIdentifier:
+        return dist.HalfNormal(5.0)
+
+    @bm.random_variable
+    def a_player(self) -> RVIdentifier:
+        return dist.Normal(0.0, 1.0).expand((self.n_player, self.n_season))
+
+    @bm.random_variable
+    def sigma_b(self) -> RVIdentifier:
+        return dist.HalfNormal(1.0)
+
+    @bm.random_variable
+    def b_player(self) -> RVIdentifier:
+        return dist.Normal(0.0, 1.0).expand((self.n_player, self.n_season))
+
+    @bm.random_variable
+    def beta_season(self) -> RVIdentifier:
+        return dist.Normal(0.0, 5.0).expand((self.n_season,))
+
+    @bm.random_variable
+    def sigma_call(self) -> RVIdentifier:
+        return dist.HalfNormal(5.0)
+
+    @bm.random_variable
+    def beta_call(self) -> RVIdentifier:
+        return dist.Normal(0, 1).expand((self.n_call_type,))
+
+    @bm.random_variable
+    def sigma_poss(self) -> RVIdentifier:
+        return dist.HalfNormal(5.0).expand((1, 1, self.n_call_type))
+
+    @bm.random_variable
+    def beta_poss(self) -> RVIdentifier:
+        return dist.Normal(0, 1).expand(
+            (self.n_trailing_poss, self.n_remaining_poss, self.n_call_type)
+        )
+
+    @bm.functional
+    def p(self) -> RVIdentifier:
+        b_season = self.beta_season()
+        b_call = self.beta_call() * self.sigma_call()
+        b_poss = self.beta_poss() * self.sigma_poss()
+
+        a_player = self.a_player() * self.sigma_a()
+        b_player = self.b_player() * self.sigma_b()
+
+        season = self.df["season_id"].values
+        player_disadvantaged = self.df["disadvantaged_player_id"].values
+        player_committing = df["committing_player_id"].values
+        eta_player = (
+            a_player[player_disadvantaged, season] - b_player[player_committing, season]
+        )
+
+        eta_game = (
+            b_season[season]
+            + b_call[self.df["call_type_id"].values]
+            + b_poss[
+                self.df["trailing_poss_id"].values,
+                self.df["remaining_poss_id"].values,
+                self.df["call_type_id"].values,
+            ]
+        ) + eta_player
+        return torch.sigmoid(eta_game)
+
+    @bm.random_variable
+    def y(self) -> RVIdentifier:
+        return dist.Bernoulli(self.p())
+```
+
+```python
+num_samples = 1 if smoke_test else 1500
+num_adaptive_samples = 1 if smoke_test else num_samples // 2
+
+irt_model = IRTModel(df)
+observations = {irt_model.y(): torch.tensor(df["foul_called"].astype(float).values)}
+
+irt_samples = bm.GlobalNoUTurnSampler(target_accept_prob=0.90,).infer(
+    queries=[irt_model.p()],
+    observations=observations,
+    num_samples=num_samples,
+    num_chains=num_chains,
+    num_adaptive_samples=num_adaptive_samples,
+)
+```
+
+<CellOutput>
+{` 
+Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]
+ 
+Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]`}
+</CellOutput>
+
+```python
+irt_trace = irt_samples.to_inference_data()
+```
+
+```python
+irt_summary_df = az.summary(irt_trace)
+```
+
+```python
+idx = irt_summary_df.index.tolist()[:5] + irt_summary_df.index.tolist()[-5:]
+Markdown(irt_summary_df.loc[idx].to_markdown())
+```
+
+|            |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:-----------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| p(,)[0]    |  0.414 | 0.087 |      0.272 |       0.547 |       0.001 |     0.001 |       4410 |       3163 |       1 |
+| p(,)[1]    |  0.36  | 0.076 |      0.239 |       0.482 |       0.001 |     0.001 |       5396 |       3421 |       1 |
+| p(,)[2]    |  0.398 | 0.079 |      0.268 |       0.515 |       0.001 |     0.001 |       4884 |       3266 |       1 |
+| p(,)[3]    |  0.165 | 0.051 |      0.084 |       0.235 |       0.001 |     0.001 |       3609 |       3345 |       1 |
+| p(,)[4]    |  0.179 | 0.052 |      0.099 |       0.257 |       0.001 |     0.001 |       4623 |       3131 |       1 |
+| p(,)[8625] |  0.852 | 0.042 |      0.79  |       0.919 |       0.001 |     0     |       5648 |       3596 |       1 |
+| p(,)[8626] |  0.254 | 0.065 |      0.153 |       0.356 |       0.001 |     0.001 |       6201 |       2934 |       1 |
+| p(,)[8627] |  0.85  | 0.044 |      0.791 |       0.923 |       0.001 |     0     |       7032 |       3207 |       1 |
+| p(,)[8628] |  0.279 | 0.069 |      0.173 |       0.387 |       0.001 |     0.001 |       5917 |       3356 |       1 |
+| p(,)[8629] |  0.267 | 0.064 |      0.172 |       0.371 |       0.001 |     0.001 |       5899 |       3551 |       1 |
+
+The effective sample size is decently large and the $\hat{R}$ is close to 1,
+hence it seems likely that this model fitted the data well using NUTS.
+
+Let's see how it compares with the previous models we defined and explored.
+
+
+```python
+phat = irt_samples[irt_model.p()]
+resid_df = df.assign(p_hat=phat.numpy().mean(axis=0).mean(axis=0)).assign(
+    resid=lambda df: df.foul_called - df.p_hat
+)
+```
+
+```python
+# Required for visualizing in Colab.
+output_notebook(hide_banner=True)
+
+irt_resid_plot = nba.plot_irt_residuals(resid_df)
+show(irt_resid_plot)
+```
+
+<IrtResidPlot />
+
+```python
+irt_resid_df = resid_df.pivot_table("resid", "season")
+
+print("Possession model")
+display(Markdown(possession_model_resid_df.to_markdown()))
+print("Basic model")
+display(Markdown(basic_model_resid_df.to_markdown()))
+print("IRT model")
+display(Markdown(irt_resid_df.to_markdown()))
+```
+
+<CellOutput>
+{`Possession model
+Basic model
+IRT model`}
+</CellOutput>
+
+The residuals are not demonstratably smaller than the possession model, but they
+are still smaller than the basic model. Finally, let's compare all three models
+using WAIC.
+
+
+```python
+Markdown(
+    az.compare(
+        {"irt": irt_trace, "possession": poss_trace, "basic": basic_trace},
+        ic="waic",
+    ).to_markdown()
+)
+```
+
+|            |   rank |     waic |     p_waic |   d_waic |   weight |   se |   dse | warning   | waic_scale   |
+|:-----------|-------:|---------:|-----------:|---------:|---------:|-----:|------:|:----------|:-------------|
+| possession |      0 | -4831.86 |  63.6791   |    0     | 0.333333 |    0 |     0 | True      | log          |
+| irt        |      1 | -5067.47 | 423.414    |  235.61  | 0.333333 |    0 |     0 | True      | log          |
+| basic      |      2 | -5576.24 |   0.937265 |  744.379 | 0.333333 |    0 |     0 | True      | log          |
+
+We can see the IRT model is slightly better than the possession model, and both
+are better than the basic model.
+
+
+## Conclusion
+
+
+With this tutorial we analyzed NBA foul data and came up with three models to
+predict when fouls happen. The best model explicitly models the players
+themselves and their own propensity to foul and be fouled. IRT models have a
+rich history in psychometrics and educational testing. If you have ever taken a
+standardized test, an IRT model was used to convert your test answers into an
+inference about your aptitude in math or reading comprehension.
+
+
+<a id="references"></a>
+## References
+
+
+1. Austin Rochford's 2018 analysis[
+   https://austinrochford.com/posts/2018-02-04-nba-irt-2.html](
+   https://austinrochford.com/posts/2018-02-04-nba-irt-2.html)
+1. 2015/2016 NBA season games [
+   https://github.com/polygraph-cool/last-two-minute-report](
+   https://github.com/polygraph-cool/last-two-minute-report)
+1. Last 2 minute reports [
+   http://official.nba.com/2017-18-nba-officiating-last-two-minute-reports/](
+   http://official.nba.com/2017-18-nba-officiating-last-two-minute-reports/)
+1. [Practical Issues in Implementing and Understanding Bayesian Ideal Point
+   Estimation](http://www.stat.columbia.edu/~gelman/research/published/171.pdf)
+1. [Bayesian Item Response Modeling—Theory and Applications](
+   http://www.springer.com/us/book/9781441907417)
+1. [NBA's Last Two Minute Report](https://github.com/polygraph-cool/last-two-minute-
+report)
+1. Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021)
+   **Rank-Normalization, Folding, and Localization: An Improved $\hat{R}$ for
+   Assessing Convergence of MCMC (with Discussion)**. Bayesian Analysis 16(2)
+   667–718. [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
+
