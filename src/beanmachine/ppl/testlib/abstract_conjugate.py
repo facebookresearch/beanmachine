@@ -135,13 +135,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         model = NormalNormalModel(mu, std, sigma)
         queries = [model.normal_p()]
         observations = {model.normal(): obs}
-        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
-            mu / std.pow(2.0) + obs / sigma.pow(2.0)
+        expected_mean = (mu / std.pow(2.0) + obs / sigma.pow(2.0)) / (
+            1.0 / sigma.pow(2.0) + 1.0 / std.pow(2.0)
         )
         expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
-        # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, List[RVIdentifier],
-        #  Dict[RVIdentifier, Tensor]]` but got `Tuple[float, typing.Any,
-        #  List[typing.Any], Dict[typing.Any, typing.Any]]`.
         return (expected_mean, expected_std, queries, observations)
 
     def compute_dirichlet_categorical_moments(self):
