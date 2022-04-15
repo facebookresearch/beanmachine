@@ -22,7 +22,7 @@ import sys
 
 # -- Project information -----------------------------------------------------
 
-project = "BeanMachine"
+project = "Bean Machine"
 copyright = "2021, Facebook"
 author = "Facebook"
 
