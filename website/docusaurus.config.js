@@ -47,7 +47,7 @@ module.exports = {
           position: 'left',
         },
         {
-          to: '/docs/overview/tutorials/Coin_flipping/CoinFlipping',
+          to: 'docs/overview/tutorials/Coin_flipping/CoinFlipping',
           label: 'Tutorials',
           position: 'left',
         },
