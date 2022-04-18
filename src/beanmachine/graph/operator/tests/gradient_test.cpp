@@ -715,3 +715,111 @@ TEST(testgradient, backward_broadcast_add) {
   EXPECT_NEAR((*grad1[0]), -6.1481, 1e-3);
   EXPECT_NEAR((*grad1[1]), 3.0, 1e-3);
 }
+
+void _expect_near_matrix(
+    Eigen::MatrixXd matrix1,
+    Eigen::MatrixXd matrix2,
+    double delta = 1e-4) {
+  EXPECT_EQ(matrix1.rows(), matrix2.rows());
+  EXPECT_EQ(matrix1.cols(), matrix2.cols());
+  for (uint i = 0; i < matrix1.rows(); i++) {
+    for (uint j = 0; j < matrix1.cols(); j++) {
+      EXPECT_NEAR(matrix1(i, j), matrix2(i, j), delta);
+    }
+  }
+}
+
+TEST(testgradient, forward_cholesky) {
+  // Test cholesky gradients for a 2x2 matrix
+
+  // PyTorch verification
+  // Sigma = torch.tensor([[1.0, 0.98], [0.98, 1.0]], requires_grad=True)
+  // L = torch.cholesky(Sigma)
+  // print(L)
+  // a = grad(L[0, 0], Sigma, retain_graph=True, create_graph=True)[0].sum()
+  // b = grad(L[0, 1], Sigma, retain_graph=True, create_graph=True)[0].sum()
+  // c = grad(L[1, 0], Sigma, retain_graph=True, create_graph=True)[0].sum()
+  // d = grad(L[1, 1], Sigma, retain_graph=True, create_graph=True)[0].sum()
+  // a.requires_grad_(True)
+  // b.requires_grad_(True)
+  // c.requires_grad_(True)
+  // d.requires_grad_(True)
+  // aa = grad(a, Sigma, retain_graph=True)[0].sum()
+  // bb = grad(b, Sigma, retain_graph=True)[0].sum()
+  // cc = grad(c, Sigma, retain_graph=True)[0].sum()
+  // dd = grad(d, Sigma, retain_graph=True)[0].sum()
+  // first_grad <- [[a, b], [c, d]] = [[0.5, 0.0], [0.51, 0.001]]
+  // second_grad <- [[aa, bb], [cc, dd]] = [[-0.25, 0.0], [-0.265, -0.002]]
+  Graph g;
+  Eigen::MatrixXd sigma(2, 2);
+  sigma << 1.0, 0.98, 0.98, 1.0;
+  auto sigma_matrix = g.add_constant_real_matrix(sigma);
+  Node* sigma_node = g.get_node(sigma_matrix);
+  sigma_node->Grad1 = Eigen::MatrixXd::Ones(2, 2);
+  sigma_node->Grad2 = Eigen::MatrixXd::Zero(2, 2);
+  auto l_matrix = g.add_operator(OperatorType::CHOLESKY, {sigma_matrix});
+  Node* l_node = g.get_node(l_matrix);
+  std::mt19937 gen;
+  l_node->eval(gen);
+  l_node->compute_gradients();
+  Eigen::MatrixXd expected_first_grad(2, 2);
+  expected_first_grad << 0.5, 0.0, 0.51, 0.001;
+  Eigen::MatrixXd first_grad = l_node->Grad1;
+  _expect_near_matrix(first_grad, expected_first_grad);
+  Eigen::MatrixXd expected_second_grad(2, 2);
+  expected_second_grad << -0.25, 0.0, -0.265, -0.002;
+  Eigen::MatrixXd second_grad = l_node->Grad2;
+  _expect_near_matrix(second_grad, expected_second_grad);
+
+  // Sigma = torch.tensor([
+  //     [1.0, 0.35, -0.25],
+  //     [0.35, 1.54, 0.36],
+  //     [-0.25, 0.36, 0.26]], requires_grad=True)
+  // L = torch.cholesky(Sigma)
+  // print(L)
+  // grad1 = []
+  // for i in range(3):
+  //     row_vars = []
+  //     for j in range(3):
+  //         var = grad(L[i, j],
+  //                    Sigma,
+  //                    retain_graph=True,
+  //                    create_graph=True)[0].sum()
+  //         var.requires_grad_(True)
+  //         row_vars.append(var)
+  //     grad1.append(row_vars)
+  // print(grad1)
+  // grad2 = []
+  // for i in range(3):
+  //     row_vars = []
+  //     for j in range(3):
+  //         var = grad(grad1[i][j]
+  //                    Sigma,
+  //                    retain_graph=True,
+  //                    create_graph=True)[0].sum()
+  //         var.requires_grad_(True)
+  //         row_vars.append(var)
+  //     grad2.append(row_vars)
+  // print(grad2)
+  Graph g1;
+  Eigen::MatrixXd sigma1(3, 3);
+  sigma1 << 1.0, 0.35, -0.25, 0.35, 1.54, 0.36, -0.25, 0.36, 0.26;
+  auto sigma1_matrix = g1.add_constant_real_matrix(sigma1);
+  Node* sigma1_node = g1.get_node(sigma1_matrix);
+  sigma1_node->Grad1 = Eigen::MatrixXd::Ones(3, 3);
+  sigma1_node->Grad2 = Eigen::MatrixXd::Zero(3, 3);
+  auto l1_matrix = g1.add_operator(OperatorType::CHOLESKY, {sigma1_matrix});
+  Node* l1_node = g1.get_node(l1_matrix);
+  l1_node->eval(gen);
+  l1_node->compute_gradients();
+  Eigen::MatrixXd expected_first_grad1(3, 3);
+  expected_first_grad1 << 0.5, 0.0, 0.0, 0.825, 0.1774, 0.0, 1.125, 0.6264,
+      2.3018;
+  Eigen::MatrixXd first_grad1 = l1_node->Grad1;
+  _expect_near_matrix(first_grad1, expected_first_grad1);
+  Eigen::MatrixXd expected_second_grad1(3, 3);
+  expected_second_grad1 << -0.25, 0.0, 0.0, -0.7375, -0.3813, 0.0, -1.1875,
+      -1.4312, -28.32;
+  Eigen::MatrixXd second_grad1 = l1_node->Grad2;
+  _expect_near_matrix(second_grad1, expected_second_grad1);
+}
