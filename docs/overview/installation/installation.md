@@ -28,8 +28,8 @@ cd beanmachine
 We recommend using [conda](https://docs.conda.io/en/latest/) to manage the virtual environment and install the necessary build dependencies.
 
 ```
-conda create -n {env name} python=3.7; conda activate {env name}
-conda install boost eigen  # C++ dependencies
+conda create -n {env name} python=3.8; conda activate {env name}
+conda install -c conda-forge boost-cpp eigen # C++ dependencies
 pip install .
 ```
 

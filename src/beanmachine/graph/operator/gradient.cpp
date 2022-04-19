@@ -389,7 +389,60 @@ void BroadcastAdd::compute_gradients() {
 }
 
 void Cholesky::compute_gradients() {
-  // TODO: fill this in
+  // equation 19 and 20 of
+  // Differentiation of the Cholesky decomposition by Iain Murray
+  // https://homepages.inf.ed.ac.uk/imurray2/pub/16choldiff/choldiff.pdf
+  assert(in_nodes.size() == 1);
+  uint n = in_nodes[0]->value.type.rows;
+  Eigen::MatrixXd L = value._matrix;
+  Eigen::MatrixXd Sigma = in_nodes[0]->value._matrix;
+  Grad1 = in_nodes[0]->Grad1;
+  Grad2 = in_nodes[0]->Grad2;
+  for (int i = 0; i < (int)n; i++) {
+    // update first and second grad of L_d (index i, i)
+    Eigen::VectorXd L_r = L(i, Eigen::seq(0, i - 1));
+    Eigen::VectorXd dL_r = Grad1(i, Eigen::seq(0, i - 1));
+    double dSigma_d = Grad1(i, i);
+    double L_d = L(i, i);
+    double dL_d = (dSigma_d / 2 - L_r.dot(dL_r)) / L_d;
+    Grad1(i, i) = dL_d;
+    // use product rule to get second derivative
+    auto g = 1 / L_d;
+    auto dg = -std::pow(L_d, -2) * dL_d;
+    auto h = dSigma_d / 2 - dL_r.dot(L_r);
+    auto dd_Sigma_d = Grad2(i, i);
+    auto ddL_r = Grad2(i, Eigen::seq(0, i - 1));
+    auto dh = dd_Sigma_d / 2 - ddL_r.dot(L_r) - dL_r.dot(dL_r);
+    Grad2(i, i) = g * dh + dg * h;
+
+    // update first and second grad of L_c (index i+1:N, i)
+    Eigen::VectorXd dSigma_c = Grad1(Eigen::seq(i + 1, Eigen::last), i);
+    Eigen::MatrixXd dL_B =
+        Grad1(Eigen::seq(i + 1, Eigen::last), Eigen::seq(0, i - 1));
+    Eigen::MatrixXd L_B =
+        L(Eigen::seq(i + 1, Eigen::last), Eigen::seq(0, i - 1));
+    Eigen::VectorXd L_c = L(Eigen::seq(i + 1, Eigen::last), i);
+    Eigen::VectorXd dL_c =
+        (dSigma_c - dL_B * L_r - L_B * dL_r - L_c * dL_d) / L_d;
+    Grad1(Eigen::seq(i + 1, Eigen::last), i) = dL_c;
+    // product rule for second derivative
+    auto h_c = dSigma_c - dL_B * L_r - L_B * dL_r - L_c * dL_d;
+    auto ddSigma_c = Grad2(Eigen::seq(i + 1, Eigen::last), i);
+    auto ddL_B = Grad2(Eigen::seq(i + 1, Eigen::last), Eigen::seq(0, i - 1));
+    auto ddL_d = Grad2(i, i);
+    auto dh_c = ddSigma_c - (ddL_B * L_r + dL_B * dL_r) -
+        (dL_B * dL_r + L_B * ddL_r.transpose()) - (dL_c * dL_d + L_c * ddL_d);
+    Eigen::VectorXd ddL_c = g * dh_c + dg * h_c;
+    Grad2(Eigen::seq(i + 1, Eigen::last), i) = ddL_c;
+  }
+
+  // zero out upper triangular
+  for (uint i = 0; i < n; i++) {
+    for (uint j = i + 1; j < n; j++) {
+      Grad1(i, j) = 0.0;
+      Grad2(i, j) = 0.0;
+    }
+  }
 }
 
 } // namespace oper

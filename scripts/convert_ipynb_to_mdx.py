@@ -120,7 +120,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
     Args:
         cell (NotebookNode): Jupyter code cell object.
         plot_data_folder (Union[PathLike, str]): Path to the `plot_data` folder for the
-        tutorial.
+            tutorial.
         filename (str): File name to use for the mdx and jsx output.
 
     Returns:
@@ -140,6 +140,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
         "image/bmp",
         "text/latex",
         "text/html",
+        "application/vnd.jupyter.widget-view+json",  # tqdm progress bars
         "text/plain",
     ]
 
@@ -192,6 +193,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
         # Cycle through the cell outputs and transform them for inclusion in the mdx
         # string.
+        display_data_outputs = []
         for i, cell_output in enumerate(cell_outputs):
             data_object = (
                 ordered_cell_output_dtypes[i][0]
@@ -213,6 +215,12 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                                 f"![](data:{data_object};base64,{cell_output_data})\n\n"
                             )
                     # TODO: Handle svg images.
+
+                    # Handle tqdm progress bars.
+                    if data_type == "vnd.jupyter.widget-view+json":
+                        cell_output_data = cell_output["data"]["text/plain"]
+                        display_data_outputs.append(cell_output_data)
+
                 # Handle plotly images.
                 if plotly_flag:
                     cell_output_data = cell_output["data"]
@@ -320,9 +328,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         cell_output_data = "\n".join(
                             [line for line in cell_output_data.splitlines() if line]
                         )
-                        mdx_output += (
-                            f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
-                        )
+                        display_data_outputs.append(cell_output_data)
                     # Handle markdown.
                     if data_type == "markdown":
                         mdx_output += f"{cell_output_data}\n\n"
@@ -332,13 +338,16 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                 # Ignore if the output is an error.
                 if cell_output["name"] == "stderr":
                     continue
-                cell_output_data = cell_output.get("text", "")
-                cell_output_data = "\n".join(
-                    [line for line in cell_output_data.splitlines() if line]
-                )
-                mdx_output += (
-                    f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
-                )
+                cell_output_data = cell_output.get("text", None)
+                if cell_output_data is not None:
+                    cell_output_data = "\n".join(
+                        [line for line in cell_output_data.splitlines() if line]
+                    )
+                    display_data_outputs.append(cell_output_data)
+
+        if display_data_outputs:
+            cell_output_data = "\n".join(display_data_outputs)
+            mdx_output += f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
 
     return {
         "mdx": mdx_output,

@@ -311,13 +311,13 @@ def plot_basic_model_residuals(residual_df):
     ]
 
     return plots.scatter_plot(
-        plot_source=plot_source,
+        plot_sources=[plot_source],
         figure_kwargs={
             "x_axis_label": "Seconds remaining in game",
             "y_axis_label": "Residual",
             "x_range": [125, -5],
         },
-        tooltips=tooltips,
+        tooltips=[tooltips],
     )
 
 
@@ -373,7 +373,6 @@ def plot_trailing_team_committing(df):
         ColumnDataSource({"x": x, "y": plot_data["Yes"].values}),
     ]
     labels = plot_data.columns.values
-    colors = ["steelblue", "orange"]
     tooltips = [
         [("Rate", "@y{0.000}"), ("Time", "@x")],
         [("Rate", "@y{0.000}"), ("Time", "@x")],
@@ -382,7 +381,6 @@ def plot_trailing_team_committing(df):
     p = plots.line_plot(
         plot_sources,
         labels=labels,
-        colors=colors,
         tooltips=tooltips,
         figure_kwargs={
             "title": "Committing team is trailing",
@@ -413,7 +411,6 @@ def plot_trailing_possessions(df):
         ColumnDataSource({"x": x, "y": plot_data[3].values}),
     ]
     labels = plot_data.columns.astype(str).values
-    colors = ["steelblue", "orange", "brown"]
     tooltips = [
         [("Rate", "@y{0.000}"), ("Time left", "@x")],
         [("Rate", "@y{0.000}"), ("Time left", "@x")],
@@ -423,7 +420,6 @@ def plot_trailing_possessions(df):
     p = plots.line_plot(
         plot_sources,
         labels=labels,
-        colors=colors,
         tooltips=tooltips,
         figure_kwargs={
             "title": "Trailing possessions (committing team)",
@@ -450,12 +446,12 @@ def plot_possession_model_residuals(residual_df):
     ]
 
     return plots.scatter_plot(
-        plot_source=plot_source,
+        plot_sources=[plot_source],
         figure_kwargs={
             "x_axis_label": "Seconds remaining in game",
             "y_axis_label": "Residual",
         },
-        tooltips=tooltips,
+        tooltips=[tooltips],
     )
 
 
@@ -473,10 +469,10 @@ def plot_irt_residuals(residual_df):
     ]
 
     return plots.scatter_plot(
-        plot_source=plot_source,
+        plot_sources=[plot_source],
         figure_kwargs={
             "x_axis_label": "Seconds remaining in game",
             "y_axis_label": "Residual",
         },
-        tooltips=tooltips,
+        tooltips=[tooltips],
     )

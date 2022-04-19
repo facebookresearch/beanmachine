@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        conda install -y eigen boost
+        conda install -c conda-forge -y boost-cpp eigen
         python -m pip install --upgrade pip
 
     - name: Install Bean Machine in editable mode
