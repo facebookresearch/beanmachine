@@ -39,7 +39,7 @@ We recommend using [conda](https://docs.conda.io/en/latest/) to manage the virtu
 
 ```bash
 conda create -n {env name} python=3.8; conda activate {env name}
-conda install -c conda-forge boost-cpp eigen
+conda install -c conda-forge boost-cpp eigen=3.4.0
 python -m pip install .
 ```
 
