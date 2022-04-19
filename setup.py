@@ -53,9 +53,7 @@ DEV_REQUIRES = (
         "flake8-bugbear",
         "libcst==0.4.1",
         "nbval",
-        "sphinx==4.2.0",
-        "sphinx-autodoc-typehints",
-        "sphinx_rtd_theme",
+        "pydoc-markdown",
         "toml>=0.10.2",
         # `black` is included in `INSTALL_REQUIRES` above.
         "ufmt==1.3.2",

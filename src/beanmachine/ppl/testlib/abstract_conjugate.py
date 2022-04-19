@@ -27,7 +27,7 @@ from beanmachine.ppl.testlib.hypothesis_testing import (
 from torch import Tensor, tensor
 
 
-class AbstractConjugateTests(metaclass=ABCMeta):
+class AbstractConjugateTests(object, metaclass=ABCMeta):
     """
     Computes the posterior mean and standard deviation of some of the conjugate
     distributions included below.

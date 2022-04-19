@@ -62,6 +62,9 @@ module.exports = {
         internal: ['overview/tutorials/tutorials'],
         external: tutorials(),
       }),
+      "API Documentation": [
+        require("./api/sidebar.json")
+      ],
     },
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.
     // {

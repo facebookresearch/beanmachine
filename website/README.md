@@ -20,12 +20,7 @@ The first line setting the environment variable is required to bypass a bug in O
 
 ### Build
 
-```
-$ make clean
-$ make all
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+See `website` target in the main project's `Makefile`.
 
 ### Deployment
 

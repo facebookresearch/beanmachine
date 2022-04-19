@@ -113,9 +113,6 @@ docs/overview/tutorials/*/assets/*/*.svg
 tutorials/archive.ics.uci.edu/*
 src/beanmachine/tutorials/utils/data/*
 
-## Generated for Sphinx
-website/pages/api/
-website/static/js/*
-!website/static/js/mathjax.js
-!website/static/js/code_block_buttons.js
-website/static/_sphinx-sources/
+## Generated for docs
+docs/api/
+website/api/

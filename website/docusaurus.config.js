@@ -52,7 +52,7 @@ module.exports = {
           position: 'left',
         },
         {
-          href: 'pathname:///api/index.html',
+          href: '/docs/api',
           label: 'API',
           position: 'left',
         },
@@ -115,6 +115,12 @@ module.exports = {
             external:
               'https://github.com/facebookresearch/beanmachine/edit/main/website/',
           }),
+          exclude: [
+            // '**/_*.{js,jsx,ts,tsx,md,mdx}',
+            // '**/_*/**',
+            '**/*.test.{js,jsx,ts,tsx}',
+            '**/__tests__/**',
+          ],
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
         },

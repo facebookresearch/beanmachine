@@ -28,7 +28,7 @@ from tqdm.notebook import tqdm as notebook_tqdm
 from typing_extensions import Literal
 
 
-class BaseInference(metaclass=ABCMeta):
+class BaseInference(object, metaclass=ABCMeta):
     """
     Abstract class all inference methods should inherit from.
     """

@@ -19,7 +19,7 @@ def get_world_context() -> Optional[BaseWorld]:
     return _WORLD_STACK[-1] if _WORLD_STACK else None
 
 
-class BaseWorld(metaclass=ABCMeta):
+class BaseWorld(object, metaclass=ABCMeta):
     def __enter__(self) -> BaseWorld:
         """
         This method, together with __exit__, allow us to use world as a context, e.g.

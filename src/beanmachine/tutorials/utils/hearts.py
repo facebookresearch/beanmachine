@@ -116,7 +116,7 @@ class SimulatedPredictiveChecks:
         samples_with_observations: Union[None, MonteCarloSamples] = None,
         samples_without_observations: Union[None, MonteCarloSamples] = None,
         *args,
-        **kwargs,
+        **kwargs
     ) -> None:
         """
         Plot prior/posterior predictive checks.
@@ -585,7 +585,7 @@ class Model3PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
         p_query: RVIdentifier,
         s_query_str: str,
         *args,
-        **kwargs,
+        **kwargs
     ) -> None:
         """
         Model 3 predictive checks initialization.
