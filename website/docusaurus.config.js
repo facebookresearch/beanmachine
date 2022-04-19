@@ -51,11 +51,6 @@ module.exports = {
           label: 'Tutorials',
           position: 'left',
         },
-        {
-          href: '/docs/api',
-          label: 'API',
-          position: 'left',
-        },
         // {to: 'blog', label: 'Blog', position: 'left'},
         // Please keep GitHub link to the right for consistency.
         {
