@@ -1,6 +1,6 @@
 # Website
 
-This website is built using [Docusaurus 2](https://v2.docusaurus.io/), a modern static website generator. Ensure you have [built the Sphinx docs](https://github.com/facebookresearch/beanmachine/tree/main/sphinx) before building the website.
+This website is built using [Sphinx](https://www.sphinx-doc.org/) and [Docusaurus 2](https://v2.docusaurus.io/).
 
 ### Installation
 
@@ -11,7 +11,6 @@ $ yarn
 ### Local Development
 
 ```
-$ export NODE_OPTIONS=--openssl-legacy-provider
 $ yarn start
 ```
 
@@ -22,8 +21,8 @@ The first line setting the environment variable is required to bypass a bug in O
 ### Build
 
 ```
-$ export NODE_OPTIONS=--openssl-legacy-provider
-$ yarn build
+$ make clean
+$ make all
 ```
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.

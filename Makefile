@@ -10,7 +10,7 @@ test: lint FORCE
 	pytest -vs .
 
 docs: FORCE
-	$(MAKE) -C sphinx html
+	$(MAKE) -C website apihtml
 
 tutorials: FORCE
 	python scripts/convert_ipynb_to_mdx.py
@@ -24,7 +24,7 @@ else
 		--ClearMetadataPreprocessor.enabled=True $(nb)
 endif
 
-website: docs FORCE
-	$(MAKE) -C website 
+website: FORCE
+	$(MAKE) -C website all
 
 FORCE:
