@@ -1,13 +1,17 @@
 loaders:
   - type: python
     packages: 
-      - beanmachine.ppl
-    ignore_when_discovered:
-      - beanmachine.applications
       - beanmachine.ppl.compiler
-      - beanmachine.graph
-      - beanmachine.tutorials
+      - beanmachine.ppl.diagnostics
+      - beanmachine.ppl.distributions
+      - beanmachine.ppl.experimental
+      - beanmachine.ppl.inference
+      - beanmachine.ppl.model
+      - beanmachine.ppl.world
     search_path: [./src]
+    ignore_when_discovered:
+      - tests
+      - beanmachine.ppl.compiler.tests
 processors:
   - type: filter
     skip_empty_modules: true

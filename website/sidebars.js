@@ -63,7 +63,7 @@ module.exports = {
         external: tutorials(),
       }),
       "API Documentation": [
-        require("./api/sidebar.json")
+        require("../docs/api/sidebar.json")
       ],
     },
     // TODO(sepehrakhavan): Re-display this once we have at least one package present.

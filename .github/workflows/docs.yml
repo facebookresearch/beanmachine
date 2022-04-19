@@ -40,17 +40,9 @@ jobs:
     - name: Install Bean Machine in editable mode
       run: pip install -v -e .[dev]
 
-    - name: Add tutorials to Docs
-      run: make tutorials
-
-    - name: Check env
-      run: echo `which sphinx-build`
-
     - name: Build the Website
       run: |
-        cd website
-        yarn install
-        make all
+        make website
         cd ..
 
     - name: Get output time
