@@ -46,18 +46,11 @@ jobs:
     - name: Check env
       run: echo `which sphinx-build`
 
-    - name: Build the docset
-      run: |
-        cd sphinx
-        pip install -r requirements.txt
-        make html
-        cd ..
-
     - name: Build the Website
       run: |
         cd website
         yarn install
-        yarn build
+        make all
         cd ..
 
     - name: Get output time
