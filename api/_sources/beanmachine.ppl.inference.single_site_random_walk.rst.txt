@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.single\_site\_random\_walk module
+===========================================================
+
+.. automodule:: beanmachine.ppl.inference.single_site_random_walk
+   :members:
+   :undoc-members:
+   :show-inheritance:

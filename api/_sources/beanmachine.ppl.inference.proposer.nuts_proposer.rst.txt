@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.proposer.nuts\_proposer module
+========================================================
+
+.. automodule:: beanmachine.ppl.inference.proposer.nuts_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:

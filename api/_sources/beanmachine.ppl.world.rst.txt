@@ -1,0 +1,22 @@
+beanmachine.ppl.world package
+=============================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.world.base_world
+   beanmachine.ppl.world.initialize_fn
+   beanmachine.ppl.world.utils
+   beanmachine.ppl.world.variable
+   beanmachine.ppl.world.world
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.world
+   :members:
+   :undoc-members:
+   :show-inheritance:

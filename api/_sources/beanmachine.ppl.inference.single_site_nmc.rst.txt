@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.single\_site\_nmc module
+==================================================
+
+.. automodule:: beanmachine.ppl.inference.single_site_nmc
+   :members:
+   :undoc-members:
+   :show-inheritance:

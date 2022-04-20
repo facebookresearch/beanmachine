@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.single\_site\_ancestral\_mh module
+============================================================
+
+.. automodule:: beanmachine.ppl.inference.single_site_ancestral_mh
+   :members:
+   :undoc-members:
+   :show-inheritance:

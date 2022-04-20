@@ -1,0 +1,7 @@
+beanmachine.ppl.distributions.flat module
+=========================================
+
+.. automodule:: beanmachine.ppl.distributions.flat
+   :members:
+   :undoc-members:
+   :show-inheritance:

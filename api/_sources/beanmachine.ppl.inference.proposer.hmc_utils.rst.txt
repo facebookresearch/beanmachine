@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.proposer.hmc\_utils module
+====================================================
+
+.. automodule:: beanmachine.ppl.inference.proposer.hmc_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

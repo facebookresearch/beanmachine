@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.sampler module
+========================================
+
+.. automodule:: beanmachine.ppl.inference.sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:

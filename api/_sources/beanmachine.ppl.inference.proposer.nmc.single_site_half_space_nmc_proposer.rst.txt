@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.proposer.nmc.single\_site\_half\_space\_nmc\_proposer module
+======================================================================================
+
+.. automodule:: beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:

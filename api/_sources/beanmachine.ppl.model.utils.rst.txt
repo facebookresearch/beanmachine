@@ -1,0 +1,7 @@
+beanmachine.ppl.model.utils module
+==================================
+
+.. automodule:: beanmachine.ppl.model.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

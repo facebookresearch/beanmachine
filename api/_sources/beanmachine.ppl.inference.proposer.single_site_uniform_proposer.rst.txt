@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.proposer.single\_site\_uniform\_proposer module
+=========================================================================
+
+.. automodule:: beanmachine.ppl.inference.proposer.single_site_uniform_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:

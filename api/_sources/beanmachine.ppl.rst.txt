@@ -1,0 +1,21 @@
+beanmachine.ppl package
+=======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.distributions
+   beanmachine.ppl.inference
+   beanmachine.ppl.model
+   beanmachine.ppl.world
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl
+   :members:
+   :undoc-members:
+   :show-inheritance:
