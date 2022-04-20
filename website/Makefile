@@ -25,4 +25,10 @@ clean:
 all: clean apidocs apihtml
 	yarn build
 
+prebuild:
+	# Only run prebuild script with Buck internally
+	if [ -f "../TARGETS" ]; then \
+		buck run //beanmachine/scripts:ipynb-to-mdx; \
+	fi
+
 FORCE:
