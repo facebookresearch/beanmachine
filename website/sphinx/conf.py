@@ -19,8 +19,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "Bean Machine"
-copyright = "2022, Facebook"
-author = "Facebook"
+copyright = "2022, Meta Platforms, Inc."
+author = "Meta Platforms, Inc."
 
 
 # -- General configuration ---------------------------------------------------
