@@ -6,7 +6,17 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple, Collection
+from typing import (
+    Iterable,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Collection,
+)
 
 import torch
 import torch.distributions as dist
@@ -31,7 +41,7 @@ class _TempVar:
 class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     """
     A World represents an instantiation of the graphical model and can be manipulated or evaluated.
-    In the contest of MCMC inference, a world represents a single Monte Carlo posterior sample.
+    In the context of MCMC inference, a world represents a single Monte Carlo posterior sample.
 
     A World can also be used as a context manager to run and sample random variables.
     Example::
@@ -64,6 +74,42 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self._variables: Dict[RVIdentifier, Variable] = {}
 
         self._call_stack: List[_TempVar] = []
+
+    def _initialize_world(
+        self,
+        queries: Iterable[RVIdentifier],
+        max_retries: int = 100,
+    ):
+        """
+        Initializes a world with all of the random variables (queries and observations).
+        In case of initializing values outside of support of the distributions, the
+        method will keep resampling until a valid initialization is found up to
+        ``max_retries`` times.
+
+        Args:
+            queries: A list of random variables that need to be inferred.
+            max_retries: The number of attempts this method will make before throwing an
+                error (default to 100).
+        """
+        for _ in range(max_retries):
+            empty_world = self.copy()
+            # recursively add parent nodes to the graph
+            for node in queries:
+                empty_world.call(node)
+            for node in self.observations:
+                empty_world.call(node)
+
+            # check if the initial state is valid
+            log_prob = empty_world.log_prob()
+            if not torch.isinf(log_prob) and not torch.isnan(log_prob):
+                self.__dict__.update(empty_world.__dict__)
+                return self
+
+        # None of the world gives us a valid initial state
+        raise ValueError(
+            f"Cannot find a valid initialization after {max_retries} retries. The model"
+            " might be misspecified."
+        )
 
     def __getitem__(self, node: RVIdentifier) -> torch.Tensor:
         """

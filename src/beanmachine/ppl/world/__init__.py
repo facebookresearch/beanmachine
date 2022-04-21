@@ -19,8 +19,8 @@ from beanmachine.ppl.world.world import World, RVDict
 __all__ = [
     "BetaDimensionTransform",
     "InitializeFn",
-    "World",
     "RVDict",
+    "World",
     "get_default_transforms",
     "get_world_context",
     "init_from_prior",
