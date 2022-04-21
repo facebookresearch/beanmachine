@@ -8,6 +8,7 @@ from typing import Callable, Union
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
 from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import get_world_context
@@ -131,6 +132,11 @@ class StatisticalModel:
             world = get_world_context()
             if world is None:
                 return func_key
+            else:
+                assert isinstance(
+                    world, VariationalWorld
+                ), "encountered params outside of VariationalWorld, this should never happen."
+                return world.get_param(func_key)
 
         return wrapper
 
