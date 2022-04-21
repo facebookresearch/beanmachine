@@ -117,7 +117,9 @@ def test_enumerate():
 
 def test_change_parents():
     model = DynamicModel()
-    world = World(initialize_fn=lambda d: torch.zeros_like(d.sample()))
+    world = World(
+        initialize_fn=lambda w, rv: torch.zeros_like(w._run_node(rv)[0].sample())
+    )
     with world:
         model.baz()
 

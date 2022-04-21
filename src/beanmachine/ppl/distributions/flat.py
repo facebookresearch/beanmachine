@@ -20,7 +20,7 @@ class Flat(dist.Distribution):
     support = dist.constraints.real
     has_rsample = True
 
-    def __init__(self, shape):
+    def __init__(self, shape=(1,)):
         self.shape = shape
         self._event_shape = [shape]
 
