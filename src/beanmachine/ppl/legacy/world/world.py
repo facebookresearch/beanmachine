@@ -5,14 +5,11 @@
 
 import copy
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import torch
 import torch.distributions as dist
 import torch.nn as nn
-from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
-    MeanFieldVariationalApproximation,
-)
 from beanmachine.ppl.legacy.world.diff import Diff
 from beanmachine.ppl.legacy.world.diff_stack import DiffStack
 from beanmachine.ppl.legacy.world.variable import TransformData, TransformType, Variable
@@ -88,8 +85,6 @@ class World(BaseWorld):
     )
     """
 
-    vi_dicts: Optional[Callable[[RVIdentifier], MeanFieldVariationalApproximation]]
-    params_: Dict[RVIdentifier, nn.Parameter]
     model_to_guide_ids_: Optional[Dict[RVIdentifier, RVIdentifier]]
 
     def __init__(self):
@@ -103,8 +98,6 @@ class World(BaseWorld):
         self.maintain_graph_ = True
         self.cache_functionals_ = False
         self.cached_functionals_ = defaultdict()
-        self.vi_dicts = None
-        self.params_ = {}
         self.model_to_guide_ids_ = None
 
     def set_initialize_from_prior(self, initialize_from_prior: bool = True):
@@ -697,16 +690,6 @@ class World(BaseWorld):
             proposed_score,
         )
 
-    def get_param(self, param: RVIdentifier) -> nn.Parameter:
-        "Gets a parameter or initializes it if not found."
-        if param not in self.params_:
-            self.params_[param] = nn.Parameter(param.function(*param.arguments))
-        return self.params_[param]
-
-    def set_params(self, params: Dict[RVIdentifier, nn.Parameter]):
-        "Sets the parameters in this World to specified values."
-        self.params_ = params
-
     def update_graph(self, node: RVIdentifier) -> Tensor:
         """
         Updates the parents and children of the node based on the stack
@@ -766,15 +749,9 @@ class World(BaseWorld):
 
         # resample latents from q
         value = None
-        vi_dicts = self.vi_dicts
         model_to_guide_ids = self.model_to_guide_ids_
         if obs_value is None:
-            # TODO: messy, consider strategy pattern
-            if vi_dicts is not None:
-                # mean-field VI
-                variational_approx = vi_dicts(node)
-                value = variational_approx.rsample((1,)).squeeze()
-            elif (
+            if (
                 isinstance(model_to_guide_ids, dict)
                 and node not in model_to_guide_ids.values()  # is not a model RV
             ):

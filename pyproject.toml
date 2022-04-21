@@ -12,8 +12,6 @@ filterwarnings = [
     "ignore:torch.vmap is an experimental prototype.*:UserWarning",
     # pandas sometimes complains about binary compatibility with numpy
     "default:numpy.ufunc size changed, may indicate binary incompatibility.*:RuntimeWarning",
-    # flowtorch warnings
-    "ignore:DenseAutoregressive input_dim = 1. Consider using an affine transformation instead.*:UserWarning",
     # nbval fspath deprecation not supported in sphinx
     "ignore::DeprecationWarning:nbval",
     # PyTorch 1.10 warns against creating a tensor from a list of numpy arrays

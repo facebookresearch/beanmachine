@@ -12,14 +12,18 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 from beanmachine.ppl.distributions.flat import Flat
-from beanmachine.ppl.experimental.vi.optim import (
-    BMMultiOptimizer,
-    BMOptim,
-)
-from beanmachine.ppl.experimental.vi.variational_infer import (
-    MeanFieldVariationalInference,
-    VariationalInference,
-)
+
+try:
+    from beanmachine.ppl.experimental.vi.optim import (
+        BMMultiOptimizer,
+        BMOptim,
+    )
+    from beanmachine.ppl.experimental.vi.variational_infer import (
+        MeanFieldVariationalInference,
+        VariationalInference,
+    )
+except ImportError:
+    pass
 from beanmachine.ppl.legacy.world import World
 from torch.distributions import constraints
 from torch.distributions.utils import _standard_normal
@@ -118,6 +122,7 @@ class NormalNormal:
 
 class MeanFieldVariationalInferTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.skipTest("Mean field VI not implemented!")
         MeanFieldVariationalInference.set_seed(42)
 
     def test_neals_funnel(self):
@@ -236,6 +241,7 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
 
 class StochasticVariationalInferTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.skipTest("SVI not implemented!")
         VariationalInference.set_seed(1)
 
     def test_normal_normal_guide(self):

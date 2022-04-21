@@ -129,9 +129,7 @@ class StatisticalModel:
         def wrapper(*args):
             func_key = StatisticalModel.get_func_key(wrapper, args)
             world = get_world_context()
-            if isinstance(world, World):
-                return world.get_param(func_key)
-            else:
+            if world is None:
                 return func_key
 
         return wrapper

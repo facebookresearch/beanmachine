@@ -21,7 +21,6 @@ INSTALL_REQUIRES = [
     "astor>=0.7.1",
     "black==21.4b2",
     "botorch>=0.5.1",
-    "flowtorch>=0.3",
     "gpytorch>=1.3.0",
     "graphviz>=0.17",
     "numpy>=1.18.1",
