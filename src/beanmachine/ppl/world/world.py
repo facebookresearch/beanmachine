@@ -196,7 +196,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         if node in self.observations:
             node_val = self.observations[node]
         else:
-            node_val = self._initialize_fn(distribution)
+            node_val = self._initialize_fn(self, node)
 
         self._variables[node] = Variable(
             value=node_val,

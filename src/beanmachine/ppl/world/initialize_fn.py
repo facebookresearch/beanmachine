@@ -3,17 +3,23 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-# pyre-ignore-all-errors[16, 20]
-from typing import Callable
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+
+if TYPE_CHECKING:
+    from beanmachine.ppl.world import World
+
+# still need to explicitly forward reference in type alias, see
+# https://peps.python.org/pep-0563/#forward-references
+InitializeFn = Callable[["World", RVIdentifier], torch.Tensor]
 
 
-InitializeFn = Callable[[dist.Distribution], torch.Tensor]
-
-
-def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
+def init_to_uniform(world: World, rv: RVIdentifier) -> torch.Tensor:
     """
     Initializes a uniform distribution to sample from transformed to the
     support of ``distribution``.  A Categorical is used for discrete distributions,
@@ -27,6 +33,7 @@ def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
                       the prior distribution.
 
     """
+    distribution, _ = world._run_node(rv)
     sample_val = distribution.sample()
     if distribution.has_enumerate_support:
         support = distribution.enumerate_support(expand=False).flatten()
@@ -36,10 +43,10 @@ def init_to_uniform(distribution: dist.Distribution) -> torch.Tensor:
         return transform(torch.rand_like(transform.inv(sample_val)) * 4 - 2)
     else:
         # fall back to sample from prior
-        return init_from_prior(distribution)
+        return init_from_prior(world, rv)
 
 
-def init_from_prior(distribution: dist.Distribution) -> torch.Tensor:
+def init_from_prior(world: World, rv: RVIdentifier) -> torch.Tensor:
     """
     Samples from the distribution.
 
@@ -49,4 +56,5 @@ def init_from_prior(distribution: dist.Distribution) -> torch.Tensor:
         distribution: ``torch.distribution.Distribution`` corresponding to
                       the distribution to sample from
     """
+    distribution, _ = world._run_node(rv)
     return distribution.sample()

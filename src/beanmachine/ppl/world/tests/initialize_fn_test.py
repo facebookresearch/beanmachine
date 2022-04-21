@@ -3,9 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import beanmachine.ppl as bm
 import pytest
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.world import World
 from beanmachine.ppl.world.initialize_fn import (
     init_from_prior,
     init_to_uniform,
@@ -27,8 +29,10 @@ from beanmachine.ppl.world.initialize_fn import (
     ],
 )
 def test_initialize_validness(init_fn, distribution):
-    value = init_fn(distribution)
-    # make sure values are initialize within the constraint
-    assert torch.all(distribution.support.check(value))
-    assert not torch.any(torch.isnan(distribution.log_prob(value)))
-    assert value.size() == distribution.sample().size()
+    rv = bm.random_variable(lambda: distribution)()
+    with World() as world:
+        value = init_fn(world, rv)
+        # make sure values are initialize within the constraint
+        assert torch.all(distribution.support.check(value))
+        assert not torch.any(torch.isnan(distribution.log_prob(value)))
+        assert value.size() == distribution.sample().size()
