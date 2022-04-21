@@ -116,24 +116,28 @@ class NormalNormal:
 class MeanFieldVariationalInferTest(unittest.TestCase):
     def setUp(self) -> None:
         self.skipTest("Mean field VI not implemented!")
-        MeanFieldVariationalInference.set_seed(42)
 
     def test_neals_funnel(self):
         nf = bm.random_variable(NealsFunnel)
 
-        vi = MeanFieldVariationalInference().infer(
+        advi = ADVI(
             queries=[nf()],
             observations={},
-            num_iter=100,
-            base_dist=dist.Normal,
-            base_args={"loc": torch.zeros([1]), "scale": torch.ones([1])},
-            num_elbo_mc_samples=200,
-            lr=2e-3,
+            optimizer=lambda params: torch.optim.Adam(params, lr=2e-3),
+        )
+        world = advi.infer(
+            num_steps=100,
+            num_samples=200,
         )
 
         # compare 1D marginals of empirical distributions using 2-sample K-S test
         nf_samples = NealsFunnel().sample((20,)).squeeze().numpy()
-        vi_samples = vi(nf()).sample((20,)).detach().numpy()
+        vi_samples = (
+            world.get_variable(advi.queries_to_guides[nf()])
+            .distribution.sample((20,))
+            .detach()
+            .numpy()
+        )
 
         self.assertGreaterEqual(
             scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue, 0.05
@@ -144,43 +148,19 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
 
     def test_normal_normal(self):
         model = NormalNormal()
-        vi = MeanFieldVariationalInference()
-        vi_dicts = vi.infer(
+        advi = ADVI(
             queries=[model.mu()],
             observations={
                 model.x(1): torch.tensor(9.0),
                 model.x(2): torch.tensor(10.0),
             },
-            num_iter=100,
-            base_dist=dist.Normal,
-            base_args={
-                "loc": nn.Parameter(torch.tensor([0.0])),
-                "scale": nn.Parameter(torch.tensor([1.0])),
-            },
+            optimizer=lambda params: torch.optim.Adam(params, lr=1e0),
+        )
+        world = advi.infer(
+            num_steps=100,
         )
 
-        mu_approx = vi_dicts(model.mu())
-        sample_mean = mu_approx.sample((100,)).mean()
-        self.assertGreater(sample_mean, 5.0)
-
-        sample_var = mu_approx.sample((100,)).var()
-        self.assertGreater(sample_var, 0.1)
-
-    def test_normal_normal_studentt_base_dist(self):
-        model = NormalNormal()
-        vi = MeanFieldVariationalInference()
-        vi_dicts = vi.infer(
-            queries=[model.mu()],
-            observations={
-                model.x(1): torch.tensor(9.0),
-                model.x(2): torch.tensor(10.0),
-            },
-            num_iter=100,
-            base_dist=dist.StudentT,
-            base_args={"df": nn.Parameter(torch.tensor([10.0]))},
-        )
-
-        mu_approx = vi_dicts(model.mu())
+        mu_approx = world.get_variable(advi.queries_to_guides[model.mu()]).distribution
         sample_mean = mu_approx.sample((100,)).mean()
         self.assertGreater(sample_mean, 5.0)
 
@@ -189,31 +169,36 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
 
     def test_brlr(self):
         brlr = BayesianRobustLinearRegression(n=100, d=7)
-        vi_dicts = MeanFieldVariationalInference().infer(
+        advi = ADVI(
             queries=[brlr.beta()],
-            num_iter=50,
             observations={
                 brlr.X(): brlr.X_train,
                 brlr.y(): brlr.y_train,
             },
-            lr=1e-2,
+            optimizer=lambda params: torch.optim.Adam(params, lr=1e-1),
         )
-        beta_samples = vi_dicts(brlr.beta()).sample((100,))
+        world = advi.infer(
+            num_steps=100,
+        )
+        beta_samples = world.get_variable(
+            advi.queries_to_guides[brlr.beta()]
+        ).distribution.sample((100,))
         for i in range(beta_samples.shape[1]):
             self.assertLess(
                 torch.norm(beta_samples[:, i].mean() - brlr.beta_truth[i]),
-                0.5,
+                0.2,
             )
 
     def test_constrained_positive_reals(self):
         exp = dist.Exponential(torch.tensor([1.0]))
         positive_rv = bm.random_variable(lambda: exp)
-        vi_dicts = MeanFieldVariationalInference().infer(
-            queries=[positive_rv()],
-            observations={},
-        )
+        advi = ADVI(queries=[positive_rv()], observations={})
+        world = advi.infer(num_steps=100)
         self.assertAlmostEqual(
-            vi_dicts(positive_rv()).sample((100,)).mean().item(),
+            world.get_variable(advi.queries_to_guides[positive_rv()])
+            .distribution.sample((100,))
+            .mean()
+            .item(),
             exp.mean,
             delta=0.2,
         )
@@ -221,12 +206,16 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
     def test_constrained_interval(self):
         beta = dist.Beta(torch.tensor([1.0]), torch.tensor([1.0]))
         interval_rv = bm.random_variable(lambda: beta)
-        vi_dicts = MeanFieldVariationalInference().infer(
+        advi = ADVI(
             queries=[interval_rv()],
             observations={},
         )
+        world = advi.infer(num_steps=100)
         self.assertAlmostEqual(
-            vi_dicts(interval_rv()).sample((100,)).mean().item(),
+            world.get_variable(advi.queries_to_guides[interval_rv()])
+            .distribution.sample((100,))
+            .mean()
+            .item(),
             beta.mean,
             delta=0.2,
         )
