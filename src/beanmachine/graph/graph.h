@@ -141,8 +141,9 @@ class NodeValue {
   // contains a non-static data member with a non-trivial special member
   // function (copy/move constructor, copy/move assignment, or destructor), that
   // function is deleted by default in the union and needs to be defined
-  // explicitly by the programmer." Because anonymous unions cannot declare
-  // destructors, we would have to move this move it
+  // explicitly by the programmer."  Because anonymous unions cannot define
+  // destructors, we declare these outside the union so that they are
+  // destructed.
   Eigen::MatrixXd _matrix;
   Eigen::MatrixXb _bmatrix;
   Eigen::MatrixXn _nmatrix;
@@ -222,50 +223,51 @@ class NodeValue {
   NodeValue(AtomicType type, double value);
 
   NodeValue(const NodeValue& other) : type(other.type) {
-    if (type.variable_type == VariableType::SCALAR) {
-      switch (type.atomic_type) {
-        case AtomicType::UNKNOWN: {
-          throw std::invalid_argument(
-              "Trying to copy an NodeValue of unknown type.");
+    switch (type.variable_type) {
+      case VariableType::SCALAR:
+        switch (type.atomic_type) {
+          case AtomicType::UNKNOWN:
+            throw std::invalid_argument(
+                "Trying to copy an NodeValue of unknown type.");
+          case AtomicType::BOOLEAN:
+            _bool = other._bool;
+            break;
+          case AtomicType::NATURAL:
+            _natural = other._natural;
+            break;
+          default:
+            _double = other._double;
+            break;
         }
-        case AtomicType::BOOLEAN: {
-          _bool = other._bool;
-          break;
+        break;
+      case VariableType::BROADCAST_MATRIX:
+        switch (type.atomic_type) {
+          case AtomicType::BOOLEAN:
+            _bmatrix = other._bmatrix;
+            break;
+          case AtomicType::REAL:
+          case AtomicType::POS_REAL:
+          case AtomicType::NEG_REAL:
+          case AtomicType::PROBABILITY:
+            _matrix = other._matrix;
+            break;
+          case AtomicType::NATURAL:
+            _nmatrix = other._nmatrix;
+            break;
+          default:
+            throw std::invalid_argument(
+                "Trying to copy a MATRIX NodeValue of unsupported type.");
         }
-        case AtomicType::NATURAL: {
-          _natural = other._natural;
-          break;
-        }
-        default: {
-          _double = other._double;
-          break;
-        }
-      }
-    } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
-      switch (type.atomic_type) {
-        case AtomicType::BOOLEAN:
-          _bmatrix = other._bmatrix;
-          break;
-        case AtomicType::REAL:
-        case AtomicType::POS_REAL:
-        case AtomicType::NEG_REAL:
-        case AtomicType::PROBABILITY:
-          _matrix = other._matrix;
-          break;
-        case AtomicType::NATURAL:
-          _nmatrix = other._nmatrix;
-          break;
-        default:
-          throw std::invalid_argument(
-              "Trying to copy a MATRIX NodeValue of unsupported type.");
-      }
-    } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-      _matrix = other._matrix;
-    } else {
-      throw std::invalid_argument(
-          "Trying to copy a value of unknown VariableType");
+        break;
+      case VariableType::COL_SIMPLEX_MATRIX:
+        _matrix = other._matrix;
+        break;
+      default:
+        throw std::invalid_argument(
+            "Trying to copy a value of unknown VariableType");
     }
   }
+
   NodeValue& operator=(const NodeValue& other) = default;
 
   std::string to_string() const;
