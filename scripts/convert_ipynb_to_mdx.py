@@ -14,9 +14,14 @@ from typing import Dict, Tuple, Union
 import nbformat
 from nbformat.notebooknode import NotebookNode
 
+try:
+    from libfb.py.fbcode_root import get_fbcode_dir
+except ImportError:
+    SCRIPTS_DIR = Path(__file__).parent.resolve()
+    LIB_DIR = SCRIPTS_DIR.joinpath("..").resolve()
+else:
+    LIB_DIR = (Path(get_fbcode_dir()) / "beanmachine").resolve()
 
-SCRIPTS_DIR = Path(__file__).parent.resolve()
-LIB_DIR = SCRIPTS_DIR.joinpath("..").resolve()
 WEBSITE_DIR = LIB_DIR.joinpath("website")
 DOCS_DIR = LIB_DIR.joinpath("docs")
 OVERVIEW_DIR = DOCS_DIR.joinpath("overview")
@@ -82,7 +87,7 @@ def transform_markdown_cell(
         # Change the path to always be `assets/img/...`
         start = cell_source.find("(") + 1
         stop = cell_source.find(")")
-        old_img_path = ("tutorials" / Path(cell_source[start:stop])).resolve()
+        old_img_path = (LIB_DIR / "tutorials" / Path(cell_source[start:stop])).resolve()
         name = old_img_path.name
         img_path_str = f"assets/img/{name}"
         cell_source = cell_source[:start] + img_path_str + cell_source[stop:]
@@ -522,7 +527,7 @@ if __name__ == "__main__":
     print("Converting tutorial notebooks into mdx files")
     print("--------------------------------------------")
     for _, value in tutorials_metadata.items():
-        path = Path(value["nb_path"]).resolve()
+        path = (LIB_DIR / value["nb_path"]).resolve()
         print(f"{path.stem}")
         mdx, jsx = transform_notebook(path)
     print("")
