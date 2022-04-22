@@ -25,7 +25,7 @@ from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
     normal_normal_conjugate_fixer,
 )
 from beanmachine.ppl.compiler.fix_observations import observations_fixer
-from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
+from beanmachine.ppl.compiler.fix_observe_true import observe_true_fixer
 from beanmachine.ppl.compiler.fix_problem import (
     GraphFixer,
     node_fixer_first_match,
@@ -37,7 +37,10 @@ from beanmachine.ppl.compiler.fix_unsupported import (
     unsupported_node_fixer,
     unsupported_node_reporter,
 )
-from beanmachine.ppl.compiler.fix_vectorized_models import VectorizedModelFixer
+from beanmachine.ppl.compiler.fix_vectorized_models import (
+    vectorized_observation_fixer,
+    vectorized_operator_fixer,
+)
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
@@ -101,11 +104,10 @@ def fix_problems(
 ) -> ErrorReport:
     bmg._begin(prof.fix_problems)
 
-    # Functions with signature either
-    # (BMGraphBuilder, Typer) -> GraphFixer
-    # (BMGraphBuilder, Typer) -> ProblemFixer  # This will be refactored away
+    # Functions with signature (BMGraphBuilder, Typer) -> GraphFixer
     graph_fixer_factories: List[Callable] = [
-        VectorizedModelFixer,
+        vectorized_operator_fixer,
+        vectorized_observation_fixer,
         arithmetic_graph_fixer(skip_optimizations),
         unsupported_node_reporter,
         conjugacy_graph_fixer(skip_optimizations),
@@ -119,15 +121,11 @@ def fix_problems(
     ]
     errors = ErrorReport()
     if bmg._fix_observe_true:
-        fixer_types = fixer_types + [ObserveTrueFixer]
+        fixer_types = fixer_types + [observe_true_fixer]
     for fixer_type in fixer_types:
         bmg._begin(fixer_type.__name__)
         fixer = fixer_type(bmg, typer)
-        if hasattr(fixer, "fix_problems"):
-            fixer.fix_problems()
-            errors = fixer.errors
-        else:
-            _, errors = fixer()
+        _, errors = fixer()
         bmg._finish(fixer_type.__name__)
 
         if errors.any():
