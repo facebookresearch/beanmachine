@@ -10,9 +10,10 @@ import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
-from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode, ErrorReport
+from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
 from beanmachine.ppl.compiler.fix_problem import (
     Fatal,
+    Inapplicable,
     NodeFixerResult,
     NodeFixer,
     GraphFixer,
@@ -315,35 +316,20 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
 # move this check for unsupported constant value to AFTER that rewrite.
 
 
-class UnsupportedNodeReporter:
-    _bmg: BMGraphBuilder
-    _graph_fixer: GraphFixer
-    errors: ErrorReport
+def _check_supported(n: bn.BMGNode) -> NodeFixerResult:
+    # Constants that can be converted to constant nodes of the appropriate type
+    # will be converted in the requirements checking pass. Here we just detect
+    # constants that cannot possibly be supported because they are the wrong
+    # dimensionality.
+    if isinstance(n, bn.ConstantNode):
+        t = bt.type_of_value(n.value)
+        return Fatal if t == bt.Tensor or t == bt.Untypable else Inapplicable
+    return Inapplicable if is_supported_by_bmg(n) else Fatal
 
-    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
-        # TODO: Typer is unused; remove it. Right now fix_problems assumes
-        # UnsupportedNodeRewriter __init__ takes a typer.
-        self._bmg = bmg
-        self._graph_fixer = ancestors_first_graph_fixer(
-            bmg, typer, self._needs_fixing, self._get_error
-        )
-        self.errors = ErrorReport()
 
-    def fix_problems(self) -> None:
-        _, self.errors = self._graph_fixer()
-
-    def _needs_fixing(self, n: bn.BMGNode) -> NodeFixerResult:
-        # Constants that can be converted to constant nodes of the appropriate type
-        # will be converted in the requirements checking pass. Here we just detect
-        # constants that cannot possibly be supported because they are the wrong
-        # dimensionality.
-
-        if isinstance(n, bn.ConstantNode):
-            t = bt.type_of_value(n.value)
-            return Fatal if t == bt.Tensor or t == bt.Untypable else n
-        return n if is_supported_by_bmg(n) else Fatal
-
-    def _get_error(self, n: bn.BMGNode, index: int) -> Optional[BMGError]:
+# TODO: Typer is unused
+def unsupported_node_reporter(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+    def _error_for_unsupported_node(n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
         # Consider fixing this.
@@ -352,5 +338,9 @@ class UnsupportedNodeReporter:
             unsupported_node,
             n,
             get_edge_label(n, index),
-            self._bmg.execution_context.node_locations(unsupported_node),
+            bmg.execution_context.node_locations(unsupported_node),
         )
+
+    return ancestors_first_graph_fixer(
+        bmg, typer, _check_supported, _error_for_unsupported_node
+    )
