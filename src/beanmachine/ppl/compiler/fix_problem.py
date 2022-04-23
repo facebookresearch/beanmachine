@@ -75,7 +75,8 @@ def type_guard(t: Type, fixer: Callable) -> NodeFixer:
 # error report is non-empty then further processing should stop and the error should
 # be reported to the user.
 
-GraphFixer = Callable[[], Tuple[bool, ErrorReport]]
+GraphFixerResult = Tuple[bool, ErrorReport]
+GraphFixer = Callable[[], GraphFixerResult]
 
 
 def ancestors_first_graph_fixer(  # noqa

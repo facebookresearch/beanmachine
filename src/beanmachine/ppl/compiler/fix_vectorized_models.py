@@ -8,7 +8,11 @@ from typing import Optional, List, Dict, Type, Callable
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
-from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.fix_problem import (
+    ProblemFixerBase,
+    GraphFixer,
+    GraphFixerResult,
+)
 from beanmachine.ppl.compiler.sizer import Sizer
 
 # TODO Move this to a utils module
@@ -56,8 +60,8 @@ class VectorizedOperatorFixer(ProblemFixerBase):
     _distribution_factories: Dict[Type, Callable]
     _operator_factories: Dict[Type, Callable]
 
-    def __init__(self, bmg: BMGraphBuilder, typer: Sizer) -> None:
-        ProblemFixerBase.__init__(self, bmg, typer)
+    def __init__(self, bmg: BMGraphBuilder, sizer: Sizer) -> None:
+        ProblemFixerBase.__init__(self, bmg, sizer)
         self.fixed_one = False
         # TODO: categorical
         # TODO: categorical logit
@@ -215,18 +219,30 @@ class VectorizedOperatorFixer(ProblemFixerBase):
         return self._replace_operator(n)
 
 
-class VectorizedModelFixer:
+# TODO: We don't use the typer.
+def vectorized_operator_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> GraphFixer:
+    def fixer() -> GraphFixerResult:
+        vof = VectorizedOperatorFixer(bmg, Sizer())
+        vof.fix_problems()
 
-    _bmg: BMGraphBuilder
-    errors: ErrorReport
+        # If we changed something then we might have a leaf sample node;
+        # we can remove it.
+        if vof.fixed_one:
+            for n in bmg.all_nodes():
+                if vof._is_fixable_sample(n):
+                    assert n.is_leaf
+                    bmg.remove_leaf(n)
+        return vof.fixed_one, vof.errors
 
-    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
-        # We don't need the passed-in typer.
-        self._bmg = bmg
-        self.errors = ErrorReport()
+    return fixer
 
-    def _fix_observations(self) -> None:
-        for o in self._bmg.all_observations():
+
+# TODO: We don't use the typer
+def vectorized_observation_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> GraphFixer:
+    def fixer() -> GraphFixerResult:
+        made_change = False
+        # We might have an illegal observation. Fix it.
+        for o in bmg.all_observations():
             observed = o.observed
             if not isinstance(observed, bn.TensorNode):
                 continue
@@ -241,30 +257,16 @@ class VectorizedModelFixer:
                 for i in range(0, observed._size[0]):
                     s = observed.inputs[i]
                     assert isinstance(s, bn.SampleNode)
-                    self._bmg.add_observation(s, o.value[i])
+                    bmg.add_observation(s, o.value[i])
             else:
                 assert dim == 2
                 for i in range(0, observed._size[0]):
                     for j in range(0, observed._size[1]):
                         s = observed.inputs[i * observed._size[1] + j]
                         assert isinstance(s, bn.SampleNode)
-                        self._bmg.add_observation(s, o.value[i][j])
-            self._bmg.remove_leaf(o)
+                        bmg.add_observation(s, o.value[i][j])
+            bmg.remove_leaf(o)
+            made_change = True
+        return made_change, ErrorReport()
 
-    def fix_problems(self) -> None:
-        vf = VectorizedOperatorFixer(self._bmg, Sizer())
-        vf.fix_problems()
-        assert not vf.errors.any()
-
-        if not vf.fixed_one:
-            # We changed nothing so there is nothing more to do.
-            return
-
-        # We changed something. We might have a leaf sample node; we can remove it.
-        for n in self._bmg.all_nodes():
-            if vf._is_fixable_sample(n):
-                assert n.is_leaf
-                self._bmg.remove_leaf(n)
-
-        # We might have an illegal observation. Fix it.
-        self._fix_observations()
+    return fixer
