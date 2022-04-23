@@ -65,27 +65,31 @@ std::string ValueType::to_string() const {
 NodeValue::NodeValue(AtomicType type, double value)
     : type(type), _double(value) {
   // don't allow constrained values to get too close to the boundary
-  if (type == AtomicType::POS_REAL) {
-    if (_double < PRECISION) {
-      _double = PRECISION;
-    }
-  } else if (type == AtomicType::NEG_REAL) {
-    if (_double > -PRECISION) {
-      _double = -PRECISION;
-    }
-  } else if (type == AtomicType::PROBABILITY) {
-    if (_double < PRECISION) {
-      _double = PRECISION;
-    } else if (_double > (1 - PRECISION)) {
-      _double = 1 - PRECISION;
-    }
-  } else {
-    // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
-    // values
-    if (type != AtomicType::REAL) {
+  switch (type) {
+    case AtomicType::POS_REAL:
+      if (_double < PRECISION) {
+        _double = PRECISION;
+      }
+      break;
+    case AtomicType::NEG_REAL:
+      if (_double > -PRECISION) {
+        _double = -PRECISION;
+      }
+      break;
+    case AtomicType::PROBABILITY:
+      if (_double < PRECISION) {
+        _double = PRECISION;
+      } else if (_double > (1 - PRECISION)) {
+        _double = 1 - PRECISION;
+      }
+      break;
+    case AtomicType::REAL:
+      break;
+    default:
+      // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
+      // values
       throw std::invalid_argument(
           "expect probability, pos_real, neg_real or real type with floating point value");
-    }
   }
 }
 
