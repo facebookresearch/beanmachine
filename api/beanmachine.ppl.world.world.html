@@ -85,7 +85,7 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.world.</span></span><span class="sig-name descname"><span class="pre">World</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">observations:</span> <span class="pre">Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_from_prior&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.world.base_world.html#beanmachine.ppl.world.base_world.BaseWorld" title="beanmachine.ppl.world.base_world.BaseWorld"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.world.base_world.BaseWorld</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code>[<a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>]</p>
 <p>A World represents an instantiation of the graphical model and can be manipulated or evaluated.
-In the contest of MCMC inference, a world represents a single Monte Carlo posterior sample.</p>
+In the context of MCMC inference, a world represents a single Monte Carlo posterior sample.</p>
 <p>A World can also be used as a context manager to run and sample random variables.
 Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
@@ -151,6 +151,26 @@ in the world.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.world.world.World.initialize_value">
 <span class="sig-name descname"><span class="pre">initialize_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.world.World.initialize_value" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.world.World.initialize_world">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">initialize_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">List[beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_to_uniform&gt;,</span> <span class="pre">max_retries:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.world.World.initialize_world" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes a world with all of the random variables (queries and observations).
+In case of initializing values outside of support of the distributions, the
+method will keep resampling until a valid initialization is found up to
+<code class="docutils literal notranslate"><span class="pre">max_retries</span></code> times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queries</strong> – A list of random variables that need to be inferred.</p></li>
+<li><p><strong>observations</strong> – Observations, which fixes the random variables to observed values</p></li>
+<li><p><strong>initialize_fn</strong> – Function for initializing the values of random variables</p></li>
+<li><p><strong>max_retries</strong> – The number of attempts this method will make before throwing an
+error (default to 100).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.world.World.latent_nodes">
