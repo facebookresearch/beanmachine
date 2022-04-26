@@ -6,8 +6,9 @@
 import random
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
-from typing import Dict, List, Callable, Any
+from typing import Any, Callable, Dict, List
 
+import numpy as np
 import numpy.random
 import torch
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
@@ -128,3 +129,19 @@ def _execute_in_new_thread(f: Callable, *args, **kwargs) -> Any:
     <https://github.com/pytorch/pytorch/issues/17199#issuecomment-833226969>`_)"""
     with ThreadPoolExecutor() as executor:
         return executor.submit(f, *args, **kwargs).result()
+
+
+def detach_samples(
+    samples: Dict[RVIdentifier, torch.Tensor],
+) -> Dict[RVIdentifier, np.ndarray]:
+    """Detach pytorch tensors.
+
+    Args:
+        samples (Dict[RVIdentifier, torch.Tensor]): Dictionary of `RVIdentifier`s with
+            original torch tensors.
+
+    Returns:
+        Dict[RVIdentifier, np.ndarray]: Dictionary of `RVIdentifier`s with converted
+            NumPy arrays.
+    """
+    return {key: value.detach().numpy() for key, value in samples.items()}

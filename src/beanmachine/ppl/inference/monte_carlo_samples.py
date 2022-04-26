@@ -3,12 +3,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, Dict, Iterator, List, Mapping, Optional, Union, NamedTuple
+from typing import Any, Dict, Iterator, List, Mapping, NamedTuple, Optional, Union
 
 import arviz as az
 import torch
 import xarray as xr
-from beanmachine.ppl.inference.utils import merge_dicts
+from beanmachine.ppl.inference.utils import detach_samples, merge_dicts
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
@@ -272,16 +272,11 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
 
         if "posterior" in self.namespaces:
-            posterior = self.namespaces["posterior"].samples
-            posterior = {
-                key: value.detach().numpy() for key, value in posterior.items()
-            }
+            posterior = detach_samples(self.namespaces["posterior"].samples)
             if self.num_adaptive_samples > 0:
-                warmup_posterior = self.namespaces["posterior"].adaptive_samples
-                warmup_posterior = {
-                    key: value.detach().numpy()
-                    for key, value in warmup_posterior.items()
-                }
+                warmup_posterior = detach_samples(
+                    self.namespaces["posterior"].adaptive_samples
+                )
             else:
                 warmup_posterior = None
         else:
@@ -291,27 +286,18 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         if self.num_adaptive_samples > 0:
             warmup_log_likelihood = self.adaptive_log_likelihoods
             if warmup_log_likelihood is not None:
-                warmup_log_likelihood = {
-                    key: value.detach().numpy()
-                    for key, value in warmup_log_likelihood.items()
-                }
+                warmup_log_likelihood = detach_samples(warmup_log_likelihood)
         else:
             warmup_log_likelihood = None
 
         if "posterior_predictive" in self.namespaces:
-            posterior_predictive = self.namespaces["posterior_predictive"].samples
-            posterior_predictive = {
-                key: value.detach().numpy()
-                for key, value in posterior_predictive.items()
-            }
+            posterior_predictive = detach_samples(
+                self.namespaces["posterior_predictive"].samples
+            )
             if self.num_adaptive_samples > 0:
-                warmup_posterior_predictive = self.namespaces[
-                    "posterior"
-                ].adaptive_samples
-                warmup_posterior_predictive = {
-                    key: value.detach().numpy()
-                    for key, value in warmup_posterior_predictive.items()
-                }
+                warmup_posterior_predictive = detach_samples(
+                    self.namespaces["posterior"].adaptive_samples
+                )
             else:
                 warmup_posterior_predictive = None
         else:
@@ -319,24 +305,18 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             warmup_posterior_predictive = None
 
         if "prior_predictive" in self.namespaces:
-            prior_predictive = self.namespaces["prior_predictive"].samples
-            prior_predictive = {
-                key: value.detach().numpy() for key, value in prior_predictive.items()
-            }
+            prior_predictive = detach_samples(
+                self.namespaces["prior_predictive"].samples
+            )
         else:
             prior_predictive = None
 
         if self.log_likelihoods is not None:
-            log_likelihoods = {
-                key: value.detach().numpy()
-                for key, value in self.log_likelihoods.items()
-            }
+            log_likelihoods = detach_samples(self.log_likelihoods)
         else:
             log_likelihoods = None
         if self.observations is not None:
-            observed_data = {
-                key: value.detach().numpy() for key, value in self.observations.items()
-            }
+            observed_data = detach_samples(self.observations)
         else:
             observed_data = None
 
