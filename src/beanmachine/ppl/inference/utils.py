@@ -124,9 +124,9 @@ def seed(seed: int) -> None:
 
 def _execute_in_new_thread(f: Callable, *args, **kwargs) -> Any:
     """A helper function to execute the given function in a new thread. This is used
-    to resolve the deadlock issue with fork-based multiprocessing (see `this PyTorch
+    to resolve the deadlock issue with fork-based multiprocessing (see this PyTorch
     issue for details
-    <https://github.com/pytorch/pytorch/issues/17199#issuecomment-833226969>`_)"""
+    <https://github.com/pytorch/pytorch/issues/17199#issuecomment-833226969>_)"""
     with ThreadPoolExecutor() as executor:
         return executor.submit(f, *args, **kwargs).result()
 
@@ -137,11 +137,11 @@ def detach_samples(
     """Detach pytorch tensors.
 
     Args:
-        samples (Dict[RVIdentifier, torch.Tensor]): Dictionary of `RVIdentifier`s with
+        samples (Dict[RVIdentifier, torch.Tensor]): Dictionary of RVIdentifiers with
             original torch tensors.
 
     Returns:
-        Dict[RVIdentifier, np.ndarray]: Dictionary of `RVIdentifier`s with converted
+        Dict[RVIdentifier, np.ndarray]: Dictionary of RVIdentifiers with converted
             NumPy arrays.
     """
     return {key: value.detach().numpy() for key, value in samples.items()}
