@@ -36,47 +36,6 @@ class BaseInference(metaclass=ABCMeta):
     # maximum value of a seed
     _MAX_SEED_VAL: int = 2 ** 32 - 1
 
-    @staticmethod
-    def _initialize_world(
-        queries: List[RVIdentifier],
-        observations: RVDict,
-        initialize_fn: InitializeFn = init_to_uniform,
-        max_retries: int = 100,
-    ) -> World:
-        """
-        Initializes a world with all of the random variables (queries and observations).
-        In case of initializing values outside of support of the distributions, the
-        method will keep resampling until a valid initialization is found up to
-        ``max_retries`` times.
-
-        Args:
-            queries: A list of random variables that need to be inferred.
-            observations: A dictionary from random variables to their corresponding values.
-            initialize_fn: A callable that takes in a distribution and returns a Tensor.
-                The default behavior is to sample from Uniform(-2, 2) then biject to
-                the support of the distribution.
-            max_retries: The number of attempts this method will make before throwing an
-                error (default to 100).
-        """
-        for _ in range(max_retries):
-            world = World(observations, initialize_fn)
-            # recursively add parent nodes to the graph
-            for node in queries:
-                world.call(node)
-            for node in observations:
-                world.call(node)
-
-            # check if the initial state is valid
-            log_prob = world.log_prob()
-            if not torch.isinf(log_prob) and not torch.isnan(log_prob):
-                return world
-
-        # None of the world gives us a valid initial state
-        raise ValueError(
-            f"Cannot find a valid initialization after {max_retries} retries. The model"
-            " might be misspecified."
-        )
-
     @abstractmethod
     def get_proposers(
         self,
@@ -294,8 +253,11 @@ class BaseInference(metaclass=ABCMeta):
                     num_samples
                 )
 
-        world = self._initialize_world(
-            queries, observations, initialize_fn, max_init_retries
+        world = World.initialize_world(
+            queries,
+            observations,
+            initialize_fn,
+            max_init_retries,
         )
         # start inference with a copy of self to ensure that multi-chain or multi
         # inference runs all start with the same pristine state
