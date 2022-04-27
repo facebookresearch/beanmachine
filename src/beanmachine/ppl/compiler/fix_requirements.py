@@ -437,9 +437,9 @@ class RequirementsFixer:
         return made_progress
 
 
-def requirements_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+def requirements_fixer(bmg: BMGraphBuilder) -> GraphFixer:
     def graph_fixer():
-        rf = RequirementsFixer(bmg, typer)
+        rf = RequirementsFixer(bmg, LatticeTyper())
         made_progress = rf.fix_problems()
         return made_progress, rf.errors
 

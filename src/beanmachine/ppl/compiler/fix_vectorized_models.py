@@ -233,8 +233,7 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
     return node_fixer
 
 
-# TODO: Typer is unused
-def vectorized_operator_fixer(bmg: BMGraphBuilder, typer) -> GraphFixer:
+def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
     def fixer() -> GraphFixerResult:
         sizer = Sizer()
 
@@ -256,8 +255,7 @@ def vectorized_operator_fixer(bmg: BMGraphBuilder, typer) -> GraphFixer:
     return fixer
 
 
-# TODO: Typer is unused
-def vectorized_observation_fixer(bmg: BMGraphBuilder, typer) -> GraphFixer:
+def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
     def fixer() -> GraphFixerResult:
         made_change = False
         # We might have an illegal observation. Fix it.
