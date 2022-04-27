@@ -5,7 +5,7 @@
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.base_single_site_proposer import (
+from beanmachine.ppl.inference.proposer.base_single_site_mh_proposer import (
     BaseSingleSiteMHProposer,
 )
 from beanmachine.ppl.world import World

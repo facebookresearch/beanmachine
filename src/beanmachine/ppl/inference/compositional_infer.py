@@ -104,7 +104,7 @@ class CompositionalInference(BaseInference):
     """
     The ``CompositionalInference`` class enables combining multiple inference algorithms
     and blocking random variables together. By default, it uses different proposer to
-    update each site by (by look at the support of the distribution that that site).
+    update each site (by looking at the support of the distribution at that site).
     To override the default behavior, you can pass an ``inference_dict``. To learn more
     about Compositional Inference, please see the `Compositional Inference
     <https://beanmachine.org/docs/compositional_inference/>`_ page on our website.
