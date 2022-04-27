@@ -21,6 +21,7 @@ from beanmachine.ppl.legacy.inference.single_site_newtonian_monte_carlo import (
 )
 from beanmachine.ppl.legacy.world import TransformType
 from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
+from beanmachine.ppl.world.world import World
 from torch import tensor
 
 
@@ -213,7 +214,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
             model.beta(),
         ]
         observations = {}
-        world = nw._initialize_world(queries, observations)
+        world = World.initialize_world(queries, observations)
         self.assertTrue(real_key in world)
         self.assertTrue(half_key in world)
         self.assertTrue(simplex_key in world)
@@ -320,7 +321,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
             beta_key,
         ]
         observations = {}
-        world = nw._initialize_world(queries, observations)
+        world = World.initialize_world(queries, observations)
 
         # trigger proposer initialization
         nw.get_proposers(world, world.latent_nodes, 0)

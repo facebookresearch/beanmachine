@@ -6,11 +6,21 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple, Collection
+from typing import (
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Collection,
+)
 
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import init_to_uniform
 from beanmachine.ppl.world.base_world import BaseWorld
 from beanmachine.ppl.world.initialize_fn import (
     InitializeFn,
@@ -31,7 +41,7 @@ class _TempVar:
 class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     """
     A World represents an instantiation of the graphical model and can be manipulated or evaluated.
-    In the contest of MCMC inference, a world represents a single Monte Carlo posterior sample.
+    In the context of MCMC inference, a world represents a single Monte Carlo posterior sample.
 
     A World can also be used as a context manager to run and sample random variables.
     Example::
@@ -64,6 +74,48 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self._variables: Dict[RVIdentifier, Variable] = {}
 
         self._call_stack: List[_TempVar] = []
+
+    @classmethod
+    def initialize_world(
+        cls,
+        queries: List[RVIdentifier],
+        observations: Optional[RVDict] = None,
+        initialize_fn: InitializeFn = init_to_uniform,
+        max_retries: int = 100,
+        **kwargs,
+    ) -> World:
+        """
+        Initializes a world with all of the random variables (queries and observations).
+        In case of initializing values outside of support of the distributions, the
+        method will keep resampling until a valid initialization is found up to
+        ``max_retries`` times.
+
+        Args:
+            queries: A list of random variables that need to be inferred.
+            observations: Observations, which fixes the random variables to observed values
+            initialize_fn: Function for initializing the values of random variables
+            max_retries: The number of attempts this method will make before throwing an
+                error (default to 100).
+        """
+        observations = observations or {}
+        for _ in range(max_retries):
+            world = cls(observations, initialize_fn, **kwargs)
+            # recursively add parent nodes to the graph
+            for node in queries:
+                world.call(node)
+            for node in observations:
+                world.call(node)
+
+            # check if the initial state is valid
+            log_prob = world.log_prob()
+            if not torch.isinf(log_prob) and not torch.isnan(log_prob):
+                return world
+
+        # None of the world gives us a valid initial state
+        raise ValueError(
+            f"Cannot find a valid initialization after {max_retries} retries. The model"
+            " might be misspecified."
+        )
 
     def __getitem__(self, node: RVIdentifier) -> torch.Tensor:
         """

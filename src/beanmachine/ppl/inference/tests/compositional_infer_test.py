@@ -21,6 +21,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
+from beanmachine.ppl.world import World
 
 
 class SampleModel:
@@ -80,7 +81,7 @@ def test_inference_config():
     compositional.infer(queries, observations, num_chains=1, num_samples=10)
 
     # verify that proposers are spawned correctly
-    world = compositional._initialize_world(queries, observations)
+    world = World.initialize_world(queries, observations)
     with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
         proposers = compositional.get_proposers(
             world, target_rvs=world.latent_nodes, num_adaptive_sample=0
@@ -107,7 +108,7 @@ def test_inference_config():
         }
     )
     compositional.infer(queries, observations, num_chains=1, num_samples=2)
-    world = compositional._initialize_world(queries, observations)
+    world = World.initialize_world(queries, observations)
     proposers = compositional.get_proposers(
         world, target_rvs=world.latent_nodes, num_adaptive_sample=0
     )
@@ -121,7 +122,7 @@ def test_config_inference_with_tuple_of_rv():
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
     compositional = bm.CompositionalInference({(model.foo, model.baz): nuts})
-    world = compositional._initialize_world([model.baz()], {})
+    world = World.initialize_world([model.baz()], {})
     with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
         compositional.get_proposers(
             world, target_rvs=world.latent_nodes, num_adaptive_sample=10
@@ -146,7 +147,7 @@ def test_config_inference_with_tuple_of_inference():
     # verify that inference can run without error
     compositional.infer([model.baz()], {}, num_chains=1, num_samples=10)
     # examine the proposer types
-    world = compositional._initialize_world([model.baz()], {})
+    world = World.initialize_world([model.baz()], {})
     proposers = compositional.get_proposers(
         world, target_rvs=world.latent_nodes, num_adaptive_sample=10
     )
@@ -192,7 +193,7 @@ def test_block_inference_with_default_algorithm():
     observations = {}
     compositional.infer(queries, observations, num_chains=1, num_samples=10)
     # check to see if proposers are indeed blocked together
-    world = compositional._initialize_world(queries, observations)
+    world = World.initialize_world(queries, observations)
     proposers = compositional.get_proposers(world, world.latent_nodes, 0)
     assert len(proposers) == 1
     assert isinstance(proposers[0], SequentialProposer)

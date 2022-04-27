@@ -85,20 +85,18 @@ def test_get_proposers():
 
 def test_initialize_world():
     model = SampleModel()
-    nuts = bm.GlobalNoUTurnSampler()
-    world = nuts._initialize_world([model.bar()], {})
+    world = World.initialize_world([model.bar()], {})
     assert model.foo() in world
     assert model.bar() in world
 
 
 def test_initialize_from_prior():
-    mh = bm.SingleSiteAncestralMetropolisHastings()
     model = SampleModel()
     queries = [model.foo()]
 
     samples_from_prior = []
     for _ in range(10000):
-        world = mh._initialize_world(queries, {}, init_from_prior)
+        world = World.initialize_world(queries, {}, initialize_fn=init_from_prior)
         val = world.get(model.foo())
         samples_from_prior.append(val.item())
 
