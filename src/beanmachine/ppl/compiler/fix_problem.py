@@ -186,4 +186,17 @@ def sequential_graph_fixer(fixers: List[GraphFixer]) -> GraphFixer:
     return sequential
 
 
+def fixpoint_graph_fixer(fixer: GraphFixer) -> GraphFixer:
+    """Executes a graph fixer repeatedly until it stops making progress
+    or produces an error."""
+
+    def fixpoint() -> GraphFixerResult:
+        while True:
+            made_progress, errors = fixer()
+            if not made_progress or errors.any():
+                return made_progress, errors
+
+    return fixpoint
+
+
 # TODO: Create a fixpoint combinator on GraphFixers.

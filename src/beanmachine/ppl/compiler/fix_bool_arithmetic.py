@@ -26,7 +26,10 @@ class BoolArithmeticFixer:
     def _fix_multiplication(self, n: bn.MultiplicationNode) -> NodeFixerResult:
         # We can simplify 1*anything, 0*anything or bool*anything
         # to anything, 0, or an if-then-else respectively.
-        assert len(n.inputs) == 2
+
+        # TODO: We could extend this to multiary multiplication.
+        if len(n.inputs) != 2:
+            return Inapplicable
         if bn.is_zero(n.inputs[0]):
             return n.inputs[0]
         if bn.is_one(n.inputs[0]):
@@ -45,7 +48,9 @@ class BoolArithmeticFixer:
 
     def _fix_addition(self, n: bn.AdditionNode) -> NodeFixerResult:
         # We can simplify 0+anything.
-        assert len(n.inputs) == 2
+        # TODO: We could extend this to multiary addition.
+        if len(n.inputs) != 2:
+            return Inapplicable
         if bn.is_zero(n.inputs[0]):
             return n.inputs[1]
         if bn.is_zero(n.inputs[1]):
