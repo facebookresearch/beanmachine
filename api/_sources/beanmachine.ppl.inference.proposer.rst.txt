@@ -16,7 +16,7 @@ Submodules
    :maxdepth: 4
 
    beanmachine.ppl.inference.proposer.base_proposer
-   beanmachine.ppl.inference.proposer.base_single_site_proposer
+   beanmachine.ppl.inference.proposer.base_single_site_mh_proposer
    beanmachine.ppl.inference.proposer.hmc_proposer
    beanmachine.ppl.inference.proposer.hmc_utils
    beanmachine.ppl.inference.proposer.nuts_proposer
