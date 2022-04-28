@@ -28,9 +28,11 @@ from beanmachine.ppl.compiler.fix_observations import observations_fixer
 from beanmachine.ppl.compiler.fix_observe_true import observe_true_fixer
 from beanmachine.ppl.compiler.fix_problem import (
     GraphFixer,
-    node_fixer_first_match,
-    ancestors_first_graph_fixer,
     NodeFixer,
+    ancestors_first_graph_fixer,
+    conditional_graph_fixer,
+    node_fixer_first_match,
+    sequential_graph_fixer,
 )
 from beanmachine.ppl.compiler.fix_requirements import requirements_fixer
 from beanmachine.ppl.compiler.fix_unsupported import (
@@ -70,16 +72,17 @@ _arithmetic_fixer_factories: List[
 ]
 
 
-def arithmetic_graph_fixer(skip: Set[str]) -> Callable:
-    def graph_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-        typer = LatticeTyper()
-        node_fixers = [
-            f(bmg, typer) for f in _arithmetic_fixer_factories if f.__name__ not in skip
-        ]
-        node_fixer = node_fixer_first_match(node_fixers)
-        return ancestors_first_graph_fixer(bmg, typer, node_fixer)
-
-    return graph_fixer
+def arithmetic_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
+    typer = LatticeTyper()
+    vector_ops = vectorized_operator_fixer(bmg)
+    vector_obs = vectorized_observation_fixer(bmg)
+    node_fixers = [
+        f(bmg, typer) for f in _arithmetic_fixer_factories if f.__name__ not in skip
+    ]
+    node_fixer = node_fixer_first_match(node_fixers)
+    arith = ancestors_first_graph_fixer(bmg, typer, node_fixer)
+    # TODO: this should be a fixpoint combinator, not a sequence combinator
+    return sequential_graph_fixer([vector_ops, vector_obs, arith])
 
 
 _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
@@ -89,16 +92,11 @@ _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
 ]
 
 
-def conjugacy_graph_fixer(skip: Set[str]) -> Callable:
-    def graph_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-        node_fixers = [
-            f(bmg) for f in _conjugacy_fixer_factories if f.__name__ not in skip
-        ]
-        node_fixer = node_fixer_first_match(node_fixers)
-        # TODO: Make the typer optional
-        return ancestors_first_graph_fixer(bmg, LatticeTyper(), node_fixer)
-
-    return graph_fixer
+def conjugacy_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
+    node_fixers = [f(bmg) for f in _conjugacy_fixer_factories if f.__name__ not in skip]
+    node_fixer = node_fixer_first_match(node_fixers)
+    # TODO: Make the typer optional
+    return ancestors_first_graph_fixer(bmg, LatticeTyper(), node_fixer)
 
 
 def fix_problems(
@@ -106,30 +104,16 @@ def fix_problems(
 ) -> ErrorReport:
     bmg._begin(prof.fix_problems)
 
-    # Functions with signature (BMGraphBuilder) -> GraphFixer
-    graph_fixer_factories: List[Callable] = [
-        vectorized_operator_fixer,
-        vectorized_observation_fixer,
-        arithmetic_graph_fixer(skip_optimizations),
-        unsupported_node_reporter,
-        conjugacy_graph_fixer(skip_optimizations),
-        requirements_fixer,
-        observations_fixer,
-    ]
-
-    fixer_types: List[Callable] = [
-        ft for ft in graph_fixer_factories if ft.__name__ not in skip_optimizations
-    ]
-    errors = ErrorReport()
-    if bmg._fix_observe_true:
-        fixer_types = fixer_types + [observe_true_fixer]
-    for fixer_type in fixer_types:
-        bmg._begin(fixer_type.__name__)
-        fixer = fixer_type(bmg)
-        _, errors = fixer()
-        bmg._finish(fixer_type.__name__)
-
-        if errors.any():
-            break
+    all_fixers = sequential_graph_fixer(
+        [
+            arithmetic_graph_fixer(skip_optimizations, bmg),
+            unsupported_node_reporter(bmg),
+            conjugacy_graph_fixer(skip_optimizations, bmg),
+            requirements_fixer(bmg),
+            observations_fixer(bmg),
+            conditional_graph_fixer(bmg._fix_observe_true, observe_true_fixer(bmg)),
+        ]
+    )
+    _, errors = all_fixers()
     bmg._finish(prof.fix_problems)
     return errors
