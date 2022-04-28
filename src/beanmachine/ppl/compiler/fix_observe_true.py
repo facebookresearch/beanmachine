@@ -18,7 +18,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 from beanmachine.ppl.compiler.bmg_types import is_one
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_problem import GraphFixer, GraphFixerResult
-from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 def _is_conversion(n: BMGNode) -> bool:
@@ -37,8 +36,7 @@ def _skip_conversions(n: BMGNode) -> BMGNode:
     return n
 
 
-# TODO: typer is unused
-def observe_true_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> GraphFixer:
+def observe_true_fixer(bmg: BMGraphBuilder) -> GraphFixer:
     # A common technique in model design is to boost the probability density
     # score of a particular quantity by converting it to a probability
     # and then observing that a coin flip of that probability comes up heads.

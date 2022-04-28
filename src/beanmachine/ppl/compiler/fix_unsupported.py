@@ -327,8 +327,7 @@ def _check_supported(n: bn.BMGNode) -> NodeFixerResult:
     return Inapplicable if is_supported_by_bmg(n) else Fatal
 
 
-# TODO: Typer is unused
-def unsupported_node_reporter(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+def unsupported_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
     def _error_for_unsupported_node(n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
@@ -341,6 +340,7 @@ def unsupported_node_reporter(bmg: BMGraphBuilder, typer: LatticeTyper) -> Graph
             bmg.execution_context.node_locations(unsupported_node),
         )
 
+    # TODO: Make the typer optional
     return ancestors_first_graph_fixer(
-        bmg, typer, _check_supported, _error_for_unsupported_node
+        bmg, LatticeTyper(), _check_supported, _error_for_unsupported_node
     )

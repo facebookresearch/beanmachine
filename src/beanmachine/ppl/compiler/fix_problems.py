@@ -71,7 +71,8 @@ _arithmetic_fixer_factories: List[
 
 
 def arithmetic_graph_fixer(skip: Set[str]) -> Callable:
-    def graph_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+    def graph_fixer(bmg: BMGraphBuilder) -> GraphFixer:
+        typer = LatticeTyper()
         node_fixers = [
             f(bmg, typer) for f in _arithmetic_fixer_factories if f.__name__ not in skip
         ]
@@ -89,12 +90,13 @@ _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
 
 
 def conjugacy_graph_fixer(skip: Set[str]) -> Callable:
-    def graph_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+    def graph_fixer(bmg: BMGraphBuilder) -> GraphFixer:
         node_fixers = [
             f(bmg) for f in _conjugacy_fixer_factories if f.__name__ not in skip
         ]
         node_fixer = node_fixer_first_match(node_fixers)
-        return ancestors_first_graph_fixer(bmg, typer, node_fixer)
+        # TODO: Make the typer optional
+        return ancestors_first_graph_fixer(bmg, LatticeTyper(), node_fixer)
 
     return graph_fixer
 
@@ -104,7 +106,7 @@ def fix_problems(
 ) -> ErrorReport:
     bmg._begin(prof.fix_problems)
 
-    # Functions with signature (BMGraphBuilder, Typer) -> GraphFixer
+    # Functions with signature (BMGraphBuilder) -> GraphFixer
     graph_fixer_factories: List[Callable] = [
         vectorized_operator_fixer,
         vectorized_observation_fixer,
@@ -115,7 +117,6 @@ def fix_problems(
         observations_fixer,
     ]
 
-    typer = LatticeTyper()
     fixer_types: List[Callable] = [
         ft for ft in graph_fixer_factories if ft.__name__ not in skip_optimizations
     ]
@@ -124,7 +125,7 @@ def fix_problems(
         fixer_types = fixer_types + [observe_true_fixer]
     for fixer_type in fixer_types:
         bmg._begin(fixer_type.__name__)
-        fixer = fixer_type(bmg, typer)
+        fixer = fixer_type(bmg)
         _, errors = fixer()
         bmg._finish(fixer_type.__name__)
 

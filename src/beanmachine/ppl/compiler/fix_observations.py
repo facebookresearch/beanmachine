@@ -20,13 +20,14 @@ from beanmachine.ppl.compiler.fix_problem import GraphFixer
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
-def observations_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> GraphFixer:
+def observations_fixer(bmg: BMGraphBuilder) -> GraphFixer:
     """This fixer attempts to fix violations of BMG type system requirements
     in observation nodes.
     It also finds observations that are impossible -- say, an observation
     that a Boolean node is -3.14 -- and reports them as errors."""
 
     def fixer():
+        typer = LatticeTyper()
         errors = ErrorReport()
         made_progress = False
         for o in bmg.all_observations():
