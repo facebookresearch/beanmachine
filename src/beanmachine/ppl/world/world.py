@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import dataclasses
 from typing import (
+    Iterable,
     Dict,
     Iterator,
     List,
@@ -78,7 +79,7 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     @classmethod
     def initialize_world(
         cls,
-        queries: List[RVIdentifier],
+        queries: Iterable[RVIdentifier],
         observations: Optional[RVDict] = None,
         initialize_fn: InitializeFn = init_to_uniform,
         max_retries: int = 100,
