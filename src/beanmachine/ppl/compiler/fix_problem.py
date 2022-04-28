@@ -77,6 +77,13 @@ def type_guard(t: Type, fixer: Callable) -> NodeFixer:
 GraphFixerResult = Tuple[bool, ErrorReport]
 GraphFixer = Callable[[], GraphFixerResult]
 
+# The identity graph fixer never makes a change or produces an error.
+identity_graph_fixer: GraphFixer = lambda: (False, ErrorReport())
+
+
+def conditional_graph_fixer(condition: bool, fixer: GraphFixer) -> GraphFixer:
+    return fixer if condition else identity_graph_fixer
+
 
 def ancestors_first_graph_fixer(  # noqa
     bmg: BMGraphBuilder,
@@ -163,5 +170,20 @@ def ancestors_first_graph_fixer(  # noqa
     return ancestors_first
 
 
-# TODO: Create a match-first combinator on GraphFixers.
+def sequential_graph_fixer(fixers: List[GraphFixer]) -> GraphFixer:
+    """Takes a list of graph fixers and applies each in turn once unless one fails."""
+
+    def sequential() -> GraphFixerResult:
+        made_progress = False
+        errors = ErrorReport()
+        for fixer in fixers:
+            fixer_made_progress, errors = fixer()
+            made_progress |= fixer_made_progress
+            if errors.any():
+                break
+        return made_progress, errors
+
+    return sequential
+
+
 # TODO: Create a fixpoint combinator on GraphFixers.
