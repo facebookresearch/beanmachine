@@ -6,7 +6,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = ./sphinx
 MODULEDIR     = ../src/beanmachine
-MODULEIGNOREDIRS     = ../src/beanmachine/{applications,graph,tutorials}* ../src/beanmachine/ppl/{conftest.py,compiler,diagnostics,examples,experimental,inference/utils,legacy,testlib,utils}
+MODULEIGNOREDIRS     = ../src/beanmachine/{applications,graph,tutorials}* ../src/beanmachine/ppl/{conftest.py,diagnostics,examples,experimental,inference/utils,legacy,testlib,utils}
 BUILDDIR      = ./static
 ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(SPHINXOPTS) $(SOURCEDIR)
 
