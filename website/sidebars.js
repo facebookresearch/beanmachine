@@ -10,7 +10,7 @@
 const {fbInternalOnly, fbContent} = require('internaldocs-fb-helpers');
 const tutorials = () => {
   const allTutorialMetadata = require('./tutorials.json');
-  const tutorialPaths = ['overview/tutorials/tutorials'];
+  const tutorialPaths = [];
   for (var key in allTutorialMetadata) {
     tutorialPaths.push(allTutorialMetadata[key]['path']);
   }

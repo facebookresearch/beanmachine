@@ -1,8 +1,8 @@
 ---
 id: block_inference
-title: 'Block Inference'
-sidebar_label: 'Block Inference'
-slug: '/block_inference'
+title: "Block Inference"
+sidebar_label: "Block Inference"
+slug: "/block_inference"
 ---
 
 Single-site inference in Bean Machine is a powerful abstraction that allows the inference engine to separately sample values for random variables in your model. While efficient in sampling high-dimensional models, single-site inference may not be suitable for models with highly correlated random variables. This is where Bean Machine's `CompositionalInference` API becomes handy: it allows us to "block" multiple nodes together and make proposals for them jointly.
@@ -15,7 +15,6 @@ To understand the issue better, let's walk through an example. Let's say we have
 2. $(x, y) \to (x, y') \to (x', y')$
 
 If $X$ and $Y$ are strongly correlated, e.g., if both $p(x, y)$ and $p(x', y')$ are high, but the intermediate stage $p(x', y)$ and $p(x, y')$ are low, then the single site inference methods can be stuck in $(x, y)$, because the acceptance probability for transitioning out of the initial state is going to be very low for either of these two paths. This can lead to under-exploration of $(x', y')$, which will not happen if we block $X$ and $Y$ together, which can move from $(x, y) \to (x', y')$ in a single Metropolis-Hastings step.
-
 
 :::tip
 
@@ -77,7 +76,9 @@ bm.CompositionalInference({
     (mu, sigma): (bm.SingleSiteNewtonianMonteCarlo(), bm.SingleSiteAncestralMetropolisHastings()),
 })
 ```
+
 which is equivalent to the following, more verbosed syntax with nested `CompositionalInference`:
+
 ```py
 bm.CompositionalInference({
     (mu, sigma): CompositionalInference({
@@ -107,6 +108,7 @@ bm.CompositionalInference({
     ...: bm.SingleSiteNoUTurnSampler(),
 })
 ```
-which is used to override the default inference method and *does not* block the nodes automatically (unless you're using a multi-site algorithm, such as `bm.GlobalNoUTurnSampler()`, which always propose values jointly).
 
-To see a live example of running block inference with `CompositionalInference`, check out our [HMM tutorial](../../overview/tutorials/tutorials.md#hidden-markov-model).
+which is used to override the default inference method and _does not_ block the nodes automatically (unless you're using a multi-site algorithm, such as `bm.GlobalNoUTurnSampler()`, which always propose values jointly).
+
+To see a live example of running block inference with `CompositionalInference`, check out our [HMM tutorial](../overview/tutorials/Hidden_Markov_model/HiddenMarkovModel).

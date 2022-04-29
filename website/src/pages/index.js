@@ -121,7 +121,9 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/tutorials')}>
+              to={useBaseUrl(
+                'docs/overview/tutorials/Coin_flipping/CoinFlipping',
+              )}>
               Tutorials
             </Link>
           </div>
@@ -148,7 +150,7 @@ function Home() {
         <div className="container">
           <p>
             <i>
-              <b>Status: Beta.  </b>
+              <b>Status: Beta. </b>
               APIs are likely to change. Functionalities are constantly being
               improved. Bug reports are welcome, but bandwidth is very limited
               for feature requests.

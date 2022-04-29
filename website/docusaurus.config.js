@@ -47,7 +47,7 @@ module.exports = {
           position: 'left',
         },
         {
-          to: '/docs/tutorials',
+          to: 'docs/overview/tutorials/Coin_flipping/CoinFlipping',
           label: 'Tutorials',
           position: 'left',
         },
@@ -132,7 +132,7 @@ module.exports = {
           customCss: require.resolve('./src/css/custom.css'),
         },
         googleAnalytics: {
-           trackingID: 'UA-44373548-47',
+          trackingID: 'UA-44373548-47',
         },
       },
     ],

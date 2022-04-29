@@ -94,5 +94,13 @@
     "nb_path": "tutorials/Neals_funnel.ipynb",
     "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb",
     "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb"
+  },
+  "Gaussian_Process_Gpytorch": {
+    "title": "Gaussian process",
+    "sidebar_label": "Gaussian process",
+    "path": "overview/tutorials/Gaussian_Process_Gpytorch/GaussianProcessGpytorch",
+    "nb_path": "tutorials/Gaussian_Process_Gpytorch.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Gaussian_Process_Gpytorch.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Gaussian_Process_Gpytorch.ipynb"
   }
 }

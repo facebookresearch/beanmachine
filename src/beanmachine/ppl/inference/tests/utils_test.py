@@ -23,3 +23,18 @@ def test_set_random_seed():
     samples1 = sample_with_seed(123)
     samples2 = sample_with_seed(123)
     assert torch.allclose(samples1[foo()], samples2[foo()])
+
+
+def test_detach_samples():
+    """Test to ensure samples are detached from torch computation graphs."""
+    queries = [foo()]
+    samples = bm.SingleSiteAncestralMetropolisHastings().infer(
+        queries=queries,
+        observations={},
+        num_samples=20,
+        num_chains=1,
+    )
+    rv_data = samples[foo()]
+    idata = samples.to_inference_data()
+    assert hasattr(rv_data, "detach")
+    assert not hasattr(idata["posterior"][foo()], "detach")
