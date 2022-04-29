@@ -100,6 +100,28 @@ LOAD_BAR enables tqdm for full inference loop.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.detach_samples">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">detach_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.utils.detach_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Detach pytorch tensors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>samples</strong> (<em>Dict</em><em>[</em><a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier"><em>RVIdentifier</em></a><em>, </em><em>torch.Tensor</em><em>]</em>) – Dictionary of RVIdentifiers with
+original torch tensors.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Dictionary of RVIdentifiers with converted</dt><dd><p>NumPy arrays.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[<a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier">RVIdentifier</a>, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.merge_dicts">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">merge_dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_not_cat</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.utils.merge_dicts" title="Permalink to this definition"></a></dt>
 <dd><p>A helper function that merge multiple dicts of samples into a single dictionary,
