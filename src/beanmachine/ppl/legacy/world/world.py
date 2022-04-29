@@ -9,7 +9,6 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import torch
 import torch.distributions as dist
-import torch.nn as nn
 from beanmachine.ppl.legacy.world.diff import Diff
 from beanmachine.ppl.legacy.world.diff_stack import DiffStack
 from beanmachine.ppl.legacy.world.variable import TransformData, TransformType, Variable
