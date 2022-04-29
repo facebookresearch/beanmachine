@@ -27,7 +27,7 @@
     "react-plotly.js": "^2.5.1",
     "rehype-katex": "^3.0.0",
     "remark-math": "^2.0.1",
-    "trim": "^1.0.1"
+    "trim": "^0.0.3"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.3",
@@ -58,7 +58,8 @@
     ]
   },
   "resolutions": {
+    "ansi-html": "0.0.8",
     "shelljs": "^0.8.5",
-    "ansi-html": "0.0.8"
+    "trim": "^0.0.3"
   }
 }
