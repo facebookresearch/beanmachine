@@ -22,14 +22,14 @@ from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import (
     BaseProposer,
 )
+from beanmachine.ppl.inference.proposer.nuts_proposer import (
+    NUTSProposer,
+)
 from beanmachine.ppl.inference.proposer.sequential_proposer import (
     SequentialProposer,
 )
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
-)
-from beanmachine.ppl.inference.single_site_nmc import (
-    SingleSiteNewtonianMonteCarlo,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
@@ -49,7 +49,15 @@ else:
     EllipsisClass = type(Ellipsis)
 
 
-class _DefaultInference(SingleSiteNewtonianMonteCarlo):
+class _DefaultInference(BaseInference):
+    """
+    Mixed inference class that handles both discrete and continuous RVs
+    """
+
+    def __init__(self):
+        self._proposers = {}
+        self._continuous_rvs = set()
+
     def get_proposers(
         self,
         world: World,
@@ -70,10 +78,16 @@ class _DefaultInference(SingleSiteNewtonianMonteCarlo):
                         ),
                     )
                 ):
-                    self._proposers[node] = self._init_nmc_proposer(node, world)
+                    self._continuous_rvs.add(node)
+                    continue
                 else:
                     self._proposers[node] = SingleSiteUniformProposer(node)
             proposers.append(self._proposers[node])
+        if len(self._continuous_rvs):
+            continuous_proposer = NUTSProposer(
+                world, self._continuous_rvs, num_adaptive_sample
+            )
+            proposers.append(continuous_proposer)
         return proposers
 
 
@@ -103,8 +117,9 @@ def _get_nodes_for_rv_family(
 class CompositionalInference(BaseInference):
     """
     The ``CompositionalInference`` class enables combining multiple inference algorithms
-    and blocking random variables together. By default, it uses different proposer to
-    update each site (by looking at the support of the distribution at that site).
+    and blocking random variables together. By default, continuous variables will be
+    blocked together and use the ``GlobalNoUTurnProposer``. Discrete variables will
+    be proposed independently with ``SingleSiteUniformProposer``.
     To override the default behavior, you can pass an ``inference_dict``. To learn more
     about Compositional Inference, please see the `Compositional Inference
     <https://beanmachine.org/docs/compositional_inference/>`_ page on our website.
@@ -123,6 +138,10 @@ class CompositionalInference(BaseInference):
     Example 2 (block inference (jointly propose) ``model.foo`` and ``model.bar``)::
 
         CompositionalInference({(model.foo, model.bar): bm.GlobalNoUTurnSampler()})
+
+    .. warning::
+        When using the default inference behavior, graphs (i.e. the number of latent variables)
+        must be static and cannot change between iterations.
 
     Args:
         inference_dict: an optional inference configuration as shown above.

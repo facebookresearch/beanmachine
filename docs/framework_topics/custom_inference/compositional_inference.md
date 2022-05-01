@@ -13,9 +13,8 @@ By default, Compositional Inference will pick a single site algorithm to update 
 
 | Support | Algorithm
 | --- | ---
-| real | `SingleSiteNewtonianMonteCarlo` (real space proposer)
-| greater than | `SingleSiteNewtonianMonteCarlo` (half space proposer)
-| simplex |`SingleSiteNewtonianMonteCarlo` (simplex space proposer)
+| real continuous | `GlobalNoUTurnSampler` 
+| constrained continuous | `GlobalNoUTurnSampler` + Transform
 | finite discrete | `SingleSiteUniformMetropolisHastings`
 | everything else | `SingleSiteAncestralMetropolisHastings`
 
@@ -78,12 +77,12 @@ You may notice that we are using what we referred to as "random variable familie
 
 ### Overriding default inference method
 
-If your model has a large number of nodes and you want to override the default inference method for all of them without listing them all, you can use Python's `Ellipsis` literal, or equivalently, `...` (three dots), as a key to specify the default inference method for nodes that are not specified in the dictionary. For example, the following code snippet tells `CompositionalInference` to use `SingleSiteUniformMetropolisHastings()` to update all instances of `bar` (which are discrete), and use `SingleSiteNoUTurnSampler()` to update the rest of nodes (which are all continuous).
+If your model has a large number of nodes and you want to override the default inference method for all of them without listing them all, you can use Python's `Ellipsis` literal, or equivalently, `...` (three dots), as a key to specify the default inference method for nodes that are not specified in the dictionary. For example, the following code snippet tells `CompositionalInference` to use `SingleSiteUniformMetropolisHastings()` to update all instances of `bar` (which are discrete), and use `SingleSiteNewtonianMonteCarlo()` to update the rest of nodes (which are all continuous).
 
 ```py
 bm.CompositionalInference({
     bar: bm.SingleSiteUniformMetropolisHastings(),
-    ...: bm.SingleSiteNoUTurnSampler(),
+    ...: bm.SingleSiteNewtonianMonteCarlo(),
 }).infer(**args) # same parameters as shown above
 ```
 
