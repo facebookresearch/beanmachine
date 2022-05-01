@@ -13,7 +13,7 @@ By default, Compositional Inference will pick a single site algorithm to update 
 
 | Support | Algorithm
 | --- | ---
-| real continuous | `GlobalNoUTurnSampler` 
+| real continuous | `GlobalNoUTurnSampler`
 | constrained continuous | `GlobalNoUTurnSampler` + Transform
 | finite discrete | `SingleSiteUniformMetropolisHastings`
 | everything else | `SingleSiteAncestralMetropolisHastings`

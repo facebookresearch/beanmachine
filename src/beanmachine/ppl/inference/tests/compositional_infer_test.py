@@ -7,6 +7,7 @@ from collections import Counter
 from unittest.mock import patch
 
 import beanmachine.ppl as bm
+import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.nuts_proposer import (
@@ -203,7 +204,10 @@ def test_block_inference_changing_support():
     model = ChangingSupportSameShapeModel()
     queries = [model.K()] + [model.component(j) for j in range(3)]
     compositional = bm.CompositionalInference(
-        {(model.K, model.component): bm.SingleSiteAncestralMetropolisHastings()}
+        {
+            (model.K, model.component): bm.SingleSiteAncestralMetropolisHastings(),
+            ...: bm.SingleSiteNewtonianMonteCarlo(),
+        }
     )
     sampler = compositional.sampler(queries, {}, num_samples=10, num_adaptive_samples=5)
     old_world = next(sampler)
@@ -220,6 +224,18 @@ def test_block_inference_changing_support():
             # what we expected
             assert world[model.component(0)] is old_world[model.component(0)]
         old_world = world
+
+    compositional = bm.CompositionalInference(
+        {(model.K, model.component): bm.SingleSiteAncestralMetropolisHastings()}
+    )
+    sampler = compositional.sampler(queries, {})
+    with pytest.raises(KeyError):
+        # since poisson is (0, inf), the number of alphas will keep
+        # changing and an error will eventually be thrown
+        # TODO: this error is thrown in hmc_utils when fetching
+        # transforms but should be checked earlier in the model
+        while True:
+            old_world = next(sampler)
 
 
 def test_block_inference_changing_shape():

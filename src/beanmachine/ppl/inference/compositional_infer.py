@@ -17,7 +17,6 @@ from typing import (
     cast,
 )
 
-import torch.distributions as dist
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import (
     BaseProposer,
@@ -33,7 +32,6 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
-from beanmachine.ppl.world.utils import is_constraint_eq
 
 if TYPE_CHECKING:
     from enum import Enum
@@ -55,7 +53,8 @@ class _DefaultInference(BaseInference):
     """
 
     def __init__(self):
-        self._proposers = {}
+        self._disc_proposers = {}
+        self._cont_proposer = None
         self._continuous_rvs = set()
 
     def get_proposers(
@@ -66,28 +65,28 @@ class _DefaultInference(BaseInference):
     ) -> List[BaseProposer]:
         proposers = []
         for node in target_rvs:
-            if node not in self._proposers:
+            if node not in self._disc_proposers:
                 support = world.get_variable(node).distribution.support
-                if any(
-                    is_constraint_eq(
-                        support,
-                        (
-                            dist.constraints.real,
-                            dist.constraints.simplex,
-                            dist.constraints.greater_than,
-                        ),
-                    )
-                ):
+                if not support.is_discrete:
                     self._continuous_rvs.add(node)
                     continue
                 else:
-                    self._proposers[node] = SingleSiteUniformProposer(node)
-            proposers.append(self._proposers[node])
-        if len(self._continuous_rvs):
-            continuous_proposer = NUTSProposer(
-                world, self._continuous_rvs, num_adaptive_sample
-            )
-            proposers.append(continuous_proposer)
+                    self._disc_proposers[node] = SingleSiteUniformProposer(node)
+            proposers.append(self._disc_proposers[node])
+        if self._cont_proposer is not None:
+            if len(self._cont_proposer._target_rvs) != len(self._continuous_rvs):
+                raise ValueError(
+                    "Graph has changed between iterations. NUTS requires a"
+                    " static model."
+                )
+            proposers.append(self._cont_proposer)
+        else:
+            if len(self._continuous_rvs):
+                continuous_proposer = NUTSProposer(
+                    world, self._continuous_rvs, num_adaptive_sample
+                )
+                self._cont_proposer = continuous_proposer
+                proposers.append(self._cont_proposer)
         return proposers
 
 
