@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.fix\_multiary\_ops module
+==================================================
+
+.. automodule:: beanmachine.ppl.compiler.fix_multiary_ops
+   :members:
+   :undoc-members:
+   :show-inheritance:

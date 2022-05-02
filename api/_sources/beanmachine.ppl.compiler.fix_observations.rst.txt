@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.fix\_observations module
+=================================================
+
+.. automodule:: beanmachine.ppl.compiler.fix_observations
+   :members:
+   :undoc-members:
+   :show-inheritance:

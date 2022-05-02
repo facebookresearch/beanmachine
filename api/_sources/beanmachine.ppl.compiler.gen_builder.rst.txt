@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.gen\_builder module
+============================================
+
+.. automodule:: beanmachine.ppl.compiler.gen_builder
+   :members:
+   :undoc-members:
+   :show-inheritance:

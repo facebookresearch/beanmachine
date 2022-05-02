@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.bmg\_nodes module
+==========================================
+
+.. automodule:: beanmachine.ppl.compiler.bmg_nodes
+   :members:
+   :undoc-members:
+   :show-inheritance:

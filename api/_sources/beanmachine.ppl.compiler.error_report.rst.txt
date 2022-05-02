@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.error\_report module
+=============================================
+
+.. automodule:: beanmachine.ppl.compiler.error_report
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.fix\_matrix\_scale module
+==================================================
+
+.. automodule:: beanmachine.ppl.compiler.fix_matrix_scale
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.patterns module
+========================================
+
+.. automodule:: beanmachine.ppl.compiler.patterns
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.fix\_problems module
+=============================================
+
+.. automodule:: beanmachine.ppl.compiler.fix_problems
+   :members:
+   :undoc-members:
+   :show-inheritance:

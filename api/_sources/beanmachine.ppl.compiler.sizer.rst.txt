@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.sizer module
+=====================================
+
+.. automodule:: beanmachine.ppl.compiler.sizer
+   :members:
+   :undoc-members:
+   :show-inheritance:

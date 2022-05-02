@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.bmg\_types module
+==========================================
+
+.. automodule:: beanmachine.ppl.compiler.bmg_types
+   :members:
+   :undoc-members:
+   :show-inheritance:

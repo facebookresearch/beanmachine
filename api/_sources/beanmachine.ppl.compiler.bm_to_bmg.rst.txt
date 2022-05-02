@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.bm\_to\_bmg module
+===========================================
+
+.. automodule:: beanmachine.ppl.compiler.bm_to_bmg
+   :members:
+   :undoc-members:
+   :show-inheritance:

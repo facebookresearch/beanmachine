@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.fix\_beta\_conjugate\_prior module
+===========================================================
+
+.. automodule:: beanmachine.ppl.compiler.fix_beta_conjugate_prior
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.gen\_bmg\_graph module
+===============================================
+
+.. automodule:: beanmachine.ppl.compiler.gen_bmg_graph
+   :members:
+   :undoc-members:
+   :show-inheritance:

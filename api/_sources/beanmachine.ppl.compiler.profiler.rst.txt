@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.profiler module
+========================================
+
+.. automodule:: beanmachine.ppl.compiler.profiler
+   :members:
+   :undoc-members:
+   :show-inheritance:

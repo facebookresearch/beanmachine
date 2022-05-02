@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.typer\_base module
+===========================================
+
+.. automodule:: beanmachine.ppl.compiler.typer_base
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.beanstalk\_common module
+=================================================
+
+.. automodule:: beanmachine.ppl.compiler.beanstalk_common
+   :members:
+   :undoc-members:
+   :show-inheritance:
