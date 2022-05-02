@@ -31,6 +31,7 @@ from beanmachine.ppl.compiler.fix_problem import (
     NodeFixer,
     ancestors_first_graph_fixer,
     conditional_graph_fixer,
+    fixpoint_graph_fixer,
     node_fixer_first_match,
     sequential_graph_fixer,
 )
@@ -61,13 +62,10 @@ _arithmetic_fixer_factories: List[
     addition_fixer,
     bool_arithmetic_fixer,
     bool_comparison_fixer,
+    logsumexp_fixer,
     matrix_scale_fixer,
     multiary_addition_fixer,
     multiary_multiplication_fixer,
-    # TODO: logsumexp_fixer needs to come after multiary_addition_fixer right now;
-    # when we make the arithmetic_graph_fixer attain a fixpoint then we can do
-    # these fixers in any order.
-    logsumexp_fixer,
     unsupported_node_fixer,
 ]
 
@@ -81,8 +79,7 @@ def arithmetic_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
     ]
     node_fixer = node_fixer_first_match(node_fixers)
     arith = ancestors_first_graph_fixer(bmg, typer, node_fixer)
-    # TODO: this should be a fixpoint combinator, not a sequence combinator
-    return sequential_graph_fixer([vector_ops, vector_obs, arith])
+    return fixpoint_graph_fixer(sequential_graph_fixer([vector_ops, vector_obs, arith]))
 
 
 _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
