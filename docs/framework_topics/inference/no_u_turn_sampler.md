@@ -59,6 +59,7 @@ bm.GlobalNoUTurnSampler(
     adapt_mass_matrix=True,
     multinomial_sampling=True,
     target_accept_prob=0.8,
+    nnc_compile=False,
 ).infer(
     queries,
     observations,
@@ -72,13 +73,14 @@ The `GlobalNoUTurnSampler` has all the acceptance step size, covariance matrix, 
 
 A more complete explanation of parameters to `GlobalNoUTurnSampler` are provided below and in the [docs](https://beanmachine.org/api/beanmachine.ppl.html?highlight=nouturnsampler#beanmachine.ppl.GlobalNoUTurnSampler):
 
-| Name                   | Usage                                                                                                                                                                                                                                                |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `max_tree_depth`       | The maximum depth of the binary tree used to simulate leapfrog steps forwards and backwards in time.                                                                                                                                                 |
-| `max_delta_energy`     | This is the lowest probability moves that NUTS will consider. Once most new samples have a lower probability, NUTS will stop its leapfrog steps. This should be interpreted as a negative log probability and is designed to be fairly conservative. |
-| `initial_step_size`    | The initial step size $\epsilon$ used in adaptive HMC. This value is simply the step size if tuning is disabled.                                                                                                                                     |
-| `multinomial_sampling` | Lets us decide between a faster multinomial sampler for the trajectory or the slice sampler described in the [original paper](https://arxiv.org/pdf/1111.4246.pdf). The option is useful for fairly comparing against other NUTS implementations.    |
-| `target_accept_prob`   | Indicates the acceptance probability which should be targeted by the step size tuning algorithm. While the optimal value is 65.1%, higher values have been show to be more robust leading to a default of 0.8.                                       |
+| Name                   | Usage                                                                                                                                                                                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------      |
+| `max_tree_depth`       | The maximum depth of the binary tree used to simulate leapfrog steps forwards and backwards in time.                                                                                                                                                      |
+| `max_delta_energy`     | This is the lowest probability moves that NUTS will consider. Once most new samples have a lower probability, NUTS will stop its leapfrog steps. This should be interpreted as a negative log probability and is designed to be fairly conservative.      |
+| `initial_step_size`    | The initial step size $\epsilon$ used in adaptive HMC. This value is simply the step size if tuning is disabled.                                                                                                                                          |
+| `multinomial_sampling` | Lets us decide between a faster multinomial sampler for the trajectory or the slice sampler described in the [original paper](https://arxiv.org/pdf/1111.4246.pdf). The option is useful for fairly comparing against other NUTS implementations.         |
+| `target_accept_prob`   | Indicates the acceptance probability which should be targeted by the step size tuning algorithm. While the optimal value is 65.1%, higher values have been show to be more robust leading to a default of 0.8.                                            |
+| `nnc_compile`          | NNC (Neural network compiler) is an experimental Pytorch JIT compiler that that transforms Pytorch programs to LLVM-compiled binaries. The model support is currently limited, so if your model fails, consider filing an issue and turning this flag off.|
 
 The parameters to `infer` are described below:
 
