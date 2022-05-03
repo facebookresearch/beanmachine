@@ -99,7 +99,7 @@ class tutorialGMMwith1DimensionsAnd4Components(unittest.TestCase):
             42
         )  # Note: Second time we seed. Could be a good tutorial style
 
-        mh = bm.CompositionalInference()
+        mh = bm.CompositionalInference({...: bm.SingleSiteNewtonianMonteCarlo()})
         mh.infer(
             queries,
             observations,

@@ -17,10 +17,12 @@ from typing import (
     cast,
 )
 
-import torch.distributions as dist
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import (
     BaseProposer,
+)
+from beanmachine.ppl.inference.proposer.nuts_proposer import (
+    NUTSProposer,
 )
 from beanmachine.ppl.inference.proposer.sequential_proposer import (
     SequentialProposer,
@@ -28,12 +30,8 @@ from beanmachine.ppl.inference.proposer.sequential_proposer import (
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.inference.single_site_nmc import (
-    SingleSiteNewtonianMonteCarlo,
-)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
-from beanmachine.ppl.world.utils import is_constraint_eq
 
 if TYPE_CHECKING:
     from enum import Enum
@@ -49,7 +47,16 @@ else:
     EllipsisClass = type(Ellipsis)
 
 
-class _DefaultInference(SingleSiteNewtonianMonteCarlo):
+class _DefaultInference(BaseInference):
+    """
+    Mixed inference class that handles both discrete and continuous RVs
+    """
+
+    def __init__(self):
+        self._disc_proposers = {}
+        self._cont_proposer = None
+        self._continuous_rvs = set()
+
     def get_proposers(
         self,
         world: World,
@@ -58,22 +65,28 @@ class _DefaultInference(SingleSiteNewtonianMonteCarlo):
     ) -> List[BaseProposer]:
         proposers = []
         for node in target_rvs:
-            if node not in self._proposers:
+            if node not in self._disc_proposers:
                 support = world.get_variable(node).distribution.support
-                if any(
-                    is_constraint_eq(
-                        support,
-                        (
-                            dist.constraints.real,
-                            dist.constraints.simplex,
-                            dist.constraints.greater_than,
-                        ),
-                    )
-                ):
-                    self._proposers[node] = self._init_nmc_proposer(node, world)
+                if not support.is_discrete:
+                    self._continuous_rvs.add(node)
+                    continue
                 else:
-                    self._proposers[node] = SingleSiteUniformProposer(node)
-            proposers.append(self._proposers[node])
+                    self._disc_proposers[node] = SingleSiteUniformProposer(node)
+            proposers.append(self._disc_proposers[node])
+        if self._cont_proposer is not None:
+            if len(self._cont_proposer._target_rvs) != len(self._continuous_rvs):
+                raise ValueError(
+                    "Graph has changed between iterations. NUTS requires a"
+                    " static model."
+                )
+            proposers.append(self._cont_proposer)
+        else:
+            if len(self._continuous_rvs):
+                continuous_proposer = NUTSProposer(
+                    world, self._continuous_rvs, num_adaptive_sample
+                )
+                self._cont_proposer = continuous_proposer
+                proposers.append(self._cont_proposer)
         return proposers
 
 
@@ -103,8 +116,9 @@ def _get_nodes_for_rv_family(
 class CompositionalInference(BaseInference):
     """
     The ``CompositionalInference`` class enables combining multiple inference algorithms
-    and blocking random variables together. By default, it uses different proposer to
-    update each site (by looking at the support of the distribution at that site).
+    and blocking random variables together. By default, continuous variables will be
+    blocked together and use the ``GlobalNoUTurnProposer``. Discrete variables will
+    be proposed independently with ``SingleSiteUniformProposer``.
     To override the default behavior, you can pass an ``inference_dict``. To learn more
     about Compositional Inference, please see the `Compositional Inference
     <https://beanmachine.org/docs/compositional_inference/>`_ page on our website.
@@ -123,6 +137,10 @@ class CompositionalInference(BaseInference):
     Example 2 (block inference (jointly propose) ``model.foo`` and ``model.bar``)::
 
         CompositionalInference({(model.foo, model.bar): bm.GlobalNoUTurnSampler()})
+
+    .. warning::
+        When using the default inference behavior, graphs (i.e. the number of latent variables)
+        must be static and cannot change between iterations.
 
     Args:
         inference_dict: an optional inference configuration as shown above.
