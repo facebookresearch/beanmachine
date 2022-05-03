@@ -6,17 +6,17 @@ nb_path: tutorials/Hierarchical_regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 ---
-import { CountyPosteriors } from "./HierarchicalRegression.jsx";
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { SampleOfPriors } from "./HierarchicalRegression.jsx";
-import { Uranium } from "./HierarchicalRegression.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { LogPlotComparison } from "./HierarchicalRegression.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { QueryEss } from "./HierarchicalRegression.jsx";
+import { Uranium } from "./HierarchicalRegression.jsx";
+import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
+import { SampleOfPriors } from "./HierarchicalRegression.jsx";
+import { CountyPosteriors } from "./HierarchicalRegression.jsx";
+import { FloorPlot } from "./HierarchicalRegression.jsx";
 import { TraceRanks } from "./HierarchicalRegression.jsx";
 import { BetaGamma } from "./HierarchicalRegression.jsx";
-import { FloorPlot } from "./HierarchicalRegression.jsx";
-import { LogPlotComparison } from "./HierarchicalRegression.jsx";
-import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
-import { QueryEss } from "./HierarchicalRegression.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
@@ -405,6 +405,8 @@ easily compared to other probabilistic tools.
 num_samples = 2 if smoke_test else 5000
 num_adaptive_samples = 0 if smoke_test else num_samples // 2
 num_chains = 4
+# Experimental backend using the Pytorch NNC compiler
+nnc_compile = "SANDCASTLE_NEXUS" not in os.environ
 
 # Data for the model.
 observations = {y(): tensor(df["log_activity"].values)}
@@ -422,7 +424,7 @@ queries = [
 ]
 
 # Run the inference.
-samples = bm.GlobalNoUTurnSampler().infer(
+samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
     queries=queries,
     observations=observations,
     num_samples=num_samples,
@@ -432,13 +434,9 @@ samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -455,17 +453,17 @@ summary_df = az.summary(samples.to_xarray(), round_to=3)
 Markdown(summary_df.sample(20).T.to_markdown())
 ```
 
-|           |   alpha_hat()[255] |   alpha_hat()[104] |   alpha_hat()[903] |   alpha_hat()[603] |   y_hat()[469] |   alpha_hat()[314] |   alpha_hat()[577] |   y_hat()[621] |   y_hat()[301] |   alpha_hat()[128] |   y_hat()[785] |   y_hat()[803] |   alpha_hat()[585] |   y_hat()[169] |   y_hat()[741] |   y_hat()[593] |   alpha_hat()[778] |   alpha_hat()[557] |   alpha_hat()[374] |   alpha()[33] |
-|:----------|-------------------:|-------------------:|-------------------:|-------------------:|---------------:|-------------------:|-------------------:|---------------:|---------------:|-------------------:|---------------:|---------------:|-------------------:|---------------:|---------------:|---------------:|-------------------:|-------------------:|-------------------:|--------------:|
-| mean      |              1.756 |              1.558 |              1.757 |              1.796 |          0.849 |              1.396 |              1.195 |          1.821 |          1.396 |              1.832 |          1.542 |          1.66  |              1.195 |          1.401 |          0.963 |          1.195 |              1.542 |              1.258 |              1.832 |         1.51  |
-| sd        |              0.129 |              0.142 |              0.128 |              0.149 |          0.14  |              0.064 |              0.099 |          0.164 |          0.064 |              0.13  |          0.105 |          0.134 |              0.099 |          0.079 |          0.066 |          0.099 |              0.105 |              0.151 |              0.148 |         0.151 |
-| hdi_5.5%  |              1.551 |              1.328 |              1.539 |              1.561 |          0.634 |              1.295 |              1.04  |          1.553 |          1.295 |              1.637 |          1.372 |          1.441 |              1.04  |          1.274 |          0.863 |          1.04  |              1.372 |              1.007 |              1.605 |         1.275 |
-| hdi_94.5% |              1.96  |              1.779 |              1.948 |              2.03  |          1.077 |              1.501 |              1.352 |          2.076 |          1.501 |              2.047 |          1.705 |          1.866 |              1.352 |          1.527 |          1.071 |          1.352 |              1.705 |              1.482 |              2.072 |         1.752 |
-| mcse_mean |              0.002 |              0.001 |              0.002 |              0.002 |          0.002 |              0.001 |              0.001 |          0.002 |          0.001 |              0.002 |          0.001 |          0.002 |              0.001 |          0.001 |          0.001 |          0.001 |              0.001 |              0.003 |              0.002 |         0.002 |
-| mcse_sd   |              0.002 |              0.001 |              0.001 |              0.001 |          0.002 |              0.001 |              0.001 |          0.001 |          0.001 |              0.001 |          0.001 |          0.001 |              0.001 |          0.001 |          0.001 |          0.001 |              0.001 |              0.002 |              0.001 |         0.001 |
-| ess_bulk  |           3561.52  |           9038.89  |           5316.27  |           8864.5   |       4150.88  |           7428.35  |           9090.79  |       6369.87  |       7428.35  |           4900.65  |       7687.77  |       7639.56  |           9090.79  |       5387.17  |       2343.95  |       9090.79  |           7687.77  |           3467.65  |           8042.52  |      8651.97  |
-| ess_tail  |           7165.82  |           6955.54  |           7293.73  |           7257.53  |       7108.52  |           6847.56  |           9981.5   |       5529.83  |       6847.56  |           7133.11  |       8316.36  |       7662.2   |           9981.5   |       5451.52  |       3791.57  |       9981.5   |           8316.36  |           7059.14  |           8028.94  |      7126     |
-| r_hat     |              1.001 |              1     |              1     |              1     |          1.001 |              1     |              1.001 |          1.001 |          1     |              1.001 |          1     |          1.001 |              1.001 |          1.001 |          1.001 |          1.001 |              1     |              1.001 |              1.001 |         1     |
+|           |   alpha_hat()[565] |   y_hat()[467] |   alpha_hat()[248] |   alpha_hat()[364] |   y_hat()[509] |   y_hat()[918] |   y_hat()[746] |   alpha_hat()[568] |   alpha_hat()[94] |   y_hat()[829] |   y_hat()[260] |   y_hat()[43] |   alpha_hat()[825] |   y_hat()[268] |   alpha_hat()[576] |   y_hat()[742] |   alpha_hat()[376] |   y_hat()[552] |   alpha_hat()[518] |   y_hat()[632] |
+|:----------|-------------------:|---------------:|-------------------:|-------------------:|---------------:|---------------:|---------------:|-------------------:|------------------:|---------------:|---------------:|--------------:|-------------------:|---------------:|-------------------:|---------------:|-------------------:|---------------:|-------------------:|---------------:|
+| mean      |              1.689 |          0.855 |              1.779 |              1.398 |          1.748 |          1.7   |          0.966 |              1.659 |             1.196 |          1.651 |          1.113 |         0.917 |              1.651 |          1.398 |              1.196 |          0.966 |              1.222 |          0.771 |              1.639 |          1.458 |
+| sd        |              0.146 |          0.139 |              0.142 |              0.063 |          0.149 |          0.158 |          0.065 |              0.153 |             0.13  |          0.139 |          0.139 |         0.086 |              0.139 |          0.063 |              0.098 |          0.065 |              0.142 |          0.158 |              0.155 |          0.132 |
+| hdi_5.5%  |              1.455 |          0.631 |              1.559 |              1.3   |          1.515 |          1.45  |          0.861 |              1.414 |             1.003 |          1.438 |          0.884 |         0.779 |              1.438 |          1.3   |              1.044 |          0.861 |              0.998 |          0.52  |              1.393 |          1.259 |
+| hdi_94.5% |              1.913 |          1.069 |              2.007 |              1.499 |          1.979 |          1.947 |          1.071 |              1.898 |             1.414 |          1.875 |          1.326 |         1.052 |              1.875 |          1.499 |              1.355 |          1.071 |              1.452 |          1.019 |              1.875 |          1.669 |
+| mcse_mean |              0.002 |          0.004 |              0.003 |              0.001 |          0.003 |          0.002 |          0.001 |              0.002 |             0.002 |          0.004 |          0.002 |         0.001 |              0.004 |          0.001 |              0.001 |          0.001 |              0.002 |          0.003 |              0.004 |          0.006 |
+| mcse_sd   |              0.001 |          0.003 |              0.002 |              0.001 |          0.002 |          0.002 |          0.001 |              0.002 |             0.002 |          0.003 |          0.002 |         0.001 |              0.003 |          0.001 |              0.001 |          0.001 |              0.001 |          0.002 |              0.003 |          0.004 |
+| ess_bulk  |           4414.84  |       1421.16  |           1702.2   |           6119.03  |       2941.53  |       5056.55  |       2508.64  |           5112.09  |          3544.69  |       1088.88  |       3278.22  |      5764.55  |           1088.88  |       6119.03  |           4347.95  |       2508.64  |           5918.05  |       4067.78  |           1534.74  |        532.076 |
+| ess_tail  |           5613.32  |       4614.7   |           5194.52  |           6294.34  |       5529.94  |       6458.84  |       4256.39  |           4780.85  |          5693.09  |       6977.78  |       2828.78  |     10452.3   |           6977.78  |       6294.34  |           7064.77  |       4256.39  |           7357.53  |       4266.7   |           6050     |       2130.18  |
+| r_hat     |              1.002 |          1.002 |              1.011 |              1.009 |          1.008 |          1.001 |          1.013 |              1.008 |             1.002 |          1.005 |          1.001 |         1.001 |              1.005 |          1.009 |              1.006 |          1.013 |              1.002 |          1.009 |              1.005 |          1.006 |
 
 #### $\hat{R}$ diagnostic
 

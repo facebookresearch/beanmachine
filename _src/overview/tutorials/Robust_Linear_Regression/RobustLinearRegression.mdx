@@ -6,16 +6,16 @@ nb_path: tutorials/Robust_Linear_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { GammaPriorPlot } from "./RobustLinearRegression.jsx";
-import { AlphaBetaJointPlot } from "./RobustLinearRegression.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { SyntheticCleanDataPlot } from "./RobustLinearRegression.jsx";
 import { PredictionPlot } from "./RobustLinearRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import { GammaPriorPlot } from "./RobustLinearRegression.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 import { SamplesDiagnosticPlots } from "./RobustLinearRegression.jsx";
 import { SyntheticDataPlot } from "./RobustLinearRegression.jsx";
-import { SigmaPlot } from "./RobustLinearRegression.jsx";
 import { TestDataMhPlot } from "./RobustLinearRegression.jsx";
+import { AlphaBetaJointPlot } from "./RobustLinearRegression.jsx";
+import { SyntheticCleanDataPlot } from "./RobustLinearRegression.jsx";
+import { SigmaPlot } from "./RobustLinearRegression.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb"
@@ -411,8 +411,10 @@ queries = [beta(), alpha(), sigma_regressor(), df_nu()]
 num_samples = 2 if smoke_test else 2000
 num_chains = 1 if smoke_test else 4
 num_adaptive_samples = 0 if smoke_test else num_samples // 2
+# Experimental backend using the Pytorch NNC compiler
+nnc_compile = "SANDCASTLE_NEXUS" not in os.environ
 
-samples = bm.GlobalNoUTurnSampler().infer(
+samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
     queries=queries,
     observations=observations,
     num_samples=num_samples,
@@ -422,13 +424,9 @@ samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -453,10 +451,10 @@ print(
 ```
 
 <CellOutput>
-{`β marginal: tensor([2.0662, 2.1385, 2.1161,  ..., 2.0776, 2.0551, 2.1739])
-α marginal: tensor([4.9729, 5.0066, 4.9666,  ..., 4.9667, 5.0000, 4.9756])
-σ marginal: tensor([1.0213, 0.8203, 0.8965,  ..., 0.9114, 0.9041, 0.9503])
-ν marginal: tensor([20.7076, 10.4356,  7.2460,  ...,  8.4249, 14.0951, 17.3018])`}
+{`β marginal: tensor([1.9131, 1.9169, 1.8697,  ..., 1.9127, 1.9227, 2.0932])
+α marginal: tensor([5.1544, 5.1075, 5.0664,  ..., 5.1780, 5.1720, 4.9826])
+σ marginal: tensor([1.0382, 0.8749, 0.9554,  ..., 0.9076, 0.9179, 0.8641])
+ν marginal: tensor([6.0199, 8.3381, 6.1413,  ..., 4.2614, 4.5714, 5.3702])`}
 </CellOutput>
 
 Next, let's visualize the inferred random variables.
@@ -561,12 +559,12 @@ ArviZ provides helpful statistics about the results of inference, which we show 
 Markdown(az.summary(samples.to_inference_data(), round_to=4).to_markdown())
 ```
 
-|                   |    mean |      sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:------------------|--------:|--------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| sigma_regressor() |  0.9472 |  0.0692 |     0.8334 |      1.0537 |      0.0009 |    0.0006 |    6055.61 |    5072.9  |  1.0007 |
-| alpha()           |  4.9884 |  0.0836 |     4.8539 |      5.1191 |      0.0009 |    0.0007 |    7809.74 |    4979.74 |  1.0005 |
-| df_nu()           | 18.9074 | 11.8847 |     4.6037 |     33.9716 |      0.1612 |    0.1144 |    5241.97 |    6050.47 |  1.0001 |
-| beta()            |  2.1329 |  0.0733 |     2.0114 |      2.2478 |      0.0009 |    0.0007 |    6205.17 |    5309.87 |  1.0009 |
+|                   |   mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:------------------|-------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| sigma_regressor() | 0.9126 | 0.0761 |     0.7942 |      1.0356 |      0.0011 |    0.0008 |    5054.08 |    4966.7  |  1.0005 |
+| alpha()           | 5.0376 | 0.0861 |     4.904  |      5.1769 |      0.0011 |    0.0008 |    5680    |    4716.97 |  1.0003 |
+| df_nu()           | 5.4594 | 1.723  |     2.8927 |      7.6937 |      0.024  |    0.0172 |    5350.48 |    4434.72 |  1.0008 |
+| beta()            | 2.0052 | 0.073  |     1.8851 |      2.119  |      0.001  |    0.0007 |    5503.35 |    4848.91 |  1.0013 |
 
 #### $\hat{R}$ diagnostic
 
@@ -680,9 +678,9 @@ Predict for a single value:
 Markdown(predict(4).to_markdown())
 ```
 
-|    |   2.5% |     50% |   97.5% |
-|---:|-------:|--------:|--------:|
-|  4 | 11.563 | 13.5149 | 15.4869 |
+|    |    2.5% |     50% |   97.5% |
+|---:|--------:|--------:|--------:|
+|  4 | 11.1601 | 13.0632 | 14.9579 |
 
 Or for a range:
 

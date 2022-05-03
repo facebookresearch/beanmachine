@@ -1,6 +1,6 @@
 {
   "target_id": "basic-resid-plot",
-  "root_id": "3360",
+  "root_id": "3084",
   "doc": {
     "defs": [],
     "roots": {
@@ -9,112 +9,57 @@
           "attributes": {
             "below": [
               {
-                "id": "3369"
+                "id": "3093"
               }
             ],
             "center": [
               {
-                "id": "3372"
+                "id": "3096"
               },
               {
-                "id": "3376"
+                "id": "3100"
               }
             ],
             "height": 500,
             "left": [
               {
-                "id": "3373"
+                "id": "3097"
               }
             ],
             "outline_line_color": "black",
             "renderers": [
               {
-                "id": "3396"
+                "id": "3120"
               }
             ],
             "title": {
-              "id": "3580"
+              "id": "3293"
             },
             "toolbar": {
-              "id": "3384"
+              "id": "3108"
             },
             "width": 700,
             "x_range": {
-              "id": "3361"
+              "id": "3085"
             },
             "x_scale": {
-              "id": "3365"
+              "id": "3089"
             },
             "y_range": {
-              "id": "3363"
+              "id": "3087"
             },
             "y_scale": {
-              "id": "3367"
+              "id": "3091"
             }
           },
-          "id": "3360",
+          "id": "3084",
           "subtype": "Figure",
           "type": "Plot"
         },
         {
           "attributes": {},
-          "id": "3374",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {},
-          "id": "3370",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {},
-          "id": "3583",
+          "id": "3299",
           "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "3359"
-            }
-          },
-          "id": "3397",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {},
-          "id": "3377",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "3359"
-            },
-            "glyph": {
-              "id": "3392"
-            },
-            "group": null,
-            "hover_glyph": {
-              "id": "3394"
-            },
-            "muted_glyph": {
-              "id": "3395"
-            },
-            "nonselection_glyph": {
-              "id": "3393"
-            },
-            "view": {
-              "id": "3397"
-            }
-          },
-          "id": "3396",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {},
-          "id": "3380",
-          "type": "SaveTool"
         },
         {
           "attributes": {
@@ -134,93 +79,8 @@
               "field": "y"
             }
           },
-          "id": "3394",
+          "id": "3118",
           "type": "Circle"
-        },
-        {
-          "attributes": {},
-          "id": "3584",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "group": null
-          },
-          "id": "3580",
-          "type": "Title"
-        },
-        {
-          "attributes": {
-            "callback": null,
-            "renderers": [
-              {
-                "id": "3396"
-              }
-            ],
-            "tooltips": [
-              [
-                "Residual",
-                "@y{0.000}"
-              ],
-              [
-                "Seconds remaining",
-                "@x"
-              ]
-            ]
-          },
-          "id": "3398",
-          "type": "HoverTool"
-        },
-        {
-          "attributes": {
-            "overlay": {
-              "id": "3383"
-            }
-          },
-          "id": "3379",
-          "type": "BoxZoomTool"
-        },
-        {
-          "attributes": {},
-          "id": "3586",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "3373"
-            },
-            "coordinates": null,
-            "dimension": 1,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "3376",
-          "type": "Grid"
-        },
-        {
-          "attributes": {},
-          "id": "3587",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "3378",
-          "type": "WheelZoomTool"
-        },
-        {
-          "attributes": {},
-          "id": "3365",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {},
-          "id": "3367",
-          "type": "LinearScale"
         },
         {
           "attributes": {
@@ -242,10 +102,102 @@
             "syncable": false,
             "top_units": "screen"
           },
-          "id": "3383",
+          "id": "3107",
           "type": "BoxAnnotation"
         },
         {
+          "attributes": {},
+          "id": "3091",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "3083"
+            },
+            "glyph": {
+              "id": "3116"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "3118"
+            },
+            "muted_glyph": {
+              "id": "3119"
+            },
+            "nonselection_glyph": {
+              "id": "3117"
+            },
+            "view": {
+              "id": "3121"
+            }
+          },
+          "id": "3120",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "axis_label": "Seconds remaining in game",
+            "coordinates": null,
+            "formatter": {
+              "id": "3299"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "3300"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3094"
+            }
+          },
+          "id": "3093",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3116",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "3102",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "3296",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "3106",
+          "type": "HelpTool"
+        },
+        {
           "attributes": {
             "fill_alpha": {
               "value": 0.1
@@ -272,8 +224,63 @@
               "field": "y"
             }
           },
-          "id": "3393",
+          "id": "3117",
           "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "3105",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "3087",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "3101"
+              },
+              {
+                "id": "3102"
+              },
+              {
+                "id": "3103"
+              },
+              {
+                "id": "3104"
+              },
+              {
+                "id": "3105"
+              },
+              {
+                "id": "3106"
+              },
+              {
+                "id": "3122"
+              }
+            ]
+          },
+          "id": "3108",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3097"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3100",
+          "type": "Grid"
         },
         {
           "attributes": {
@@ -302,16 +309,87 @@
               "field": "y"
             }
           },
-          "id": "3395",
+          "id": "3119",
           "type": "Circle"
         },
         {
           "attributes": {
-            "end": -5,
-            "start": 125
+            "axis_label": "Residual",
+            "coordinates": null,
+            "formatter": {
+              "id": "3296"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "3297"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3098"
+            }
           },
-          "id": "3361",
-          "type": "Range1d"
+          "id": "3097",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3101",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "3089",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "3120"
+              }
+            ],
+            "tooltips": [
+              [
+                "Residual",
+                "@y{0.000}"
+              ],
+              [
+                "Seconds remaining",
+                "@x"
+              ]
+            ]
+          },
+          "id": "3122",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "3300",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "3094",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null
+          },
+          "id": "3293",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "3098",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "3297",
+          "type": "AllLabels"
         },
         {
           "attributes": {
@@ -440,7 +518,7 @@
                 120
               ],
               "y": {
-                "__ndarray__": "q6qqKojQpr+VmEpMxclcP65FgppmJpC/27Zty9d/sz9MpAfqUxu0P6QHKscSzsI/7RvWPheEsj+DJl82/sm5P2le/AkCLrw/uLLPIZeXuT9YfMWnnxDFP272C7EFN7Q/60sFLar7uj/RRRdd/eq/P1EoFIoLQbk/uYKYXO/CwD9P7MSOxiTEP/qkT7qRs70/IiIighjUwz/UrkStkC/CP/KUIE+wxaY/AAAAADFrwD990ie9bkSxPwAAACA71bM/q6qqVDOOwT8AAAAAw1qnPzaU18BSisA/PyxSBl+Np79w+ZYvbeu6P46mzq9NnIa/JTIN2wv+oD9sB+ba0UNnP6xAGGmOQLg/q6qqKqA0oT9ObWpTLwCyv8TDw8NfXYi/f7N16L1knr/XdV3XlfpZP6BR4meKLqQ/OKn78g7vub8ndmLHf7DFv+fm5ubZi7W/r6G8hr4piL9ERETkTZLCvwAAAECWopi/h7VvWFtncz8YeqEXFkmcPwAAAICU8YS/WHzFl9TnvL8AAAAA9Q+nv107MFdL6sC/aDip+26jqz/btm3Lqgeyv8s+h9SyX7o/fWisD+3Wlb/qLKYzDjS6v2G5p1GkI7S/VVVVVQMRUb8jLPc003Kev97CrwaFxMO/7FG4Hvxqqr/gwIGDpWCwv0RERMR0VL6/j8L1qARSs78/NNZHu5zAv6uqqsr1+6a/pU/65GcCwr8S3Edwn4BRPyZDsI42Jns/7+7uziakvr92Yif2842nv4wuuui6maW/h7VvmJrEwb93d3f3ek6UP7ETO7EJHXc/x3Ecxy/Dtr+e53meGv+Xv2M6i2m7or+/SZIkyZhkkT8Yb2WfywODvy4ZgnVf/76/XNnnkDiKu7+zzyE1AXZbPz1QObuln4q/zjnnvNWZwr8ndmKnyTeRP6ic3cKw76G/l5aWRmhiwL8eHh7eYX/Dv7pz504qarK/5TWU121Xq7+0eZ/iIq67vxaykIVMEn2/rkfh+lYJp7+7ErUra1KbvwAAAKAJTsS/H4XrUayXsT8wRT7r8y/Gv2G8lX0uD3c/H8F9RD4Qwr9lTVlTKbq2v5IkSZJ+OZU/4XoULrcssb9GRkZGVcurvz+C+8io1sO/dM4552ourb8KXk7Bg62jv6gRlnv7lqQ/0VgfGkKVor8oKCgocJKMvwAAAIAmOKm/AAAALEsHpb8J8pTgIDvDv/Bs1DeXWMG/vzy2IkEqsr9vetOb0G2jv1VVVVXvxMK/sRM7kcT/uL9no76z9fG0v4TlngbgIMO/velNb2r8jT8=",
+                "__ndarray__": "AAAAADnrpr860hxpLlhZPwAAAABuXpC/27Ztm1Nysz9MpAeqHA20P4ZfjUm7xsI/QZ4SZJx2sj8trPRU87u5P+fFn8iKH7w/ln0OKQqKuT+Lr/iKbgnFP3jqWo7qKLQ/XpsoWVDtuj8AAACA5Ny/P85ms1kbM7k/+85GvfO7wD9CGqSBlR3EP/qkT3papb0/IiIi4vzMwz/Ox+C8mSjCP7H2DWvUqKY/b2Wfg2pkwD+wBVswvTaxPwAAAADsxrM/q6qqQg2HwT/EiBEjyz2nP3kN5bVeg8A/ujU/LL2op79IgzTInN26PziaOr9yFIe/w3azPKLjoD/xM0r8XIJlPztWIAyhMrg/DdIgDc0ZoT/PeMazxQyyv6alpaXx0Ii/UrxAJouanr8ty7Isa7BWPwRz7cCVE6Q/goaTOs/8ub8ndmJnm7fFv6uqqirWmbW/2FBeQwWciL9ERESEaZnCvwAAAAAl2pi/kKcEeVKHcj/JjdzIPxacPwAAAACqZoW/vuIrPpn1vL/GW9nnKyqnvw/MtcN88cC/lLovj86Fqz/btm2bdhWyv1f2OST3ULo/WR8a66ELlr9+BPeRPUG6vyz3NEJRMbS/VVVVVX1/VL+oEZZ7NKWev53dwm8hy8O/uB6F6+SGqr9+/PhxIW+wv83MzEzCYr6/SOF6lMNfs78/NNZHj6PAv6uqqiq9F6e/6ZM+qY4Jwr/8CO4j+FdMPxmCdbQBTHo/7+7u7raxvr/sxE7sLamnv/KUIE+YtKW/QZ4SpIjLwb9EREREGBWUP8VO7MT+O3Y/juM4DmPQtr+e53meeTaYv4vpLCYxsL+/SZIkSdoskT+C8Vb21W2DvyouGQLBDL+/fg6picWXu78dUhOM1/9XP5EeqJwZDou/ttZaq7Cgwr/ZiZ3YHf2QP6QHKmciCqK/pqWlpZJpwL/x8PCw/YXDv1u2bFk4eLK/NpTXUFlyq7/FJUMwxru7v05vetOT7X2/hetRuEMjp78TtStRMY2bvwAAAEAlVcS/7FG4nj2KsT9hinyWlTbGv0RqgvFeNnY/tJjOIvkWwr+bsqYs1ci2v5IkSZLeApU/j8L1qNU5sb+SkZGRxOWrvwnuI3hA3cO/jDHGGBpLrb9U8HIKbcqjv/c0wnJce6Q/PzTWh9mxor+hoKCgPAeNvwAAAACVVKm/AAAAUIAipb8FeUpQfELDv4jJFYT9X8G/cVL3ZUU4sr84velNloqjv5nOYvrey8K/2Ymd2O0Mub/lCmLy7P+0v7Hc08jHJ8O/IQtZyMaOjT8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -449,128 +527,45 @@
               }
             },
             "selected": {
-              "id": "3589"
+              "id": "3302"
             },
             "selection_policy": {
-              "id": "3588"
+              "id": "3301"
             }
           },
-          "id": "3359",
+          "id": "3083",
           "type": "ColumnDataSource"
         },
         {
-          "attributes": {},
-          "id": "3381",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {},
-          "id": "3382",
-          "type": "HelpTool"
+          "attributes": {
+            "end": -5,
+            "start": 125
+          },
+          "id": "3085",
+          "type": "Range1d"
         },
         {
           "attributes": {
-            "axis_label": "Seconds remaining in game",
-            "coordinates": null,
-            "formatter": {
-              "id": "3586"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "3587"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "3370"
+            "source": {
+              "id": "3083"
             }
           },
-          "id": "3369",
-          "type": "LinearAxis"
+          "id": "3121",
+          "type": "CDSView"
         },
         {
           "attributes": {
-            "tools": [
-              {
-                "id": "3377"
-              },
-              {
-                "id": "3378"
-              },
-              {
-                "id": "3379"
-              },
-              {
-                "id": "3380"
-              },
-              {
-                "id": "3381"
-              },
-              {
-                "id": "3382"
-              },
-              {
-                "id": "3398"
-              }
-            ]
-          },
-          "id": "3384",
-          "type": "Toolbar"
-        },
-        {
-          "attributes": {
-            "axis_label": "Residual",
-            "coordinates": null,
-            "formatter": {
-              "id": "3583"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "3584"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "3374"
+            "overlay": {
+              "id": "3107"
             }
           },
-          "id": "3373",
-          "type": "LinearAxis"
-        },
-        {
-          "attributes": {
-            "fill_alpha": {
-              "value": 0.7
-            },
-            "fill_color": {
-              "value": "#1f77b4"
-            },
-            "line_alpha": {
-              "value": 0.7
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "3392",
-          "type": "Circle"
-        },
-        {
-          "attributes": {},
-          "id": "3588",
-          "type": "UnionRenderers"
+          "id": "3103",
+          "type": "BoxZoomTool"
         },
         {
           "attributes": {
             "axis": {
-              "id": "3369"
+              "id": "3093"
             },
             "coordinates": null,
             "grid_line_alpha": 0.2,
@@ -579,22 +574,27 @@
             "group": null,
             "ticker": null
           },
-          "id": "3372",
+          "id": "3096",
           "type": "Grid"
         },
         {
           "attributes": {},
-          "id": "3589",
+          "id": "3301",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "3302",
           "type": "Selection"
         },
         {
           "attributes": {},
-          "id": "3363",
-          "type": "DataRange1d"
+          "id": "3104",
+          "type": "SaveTool"
         }
       ],
       "root_ids": [
-        "3360"
+        "3084"
       ]
     },
     "title": "Bokeh Application",

@@ -1,6 +1,6 @@
 {
   "target_id": "irt-resid-plot",
-  "root_id": "12593",
+  "root_id": "10200",
   "doc": {
     "defs": [],
     "roots": {
@@ -9,52 +9,308 @@
           "attributes": {
             "below": [
               {
-                "id": "12602"
+                "id": "10209"
               }
             ],
             "center": [
               {
-                "id": "12605"
+                "id": "10212"
               },
               {
-                "id": "12609"
+                "id": "10216"
               }
             ],
             "height": 500,
             "left": [
               {
-                "id": "12606"
+                "id": "10213"
               }
             ],
             "outline_line_color": "black",
             "renderers": [
               {
-                "id": "12629"
+                "id": "10236"
               }
             ],
             "title": {
-              "id": "13358"
+              "id": "10907"
             },
             "toolbar": {
-              "id": "12617"
+              "id": "10224"
             },
             "width": 700,
             "x_range": {
-              "id": "12594"
+              "id": "10201"
             },
             "x_scale": {
-              "id": "12598"
+              "id": "10205"
             },
             "y_range": {
-              "id": "12596"
+              "id": "10203"
             },
             "y_scale": {
-              "id": "12600"
+              "id": "10207"
             }
           },
-          "id": "12593",
+          "id": "10200",
           "subtype": "Figure",
           "type": "Plot"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "10199"
+            },
+            "glyph": {
+              "id": "10232"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "10234"
+            },
+            "muted_glyph": {
+              "id": "10235"
+            },
+            "nonselection_glyph": {
+              "id": "10233"
+            },
+            "view": {
+              "id": "10237"
+            }
+          },
+          "id": "10236",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "10221",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "10205",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "10213"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "10216",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "10915",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "10218",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "10214",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "10203",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "10235",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "10910",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "10220",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "axis_label": "Seconds remaining in game",
+            "coordinates": null,
+            "formatter": {
+              "id": "10913"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "10914"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "10210"
+            }
+          },
+          "id": "10209",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "10209"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "10212",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "10222",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "10913",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "10916",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "10223",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "10201",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "10223"
+            }
+          },
+          "id": "10219",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "10914",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "10207",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "fill_color": {
+              "value": "orange"
+            },
+            "line_width": {
+              "value": 2
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "10234",
+          "type": "Circle"
+        },
+        {
+          "attributes": {
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "#1f77b4"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "10232",
+          "type": "Circle"
         },
         {
           "attributes": {
@@ -183,7 +439,7 @@
                 0
               ],
               "y": {
-                "__ndarray__": "AAAAINuGuL/FVGJqqLKrv7+yelehZLO/27Zt23lckj9jIj1QHhyDv3YLv3qRY6g/bbLJJh6/h7+RwNsPj9uDP3g26js/R2g/E4y3Mk6liL+SJEkysKyqP8kEeqfSumM/ccDjj5Nclz+g1q8UfQSdP9Dn8/mhBIU/riAml0+Qoj+zNmszZ2mXP1uwBVuWlJu/RERELHwrpT8AAABgesSlP+QpQX7XLLC/AAAAgIl/pT990id9+gWZv6uqqkrpH6q/q6qqFiK9nD+6c+dOOrGVPw3lNUyoyLk/Bp5uza+sqL+Xb/mG3HK0P9tDLit0cnC/b5YnUT9xqT+uHZhrzhOVP7ICYSQ76LY/aZAG6ZCLmT8Oc5jD41qhv5eWlhajp5I/UrxAJtXFbD9u27ZtbLaSP2iU+BkM8ZQ/K4KGcw5WtL9P7MT+TdrCvygoKKg606y/KK+hvDzxmD+amZkBGPa6v8dxHMdzL1S/6aKLrh85nj9mZmYmqb6iP5IkScrC96c/t23b1ttqt79vZZ9DncOCv05venPo67C/3ZfHFpqIuT8lSZL06dGavyv7HHJa1sM/iMb60NjfhT+ivIYyLxaov9QIyz3m35a/q6qqFsN8rD/LPY0w8suNPxd+NQbLwrW/Y8kvlryaIb/8+PHjNpGHv9iCLViuXay/SOF6lNJYoL9JkiQJJQezv6uqqjrunoo/q6qqCumTtL/8CO7DZVawP8UlQzDA8bA/7+7ujo7ip792YifWPauWP9FFF13+jXS/MzMzMybXsb9VVVX9ajqxPzuxE/uXsKc/2ktor5NejL8YhmGIOfCwP+4juI+Onaq/AAAAkEY0uD+zzyG1zSirP0eb9ykmIqi/xlvZ54uNmb8Yb2Uf1eCrPybSA1X7oa8/QgghhEmRrL+KndhZn2C2P2tMpEeYNac/tbS0BCBGqL88PDzcOUe1vxw4cOAqGXC/wX0E942IjT/8FJfMdnSvvwRz7UDoC68/16NwvTbkjj/tStSuSauOPwAAACLCD7O/9ihcP7xFwT/dYIp8QOK6v9UE4+0pl7I/ncV0Vh7ur78Sd8RdEHujvyVJkmBT+LY/H4XrUUCccj+NjIyM+/ONvzqL6SzWMLe/W2utNaDOgz+IxvrQgY2WP59GWJ7KrLg/JUmSJMN0kT+hoKAgs52cPwAAAIBd23o/AAAAYpjXqj8FeUpwk3m0v+UKYvJ897C/VwQNJ9byir/1pjc9+G2Av53FdNZEK62/AAAAMJ6nor9S39mo7fuKvxphuecK47i/WchCNgUSsj8=",
+                "__ndarray__": "AAAAsDl+uL8M74U3sbmrv5A5SjeAZ7O/JUmSTBdckj8u/GrMw/WCv8OvxoSTXag/boXiVl+Fh7+PUZzrChuEP2C3x1qyIGg/m2C8lYmhiL/5iq8IQquqP/uFWFGaTWQ/UbJrE3VDlz8DtX4lGAKdP9Dn8/kzLIU/bdR3tqWIoj/SIA1SkWqXP2ELtmDLaJu/mpmZiXUvpT+Qwfl4SsylP8hTgpwLI7C/V/Y5RCZ7pT+8u7v7agOZv1VVVcU9Iqq/q6qqSuq9nD9btmxZQa+VP4fyGmop1rk/A0+3JjmHqL+e2IlNxm+0P7msGCiZTG+/zvIkMoWPqT9z7cDc6yOVP72G8vr68rY/ntiJHRykmT/BBS4w3jehv9jX11dp8JI/yz2NsKAObj+O4ziO5cSSPwfm2oGLKpU/ZCuChhthtL/zLd+ae9HCv8nIyMjhoqy/lNdQ3vHymD/NzMyMMem6v3Icx3GrE1S/7RvWvlJvnj/FTuwExwujP9u2bTsP2ac/sPiKfyJjt7/QITXBJi+Cv+pNb7r+8LC/3ZfHth95uT8lSZJEuAabv7yVfc6g0cM/5hS8nCu8hT9sKK9hI0qov8JyT+Mcape/VVVV3aNOrD8s9zTCEROOP3YLv/pJvbW/XI/C9egXL78LFSpU1pOHv6VP+uQSgqy/rkfhesVhoL8AAACg0wCzv1VVVTVqbIo/vLu7Wz2ZtL8/gvuI1FGwPyZDsI778LA/zczMHOnmp787sRN7xHiWPyFPCfLKX3W/tm9Y+1Dvsb+8u7v7dSGxP4qd2PlCvac/X0J7CdZjjL+e53nO0OmwP8prKK+9l6q/SZIk1bU6uD8r+xySWF2rPy4ZgvX/BKi/CsZb2Ydlmb/Z55AaqfGrP8OvxoR2y68/ttZaKxh7rL/FTuykyV22PzKRHugMVKc/PDw8rIhKqL/T0tKyniq1v9myZcsyVm+/BPcR3EvqjT+PNu9TLX+vv6BR4ucD/a4/XI/CdSXCjj+pXYnadrGOPwAAANIvDbO/pHA9+shKwT9vMEU+l9m6v5GaYFxZpLI/r6G8BlrIr7+PuCNu9WGjvyVJkoQ3DLc/hetRuMRucz/29fX1Kn+Nv6uqquo6Ebe/fO+99715hD+yPjTWcK+WP+aeRgiysLg/EI31IVvJkT+NjIyMjpKcPwAAAEA8cHo/AAAAZnnXqj8c1r6BkWS0v89GfQcB5bC/4qTuy8lqir9ZyEKWuHuAv1pMZ/FGNK2/xU7sZBRsor9S39mobACKv+aeRqgwz7i/FrKQNfUesj8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -192,13 +448,13 @@
               }
             },
             "selected": {
-              "id": "13367"
+              "id": "10916"
             },
             "selection_policy": {
-              "id": "13366"
+              "id": "10915"
             }
           },
-          "id": "12592",
+          "id": "10199",
           "type": "ColumnDataSource"
         },
         {
@@ -228,351 +484,15 @@
               "field": "y"
             }
           },
-          "id": "12626",
+          "id": "10233",
           "type": "Circle"
-        },
-        {
-          "attributes": {},
-          "id": "13361",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {},
-          "id": "13362",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "12613",
-          "type": "SaveTool"
-        },
-        {
-          "attributes": {
-            "overlay": {
-              "id": "12616"
-            }
-          },
-          "id": "12612",
-          "type": "BoxZoomTool"
-        },
-        {
-          "attributes": {
-            "bottom_units": "screen",
-            "coordinates": null,
-            "fill_alpha": 0.5,
-            "fill_color": "lightgrey",
-            "group": null,
-            "left_units": "screen",
-            "level": "overlay",
-            "line_alpha": 1.0,
-            "line_color": "black",
-            "line_dash": [
-              4,
-              4
-            ],
-            "line_width": 2,
-            "right_units": "screen",
-            "syncable": false,
-            "top_units": "screen"
-          },
-          "id": "12616",
-          "type": "BoxAnnotation"
-        },
-        {
-          "attributes": {
-            "axis_label": "Seconds remaining in game",
-            "coordinates": null,
-            "formatter": {
-              "id": "13364"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "13365"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "12603"
-            }
-          },
-          "id": "12602",
-          "type": "LinearAxis"
-        },
-        {
-          "attributes": {
-            "tools": [
-              {
-                "id": "12610"
-              },
-              {
-                "id": "12611"
-              },
-              {
-                "id": "12612"
-              },
-              {
-                "id": "12613"
-              },
-              {
-                "id": "12614"
-              },
-              {
-                "id": "12615"
-              },
-              {
-                "id": "12631"
-              }
-            ]
-          },
-          "id": "12617",
-          "type": "Toolbar"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "group": null
-          },
-          "id": "13358",
-          "type": "Title"
-        },
-        {
-          "attributes": {},
-          "id": "12614",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {
-            "fill_color": {
-              "value": "orange"
-            },
-            "line_width": {
-              "value": 2
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "12627",
-          "type": "Circle"
-        },
-        {
-          "attributes": {},
-          "id": "12607",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {
-            "fill_alpha": {
-              "value": 0.7
-            },
-            "fill_color": {
-              "value": "#1f77b4"
-            },
-            "line_alpha": {
-              "value": 0.7
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "12625",
-          "type": "Circle"
-        },
-        {
-          "attributes": {
-            "axis_label": "Residual",
-            "coordinates": null,
-            "formatter": {
-              "id": "13361"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "13362"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "12607"
-            }
-          },
-          "id": "12606",
-          "type": "LinearAxis"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "12606"
-            },
-            "coordinates": null,
-            "dimension": 1,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "12609",
-          "type": "Grid"
-        },
-        {
-          "attributes": {},
-          "id": "12615",
-          "type": "HelpTool"
-        },
-        {
-          "attributes": {},
-          "id": "12596",
-          "type": "DataRange1d"
-        },
-        {
-          "attributes": {},
-          "id": "12610",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {},
-          "id": "13366",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {},
-          "id": "13364",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {},
-          "id": "12594",
-          "type": "DataRange1d"
-        },
-        {
-          "attributes": {},
-          "id": "13365",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "13367",
-          "type": "Selection"
-        },
-        {
-          "attributes": {},
-          "id": "12598",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {},
-          "id": "12600",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "12602"
-            },
-            "coordinates": null,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "12605",
-          "type": "Grid"
-        },
-        {
-          "attributes": {},
-          "id": "12611",
-          "type": "WheelZoomTool"
-        },
-        {
-          "attributes": {
-            "fill_alpha": {
-              "value": 0.2
-            },
-            "fill_color": {
-              "value": "#1f77b4"
-            },
-            "hatch_alpha": {
-              "value": 0.2
-            },
-            "line_alpha": {
-              "value": 0.2
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "12628",
-          "type": "Circle"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "12592"
-            },
-            "glyph": {
-              "id": "12625"
-            },
-            "group": null,
-            "hover_glyph": {
-              "id": "12627"
-            },
-            "muted_glyph": {
-              "id": "12628"
-            },
-            "nonselection_glyph": {
-              "id": "12626"
-            },
-            "view": {
-              "id": "12630"
-            }
-          },
-          "id": "12629",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {},
-          "id": "12603",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "12592"
-            }
-          },
-          "id": "12630",
-          "type": "CDSView"
         },
         {
           "attributes": {
             "callback": null,
             "renderers": [
               {
-                "id": "12629"
+                "id": "10236"
               }
             ],
             "tooltips": [
@@ -586,12 +506,92 @@
               ]
             ]
           },
-          "id": "12631",
+          "id": "10238",
           "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "10199"
+            }
+          },
+          "id": "10237",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "10911",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "10210",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null
+          },
+          "id": "10907",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "axis_label": "Residual",
+            "coordinates": null,
+            "formatter": {
+              "id": "10910"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "10911"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "10214"
+            }
+          },
+          "id": "10213",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "10217",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "10217"
+              },
+              {
+                "id": "10218"
+              },
+              {
+                "id": "10219"
+              },
+              {
+                "id": "10220"
+              },
+              {
+                "id": "10221"
+              },
+              {
+                "id": "10222"
+              },
+              {
+                "id": "10238"
+              }
+            ]
+          },
+          "id": "10224",
+          "type": "Toolbar"
         }
       ],
       "root_ids": [
-        "12593"
+        "10200"
       ]
     },
     "title": "Bokeh Application",

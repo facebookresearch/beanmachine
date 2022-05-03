@@ -1,6 +1,6 @@
 {
   "target_id": "trailing-poss-plot",
-  "root_id": "4738",
+  "root_id": "3690",
   "doc": {
     "defs": [],
     "roots": {
@@ -9,125 +9,277 @@
           "attributes": {
             "below": [
               {
-                "id": "4749"
+                "id": "3701"
               }
             ],
             "center": [
               {
-                "id": "4752"
+                "id": "3704"
               },
               {
-                "id": "4756"
+                "id": "3708"
               },
               {
-                "id": "4787"
+                "id": "3739"
               }
             ],
             "height": 500,
             "left": [
               {
-                "id": "4753"
+                "id": "3705"
               }
             ],
             "outline_line_color": "black",
             "renderers": [
               {
-                "id": "4775"
+                "id": "3727"
               },
               {
-                "id": "4795"
+                "id": "3747"
               },
               {
-                "id": "4816"
+                "id": "3768"
               }
             ],
             "title": {
-              "id": "4739"
+              "id": "3691"
             },
             "toolbar": {
-              "id": "4764"
+              "id": "3716"
             },
             "width": 700,
             "x_range": {
-              "id": "4741"
+              "id": "3693"
             },
             "x_scale": {
-              "id": "4745"
+              "id": "3697"
             },
             "y_range": {
-              "id": "4743"
+              "id": "3695"
             },
             "y_scale": {
-              "id": "4747"
+              "id": "3699"
             }
           },
-          "id": "4738",
+          "id": "3690",
           "subtype": "Figure",
           "type": "Plot"
         },
         {
-          "attributes": {
-            "label": {
-              "value": "1"
-            },
-            "renderers": [
-              {
-                "id": "4775"
-              }
-            ]
-          },
-          "id": "4788",
-          "type": "LegendItem"
+          "attributes": {},
+          "id": "3706",
+          "type": "BasicTicker"
         },
         {
           "attributes": {
-            "axis_label": "Seconds remaining",
-            "coordinates": null,
-            "formatter": {
-              "id": "4782"
+            "line_alpha": 0.2,
+            "line_color": "#0072B2",
+            "x": {
+              "field": "x"
             },
-            "group": null,
-            "major_label_policy": {
-              "id": "4783"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "4750"
+            "y": {
+              "field": "y"
             }
           },
-          "id": "4749",
-          "type": "LinearAxis"
+          "id": "3726",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3709",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+                69,
+                70,
+                71,
+                72,
+                73,
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80,
+                81,
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+                88,
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96,
+                97,
+                98,
+                99,
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109,
+                110,
+                111,
+                112,
+                113,
+                114,
+                115,
+                116,
+                117,
+                118,
+                119,
+                120
+              ],
+              "y": {
+                "__ndarray__": "AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H9W5sU9PXngP1CcAm2HjeA/jkkupL9o4D9v95lZ5QrgP2Us3zkIwd4/YwFYIy/y3j9NbeOmNBfeP73Gir3Fe94/TVcbTlaM3T9zH2/QkrHdP4NpIVCsU90/u9tEhx533D+IqBFU60PbP3o9MqP0tds/JrEXpb3w2j+Y7iF8YWHaP0Rs5VaZDdk/RGzlVpkN2D/kP+yQBq7XP0DProYvCtc/Zo4Hebsv1j9K+WTx/d3UP3Q0sU5sXdU/Yfn/OjGs1T+xAHWLOCHWP7EAdYs4IdU/wfw1mzTi1D8MSIHmfy3UP8u+Zab2EdQ/EtbCGshX0z9wHa2QbLbSP8EyEeGBGtM/9GVEFLVN1D8ujwbxaT7TP5YYnVnz1NM/JfzV59YN1D8mU126c6zTP/ZeGot/adM/xlWHWnbW0j/dxPFLHe3RP5XjdjdvpdA/LnwP0Ac+0T+JLBUruEPQP81wWW/8h9A/xfsIaIc30T/F+whohzfSP46J5TAVFNM/om0PcrMm0z+YRxU2WvnTPzu2FqoOEtU/R07dKnge1T+a/gEhtHHVP+AVX5WFt9Q/6IqvnPoH1D8mJCwJTm3TP2QNwEc3AdI/rUbgeROt0j8v80Eu80HSP9ZzTNZzTNI/N3xZXESt0j/23UZ4GmzUP2rddGDr39M/kjkEI+EI1D/KCW4mfj/UP0GB5Z31ttM/MHDUjOSl0j8wcNSM5KXSP0LVPHCPJdM/x8COKK6q0j+mrEwHmmjRP1hteBJWG9I/prKevA8T0j+TznR7cQDSPzTdXhyA6tI/+ZylGOyu0j+Zq4+5+pjTP7r6mKuPudI/AtwTwD0B1D8dxMhBjBzUPxiMXaO6F9Q/quKODNCq0j/ijgzQquLSP8p4V7+3GtM/eiKMo5SC0j9bJ9qDmdDSP2e/oAQD3dI/AVk6npx20j8iVOy9lyjSP2aYMALcbNI/eV7AuC0r0z/GnZStcXjSP54gwoX0pdI/khS2eeiZ0j8CF93p6sDSP7+xVUAf09I/bqrg7xde0j9XTWwe0kbTP7PcLhT7otI/AYJQ+zle0z8honAbWn7TP3H4Ozd9FtQ/xk2RjNJr1T8=",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  121
+                ]
+              }
+            },
+            "selected": {
+              "id": "3737"
+            },
+            "selection_policy": {
+              "id": "3736"
+            }
+          },
+          "id": "3687",
+          "type": "ColumnDataSource"
         },
         {
           "attributes": {
             "coordinates": null,
             "data_source": {
-              "id": "4736"
+              "id": "3689"
             },
             "glyph": {
-              "id": "4792"
+              "id": "3765"
             },
             "group": null,
             "hover_glyph": null,
             "muted_glyph": {
-              "id": "4794"
+              "id": "3767"
             },
             "nonselection_glyph": {
-              "id": "4793"
+              "id": "3766"
             },
             "view": {
-              "id": "4796"
+              "id": "3769"
             }
           },
-          "id": "4795",
+          "id": "3768",
           "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3705"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3708",
+          "type": "Grid"
         },
         {
           "attributes": {
             "callback": null,
             "renderers": [
               {
-                "id": "4795"
+                "id": "3727"
               }
             ],
             "tooltips": [
@@ -141,17 +293,303 @@
               ]
             ]
           },
-          "id": "4810",
+          "id": "3741",
           "type": "HoverTool"
         },
         {
           "attributes": {
-            "overlay": {
-              "id": "4763"
+            "label": {
+              "value": "2"
+            },
+            "renderers": [
+              {
+                "id": "3747"
+              }
+            ]
+          },
+          "id": "3761",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3701"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3704",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "line_color": "#0072B2",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
             }
           },
-          "id": "4759",
-          "type": "BoxZoomTool"
+          "id": "3724",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "3740"
+              },
+              {
+                "id": "3761"
+              },
+              {
+                "id": "3784"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "3739",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "line_color": "#E69F00",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3744",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3713",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "end": 15,
+            "start": 125
+          },
+          "id": "3693",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {
+            "data": {
+              "x": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+                69,
+                70,
+                71,
+                72,
+                73,
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80,
+                81,
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+                88,
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96,
+                97,
+                98,
+                99,
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109,
+                110,
+                111,
+                112,
+                113,
+                114,
+                115,
+                116,
+                117,
+                118,
+                119,
+                120
+              ],
+              "y": {
+                "__ndarray__": "AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H/2CUjMtJHmP3AuF0bZYOY/ht5BlnAo5j86wn7RPtzlP309iL5kkOU/kuvPn99k5T8NtoYbqhvlP8aFtTvgsOQ/cF1Htv1Z5D+LI7jRw8rjP3toUsEIZeM/wrfCtQ0s4z9X+00i9SfjP693E3px7eI/dXN6lMKp4j+msyKDYQziPyqfdDuAEeI/0jsm8l7L4T8nSlOk/LrhP89Hsa2EleE/kMN6KodR4T/aYm90JsbgPyuqjOn6F+A/W2NVw7Yz3z/GWzHYWbreP2rMbuIwXt0/SLgswRwc3D+q36IjRJLcPys3uZupE9w/RWH05waC2z81x7zXbErbP76FUMCo09k/LsNal0xE2T/cCjwSYfLYP1wAlJFWStg/ZP03be/M2D+NWccv5fXWP02PX+8ajtY/wkhdMaFY1T/wMxBgjAvUP0UsN4zVkNM/pB1N68am0z/rqF54aRXVPwv4Z2r+NdQ/LhqKjCBY1D/HsyMmuvHTPzN1OpJ7CNQ/WtZMuNwa0j/tNXmxoq3RPwgeLjPxyNE/tg0p4uDD0D8CntDmWQ7RP39+2GQ6FtE/BwZg7MGd0D8GBmDswZ3QPxgXcf3SrtE/GBdx/dKu0T8m0dUMjRPRP2jUCU2QR9E/+vhS37SQ0T+IYW38MrPRP2+HtBET49E/Pnex4ALg0D+GWCz1sCfSPx/yxY5KwdE/UiX5wX300D9yquQTNhPSP+GsC4Q4OtI/JfFPyHx+0j8vyPM4uojRP/HRj/nDJNI//iF++qgz0j9ODkNJlfjRPyIWfrc2zdE/3tE5c/KI0T/OwChi4XfQPwrL/wVStdA/RFnjPuCY0T9HuzaoqFLRP2OPeMV8lNA/ml/iyBnL0D9eHynFhY/QPzJHppetDNE/+nY8lBDW0D/OuFloUvPQP864WWhS89A/pX0NC+Rz0D8SWcR4vyrQP98lkUWM99A/JGrVidA70T+s8l0SWcTRP2jigGjigNE/AnwaAnwa0j+V20b7Qa3RP1CXArf9aNE/crkk2R+L0T8vVJ0vVJ3RPzbJ7TbJ7dA/pGnBPQNb0T9FeKveEUXSPzcE0Z1qN9I/LS0tLS0t0z8=",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  121
+                ]
+              }
+            },
+            "selected": {
+              "id": "3759"
+            },
+            "selection_policy": {
+              "id": "3758"
+            }
+          },
+          "id": "3688",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "3712",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "3"
+            },
+            "renderers": [
+              {
+                "id": "3768"
+              }
+            ]
+          },
+          "id": "3784",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "3781",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#E69F00",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3746",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3735",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "3734",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "3699",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "3688"
+            }
+          },
+          "id": "3748",
+          "type": "CDSView"
         },
         {
           "attributes": {
@@ -173,61 +611,172 @@
             "syncable": false,
             "top_units": "screen"
           },
-          "id": "4763",
+          "id": "3715",
           "type": "BoxAnnotation"
         },
         {
-          "attributes": {},
-          "id": "4784",
-          "type": "UnionRenderers"
-        },
-        {
           "attributes": {
-            "line_color": "#E69F00",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
+            "overlay": {
+              "id": "3715"
             }
           },
-          "id": "4792",
-          "type": "Line"
+          "id": "3711",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "3732",
+          "type": "AllLabels"
         },
         {
           "attributes": {
             "tools": [
               {
-                "id": "4757"
+                "id": "3709"
               },
               {
-                "id": "4758"
+                "id": "3710"
               },
               {
-                "id": "4759"
+                "id": "3711"
               },
               {
-                "id": "4760"
+                "id": "3712"
               },
               {
-                "id": "4761"
+                "id": "3713"
               },
               {
-                "id": "4762"
+                "id": "3714"
               },
               {
-                "id": "4789"
+                "id": "3741"
               },
               {
-                "id": "4810"
+                "id": "3762"
               },
               {
-                "id": "4833"
+                "id": "3785"
               }
             ]
           },
-          "id": "4764",
+          "id": "3716",
           "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "3687"
+            },
+            "glyph": {
+              "id": "3724"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "3726"
+            },
+            "nonselection_glyph": {
+              "id": "3725"
+            },
+            "view": {
+              "id": "3728"
+            }
+          },
+          "id": "3727",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "3702",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "1"
+            },
+            "renderers": [
+              {
+                "id": "3727"
+              }
+            ]
+          },
+          "id": "3740",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "3736",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {},
+          "id": "3782",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "3697",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#F0E442",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3766",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3714",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "3737",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "3688"
+            },
+            "glyph": {
+              "id": "3744"
+            },
+            "group": null,
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "3746"
+            },
+            "nonselection_glyph": {
+              "id": "3745"
+            },
+            "view": {
+              "id": "3748"
+            }
+          },
+          "id": "3747",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "3687"
+            }
+          },
+          "id": "3728",
+          "type": "CDSView"
         },
         {
           "attributes": {
@@ -240,8 +789,37 @@
               "field": "y"
             }
           },
-          "id": "4773",
+          "id": "3725",
           "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3695",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "3731",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "axis_label": "Observed foul rate",
+            "coordinates": null,
+            "formatter": {
+              "id": "3731"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "3732"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3706"
+            }
+          },
+          "id": "3705",
+          "type": "LinearAxis"
         },
         {
           "attributes": {
@@ -254,26 +832,7 @@
               "field": "y"
             }
           },
-          "id": "4793",
-          "type": "Line"
-        },
-        {
-          "attributes": {},
-          "id": "4782",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.2,
-            "line_color": "#0072B2",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4774",
+          "id": "3745",
           "type": "Line"
         },
         {
@@ -412,39 +971,41 @@
               }
             },
             "selected": {
-              "id": "4830"
+              "id": "3782"
             },
             "selection_policy": {
-              "id": "4829"
+              "id": "3781"
             }
           },
-          "id": "4737",
+          "id": "3689",
           "type": "ColumnDataSource"
         },
         {
           "attributes": {
-            "coordinates": null,
-            "group": null,
-            "items": [
+            "callback": null,
+            "renderers": [
               {
-                "id": "4788"
-              },
-              {
-                "id": "4809"
-              },
-              {
-                "id": "4832"
+                "id": "3747"
               }
             ],
-            "location": "top_left"
+            "tooltips": [
+              [
+                "Rate",
+                "@y{0.000}"
+              ],
+              [
+                "Time left",
+                "@x"
+              ]
+            ]
           },
-          "id": "4787",
-          "type": "Legend"
+          "id": "3762",
+          "type": "HoverTool"
         },
         {
           "attributes": {
             "line_alpha": 0.2,
-            "line_color": "#E69F00",
+            "line_color": "#F0E442",
             "x": {
               "field": "x"
             },
@@ -452,24 +1013,44 @@
               "field": "y"
             }
           },
-          "id": "4794",
+          "id": "3767",
           "type": "Line"
         },
         {
+          "attributes": {},
+          "id": "3710",
+          "type": "WheelZoomTool"
+        },
+        {
           "attributes": {
-            "source": {
-              "id": "4735"
+            "axis_label": "Seconds remaining",
+            "coordinates": null,
+            "formatter": {
+              "id": "3734"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "3735"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3702"
             }
           },
-          "id": "4776",
-          "type": "CDSView"
+          "id": "3701",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "3758",
+          "type": "UnionRenderers"
         },
         {
           "attributes": {
             "callback": null,
             "renderers": [
               {
-                "id": "4775"
+                "id": "3768"
               }
             ],
             "tooltips": [
@@ -483,47 +1064,8 @@
               ]
             ]
           },
-          "id": "4789",
+          "id": "3785",
           "type": "HoverTool"
-        },
-        {
-          "attributes": {
-            "callback": null,
-            "renderers": [
-              {
-                "id": "4816"
-              }
-            ],
-            "tooltips": [
-              [
-                "Rate",
-                "@y{0.000}"
-              ],
-              [
-                "Time left",
-                "@x"
-              ]
-            ]
-          },
-          "id": "4833",
-          "type": "HoverTool"
-        },
-        {
-          "attributes": {
-            "end": 15,
-            "start": 125
-          },
-          "id": "4741",
-          "type": "Range1d"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "4736"
-            }
-          },
-          "id": "4796",
-          "type": "CDSView"
         },
         {
           "attributes": {
@@ -531,162 +1073,11 @@
             "group": null,
             "text": "Trailing possessions (committing team)"
           },
-          "id": "4739",
+          "id": "3691",
           "type": "Title"
         },
         {
           "attributes": {
-            "data": {
-              "x": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
-                41,
-                42,
-                43,
-                44,
-                45,
-                46,
-                47,
-                48,
-                49,
-                50,
-                51,
-                52,
-                53,
-                54,
-                55,
-                56,
-                57,
-                58,
-                59,
-                60,
-                61,
-                62,
-                63,
-                64,
-                65,
-                66,
-                67,
-                68,
-                69,
-                70,
-                71,
-                72,
-                73,
-                74,
-                75,
-                76,
-                77,
-                78,
-                79,
-                80,
-                81,
-                82,
-                83,
-                84,
-                85,
-                86,
-                87,
-                88,
-                89,
-                90,
-                91,
-                92,
-                93,
-                94,
-                95,
-                96,
-                97,
-                98,
-                99,
-                100,
-                101,
-                102,
-                103,
-                104,
-                105,
-                106,
-                107,
-                108,
-                109,
-                110,
-                111,
-                112,
-                113,
-                114,
-                115,
-                116,
-                117,
-                118,
-                119,
-                120
-              ],
-              "y": {
-                "__ndarray__": "AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H/2CUjMtJHmP3AuF0bZYOY/ht5BlnAo5j86wn7RPtzlP309iL5kkOU/kuvPn99k5T8NtoYbqhvlP8aFtTvgsOQ/cF1Htv1Z5D+LI7jRw8rjP3toUsEIZeM/wrfCtQ0s4z9X+00i9SfjP693E3px7eI/dXN6lMKp4j+msyKDYQziPyqfdDuAEeI/0jsm8l7L4T8nSlOk/LrhP89Hsa2EleE/kMN6KodR4T/aYm90JsbgPyuqjOn6F+A/W2NVw7Yz3z/GWzHYWbreP2rMbuIwXt0/SLgswRwc3D+q36IjRJLcPys3uZupE9w/RWH05waC2z81x7zXbErbP76FUMCo09k/LsNal0xE2T/cCjwSYfLYP1wAlJFWStg/ZP03be/M2D+NWccv5fXWP02PX+8ajtY/wkhdMaFY1T/wMxBgjAvUP0UsN4zVkNM/pB1N68am0z/rqF54aRXVPwv4Z2r+NdQ/LhqKjCBY1D/HsyMmuvHTPzN1OpJ7CNQ/WtZMuNwa0j/tNXmxoq3RPwgeLjPxyNE/tg0p4uDD0D8CntDmWQ7RP39+2GQ6FtE/BwZg7MGd0D8GBmDswZ3QPxgXcf3SrtE/GBdx/dKu0T8m0dUMjRPRP2jUCU2QR9E/+vhS37SQ0T+IYW38MrPRP2+HtBET49E/Pnex4ALg0D+GWCz1sCfSPx/yxY5KwdE/UiX5wX300D9yquQTNhPSP+GsC4Q4OtI/JfFPyHx+0j8vyPM4uojRP/HRj/nDJNI//iF++qgz0j9ODkNJlfjRPyIWfrc2zdE/3tE5c/KI0T/OwChi4XfQPwrL/wVStdA/RFnjPuCY0T9HuzaoqFLRP2OPeMV8lNA/ml/iyBnL0D9eHynFhY/QPzJHppetDNE/+nY8lBDW0D/OuFloUvPQP864WWhS89A/pX0NC+Rz0D8SWcR4vyrQP98lkUWM99A/JGrVidA70T+s8l0SWcTRP2jigGjigNE/AnwaAnwa0j+V20b7Qa3RP1CXArf9aNE/crkk2R+L0T8vVJ0vVJ3RPzbJ7TbJ7dA/pGnBPQNb0T9FeKveEUXSPzcE0Z1qN9I/LS0tLS0t0z8=",
-                "dtype": "float64",
-                "order": "little",
-                "shape": [
-                  121
-                ]
-              }
-            },
-            "selected": {
-              "id": "4807"
-            },
-            "selection_policy": {
-              "id": "4806"
-            }
-          },
-          "id": "4736",
-          "type": "ColumnDataSource"
-        },
-        {
-          "attributes": {},
-          "id": "4783",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.1,
             "line_color": "#F0E442",
             "x": {
               "field": "x"
@@ -695,417 +1086,26 @@
               "field": "y"
             }
           },
-          "id": "4814",
-          "type": "Line"
-        },
-        {
-          "attributes": {
-            "label": {
-              "value": "2"
-            },
-            "renderers": [
-              {
-                "id": "4795"
-              }
-            ]
-          },
-          "id": "4809",
-          "type": "LegendItem"
-        },
-        {
-          "attributes": {
-            "line_color": "#F0E442",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4813",
+          "id": "3765",
           "type": "Line"
         },
         {
           "attributes": {},
-          "id": "4747",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "4737"
-            },
-            "glyph": {
-              "id": "4813"
-            },
-            "group": null,
-            "hover_glyph": null,
-            "muted_glyph": {
-              "id": "4815"
-            },
-            "nonselection_glyph": {
-              "id": "4814"
-            },
-            "view": {
-              "id": "4817"
-            }
-          },
-          "id": "4816",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {},
-          "id": "4806",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "4735"
-            },
-            "glyph": {
-              "id": "4772"
-            },
-            "group": null,
-            "hover_glyph": null,
-            "muted_glyph": {
-              "id": "4774"
-            },
-            "nonselection_glyph": {
-              "id": "4773"
-            },
-            "view": {
-              "id": "4776"
-            }
-          },
-          "id": "4775",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.2,
-            "line_color": "#F0E442",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4815",
-          "type": "Line"
-        },
-        {
-          "attributes": {},
-          "id": "4758",
-          "type": "WheelZoomTool"
-        },
-        {
-          "attributes": {},
-          "id": "4807",
+          "id": "3759",
           "type": "Selection"
         },
         {
           "attributes": {
             "source": {
-              "id": "4737"
+              "id": "3689"
             }
           },
-          "id": "4817",
+          "id": "3769",
           "type": "CDSView"
-        },
-        {
-          "attributes": {
-            "data": {
-              "x": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
-                41,
-                42,
-                43,
-                44,
-                45,
-                46,
-                47,
-                48,
-                49,
-                50,
-                51,
-                52,
-                53,
-                54,
-                55,
-                56,
-                57,
-                58,
-                59,
-                60,
-                61,
-                62,
-                63,
-                64,
-                65,
-                66,
-                67,
-                68,
-                69,
-                70,
-                71,
-                72,
-                73,
-                74,
-                75,
-                76,
-                77,
-                78,
-                79,
-                80,
-                81,
-                82,
-                83,
-                84,
-                85,
-                86,
-                87,
-                88,
-                89,
-                90,
-                91,
-                92,
-                93,
-                94,
-                95,
-                96,
-                97,
-                98,
-                99,
-                100,
-                101,
-                102,
-                103,
-                104,
-                105,
-                106,
-                107,
-                108,
-                109,
-                110,
-                111,
-                112,
-                113,
-                114,
-                115,
-                116,
-                117,
-                118,
-                119,
-                120
-              ],
-              "y": {
-                "__ndarray__": "AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H8AAAAAAAD4fwAAAAAAAPh/AAAAAAAA+H9W5sU9PXngP1CcAm2HjeA/jkkupL9o4D9v95lZ5QrgP2Us3zkIwd4/YwFYIy/y3j9NbeOmNBfeP73Gir3Fe94/TVcbTlaM3T9zH2/QkrHdP4NpIVCsU90/u9tEhx533D+IqBFU60PbP3o9MqP0tds/JrEXpb3w2j+Y7iF8YWHaP0Rs5VaZDdk/RGzlVpkN2D/kP+yQBq7XP0DProYvCtc/Zo4Hebsv1j9K+WTx/d3UP3Q0sU5sXdU/Yfn/OjGs1T+xAHWLOCHWP7EAdYs4IdU/wfw1mzTi1D8MSIHmfy3UP8u+Zab2EdQ/EtbCGshX0z9wHa2QbLbSP8EyEeGBGtM/9GVEFLVN1D8ujwbxaT7TP5YYnVnz1NM/JfzV59YN1D8mU126c6zTP/ZeGot/adM/xlWHWnbW0j/dxPFLHe3RP5XjdjdvpdA/LnwP0Ac+0T+JLBUruEPQP81wWW/8h9A/xfsIaIc30T/F+whohzfSP46J5TAVFNM/om0PcrMm0z+YRxU2WvnTPzu2FqoOEtU/R07dKnge1T+a/gEhtHHVP+AVX5WFt9Q/6IqvnPoH1D8mJCwJTm3TP2QNwEc3AdI/rUbgeROt0j8v80Eu80HSP9ZzTNZzTNI/N3xZXESt0j/23UZ4GmzUP2rddGDr39M/kjkEI+EI1D/KCW4mfj/UP0GB5Z31ttM/MHDUjOSl0j8wcNSM5KXSP0LVPHCPJdM/x8COKK6q0j+mrEwHmmjRP1hteBJWG9I/prKevA8T0j+TznR7cQDSPzTdXhyA6tI/+ZylGOyu0j+Zq4+5+pjTP7r6mKuPudI/AtwTwD0B1D8dxMhBjBzUPxiMXaO6F9Q/quKODNCq0j/ijgzQquLSP8p4V7+3GtM/eiKMo5SC0j9bJ9qDmdDSP2e/oAQD3dI/AVk6npx20j8iVOy9lyjSP2aYMALcbNI/eV7AuC0r0z/GnZStcXjSP54gwoX0pdI/khS2eeiZ0j8CF93p6sDSP7+xVUAf09I/bqrg7xde0j9XTWwe0kbTP7PcLhT7otI/AYJQ+zle0z8honAbWn7TP3H4Ozd9FtQ/xk2RjNJr1T8=",
-                "dtype": "float64",
-                "order": "little",
-                "shape": [
-                  121
-                ]
-              }
-            },
-            "selected": {
-              "id": "4785"
-            },
-            "selection_policy": {
-              "id": "4784"
-            }
-          },
-          "id": "4735",
-          "type": "ColumnDataSource"
-        },
-        {
-          "attributes": {},
-          "id": "4745",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "label": {
-              "value": "3"
-            },
-            "renderers": [
-              {
-                "id": "4816"
-              }
-            ]
-          },
-          "id": "4832",
-          "type": "LegendItem"
-        },
-        {
-          "attributes": {},
-          "id": "4750",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {},
-          "id": "4829",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "4753"
-            },
-            "coordinates": null,
-            "dimension": 1,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "4756",
-          "type": "Grid"
-        },
-        {
-          "attributes": {},
-          "id": "4830",
-          "type": "Selection"
-        },
-        {
-          "attributes": {},
-          "id": "4754",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "4749"
-            },
-            "coordinates": null,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "4752",
-          "type": "Grid"
-        },
-        {
-          "attributes": {},
-          "id": "4779",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {},
-          "id": "4743",
-          "type": "DataRange1d"
-        },
-        {
-          "attributes": {},
-          "id": "4761",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {},
-          "id": "4757",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {},
-          "id": "4785",
-          "type": "Selection"
-        },
-        {
-          "attributes": {
-            "line_color": "#0072B2",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4772",
-          "type": "Line"
-        },
-        {
-          "attributes": {},
-          "id": "4762",
-          "type": "HelpTool"
-        },
-        {
-          "attributes": {},
-          "id": "4760",
-          "type": "SaveTool"
-        },
-        {
-          "attributes": {},
-          "id": "4780",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {
-            "axis_label": "Observed foul rate",
-            "coordinates": null,
-            "formatter": {
-              "id": "4779"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "4780"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "4754"
-            }
-          },
-          "id": "4753",
-          "type": "LinearAxis"
         }
       ],
       "root_ids": [
-        "4738"
+        "3690"
       ]
     },
     "title": "Bokeh Application",

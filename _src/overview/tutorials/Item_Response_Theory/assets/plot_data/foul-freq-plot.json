@@ -58,13 +58,76 @@
         },
         {
           "attributes": {
-            "ticks": [
-              0,
-              1
-            ]
+            "coordinates": null,
+            "data_source": {
+              "id": "1213"
+            },
+            "glyph": {
+              "id": "1248"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "1250"
+            },
+            "muted_glyph": {
+              "id": "1251"
+            },
+            "nonselection_glyph": {
+              "id": "1249"
+            },
+            "view": {
+              "id": "1253"
+            }
           },
-          "id": "1256",
-          "type": "FixedTicker"
+          "id": "1252",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "1233",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "1221",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Foul frequency"
+          },
+          "id": "1215",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "1284",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "1239",
+          "type": "BoxAnnotation"
         },
         {
           "attributes": {
@@ -72,19 +135,19 @@
               "field": "bottom"
             },
             "fill_alpha": {
-              "value": 0.2
+              "value": 0.1
             },
             "fill_color": {
               "value": "steelblue"
             },
             "hatch_alpha": {
-              "value": 0.2
+              "value": 0.1
             },
             "left": {
               "field": "left"
             },
             "line_alpha": {
-              "value": 0.2
+              "value": 0.1
             },
             "line_color": {
               "value": "white"
@@ -96,8 +159,47 @@
               "field": "top"
             }
           },
-          "id": "1251",
+          "id": "1249",
           "type": "Quad"
+        },
+        {
+          "attributes": {},
+          "id": "1230",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "1237",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "1234",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1225"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1228",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "1239"
+            }
+          },
+          "id": "1235",
+          "type": "BoxZoomTool"
         },
         {
           "attributes": {
@@ -122,45 +224,6 @@
           "type": "HoverTool"
         },
         {
-          "attributes": {},
-          "id": "1238",
-          "type": "HelpTool"
-        },
-        {
-          "attributes": {},
-          "id": "1284",
-          "type": "Selection"
-        },
-        {
-          "attributes": {},
-          "id": "1230",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {},
-          "id": "1237",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {},
-          "id": "1221",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "overlay": {
-              "id": "1239"
-            }
-          },
-          "id": "1235",
-          "type": "BoxZoomTool"
-        },
-        {
-          "attributes": {},
-          "id": "1234",
-          "type": "WheelZoomTool"
-        },
-        {
           "attributes": {
             "axis": {
               "id": "1229"
@@ -175,33 +238,6 @@
           },
           "id": "1232",
           "type": "Grid"
-        },
-        {
-          "attributes": {
-            "end": 0.4970126582278481,
-            "start": 0
-          },
-          "id": "1219",
-          "type": "Range1d"
-        },
-        {
-          "attributes": {},
-          "id": "1283",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {},
-          "id": "1236",
-          "type": "SaveTool"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "group": null,
-            "text": "Foul frequency"
-          },
-          "id": "1215",
-          "type": "Title"
         },
         {
           "attributes": {
@@ -258,99 +294,14 @@
           "type": "Quad"
         },
         {
-          "attributes": {
-            "tools": [
-              {
-                "id": "1233"
-              },
-              {
-                "id": "1234"
-              },
-              {
-                "id": "1235"
-              },
-              {
-                "id": "1236"
-              },
-              {
-                "id": "1237"
-              },
-              {
-                "id": "1238"
-              },
-              {
-                "id": "1254"
-              }
-            ]
-          },
-          "id": "1240",
-          "type": "Toolbar"
-        },
-        {
-          "attributes": {},
-          "id": "1279",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "1213"
-            }
-          },
-          "id": "1253",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {},
-          "id": "1223",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "formatter": {
-              "id": "1281"
-            },
-            "group": null,
-            "major_label_orientation": 0.7853981633974483,
-            "major_label_overrides": {
-              "0": "2015-2016",
-              "1": "2016-2017"
-            },
-            "major_label_policy": {
-              "id": "1282"
-            },
-            "minor_tick_line_color": null,
-            "ticker": {
-              "id": "1256"
-            }
-          },
-          "id": "1225",
-          "type": "LinearAxis"
-        },
-        {
           "attributes": {},
           "id": "1281",
           "type": "BasicTickFormatter"
         },
         {
-          "attributes": {
-            "axis_label": "Frequency",
-            "coordinates": null,
-            "formatter": {
-              "id": "1279"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "1280"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "1230"
-            }
-          },
-          "id": "1229",
-          "type": "LinearAxis"
+          "attributes": {},
+          "id": "1238",
+          "type": "HelpTool"
         },
         {
           "attributes": {
@@ -358,19 +309,19 @@
               "field": "bottom"
             },
             "fill_alpha": {
-              "value": 0.1
+              "value": 0.2
             },
             "fill_color": {
               "value": "steelblue"
             },
             "hatch_alpha": {
-              "value": 0.1
+              "value": 0.2
             },
             "left": {
               "field": "left"
             },
             "line_alpha": {
-              "value": 0.1
+              "value": 0.2
             },
             "line_color": {
               "value": "white"
@@ -382,92 +333,18 @@
               "field": "top"
             }
           },
-          "id": "1249",
+          "id": "1251",
           "type": "Quad"
         },
         {
-          "attributes": {},
-          "id": "1282",
-          "type": "AllLabels"
-        },
-        {
           "attributes": {
-            "axis": {
-              "id": "1225"
-            },
-            "coordinates": null,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
+            "ticks": [
+              0,
+              1
+            ]
           },
-          "id": "1228",
-          "type": "Grid"
-        },
-        {
-          "attributes": {
-            "bottom_units": "screen",
-            "coordinates": null,
-            "fill_alpha": 0.5,
-            "fill_color": "lightgrey",
-            "group": null,
-            "left_units": "screen",
-            "level": "overlay",
-            "line_alpha": 1.0,
-            "line_color": "black",
-            "line_dash": [
-              4,
-              4
-            ],
-            "line_width": 2,
-            "right_units": "screen",
-            "syncable": false,
-            "top_units": "screen"
-          },
-          "id": "1239",
-          "type": "BoxAnnotation"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "1213"
-            },
-            "glyph": {
-              "id": "1248"
-            },
-            "group": null,
-            "hover_glyph": {
-              "id": "1250"
-            },
-            "muted_glyph": {
-              "id": "1251"
-            },
-            "nonselection_glyph": {
-              "id": "1249"
-            },
-            "view": {
-              "id": "1253"
-            }
-          },
-          "id": "1252",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {},
-          "id": "1217",
-          "type": "DataRange1d"
-        },
-        {
-          "attributes": {},
-          "id": "1233",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {},
-          "id": "1280",
-          "type": "AllLabels"
+          "id": "1256",
+          "type": "FixedTicker"
         },
         {
           "attributes": {
@@ -530,6 +407,129 @@
           },
           "id": "1213",
           "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "1236",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "1213"
+            }
+          },
+          "id": "1253",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "1283",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "end": 0.4970126582278481,
+            "start": 0
+          },
+          "id": "1219",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "1217",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "1280",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "1223",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "1282",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis_label": "Frequency",
+            "coordinates": null,
+            "formatter": {
+              "id": "1279"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "1280"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "1230"
+            }
+          },
+          "id": "1229",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "1281"
+            },
+            "group": null,
+            "major_label_orientation": 0.7853981633974483,
+            "major_label_overrides": {
+              "0": "2015-2016",
+              "1": "2016-2017"
+            },
+            "major_label_policy": {
+              "id": "1282"
+            },
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "1256"
+            }
+          },
+          "id": "1225",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "1233"
+              },
+              {
+                "id": "1234"
+              },
+              {
+                "id": "1235"
+              },
+              {
+                "id": "1236"
+              },
+              {
+                "id": "1237"
+              },
+              {
+                "id": "1238"
+              },
+              {
+                "id": "1254"
+              }
+            ]
+          },
+          "id": "1240",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {},
+          "id": "1279",
+          "type": "BasicTickFormatter"
         }
       ],
       "root_ids": [

@@ -6,21 +6,21 @@ nb_path: tutorials/Sparse_Logistic_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { PredictedDataPlot } from "./SparseLogisticRegression.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { BetaMarginalsPlot } from "./SparseLogisticRegression.jsx";
-import { LogProbPlot } from "./SparseLogisticRegression.jsx";
-import { SyntheticDataPlot } from "./SparseLogisticRegression.jsx";
-import { DataPoint11Plot } from "./SparseLogisticRegression.jsx";
-import { LambdaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
-import { LogProbMhPlot } from "./SparseLogisticRegression.jsx";
-import { BetaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
 import { BetasDensityPlot } from "./SparseLogisticRegression.jsx";
-import { GermanLogProbPlot } from "./SparseLogisticRegression.jsx";
+import { BetaMarginalsPlot } from "./SparseLogisticRegression.jsx";
+import { BetaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 import { GermanBetasDensityPlot } from "./SparseLogisticRegression.jsx";
-import { RocPlot } from "./SparseLogisticRegression.jsx";
+import { DataPoint11Plot } from "./SparseLogisticRegression.jsx";
+import { GermanLogProbPlot } from "./SparseLogisticRegression.jsx";
+import { LambdaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
+import { PredictedDataPlot } from "./SparseLogisticRegression.jsx";
 import { LambdaMarginalsPlot } from "./SparseLogisticRegression.jsx";
+import { RocPlot } from "./SparseLogisticRegression.jsx";
+import { LogProbMhPlot } from "./SparseLogisticRegression.jsx";
+import { SyntheticDataPlot } from "./SparseLogisticRegression.jsx";
+import { LogProbPlot } from "./SparseLogisticRegression.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb"
@@ -381,12 +381,14 @@ Let's run inference:
 num_samples = 2 if smoke_test else 1000
 num_adaptive_samples = 0 if smoke_test else num_samples // 2
 num_chains = 1 if smoke_test else 2
+# Experimental backend using the Pytorch NNC compiler
+nnc_compile = "SANDCASTLE_NEXUS" not in os.environ
 ```
 
 ```python
 queries = [model.lambda_(), model.beta(), model.log_prob_test(), model.y_probs()]
 
-samples = bm.GlobalNoUTurnSampler().infer(
+samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
     queries=queries,
     observations=observations,
     num_adaptive_samples=num_adaptive_samples,
@@ -396,9 +398,7 @@ samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
-Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
- 
+{`Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -425,73 +425,73 @@ print(
 
 <CellOutput>
 {`lambda_marginal:
-tensor([[[ 2.6198],
-         [ 1.3287],
-         [ 0.0938],
-         [ 1.0506],
-         [ 0.0587]],
-        [[13.2534],
-         [ 4.6418],
-         [ 0.4788],
-         [ 0.4512],
-         [ 0.3465]],
-        [[ 8.1153],
-         [ 6.5786],
-         [ 1.1769],
-         [ 0.9143],
-         [ 0.2002]],
+tensor([[[2.5968e+00],
+         [4.3340e+00],
+         [3.2614e-01],
+         [6.6289e-01],
+         [2.0303e-01]],
+        [[4.0693e+00],
+         [5.4920e+00],
+         [6.1293e-01],
+         [6.7453e-01],
+         [7.8361e-01]],
+        [[3.3681e+00],
+         [5.0646e+00],
+         [6.6694e-01],
+         [4.4641e-01],
+         [1.0607e+00]],
         ...,
-        [[ 5.1651],
-         [ 4.2968],
-         [ 1.4736],
-         [ 0.1063],
-         [ 0.1456]],
-        [[ 3.4234],
-         [ 7.4883],
-         [ 0.1332],
-         [ 0.1061],
-         [ 3.3683]],
-        [[ 3.8088],
-         [ 4.0945],
-         [ 0.0326],
-         [ 0.0855],
-         [ 2.1101]]])
+        [[4.2111e+00],
+         [7.1516e+00],
+         [8.1101e-01],
+         [3.8489e-02],
+         [5.8832e-01]],
+        [[7.4676e+00],
+         [2.9920e+00],
+         [1.5182e-01],
+         [6.4247e-03],
+         [4.9245e-01]],
+        [[2.7034e+00],
+         [3.3743e+00],
+         [8.3389e-02],
+         [2.8964e-02],
+         [6.7897e-01]]])
 beta_marginal:
-tensor([[[-1.7338e+00],
-         [ 1.0886e+00],
-         [ 3.2757e-02],
-         [ 2.7897e-02],
-         [-3.0284e-02]],
-        [[-1.6925e+00],
-         [ 1.0110e+00],
-         [ 2.9174e-02],
-         [ 5.3729e-02],
-         [-4.8737e-02]],
-        [[-1.7951e+00],
-         [ 1.1043e+00],
-         [ 3.2932e-02],
-         [ 3.5600e-02],
-         [-9.5285e-02]],
+tensor([[[-1.6024],
+         [ 0.9802],
+         [ 0.0034],
+         [ 0.0079],
+         [-0.0106]],
+        [[-2.1407],
+         [ 1.3242],
+         [ 0.0538],
+         [ 0.0720],
+         [-0.0625]],
+        [[-1.6937],
+         [ 1.0745],
+         [ 0.0660],
+         [ 0.0489],
+         [-0.0571]],
         ...,
-        [[-2.1309e+00],
-         [ 1.3129e+00],
-         [ 7.0064e-02],
-         [-1.0239e-03],
-         [-7.4444e-02]],
-        [[-2.0386e+00],
-         [ 1.2802e+00],
-         [ 3.3466e-02],
-         [-5.0192e-03],
-         [-9.6416e-02]],
-        [[-1.9325e+00],
-         [ 1.3206e+00],
-         [ 2.4385e-03],
-         [-1.9932e-03],
-         [-2.7120e-02]]])
+        [[-1.7365],
+         [ 1.1237],
+         [ 0.0771],
+         [-0.0349],
+         [-0.0976]],
+        [[-2.0167],
+         [ 1.2773],
+         [ 0.0269],
+         [-0.0059],
+         [-0.0655]],
+        [[-1.9680],
+         [ 1.1761],
+         [-0.0377],
+         [-0.0356],
+         [-0.0355]]])
 log_prob_test_results:
-tensor([-30.7586, -31.6717, -32.9846, -33.8448, -30.6982, -32.3251, -32.6041,
-        -30.4404, -33.2512, -33.7011, -30.9789, -32.0142, -30.2897, -30.1203,
-        -31.2295, -30.9763, -30.2639, -37.4670, -31.7164, -33.8429])`}
+tensor([-29.5386, -33.0372, -32.8408, -32.0504, -32.3691, -33.4062, -30.8081,
+        -30.1592, -31.7247, -30.3864, -30.9796, -31.5982, -31.6301, -33.7440,
+        -34.1124, -31.4896, -33.1069, -31.1966, -34.1167, -33.6170])`}
 </CellOutput>
 
 Next, let's visualize the inferred random variables.
@@ -722,18 +722,18 @@ summary_df = az.summary(az_data, round_to=3)
 Markdown(summary_df.to_markdown())
 ```
 
-|                                                           |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:----------------------------------------------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| beta(SparseLogisticRegression with 5 covariates,)[0,0]    | -1.831 | 0.189 |     -2.139 |      -1.54  |       0.004 |     0.003 |   2262.41  |   1633.88  |   1.001 |
-| beta(SparseLogisticRegression with 5 covariates,)[1,0]    |  1.125 | 0.117 |      0.938 |       1.306 |       0.002 |     0.002 |   2326.46  |   1467.7   |   1.001 |
-| beta(SparseLogisticRegression with 5 covariates,)[2,0]    |  0.019 | 0.032 |     -0.027 |       0.073 |       0.001 |     0.001 |   1632.42  |   1789.54  |   1     |
-| beta(SparseLogisticRegression with 5 covariates,)[3,0]    |  0.037 | 0.033 |     -0.017 |       0.086 |       0.001 |     0.001 |    868.043 |   1139.73  |   1     |
-| beta(SparseLogisticRegression with 5 covariates,)[4,0]    | -0.055 | 0.039 |     -0.116 |       0.003 |       0.001 |     0.001 |    873.499 |    699.275 |   1.011 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[0,0] |  5.474 | 4.262 |      1.481 |       9.959 |       0.186 |     0.142 |    553.895 |    768.156 |   1.002 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[1,0] |  3.525 | 2.733 |      0.881 |       6.448 |       0.107 |     0.075 |    702.637 |    873.822 |   1.005 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[2,0] |  0.468 | 0.741 |      0     |       1.044 |       0.026 |     0.019 |    415.185 |    704.298 |   1.002 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[3,0] |  0.574 | 1.026 |      0.001 |       1.197 |       0.035 |     0.025 |    327.898 |    451.965 |   1.003 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[4,0] |  0.627 | 0.914 |      0     |       1.3   |       0.032 |     0.023 |    453.222 |    418.09  |   1.007 |
+|                                                            |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:-----------------------------------------------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| beta(SparseLogisticRegression with 5 covariates,)[0, 0]    | -1.834 | 0.195 |     -2.112 |      -1.506 |       0.004 |     0.003 |   1928.09  |   1492.71  |   0.999 |
+| beta(SparseLogisticRegression with 5 covariates,)[1, 0]    |  1.124 | 0.121 |      0.939 |       1.314 |       0.003 |     0.002 |   1942.43  |   1465.61  |   1     |
+| beta(SparseLogisticRegression with 5 covariates,)[2, 0]    |  0.02  | 0.03  |     -0.027 |       0.068 |       0.001 |     0.001 |   1384.37  |   1871.51  |   1.002 |
+| beta(SparseLogisticRegression with 5 covariates,)[3, 0]    |  0.035 | 0.033 |     -0.01  |       0.09  |       0.001 |     0.001 |    826.091 |   1277.33  |   1.001 |
+| beta(SparseLogisticRegression with 5 covariates,)[4, 0]    | -0.055 | 0.037 |     -0.114 |       0.004 |       0.001 |     0.001 |   1291.37  |   1073.18  |   1     |
+| lambda_(SparseLogisticRegression with 5 covariates,)[0, 0] |  5.203 | 3.894 |      1.502 |       9.201 |       0.149 |     0.105 |    750.873 |    843.618 |   1.002 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[1, 0] |  3.453 | 2.629 |      0.856 |       6.009 |       0.119 |     0.084 |    634.313 |    619.952 |   1.004 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[2, 0] |  0.499 | 0.693 |      0.001 |       1.137 |       0.024 |     0.017 |    512.808 |    721.796 |   1.003 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[3, 0] |  0.63  | 1.36  |      0     |       1.265 |       0.048 |     0.034 |    413.859 |    566.379 |   1.002 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[4, 0] |  0.641 | 0.859 |      0     |       1.297 |       0.027 |     0.019 |    595.7   |    732.401 |   1.002 |
 
 The summary above includes useful statistics about each marginal distribution. Below we
 describe what some of these useful statistics are.
@@ -808,9 +808,7 @@ samples_mh = bm.SingleSiteAncestralMetropolisHastings().infer(
 ```
 
 <CellOutput>
-{` 
-Samples collected:   0%|          | 0/2000 [00:00<?, ?it/s]
- 
+{`Samples collected:   0%|          | 0/2000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/2000 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -910,17 +908,17 @@ Markdown(summary_mh_df.to_markdown())
 
 |                                                            |    mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
 |:-----------------------------------------------------------|--------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| log_prob_test(SparseLogisticRegression with 5 covariates,) | -38.816 | 21.506 |    -41.575 |     -30.58  |       2.221 |     1.575 |      5.885 |     26.663 |   1.779 |
-| beta(SparseLogisticRegression with 5 covariates,)[0,0]     |  -1.575 |  0.581 |     -2.209 |      -1.052 |       0.32  |     0.25  |      2.733 |      2.291 |   2.86  |
-| beta(SparseLogisticRegression with 5 covariates,)[1,0]     |   0.984 |  0.342 |      0.622 |       1.466 |       0.206 |     0.165 |      2.758 |      2.26  |   2.878 |
-| beta(SparseLogisticRegression with 5 covariates,)[2,0]     |   0.059 |  0.059 |      0.034 |       0.128 |       0.025 |     0.019 |      3.09  |      2.256 |   1.715 |
-| beta(SparseLogisticRegression with 5 covariates,)[3,0]     |  -0.007 |  0.071 |     -0.132 |       0.035 |       0.042 |     0.034 |      2.512 |      2.734 |   2.415 |
-| beta(SparseLogisticRegression with 5 covariates,)[4,0]     |  -0.089 |  0.093 |     -0.155 |       0.094 |       0.056 |     0.045 |      3.528 |      7.811 |   1.616 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[0,0]  |  13.094 | 10.699 |      2.435 |      23.854 |       7.51  |     6.351 |      2.341 |      6.02  |   3.662 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[1,0]  |   4.865 |  1.49  |      3.563 |       6.107 |       0.878 |     0.697 |      2.442 |      5.908 |   3.053 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[2,0]  |   0.263 |  0.116 |      0.173 |       0.383 |       0.055 |     0.041 |      3.965 |      2.598 |   3.019 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[3,0]  |   0.596 |  0.256 |      0.26  |       0.603 |       0.051 |     0.037 |      7.271 |     19.964 |   2.755 |
-| lambda_(SparseLogisticRegression with 5 covariates,)[4,0]  |   0.773 |  0.112 |      0.681 |       0.867 |       0.066 |     0.053 |      2.643 |     20.873 |   2.168 |
+| log_prob_test(SparseLogisticRegression with 5 covariates,) | -34.391 | 18.654 |    -37.696 |     -30.967 |       1.773 |     1.257 |      4.104 |     14.836 |   1.517 |
+| beta(SparseLogisticRegression with 5 covariates,)[0, 0]    |  -1.602 |  0.23  |     -1.785 |      -1.197 |       0.095 |     0.081 |      3.735 |      2.312 |   1.485 |
+| beta(SparseLogisticRegression with 5 covariates,)[1, 0]    |   0.989 |  0.188 |      0.725 |       1.152 |       0.096 |     0.08  |      3.326 |      9.739 |   1.604 |
+| beta(SparseLogisticRegression with 5 covariates,)[2, 0]    |   0     |  0.111 |     -0.117 |       0.115 |       0.074 |     0.061 |      2.313 |      2.312 |   2.825 |
+| beta(SparseLogisticRegression with 5 covariates,)[3, 0]    |   0.041 |  0.045 |      0.017 |       0.113 |       0.011 |     0.008 |      6.909 |      2.836 |   1.477 |
+| beta(SparseLogisticRegression with 5 covariates,)[4, 0]    |  -0.004 |  0.09  |     -0.101 |       0.075 |       0.059 |     0.048 |      2.626 |      2.323 |   2.682 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[0, 0] |   2.389 |  0.674 |      1.754 |       3.141 |       0.457 |     0.381 |      2.224 |      2.02  |   3.968 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[1, 0] |   4.016 |  0.559 |      3.909 |       4.377 |       0.298 |     0.255 |      2.289 |      7.613 |   2.915 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[2, 0] |   0.185 |  0.079 |      0.176 |       0.217 |       0.011 |     0.008 |      4.494 |      8.693 |   2.887 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[3, 0] |   1.085 |  1.601 |      0.315 |       1.049 |       0.711 |     0.535 |      2.261 |      2.008 |   3.069 |
+| lambda_(SparseLogisticRegression with 5 covariates,)[4, 0] |   0.439 |  0.314 |      0.149 |       0.696 |       0.209 |     0.173 |      2.284 |      2.008 |   2.941 |
 
 $\hat{R}$ values are extremely far from $1.0$. Further, the $ess$ and values for
 our sampled random variables are extremely small. As a result, these inference results
@@ -1010,7 +1008,7 @@ german_queries = [
     model.log_prob_test(),
     model.y_probs(),
 ]
-german_samples = bm.GlobalNoUTurnSampler().infer(
+german_samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
     queries=german_queries,
     observations=observations,
     num_adaptive_samples=num_adaptive_samples,
@@ -1020,9 +1018,7 @@ german_samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
-Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
- 
+{`Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -1083,58 +1079,58 @@ german_summary_df = az.summary(az_data, round_to=3)
 Markdown(german_summary_df.to_markdown())
 ```
 
-|                                                             |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:------------------------------------------------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| beta(SparseLogisticRegression with 25 covariates,)[0,0]     | -0.257 | 0.364 |     -0.904 |       0.118 |       0.024 |     0.017 |    327.533 |    947.81  |   1.003 |
-| beta(SparseLogisticRegression with 25 covariates,)[1,0]     | -0.782 | 0.126 |     -0.969 |      -0.572 |       0.004 |     0.003 |    993.558 |   1018.18  |   1.005 |
-| beta(SparseLogisticRegression with 25 covariates,)[2,0]     |  1.314 | 0.346 |      0.786 |       1.955 |       0.033 |     0.023 |    124.884 |     43.634 |   1.014 |
-| beta(SparseLogisticRegression with 25 covariates,)[3,0]     | -0.469 | 0.202 |     -0.813 |      -0.146 |       0.007 |     0.005 |    844.349 |    484.053 |   1.001 |
-| beta(SparseLogisticRegression with 25 covariates,)[4,0]     |  0.056 | 0.2   |     -0.234 |       0.36  |       0.009 |     0.006 |    401.454 |    222.23  |   1.004 |
-| beta(SparseLogisticRegression with 25 covariates,)[5,0]     | -0.28  | 0.147 |     -0.475 |       0.007 |       0.009 |     0.006 |    290.008 |    210.753 |   1.007 |
-| beta(SparseLogisticRegression with 25 covariates,)[6,0]     | -0.368 | 0.179 |     -0.658 |      -0.091 |       0.01  |     0.008 |    341.976 |    587.985 |   1.01  |
-| beta(SparseLogisticRegression with 25 covariates,)[7,0]     | -0.146 | 0.165 |     -0.445 |       0.056 |       0.01  |     0.007 |    371.074 |    445.044 |   1.006 |
-| beta(SparseLogisticRegression with 25 covariates,)[8,0]     | -0.012 | 0.081 |     -0.139 |       0.124 |       0.002 |     0.002 |    956.043 |   1341.31  |   1.004 |
-| beta(SparseLogisticRegression with 25 covariates,)[9,0]     |  0.202 | 0.155 |     -0.025 |       0.444 |       0.009 |     0.007 |    327.15  |    910.979 |   1.004 |
-| beta(SparseLogisticRegression with 25 covariates,)[10,0]    | -0.063 | 0.149 |     -0.309 |       0.139 |       0.004 |     0.003 |   1145.82  |   1631.66  |   1.005 |
-| beta(SparseLogisticRegression with 25 covariates,)[11,0]    | -0.206 | 0.138 |     -0.413 |       0.008 |       0.007 |     0.005 |    457.306 |    573.639 |   1.005 |
-| beta(SparseLogisticRegression with 25 covariates,)[12,0]    |  0.134 | 0.184 |     -0.087 |       0.459 |       0.009 |     0.006 |    567.971 |    661.122 |   1.009 |
-| beta(SparseLogisticRegression with 25 covariates,)[13,0]    |  0.013 | 0.076 |     -0.106 |       0.137 |       0.002 |     0.001 |   1310.4   |   1372.91  |   1     |
-| beta(SparseLogisticRegression with 25 covariates,)[14,0]    | -0.089 | 0.089 |     -0.229 |       0.033 |       0.004 |     0.003 |    563.973 |   1200.21  |   1.005 |
-| beta(SparseLogisticRegression with 25 covariates,)[15,0]    | -0.287 | 0.287 |     -0.708 |       0.066 |       0.011 |     0.008 |    664.084 |   1441.4   |   1.006 |
-| beta(SparseLogisticRegression with 25 covariates,)[16,0]    |  0.238 | 0.12  |      0.035 |       0.429 |       0.005 |     0.004 |    631.085 |    245.302 |   1.013 |
-| beta(SparseLogisticRegression with 25 covariates,)[17,0]    | -0.328 | 0.201 |     -0.61  |       0.018 |       0.007 |     0.005 |    816.273 |    647.448 |   1.007 |
-| beta(SparseLogisticRegression with 25 covariates,)[18,0]    |  0.228 | 0.211 |     -0.052 |       0.561 |       0.015 |     0.01  |    215.62  |    731.942 |   1.01  |
-| beta(SparseLogisticRegression with 25 covariates,)[19,0]    |  0.268 | 0.288 |     -0.105 |       0.703 |       0.017 |     0.012 |    249.571 |    635.769 |   1.007 |
-| beta(SparseLogisticRegression with 25 covariates,)[20,0]    |  0.159 | 0.136 |     -0.037 |       0.376 |       0.006 |     0.004 |    581.773 |   1174.78  |   1.002 |
-| beta(SparseLogisticRegression with 25 covariates,)[21,0]    | -0.058 | 0.104 |     -0.243 |       0.076 |       0.004 |     0.003 |    730.588 |   1267.43  |   1.002 |
-| beta(SparseLogisticRegression with 25 covariates,)[22,0]    |  0.001 | 0.134 |     -0.215 |       0.207 |       0.006 |     0.004 |    483.626 |    988.748 |   1.001 |
-| beta(SparseLogisticRegression with 25 covariates,)[23,0]    |  0.019 | 0.084 |     -0.115 |       0.157 |       0.002 |     0.002 |   1315.77  |   1791.4   |   1     |
-| beta(SparseLogisticRegression with 25 covariates,)[24,0]    | -0.012 | 0.072 |     -0.141 |       0.087 |       0.002 |     0.001 |    972.324 |   1486.99  |   1.004 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[0,0]  |  2.213 | 2.457 |      0.002 |       5.479 |       0.174 |     0.123 |    231.224 |    491.148 |   1.003 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[1,0]  |  5.197 | 4.801 |      1.199 |       9.358 |       0.243 |     0.179 |    421.515 |    703.647 |   1.005 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[2,0]  |  8.149 | 6.18  |      1.794 |      14.644 |       0.264 |     0.186 |    299.806 |    791.507 |   1.004 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[3,0]  |  3.722 | 3.409 |      0.008 |       6.791 |       0.125 |     0.089 |    521.049 |    462.994 |   1.002 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[4,0]  |  1.492 | 1.934 |      0.003 |       3.329 |       0.087 |     0.062 |    350.104 |    891.827 |   1.002 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[5,0]  |  2.396 | 2.545 |      0.007 |       4.373 |       0.103 |     0.073 |    246.491 |    183.791 |   1.009 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[6,0]  |  3.04  | 3.051 |      0.102 |       6.302 |       0.139 |     0.098 |    381.574 |    803.806 |   1.007 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[7,0]  |  1.638 | 2.081 |      0.001 |       3.482 |       0.079 |     0.056 |    403.794 |    819.543 |   1.005 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[8,0]  |  0.863 | 1.511 |      0     |       1.733 |       0.05  |     0.036 |    522.334 |    659.002 |   1.002 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[9,0]  |  1.631 | 1.61  |      0.001 |       3.211 |       0.047 |     0.033 |    752.121 |    819.585 |   1.005 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[10,0] |  1.297 | 2.226 |      0.001 |       2.605 |       0.082 |     0.067 |    774.449 |    697.494 |   1.005 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[11,0] |  3.782 | 9.022 |      0.005 |       4.797 |       1.621 |     1.158 |    135.4   |     28.453 |   1.011 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[12,0] |  1.467 | 1.927 |      0.001 |       2.97  |       0.063 |     0.045 |    888.637 |    994.141 |   1.004 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[13,0] |  1.017 | 2.082 |      0.002 |       1.927 |       0.118 |     0.09  |    642.431 |    618.869 |   1.003 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[14,0] |  1.733 | 4.737 |      0     |       2.354 |       0.695 |     0.495 |    125.406 |     88.659 |   1.019 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[15,0] |  2.388 | 2.629 |      0.004 |       4.609 |       0.107 |     0.077 |    540.253 |    743.749 |   1.002 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[16,0] |  2.033 | 2.071 |      0.003 |       3.626 |       0.083 |     0.059 |    302.466 |    298.963 |   1.008 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[17,0] |  2.719 | 2.839 |      0.005 |       5.281 |       0.099 |     0.07  |    662.68  |    752.652 |   1     |
-| lambda_(SparseLogisticRegression with 25 covariates,)[18,0] |  1.898 | 2.082 |      0.018 |       3.728 |       0.073 |     0.052 |    392.019 |    700.61  |   1.004 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[19,0] |  2.306 | 2.863 |      0.001 |       5.072 |       0.166 |     0.118 |    205.816 |    365.135 |   1.004 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[20,0] |  1.703 | 1.924 |      0.002 |       3.871 |       0.123 |     0.087 |    255.59  |    481.833 |   1.003 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[21,0] |  1.076 | 1.32  |      0.002 |       2.111 |       0.036 |     0.025 |    913.277 |   1031.38  |   1.001 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[22,0] |  1.127 | 1.334 |      0     |       2.384 |       0.043 |     0.03  |    554.778 |    658.389 |   1.012 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[23,0] |  0.835 | 1.344 |      0.002 |       1.606 |       0.045 |     0.034 |    482.742 |    723.521 |   1.002 |
-| lambda_(SparseLogisticRegression with 25 covariates,)[24,0] |  0.881 | 1.639 |      0.003 |       1.646 |       0.073 |     0.053 |    456.937 |    761.319 |   1.003 |
+|                                                              |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
+|:-------------------------------------------------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
+| beta(SparseLogisticRegression with 25 covariates,)[0, 0]     | -0.218 | 0.356 |     -0.756 |       0.23  |       0.012 |     0.008 |    953.99  |   1267.42  |   1.003 |
+| beta(SparseLogisticRegression with 25 covariates,)[1, 0]     | -0.782 | 0.12  |     -0.965 |      -0.588 |       0.003 |     0.002 |   1616.33  |   1357.34  |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[2, 0]     |  1.347 | 0.299 |      0.867 |       1.819 |       0.007 |     0.005 |   1915.53  |   1591.96  |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[3, 0]     | -0.475 | 0.205 |     -0.799 |      -0.156 |       0.006 |     0.005 |    984.341 |    782.178 |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[4, 0]     |  0.057 | 0.189 |     -0.189 |       0.386 |       0.004 |     0.003 |   1863.57  |   1583.56  |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[5, 0]     | -0.291 | 0.144 |     -0.537 |      -0.07  |       0.004 |     0.003 |   1077.02  |    591.582 |   1.003 |
+| beta(SparseLogisticRegression with 25 covariates,)[6, 0]     | -0.348 | 0.179 |     -0.587 |       0.006 |       0.007 |     0.005 |    785.977 |    456.259 |   1     |
+| beta(SparseLogisticRegression with 25 covariates,)[7, 0]     | -0.123 | 0.158 |     -0.358 |       0.106 |       0.004 |     0.003 |   1294.97  |   1653.24  |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[8, 0]     | -0.011 | 0.083 |     -0.155 |       0.108 |       0.002 |     0.001 |   1682.91  |   1639.8   |   1     |
+| beta(SparseLogisticRegression with 25 covariates,)[9, 0]     |  0.183 | 0.154 |     -0.036 |       0.405 |       0.005 |     0.003 |    894.553 |   1343.35  |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[10, 0]    | -0.068 | 0.147 |     -0.348 |       0.106 |       0.004 |     0.003 |   1349.61  |   1360.98  |   1     |
+| beta(SparseLogisticRegression with 25 covariates,)[11, 0]    | -0.214 | 0.128 |     -0.391 |       0.011 |       0.004 |     0.003 |   1046.93  |    507.06  |   1.005 |
+| beta(SparseLogisticRegression with 25 covariates,)[12, 0]    |  0.111 | 0.174 |     -0.114 |       0.391 |       0.004 |     0.003 |   1545.6   |   1841.1   |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[13, 0]    |  0.013 | 0.079 |     -0.107 |       0.145 |       0.002 |     0.001 |   1694.56  |   1724.96  |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[14, 0]    | -0.088 | 0.089 |     -0.233 |       0.034 |       0.003 |     0.002 |   1096.82  |   1181.23  |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[15, 0]    | -0.275 | 0.294 |     -0.727 |       0.073 |       0.009 |     0.007 |    832.849 |   1529.49  |   1.007 |
+| beta(SparseLogisticRegression with 25 covariates,)[16, 0]    |  0.243 | 0.123 |      0.047 |       0.446 |       0.005 |     0.003 |    686.886 |    199.985 |   1.003 |
+| beta(SparseLogisticRegression with 25 covariates,)[17, 0]    | -0.31  | 0.202 |     -0.594 |       0.018 |       0.007 |     0.005 |    717.282 |    510.955 |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[18, 0]    |  0.221 | 0.212 |     -0.043 |       0.56  |       0.007 |     0.005 |    629.229 |   1192.16  |   1.009 |
+| beta(SparseLogisticRegression with 25 covariates,)[19, 0]    |  0.263 | 0.285 |     -0.104 |       0.689 |       0.009 |     0.006 |    781.196 |   1412.12  |   1.008 |
+| beta(SparseLogisticRegression with 25 covariates,)[20, 0]    |  0.151 | 0.138 |     -0.056 |       0.359 |       0.004 |     0.003 |   1081.01  |   1508.05  |   1     |
+| beta(SparseLogisticRegression with 25 covariates,)[21, 0]    | -0.062 | 0.108 |     -0.253 |       0.082 |       0.003 |     0.002 |    929.626 |   1422.19  |   1.002 |
+| beta(SparseLogisticRegression with 25 covariates,)[22, 0]    |  0.015 | 0.14  |     -0.192 |       0.249 |       0.004 |     0.003 |   1312.97  |    809.934 |   1.003 |
+| beta(SparseLogisticRegression with 25 covariates,)[23, 0]    |  0.021 | 0.086 |     -0.117 |       0.153 |       0.002 |     0.001 |   1606.22  |   1499.37  |   1.001 |
+| beta(SparseLogisticRegression with 25 covariates,)[24, 0]    | -0.016 | 0.072 |     -0.131 |       0.1   |       0.002 |     0.002 |    886.206 |    968.057 |   1.001 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[0, 0]  |  2.101 | 2.943 |      0     |       4.795 |       0.098 |     0.07  |   1039.31  |   1018.09  |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[1, 0]  |  5.307 | 4.308 |      1.269 |       9.595 |       0.158 |     0.112 |    726.059 |    940.254 |   1     |
+| lambda_(SparseLogisticRegression with 25 covariates,)[2, 0]  |  8.785 | 7.265 |      1.756 |      16.159 |       0.258 |     0.183 |    627.759 |   1031.12  |   1.004 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[3, 0]  |  3.632 | 4.056 |      0.276 |       7.088 |       0.131 |     0.093 |    695.994 |    859.273 |   1.006 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[4, 0]  |  1.294 | 1.845 |      0.001 |       2.795 |       0.044 |     0.033 |   1544.61  |    963.183 |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[5, 0]  |  2.592 | 3.226 |      0.005 |       4.682 |       0.12  |     0.085 |    768.199 |    695.669 |   1     |
+| lambda_(SparseLogisticRegression with 25 covariates,)[6, 0]  |  2.836 | 3.357 |      0.003 |       5.179 |       0.117 |     0.083 |    603.47  |    590.562 |   0.999 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[7, 0]  |  1.415 | 2.102 |      0.005 |       2.845 |       0.06  |     0.046 |    912.985 |   1057.83  |   1.006 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[8, 0]  |  0.951 | 1.472 |      0.002 |       1.942 |       0.072 |     0.051 |    842.951 |    239.897 |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[9, 0]  |  1.732 | 2.288 |      0.001 |       3.345 |       0.07  |     0.049 |    692.473 |    735.36  |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[10, 0] |  1.321 | 2.268 |      0.001 |       2.605 |       0.066 |     0.047 |   1168.43  |   1075.63  |   1.001 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[11, 0] |  1.797 | 1.908 |      0.015 |       3.392 |       0.06  |     0.042 |    667.351 |    630.821 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[12, 0] |  1.417 | 2.074 |      0.003 |       2.941 |       0.059 |     0.045 |   1363.8   |   1021.44  |   1.005 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[13, 0] |  0.91  | 1.238 |      0     |       1.85  |       0.033 |     0.023 |   1213.41  |    759.393 |   1.005 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[14, 0] |  1.161 | 1.607 |      0.001 |       2.331 |       0.047 |     0.033 |    912.611 |    700.183 |   1.001 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[15, 0] |  2.245 | 2.497 |      0.001 |       5.206 |       0.072 |     0.051 |    844.69  |    724.233 |   1.007 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[16, 0] |  2.209 | 2.714 |      0.023 |       4.023 |       0.079 |     0.056 |    952.933 |    671.074 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[17, 0] |  2.508 | 2.787 |      0.003 |       4.857 |       0.103 |     0.073 |    544.242 |    342.13  |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[18, 0] |  2.11  | 2.697 |      0.007 |       4.187 |       0.079 |     0.056 |    653.669 |    699.592 |   1.008 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[19, 0] |  2.559 | 4.116 |      0.001 |       4.916 |       0.418 |     0.383 |    279.064 |    212.112 |   1.014 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[20, 0] |  1.568 | 1.894 |      0.002 |       3.097 |       0.06  |     0.042 |    661.574 |    711.995 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[21, 0] |  1.053 | 1.329 |      0.002 |       2.09  |       0.036 |     0.025 |   1098.9   |    798.229 |   1.002 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[22, 0] |  1.18  | 1.706 |      0.003 |       2.394 |       0.056 |     0.043 |   1126.2   |   1024.51  |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[23, 0] |  0.917 | 1.438 |      0     |       1.87  |       0.042 |     0.032 |    958.948 |    792.467 |   1.003 |
+| lambda_(SparseLogisticRegression with 25 covariates,)[24, 0] |  0.86  | 1.369 |      0.002 |       1.75  |       0.044 |     0.031 |   1157.46  |   1089.54  |   1.002 |
 
 To check for sparsity, let us plot the histogram of the marginals for a selection of
 coefficients ($\beta$) in the model. We note that many of the parameters have their

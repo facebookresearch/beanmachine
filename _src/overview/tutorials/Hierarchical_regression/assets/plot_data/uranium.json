@@ -67,162 +67,17 @@
           "type": "Plot"
         },
         {
-          "attributes": {},
-          "id": "14864",
-          "type": "BasicTicker"
-        },
-        {
           "attributes": {
-            "tools": [
-              {
-                "id": "14871"
-              },
-              {
-                "id": "14872"
-              },
-              {
-                "id": "14873"
-              },
-              {
-                "id": "14874"
-              },
-              {
-                "id": "14875"
-              },
-              {
-                "id": "14876"
-              },
-              {
-                "id": "14904"
-              }
-            ]
+            "end": 2.2,
+            "start": 0.5
           },
-          "id": "14878",
-          "type": "Toolbar"
-        },
-        {
-          "attributes": {
-            "fill_alpha": {
-              "value": 0.1
-            },
-            "fill_color": {
-              "value": "steelblue"
-            },
-            "hatch_alpha": {
-              "value": 0.1
-            },
-            "line_alpha": {
-              "value": 0.1
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "size": {
-              "value": 10
-            },
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14887",
-          "type": "Circle"
-        },
-        {
-          "attributes": {},
-          "id": "14859",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "14863"
-            },
-            "coordinates": null,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "14866",
-          "type": "Grid"
-        },
-        {
-          "attributes": {
-            "label": {
-              "value": "Estimated linear regression"
-            },
-            "renderers": [
-              {
-                "id": "14914"
-              }
-            ]
-          },
-          "id": "14930",
-          "type": "LegendItem"
-        },
-        {
-          "attributes": {},
-          "id": "14861",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "axis_label": "log(uranium)",
-            "coordinates": null,
-            "formatter": {
-              "id": "14897"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "14898"
-            },
-            "ticker": {
-              "id": "14864"
-            }
-          },
-          "id": "14863",
-          "type": "LinearAxis"
-        },
-        {
-          "attributes": {},
-          "id": "14872",
-          "type": "WheelZoomTool"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "group": null,
-            "text": "Partial-pooling with individual and group level predictors"
-          },
-          "id": "14853",
-          "type": "Title"
+          "id": "14857",
+          "type": "Range1d"
         },
         {
           "attributes": {},
           "id": "14899",
           "type": "UnionRenderers"
-        },
-        {
-          "attributes": {
-            "axis_label": "Intercept estimate (log(radon activity))",
-            "coordinates": null,
-            "formatter": {
-              "id": "14894"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "14895"
-            },
-            "ticker": {
-              "id": "14868"
-            }
-          },
-          "id": "14867",
-          "type": "LinearAxis"
         },
         {
           "attributes": {
@@ -241,106 +96,54 @@
           "type": "Grid"
         },
         {
+          "attributes": {
+            "data": {
+              "x": [
+                -1,
+                1
+              ],
+              "y": {
+                "__ndarray__": "cT0K16Nw6T/6fmq8dJMBQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  2
+                ]
+              }
+            },
+            "selected": {
+              "id": "14928"
+            },
+            "selection_policy": {
+              "id": "14927"
+            }
+          },
+          "id": "14910",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "14898",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "14910"
+            }
+          },
+          "id": "14915",
+          "type": "CDSView"
+        },
+        {
           "attributes": {},
           "id": "14868",
           "type": "BasicTicker"
         },
         {
-          "attributes": {
-            "line_alpha": 0.2,
-            "line_width": 3,
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14913",
-          "type": "Line"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.1,
-            "line_width": 3,
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14912",
-          "type": "Line"
-        },
-        {
           "attributes": {},
-          "id": "14876",
-          "type": "HelpTool"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.3,
-            "line_width": 3,
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "14911",
-          "type": "Line"
-        },
-        {
-          "attributes": {},
-          "id": "14871",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {
-            "overlay": {
-              "id": "14877"
-            }
-          },
-          "id": "14873",
-          "type": "BoxZoomTool"
-        },
-        {
-          "attributes": {},
-          "id": "14874",
-          "type": "SaveTool"
-        },
-        {
-          "attributes": {},
-          "id": "14875",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "14851"
-            },
-            "glyph": {
-              "id": "14886"
-            },
-            "group": null,
-            "hover_glyph": {
-              "id": "14888"
-            },
-            "muted_glyph": {
-              "id": "14889"
-            },
-            "nonselection_glyph": {
-              "id": "14887"
-            },
-            "view": {
-              "id": "14891"
-            }
-          },
-          "id": "14890",
-          "type": "GlyphRenderer"
+          "id": "14859",
+          "type": "LinearScale"
         },
         {
           "attributes": {
@@ -370,65 +173,85 @@
           "type": "Circle"
         },
         {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "14913",
+          "type": "Line"
+        },
+        {
           "attributes": {},
           "id": "14897",
           "type": "BasicTickFormatter"
         },
         {
+          "attributes": {},
+          "id": "14895",
+          "type": "AllLabels"
+        },
+        {
           "attributes": {
-            "data": {
-              "x": [
-                -1,
-                1
-              ],
-              "y": {
-                "__ndarray__": "8KfGSzeJ6T9aZDvfT40BQA==",
-                "dtype": "float64",
-                "order": "little",
-                "shape": [
-                  2
-                ]
-              }
+            "line_color": {
+              "value": "steelblue"
             },
-            "selected": {
-              "id": "14928"
-            },
-            "selection_policy": {
-              "id": "14927"
+            "size": {
+              "value": 10
             }
           },
-          "id": "14910",
-          "type": "ColumnDataSource"
+          "id": "14909",
+          "type": "TeeHead"
+        },
+        {
+          "attributes": {},
+          "id": "14894",
+          "type": "BasicTickFormatter"
         },
         {
           "attributes": {
             "coordinates": null,
-            "data_source": {
-              "id": "14910"
-            },
-            "glyph": {
-              "id": "14911"
-            },
             "group": null,
-            "hover_glyph": null,
-            "level": "underlay",
-            "muted_glyph": {
-              "id": "14913"
-            },
-            "nonselection_glyph": {
-              "id": "14912"
-            },
-            "view": {
-              "id": "14915"
-            }
+            "text": "Partial-pooling with individual and group level predictors"
           },
-          "id": "14914",
-          "type": "GlyphRenderer"
+          "id": "14853",
+          "type": "Title"
         },
         {
-          "attributes": {},
-          "id": "14898",
-          "type": "AllLabels"
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "14903"
+              },
+              {
+                "id": "14930"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "14902",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "14912",
+          "type": "Line"
         },
         {
           "attributes": {
@@ -521,7 +344,7 @@
                 "YELLOW MEDICINE"
               ],
               "lower": {
-                "__ndarray__": "4XoUrkfh6j+7SQwCK4fqP+bQItv5fvQ/eekmMQis8D+q8dJNYhD0P12PwvUoXPk/4XoUrkfh+j+HFtnO91P5P+BPjZduEvE/Dy2yne+n9j/b+X5qvHTvP46XbhKDwPg/CKwcWmQ76z8IrBxaZDv7Pw4tsp3vp/Q/6Pup8dJN7j+VQ4ts5/v3P4/C9Shcj+4/9P3UeOkm9T/4U+Olm8T4P2iR7Xw/Nfg/nMQgsHJo9T8bL90kBoH5P2mR7Xw/Nfo/1XjpJjEI+j8cWmQ730/1P4xs5/up8fo/nu+nxks38T+R7Xw/NV7qP6nx0k1iEOw/lkOLbOf7+T8RWDm0yHb0P2q8dJMYBPg/2c73U+Ol9T+JQWDl0CLnPxFYObTIdvo/46WbxCCw5j+xne+nxkvvP5MYBFYOLfg/7Xw/NV66+z8gsHJoke36P7bz/dR46fY/ppvEILBy9j/b+X5qvHT1P8P1KFyPwvU/SgwCK4cW9T8lBoGVQ4vyP1pkO99PjfM/dJMYBFYO+T99PzVeukn6Pxsv3SQGgfk/vHSTGARW+j+ZmZmZmZn3P5MYBFYOLfY/ukkMAiuH9D8UrkfhehT0P4PAyqFFtvE/d76fGi/d+j85tMh2vp/4P9V46SYxCPg/8KfGSzeJ8T8nMQisHFr6P7ByaJHtfPk/9P3UeOkm+T9QjZduEoP6Px1aZDvfT/U/FK5H4XoU+D/LoUW28/3sPzQzMzMzM/c/TmIQWDm07D/LoUW28/32P9Ai2/l+avg/+n5qvHST+j+e76fGSzf3P7FyaJHtfPU/Rrbz/dR4+z8Sg8DKoUX4P0W28/3UeO0/XI/C9Shc9T8lBoGVQ4v0P/LSTWIQWPk/ZmZmZmZm+D+q8dJNYhD6P9JNYhBYOfY/ObTIdr6f+D8=",
+                "__ndarray__": "tvP91Hjp6j9lO99PjZfqP9Ei2/l+avQ/Di2yne+n8D+UGARWDi30PweBlUOLbPk/jpduEoPA+j8dWmQ730/5P3STGARWDvE/5KWbxCCw9j8FgZVDi2zvPwwCK4cW2fg/XI/C9Shc6z8IrBxaZDv7P05iEFg5tPQ/O99PjZdu7j9/arx0kxj4P+bQItv5fu4/MzMzMzMz9T+Nl24Sg8D4P76fGi/dJPg/8KfGSzeJ9T9aZDvfT435P/7UeOkmMfo/KocW2c73+T9cj8L1KFz1P3WTGARWDvs/SOF6FK5H8T+8dJMYBFbqPwAAAAAAAOw/f2q8dJMY+j+QwvUoXI/0P5ZDi2zn+/c/mpmZmZmZ9T81XrpJDALnP6abxCCwcvo/30+Nl24S5z9g5dAi2/nuP7+fGi/dJPg/g8DKoUW2+z9g5dAi2/n6P7bz/dR46fY/ehSuR+F69j9vEoPAyqH1PxfZzvdT4/U/NDMzMzMz9T85tMh2vp/yPwRWDi2ynfM/4E+Nl24S+T8nMQisHFr6Py/dJAaBlfk/vHSTGARW+j9YObTIdr73P30/NV66SfY/JQaBlUOL9D/+1HjpJjH0PxfZzvdT4/E/tvP91Hjp+j/kpZvEILD4P39qvHSTGPg/xCCwcmiR8T9mZmZmZmb6P9nO91Pjpfk/MzMzMzMz+T8OLbKd76f6P57vp8ZLN/U/kxgEVg4t+D+hRbbz/dTsP7Od76fGS/c/okW28/3U7D+gGi/dJAb3PxBYObTIdvg/I9v5fmq8+j/HSzeJQWD3P/Cnxks3ifU/sHJoke18+z/+1HjpJjH4P3A9CtejcO0/WmQ730+N9T+7SQwCK4f0PzEIrBxaZPk/PN9PjZdu+D/pJjEIrBz6P/7UeOkmMfY/eekmMQis+D8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -529,7 +352,7 @@
                 ]
               },
               "upper": {
-                "__ndarray__": "vHSTGARW8j8VrkfhehTwP7Kd76fGS/k/bxKDwMqh9T/MzMzMzMz4P9NNYhBYOf4/30+Nl24S/z8pXI/C9Sj+PwisHFpkO/U/MzMzMzMz+z8OLbKd76f0PwRWDi2ynf0/ppvEILBy8j8yCKwcWmT/P1yPwvUoXPk/PgrXo3A99D/hehSuR+H8P3A9CtejcPM/rkfhehSu9z9Ei2zn+6n9PxBYObTIdvw/Di2yne+n+j85tMh2vp/+PzeJQWDl0P4/KVyPwvUo/j9cj8L1KFz3P65H4XoUrv8/wMqhRbbz9T+8dJMYBFbyP1K4HoXrUfI/uB6F61G4/j+JQWDl0CL5P7bz/dR46fw/exSuR+F6+j8Sg8DKoUXwPy2yne+nxv8/FK5H4XoU8D9JDAIrhxb1P42XbhKDwPw/HFpkO99PAECcxCCwcmj/PwAAAAAAAPw/Itv5fmq8+j/TTWIQWDn6PxfZzvdT4/k/7nw/NV66+T9FtvP91Hj3P9ijcD0K1/c/SgwCK4cW/T9Di2zn+6n/PzvfT42Xbv4/sp3vp8ZL/z+PwvUoXI/8P5VDi2zn+/k/tMh2vp8a+T8K16NwPQr5PyUGgZVDi/Y/bef7qfHS/z8xCKwcWmT9P58aL90kBv0/TmIQWDm09D8fhetRuB7/P1CNl24Sg/4/xks3iUFg/T/C9Shcj8L/Pxsv3SQGgfk/EoPAyqFF/D8K16NwPQrzP6rx0k1iEPw/EFg5tMh28D8nMQisHFr6P05iEFg5tPw/wvUoXI/C/z8Sg8DKoUX8PycxCKwcWvo/yXa+nxovAEC4HoXrUbj8P+18PzVeuvM/+n5qvHST+j+HFtnO91P3P2IQWDm0yP4/WmQ730+N/T8oXI/C9Sj+P1K4HoXrUfo/g8DKoUW2/T8=",
+                "__ndarray__": "fT81XrpJ8j9ANV66SQzwP8l2vp8aL/k/BoGVQ4ts9T9iEFg5tMj4P9NNYhBYOf4/YOXQItv5/j+/nxov3ST+P57vp8ZLN/U/tMh2vp8a+z/5fmq8dJP0P1pkO99Pjf0//Knx0k1i8j/eJAaBlUP/PxxaZDvfT/k/vHSTGARW9D93vp8aL938Pxsv3SQGgfM/w/UoXI/C9z8v3SQGgZX9P7x0kxgEVvw/DAIrhxbZ+j+kcD0K16P+PyLb+X5qvP4/VOOlm8Qg/j/GSzeJQWD3P28Sg8DKof8/bOf7qfHS9T9SuB6F61HyP6jGSzeJQfI/TWIQWDm0/j8IrBxaZDv5P2IQWDm0yPw/ukkMAiuH+j89CtejcD3wPxgEVg4tsv8/vp8aL90k8D90kxgEVg71P+Olm8QgsPw/EoPAyqFFAEBcj8L1KFz/P1YOLbKd7/s/pHA9Ctej+j+TGARWDi36P8HKoUW28/k/WDm0yHa++T/b+X5qvHT3P6wcWmQ73/c/CtejcD0K/T/FILByaJH/PycxCKwcWv4/CKwcWmQ7/z9OYhBYObT8P39qvHSTGPo/IbByaJHt+D/2KFyPwvX4PzvfT42XbvY/WDm0yHa+/z9cj8L1KFz9P8uhRbbz/fw/TmIQWDm09D8K16NwPQr/P6WbxCCwcv4/hxbZzvdT/T9YObTIdr7/P3A9CtejcPk/PQrXo3A9/D/1KFyPwvXyP9V46SYxCPw/5dAi2/l+8D/8qfHSTWL6P7pJDAIrh/w/l24Sg8DK/z8Tg8DKoUX8Pz4K16NwPfo/KVyPwvUoAECkcD0K16P8PwRWDi2ynfM/zvdT46Wb+j8dWmQ730/3P6NwPQrXo/4/sHJoke18/T/pJjEIrBz+P9JNYhBYOfo/7Xw/NV66/T8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -537,7 +360,7 @@
                 ]
               },
               "x": {
-                "__ndarray__": "rOvtiq0M5r83circLx3rv9NGx1qiC72/fXWPb7784r+NIbs7PErCvxZyGICJxdg/sqxMRx5i0T/gI+R42cPRPyqqGi6oRNW/OuKsn5SKuD/Yh3FiiXbjv9iGq0EMhNE/rP7M/b2H57/QNFrCggDWP5oFCDAGpq6/cuixVe0o4L+b3iA2W7vVP/n32pK8ROS/aMuibIK5mL8pwqYCAuPQP0OjgZZh7sM/B+PGu7Dh0j8lDjwJ8o3aP8n1fIPQssw/4P83pIkqyT8N41CElrW4v3j0Pf7oHOA/Xn92gGGj2b+QMEdbVg/ov8P9ac8kOuW/+t9LBP3G0z8dR5w0aVWrv0J9+0d1F7w/xUXQcGz2f7+nxMdI8Tfsv5uYVd3p59M/lkA8vY4h5r9XUysTj9Dlv6azuNap48g/ks37j0153D+B/kgZVEPZP+6YvqEaJsM/lriKBLwwjD+RmBzs9TrFP6sNsxde+cE/br/W9JOGmD95jBn8OuPKvxNR16yz3be/LzwKGx6z0D9J8APpwYbZP+18lvz/v88/4GYYAOzy2T9AjamBZPnQP7Pkf7OKH88/1WIy0Jo0yr8YyrUrevOyv40C8//B5sS/mg5P1nKh3j8csyLH9gfRP3NNHFRV/tE/j0sEg2PB2r+zPhzq0nHXP4XZxLpjW9g/UPAg3AK5yD+kMO9mlOXgPwFWN3FNJMu/oMg+oVgosD9lc5Yvtt7lvzoawIP3XM4/mKjb3g1h3r+g8RXhFsy9P+Zz9El/RNE/LWPGbTsh3j98SLCY0TnUP3GQfdZr+6e/McxBgZbY3z/sqHaN5jXDPyU++X5EgeW/ybHgbmMwyz++2yvWw+DCv/I94RpWdMc/QypdL242zj+Y21pjQ6XdP5NaUbTUC7e/2scymwW91j8=",
+                "__ndarray__": "rOvtiq0M5r83circLx3rv9RGx1qiC72/fXWPb7784r+OIbs7PErCvxdyGICJxdg/sqxMRx5i0T/gI+R42cPRPyqqGi6oRNW/O+Ksn5SKuD/Yh3FiiXbjv9mGq0EMhNE/rP7M/b2H57/RNFrCggDWP6UFCDAGpq6/cuixVe0o4L+c3iA2W7vVP/n32pK8ROS/esuibIK5mL8qwqYCAuPQP0WjgZZh7sM/B+PGu7Dh0j8mDjwJ8o3aP8z1fIPQssw/4v83pIkqyT8R41CElrW4v3j0Pf7oHOA/Xn92gGGj2b+QMEdbVg/ov8P9ac8kOuW/+99LBP3G0z8fR5w0aVWrv0J9+0d1F7w/+UXQcGz2f7+nxMdI8Tfsv5yYVd3p59M/lkA8vY4h5r9XUysTj9Dlv6izuNap48g/ks37j0153D+C/kgZVEPZP/CYvqEaJsM/rriKBLwwjD+SmBzs9TrFP6sNsxde+cE/fL/W9JOGmD98jBn8OuPKvxlR16yz3be/MDwKGx6z0D9K8APpwYbZP+98lvz/v88/4WYYAOzy2T9AjamBZPnQP7Pkf7OKH88/1mIy0Jo0yr8ZyrUrevOyv44C8//B5sS/mg5P1nKh3j8csyLH9gfRP3NNHFRV/tE/j0sEg2PB2r+0Phzq0nHXP4XZxLpjW9g/UfAg3AK5yD+kMO9mlOXgPwJWN3FNJMu/ocg+oVgosD9lc5Yvtt7lvzsawIP3XM4/majb3g1h3r+l8RXhFsy9P+Zz9El/RNE/LmPGbTsh3j99SLCY0TnUP3uQfdZr+6e/MsxBgZbY3z/uqHaN5jXDPyU++X5EgeW/yrHgbmMwyz+/2yvWw+DCv/I94RpWdMc/QypdL242zj+Z21pjQ6XdP5laUbTUC7e/28cymwW91j8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -545,7 +368,7 @@
                 ]
               },
               "y": {
-                "__ndarray__": "LbKd76fG7z/y0k1iEFjtP0w3iUFg5fY/9P3UeOkm8z8730+Nl272P5huEoPAyvs/YOXQItv5/D9YObTIdr77P/T91HjpJvM/IbByaJHt+D/+1HjpJjHyP8l2vp8aL/s/1XjpJjEI8D8dWmQ730/9PzVeukkMAvc/GQRWDi2y8T8730+Nl276P1yPwvUoXPE/0SLb+X5q9j+e76fGSzf7P7x0kxgEVvo/1XjpJjEI+D+q8dJNYhD8P1CNl24Sg/w/f2q8dJMY/D+8dJMYBFb2Px1aZDvfT/0/L90kBoGV8z+F61G4HoXvP5MYBFYOLfA/JzEIrBxa/D/NzMzMzMz2PxBYObTIdvo/qvHSTWIQ+D/Xo3A9CtfrPx+F61G4Hv0/BoGVQ4ts6z+R7Xw/NV7yPxBYObTIdvo/kxgEVg4t/j9eukkMAiv9P9v5fmq8dPk/ZDvfT42X+D/Xo3A9Ctf3P23n+6nx0vc/nMQgsHJo9z81XrpJDAL1PxkEVg4tsvU/30+Nl24S+z9g5dAi2/n8PyuHFtnO9/s/N4lBYOXQ/D8UrkfhehT6PxSuR+F6FPg/N4lBYOXQ9j+PwvUoXI/2P1TjpZvEIPQ/8tJNYhBY/T81XrpJDAL7P7pJDAIrh/o/H4XrUbge8z8j2/l+arz8PwAAAAAAAPw/3SQGgZVD+z+JQWDl0CL9P5zEILByaPc/kxgEVg4t+j/4U+Olm8TwP28Sg8DKofk/N4lBYOXQ7j956SYxCKz4P4/C9Shcj/o/XrpJDAIr/T9YObTIdr75P+xRuB6F6/c/7FG4HoXr/T/l0CLb+X76PwisHFpkO/E/K4cW2c739z9WDi2yne/1P6rx0k1iEPw/YOXQItv5+j/pJjEIrBz8PxKDwMqhRfg/XrpJDAIr+z8=",
+                "__ndarray__": "WDm0yHa+7z/y0k1iEFjtP83MzMzMzPY/CtejcD0K8z97FK5H4Xr2P23n+6nx0vs/d76fGi/d/D/ufD81Xrr7P4lBYOXQIvM/TDeJQWDl+D++nxov3STyPzMzMzMzM/s/1XjpJjEI8D9zaJHtfD/9PzVeukkMAvc/LbKd76fG8T97FK5H4Xr6P8dLN4lBYPE/exSuR+F69j9eukkMAiv7Pz0K16NwPfo//tR46SYx+D9/arx0kxj8PxBYObTIdvw/PzVeukkM/D+R7Xw/NV72P/LSTWIQWP0/WmQ730+N8z+wcmiR7XzvP1TjpZvEIPA/ZmZmZmZm/D9MN4lBYOX2P/yp8dJNYvo/qvHSTWIQ+D9YObTIdr7rP99PjZduEv0/rkfhehSu6z8Sg8DKoUXyP9Ei2/l+avo/VOOlm8Qg/j9eukkMAiv9PwaBlUOLbPk/j8L1KFyP+D+BlUOLbOf3P+xRuB6F6/c/Rrbz/dR49z8K16NwPQr1P1g5tMh2vvU/dZMYBFYO+z/2KFyPwvX8PyuHFtnO9/s/YhBYObTI/D/TTWIQWDn6P/7UeOkmMfg/I9v5fmq89j/6fmq8dJP2Pylcj8L1KPQ/hxbZzvdT/T+gGi/dJAb7PyUGgZVDi/o/iUFg5dAi8z+4HoXrUbj8Pz81XrpJDPw/3SQGgZVD+z8zMzMzMzP9P4cW2c73U/c/aJHtfD81+j/jpZvEILDwP0SLbOf7qfk/tvP91Hjp7j9OYhBYObT4P+XQItv5fvo/3SQGgZVD/T9t5/up8dL5PxfZzvdT4/c/gZVDi2zn/T/RItv5fmr6P166SQwCK/E/FK5H4XoU+D/sUbgehev1P2q8dJMYBPw/9ihcj8L1+j/pJjEIrBz8P2iR7Xw/Nfg/MzMzMzMz+z8=",
                 "dtype": "float64",
                 "order": "little",
                 "shape": [
@@ -564,9 +387,30 @@
           "type": "ColumnDataSource"
         },
         {
-          "attributes": {},
-          "id": "14894",
-          "type": "BasicTickFormatter"
+          "attributes": {
+            "label": {
+              "value": "County"
+            },
+            "renderers": [
+              {
+                "id": "14890"
+              }
+            ]
+          },
+          "id": "14903",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "line_color": {
+              "value": "steelblue"
+            },
+            "size": {
+              "value": 10
+            }
+          },
+          "id": "14908",
+          "type": "TeeHead"
         },
         {
           "attributes": {
@@ -599,35 +443,34 @@
           "type": "Circle"
         },
         {
-          "attributes": {
-            "source": {
-              "id": "14851"
-            }
-          },
-          "id": "14891",
-          "type": "CDSView"
-        },
-        {
           "attributes": {},
-          "id": "14900",
-          "type": "Selection"
+          "id": "14871",
+          "type": "PanTool"
         },
         {
           "attributes": {
             "coordinates": null,
+            "data_source": {
+              "id": "14910"
+            },
+            "glyph": {
+              "id": "14911"
+            },
             "group": null,
-            "items": [
-              {
-                "id": "14903"
-              },
-              {
-                "id": "14930"
-              }
-            ],
-            "location": "top_left"
+            "hover_glyph": null,
+            "level": "underlay",
+            "muted_glyph": {
+              "id": "14913"
+            },
+            "nonselection_glyph": {
+              "id": "14912"
+            },
+            "view": {
+              "id": "14915"
+            }
           },
-          "id": "14902",
-          "type": "Legend"
+          "id": "14914",
+          "type": "GlyphRenderer"
         },
         {
           "attributes": {
@@ -652,91 +495,77 @@
         },
         {
           "attributes": {},
-          "id": "14927",
-          "type": "UnionRenderers"
+          "id": "14872",
+          "type": "WheelZoomTool"
         },
         {
           "attributes": {},
-          "id": "14928",
+          "id": "14900",
           "type": "Selection"
         },
         {
           "attributes": {
-            "line_color": {
-              "value": "steelblue"
-            },
-            "size": {
-              "value": 10
+            "overlay": {
+              "id": "14877"
             }
           },
-          "id": "14908",
-          "type": "TeeHead"
-        },
-        {
-          "attributes": {
-            "label": {
-              "value": "County"
-            },
-            "renderers": [
-              {
-                "id": "14890"
-              }
-            ]
-          },
-          "id": "14903",
-          "type": "LegendItem"
+          "id": "14873",
+          "type": "BoxZoomTool"
         },
         {
           "attributes": {},
-          "id": "14895",
-          "type": "AllLabels"
+          "id": "14927",
+          "type": "UnionRenderers"
         },
         {
           "attributes": {
-            "end": 0.6,
-            "start": -1
-          },
-          "id": "14855",
-          "type": "Range1d"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "14910"
+            "coordinates": null,
+            "data_source": {
+              "id": "14851"
+            },
+            "glyph": {
+              "id": "14886"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "14888"
+            },
+            "muted_glyph": {
+              "id": "14889"
+            },
+            "nonselection_glyph": {
+              "id": "14887"
+            },
+            "view": {
+              "id": "14891"
             }
           },
-          "id": "14915",
-          "type": "CDSView"
+          "id": "14890",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "14874",
+          "type": "SaveTool"
         },
         {
           "attributes": {
-            "end": 2.2,
-            "start": 0.5
+            "line_alpha": 0.3,
+            "line_width": 3,
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
           },
-          "id": "14857",
-          "type": "Range1d"
+          "id": "14911",
+          "type": "Line"
         },
         {
-          "attributes": {
-            "callback": null,
-            "renderers": [
-              {
-                "id": "14890"
-              }
-            ],
-            "tooltips": [
-              [
-                "County",
-                "@county"
-              ],
-              [
-                "Estimated \u03b1",
-                "@y{0.000}"
-              ]
-            ]
-          },
-          "id": "14904",
-          "type": "HoverTool"
+          "attributes": {},
+          "id": "14875",
+          "type": "ResetTool"
         },
         {
           "attributes": {
@@ -769,6 +598,147 @@
         },
         {
           "attributes": {
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "size": {
+              "value": 10
+            },
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "14887",
+          "type": "Circle"
+        },
+        {
+          "attributes": {},
+          "id": "14876",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "14928",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "14861",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "axis_label": "Intercept estimate (log(radon activity))",
+            "coordinates": null,
+            "formatter": {
+              "id": "14894"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "14895"
+            },
+            "ticker": {
+              "id": "14868"
+            }
+          },
+          "id": "14867",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "14851"
+            }
+          },
+          "id": "14891",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "14871"
+              },
+              {
+                "id": "14872"
+              },
+              {
+                "id": "14873"
+              },
+              {
+                "id": "14874"
+              },
+              {
+                "id": "14875"
+              },
+              {
+                "id": "14876"
+              },
+              {
+                "id": "14904"
+              }
+            ]
+          },
+          "id": "14878",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "axis_label": "log(uranium)",
+            "coordinates": null,
+            "formatter": {
+              "id": "14897"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "14898"
+            },
+            "ticker": {
+              "id": "14864"
+            }
+          },
+          "id": "14863",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "14890"
+              }
+            ],
+            "tooltips": [
+              [
+                "County",
+                "@county"
+              ],
+              [
+                "Estimated \u03b1",
+                "@y{0.000}"
+              ]
+            ]
+          },
+          "id": "14904",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
             "bottom_units": "screen",
             "coordinates": null,
             "fill_alpha": 0.5,
@@ -791,16 +761,46 @@
           "type": "BoxAnnotation"
         },
         {
+          "attributes": {},
+          "id": "14864",
+          "type": "BasicTicker"
+        },
+        {
           "attributes": {
-            "line_color": {
-              "value": "steelblue"
+            "label": {
+              "value": "Estimated linear regression"
             },
-            "size": {
-              "value": 10
-            }
+            "renderers": [
+              {
+                "id": "14914"
+              }
+            ]
           },
-          "id": "14909",
-          "type": "TeeHead"
+          "id": "14930",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {
+            "end": 0.6,
+            "start": -1
+          },
+          "id": "14855",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "14863"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "14866",
+          "type": "Grid"
         }
       ],
       "root_ids": [

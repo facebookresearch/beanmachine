@@ -57,276 +57,9 @@
           "type": "Plot"
         },
         {
-          "attributes": {
-            "bottom": {
-              "field": "bottom"
-            },
-            "fill_color": {
-              "value": "orange"
-            },
-            "left": {
-              "field": "left"
-            },
-            "line_width": {
-              "value": 2
-            },
-            "right": {
-              "field": "right"
-            },
-            "top": {
-              "field": "top"
-            }
-          },
-          "id": "1136",
-          "type": "Quad"
-        },
-        {
-          "attributes": {
-            "axis_label": "Observed foul call rate",
-            "coordinates": null,
-            "formatter": {
-              "id": "1158"
-            },
-            "group": null,
-            "major_label_orientation": 0.7853981633974483,
-            "major_label_policy": {
-              "id": "1159"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "1112"
-            }
-          },
-          "id": "1111",
-          "type": "LinearAxis"
-        },
-        {
-          "attributes": {},
-          "id": "1161",
-          "type": "Selection"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "data_source": {
-              "id": "1101"
-            },
-            "glyph": {
-              "id": "1134"
-            },
-            "group": null,
-            "hover_glyph": {
-              "id": "1136"
-            },
-            "muted_glyph": {
-              "id": "1137"
-            },
-            "nonselection_glyph": {
-              "id": "1135"
-            },
-            "view": {
-              "id": "1139"
-            }
-          },
-          "id": "1138",
-          "type": "GlyphRenderer"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "1101"
-            }
-          },
-          "id": "1139",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {},
-          "id": "1155",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "bottom_units": "screen",
-            "coordinates": null,
-            "fill_alpha": 0.5,
-            "fill_color": "lightgrey",
-            "group": null,
-            "left_units": "screen",
-            "level": "overlay",
-            "line_alpha": 1.0,
-            "line_color": "black",
-            "line_dash": [
-              4,
-              4
-            ],
-            "line_width": 2,
-            "right_units": "screen",
-            "syncable": false,
-            "top_units": "screen"
-          },
-          "id": "1125",
-          "type": "BoxAnnotation"
-        },
-        {
-          "attributes": {
-            "ticks": [
-              0,
-              1,
-              2,
-              3,
-              4
-            ]
-          },
-          "id": "1142",
-          "type": "FixedTicker"
-        },
-        {
-          "attributes": {
-            "bottom": {
-              "field": "bottom"
-            },
-            "fill_alpha": {
-              "value": 0.2
-            },
-            "fill_color": {
-              "value": "steelblue"
-            },
-            "hatch_alpha": {
-              "value": 0.2
-            },
-            "left": {
-              "field": "left"
-            },
-            "line_alpha": {
-              "value": 0.2
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "right": {
-              "field": "right"
-            },
-            "top": {
-              "field": "top"
-            }
-          },
-          "id": "1137",
-          "type": "Quad"
-        },
-        {
-          "attributes": {},
-          "id": "1123",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {},
-          "id": "1109",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "overlay": {
-              "id": "1125"
-            }
-          },
-          "id": "1121",
-          "type": "BoxZoomTool"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "group": null
-          },
-          "id": "1153",
-          "type": "Title"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "1115"
-            },
-            "coordinates": null,
-            "dimension": 1,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "1118",
-          "type": "Grid"
-        },
-        {
           "attributes": {},
           "id": "1160",
           "type": "UnionRenderers"
-        },
-        {
-          "attributes": {
-            "axis_label": "Call type",
-            "coordinates": null,
-            "formatter": {
-              "id": "1155"
-            },
-            "group": null,
-            "major_label_overrides": {
-              "0": "Away from Play",
-              "1": "Loose Ball",
-              "2": "Offensive",
-              "3": "Personal",
-              "4": "Shooting"
-            },
-            "major_label_policy": {
-              "id": "1156"
-            },
-            "minor_tick_line_color": null,
-            "ticker": {
-              "id": "1142"
-            }
-          },
-          "id": "1115",
-          "type": "LinearAxis"
-        },
-        {
-          "attributes": {},
-          "id": "1105",
-          "type": "DataRange1d"
-        },
-        {
-          "attributes": {},
-          "id": "1112",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {
-            "axis": {
-              "id": "1111"
-            },
-            "coordinates": null,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "1114",
-          "type": "Grid"
-        },
-        {
-          "attributes": {},
-          "id": "1119",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {},
-          "id": "1124",
-          "type": "HelpTool"
-        },
-        {
-          "attributes": {},
-          "id": "1120",
-          "type": "WheelZoomTool"
         },
         {
           "attributes": {
@@ -360,6 +93,131 @@
           },
           "id": "1135",
           "type": "Quad"
+        },
+        {
+          "attributes": {
+            "axis_label": "Observed foul call rate",
+            "coordinates": null,
+            "formatter": {
+              "id": "1158"
+            },
+            "group": null,
+            "major_label_orientation": 0.7853981633974483,
+            "major_label_policy": {
+              "id": "1159"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "1112"
+            }
+          },
+          "id": "1111",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "1101"
+            }
+          },
+          "id": "1139",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "1123",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "1105",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "1122",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "1101"
+            },
+            "glyph": {
+              "id": "1134"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "1136"
+            },
+            "muted_glyph": {
+              "id": "1137"
+            },
+            "nonselection_glyph": {
+              "id": "1135"
+            },
+            "view": {
+              "id": "1139"
+            }
+          },
+          "id": "1138",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "1107",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "1155",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1134",
+          "type": "Quad"
+        },
+        {
+          "attributes": {},
+          "id": "1124",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "1161",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "1159",
+          "type": "AllLabels"
         },
         {
           "attributes": {
@@ -430,81 +288,6 @@
           "type": "ColumnDataSource"
         },
         {
-          "attributes": {},
-          "id": "1122",
-          "type": "SaveTool"
-        },
-        {
-          "attributes": {
-            "end": 0.6121896162528216,
-            "start": 0.11657866948257656
-          },
-          "id": "1103",
-          "type": "Range1d"
-        },
-        {
-          "attributes": {
-            "bottom": {
-              "field": "bottom"
-            },
-            "fill_alpha": {
-              "value": 0.7
-            },
-            "fill_color": {
-              "value": "steelblue"
-            },
-            "left": {
-              "field": "left"
-            },
-            "line_alpha": {
-              "value": 0.7
-            },
-            "line_color": {
-              "value": "white"
-            },
-            "right": {
-              "field": "right"
-            },
-            "top": {
-              "field": "top"
-            }
-          },
-          "id": "1134",
-          "type": "Quad"
-        },
-        {
-          "attributes": {},
-          "id": "1159",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "1107",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "callback": null,
-            "renderers": [
-              {
-                "id": "1138"
-              }
-            ],
-            "tooltips": [
-              [
-                "Call type",
-                "@tick_labels"
-              ],
-              [
-                "Rate",
-                "@x{0.000}"
-              ]
-            ]
-          },
-          "id": "1140",
-          "type": "HoverTool"
-        },
-        {
           "attributes": {
             "tools": [
               {
@@ -534,14 +317,231 @@
           "type": "Toolbar"
         },
         {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_width": {
+              "value": 2
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1136",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "end": 0.6121896162528216,
+            "start": 0.11657866948257656
+          },
+          "id": "1103",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "1158",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1137",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "1138"
+              }
+            ],
+            "tooltips": [
+              [
+                "Call type",
+                "@tick_labels"
+              ],
+              [
+                "Rate",
+                "@x{0.000}"
+              ]
+            ]
+          },
+          "id": "1140",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null
+          },
+          "id": "1153",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "1119",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1111"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1114",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1115"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1118",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "1125",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "1112",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "1120",
+          "type": "WheelZoomTool"
+        },
+        {
           "attributes": {},
           "id": "1156",
           "type": "AllLabels"
         },
         {
           "attributes": {},
-          "id": "1158",
-          "type": "BasicTickFormatter"
+          "id": "1109",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "ticks": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "id": "1142",
+          "type": "FixedTicker"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "1125"
+            }
+          },
+          "id": "1121",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "axis_label": "Call type",
+            "coordinates": null,
+            "formatter": {
+              "id": "1155"
+            },
+            "group": null,
+            "major_label_overrides": {
+              "0": "Away from Play",
+              "1": "Loose Ball",
+              "2": "Offensive",
+              "3": "Personal",
+              "4": "Shooting"
+            },
+            "major_label_policy": {
+              "id": "1156"
+            },
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "1142"
+            }
+          },
+          "id": "1115",
+          "type": "LinearAxis"
         }
       ],
       "root_ids": [

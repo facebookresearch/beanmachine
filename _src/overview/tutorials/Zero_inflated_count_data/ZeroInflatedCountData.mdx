@@ -6,21 +6,21 @@ nb_path: tutorials/Zero_inflated_count_data.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb
 ---
-import { SecThrdModelPostPlot } from "./ZeroInflatedCountData.jsx";
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { DiagPlots } from "./ZeroInflatedCountData.jsx";
-import { SecModelPriorPlot } from "./ZeroInflatedCountData.jsx";
-import { ThrdPThetaPlots } from "./ZeroInflatedCountData.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { PriorPostPlots } from "./ZeroInflatedCountData.jsx";
 import { PThetaPlots } from "./ZeroInflatedCountData.jsx";
-import { SecondModelDiagPlot } from "./ZeroInflatedCountData.jsx";
-import { ADPlots } from "./ZeroInflatedCountData.jsx";
-import { ValueCountsPlot } from "./ZeroInflatedCountData.jsx";
-import { ThPBPlots } from "./ZeroInflatedCountData.jsx";
-import { SecPriorPostPlot } from "./ZeroInflatedCountData.jsx";
+import { ThrdPThetaPlots } from "./ZeroInflatedCountData.jsx";
 import { FirstModelPriorPc } from "./ZeroInflatedCountData.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import { SecPriorPostPlot } from "./ZeroInflatedCountData.jsx";
 import { FrstScndThrdPlots } from "./ZeroInflatedCountData.jsx";
+import { ThPBPlots } from "./ZeroInflatedCountData.jsx";
+import { SecThrdModelPostPlot } from "./ZeroInflatedCountData.jsx";
+import { DiagPlots } from "./ZeroInflatedCountData.jsx";
+import { ADPlots } from "./ZeroInflatedCountData.jsx";
+import { SecondModelDiagPlot } from "./ZeroInflatedCountData.jsx";
+import { SecModelPriorPlot } from "./ZeroInflatedCountData.jsx";
+import { PriorPostPlots } from "./ZeroInflatedCountData.jsx";
+import { ValueCountsPlot } from "./ZeroInflatedCountData.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb"
@@ -409,6 +409,8 @@ predictive distribution.
 first_model_num_samples = 1 if smoke_test else 500
 first_model_num_adaptive_samples = 0 if smoke_test else first_model_num_samples // 2
 first_model_num_chains = 1 if smoke_test else 4
+# Experimental backend using the Pytorch NNC compiler
+nnc_compile = "SANDCASTLE_NEXUS" not in os.environ
 
 # Model queries.
 first_model_queries = [first_model_p()]
@@ -417,7 +419,7 @@ first_model_queries = [first_model_p()]
 first_model_observations = {}
 
 # Note we are using the GlobalNoUTurnSampler, this will change in our second model.
-first_model_samples_no_observations = bm.GlobalNoUTurnSampler().infer(
+first_model_samples_no_observations = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
     queries=first_model_queries,
     observations=first_model_observations,
     num_samples=first_model_num_samples,
@@ -427,13 +429,9 @@ first_model_samples_no_observations = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -477,7 +475,7 @@ first_model_observations = {
 }
 
 # Run inference with observations.
-first_model_samples = bm.GlobalNoUTurnSampler().infer(
+first_model_samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
     queries=first_model_queries,
     observations=first_model_observations,
     num_samples=first_model_num_samples,
@@ -487,13 +485,9 @@ first_model_samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -655,13 +649,9 @@ second_model_samples_no_observations = bm.SingleSiteAncestralMetropolisHastings(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -724,13 +714,9 @@ second_model_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]`}
 </CellOutput>
 
@@ -799,22 +785,22 @@ Markdown(second_model_summary_df.to_markdown())
 
 | query                |    mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |    r_hat |
 |:---------------------|--------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|---------:|
-| second_model_alpha() | -0.478  | 0.2659 |    -0.9142 |     -0.0888 |      0.0085 |    0.006  |    963.107 |    1026.92 |   1.0036 |
-| second_model_delta() |  0.3278 | 0.6245 |    -0.5807 |      1.3821 |      0.0134 |    0.0099 |   2148.36  |    2119.95 |   1.0034 |
-| second_model_p()     |  0.3847 | 0.0617 |     0.2862 |      0.4778 |      0.002  |    0.0014 |    963.107 |    1026.92 |   1.0036 |
-| second_model_theta() |  0.5742 | 0.1395 |     0.3588 |      0.7993 |      0.003  |    0.0022 |   2148.36  |    2119.95 |   1.003  |
-| second_model_s(0,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |   40000    | nan      |
-| second_model_s(1,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |   40000    | nan      |
-| second_model_s(2,)   |  0.0008 | 0.0278 |     0      |      0      |      0.0002 |    0.0002 |  14631     |   14631    |   1.0001 |
-| second_model_s(3,)   |  0.0001 | 0.01   |     0      |      0      |      0      |    0      |  40022.9   |   40022.9  |   1      |
-| second_model_s(4,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |   40000    | nan      |
-| second_model_s(5,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |   40000    | nan      |
-| second_model_s(6,)   |  0.072  | 0.2586 |     0      |      0      |      0.0025 |    0.0018 |  10888.5   |   10888.5  |   1.0004 |
-| second_model_s(7,)   |  0.0016 | 0.0406 |     0      |      0      |      0.0004 |    0.0003 |  10983.3   |   10983.3  |   1.0004 |
-| second_model_s(8,)   |  0.0146 | 0.1198 |     0      |      0      |      0.0012 |    0.0008 |  10382.2   |   10382.2  |   1.0001 |
-| second_model_s(9,)   |  0.0346 | 0.1828 |     0      |      0      |      0.0018 |    0.0013 |  10217.1   |   10217.1  |   1      |
-| second_model_s(10,)  |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |   40000    | nan      |
-| second_model_s(11,)  |  0      | 0      |     0      |      0      |      0      |    0      |  40000     |   40000    | nan      |
+| second_model_alpha() | -0.48   | 0.2843 |    -0.9562 |     -0.087  |      0.0103 |    0.0073 |    757.703 |    749.653 |   1.0027 |
+| second_model_delta() |  0.3001 | 0.6234 |    -0.6313 |      1.355  |      0.0133 |    0.0103 |   2160.44  |   2163.4   |   1.0016 |
+| second_model_p()     |  0.3844 | 0.0661 |     0.2776 |      0.4783 |      0.0024 |    0.0017 |    757.703 |    749.653 |   1.0029 |
+| second_model_theta() |  0.5681 | 0.1398 |     0.3472 |      0.7949 |      0.003  |    0.0022 |   2160.44  |   2163.4   |   1.0016 |
+| second_model_s(0,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
+| second_model_s(1,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
+| second_model_s(2,)   |  0.001  | 0.032  |     0      |      0      |      0.0003 |    0.0002 |  12367.6   |  12367.6   |   1.0001 |
+| second_model_s(3,)   |  0      | 0      |     0      |      0      |      0      |    0      |  40000     |  40000     | nan      |
+| second_model_s(4,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
+| second_model_s(5,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
+| second_model_s(6,)   |  0.0776 | 0.2676 |     0      |      0      |      0.0027 |    0.0019 |   9726.81  |   9726.81  |   1.0002 |
+| second_model_s(7,)   |  0.002  | 0.045  |     0      |      0      |      0.0004 |    0.0003 |  13813.7   |  13813.7   |   1      |
+| second_model_s(8,)   |  0.0172 | 0.13   |     0      |      0      |      0.0012 |    0.0009 |  11247.3   |  11247.3   |   1.0004 |
+| second_model_s(9,)   |  0.0339 | 0.181  |     0      |      0      |      0.0017 |    0.0012 |  10956.4   |  10956.4   |   1.0002 |
+| second_model_s(10,)  |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
+| second_model_s(11,)  |  0      | 0      |     0      |      0      |      0      |    0      |  40000     |  40000     | nan      |
 
 Note that there are `NaN` values for some $\hat{R}$ calculations in the above dataframe
 for some $s_i$ parameters. This is occurring because there is no variance in those $s_i$
@@ -965,8 +951,8 @@ Markdown(
 
 | query                |    mean |     sd |
 |:---------------------|--------:|-------:|
-| second_model_alpha() | -0.478  | 0.2659 |
-| second_model_delta() |  0.3278 | 0.6245 |
+| second_model_alpha() | -0.48   | 0.2843 |
+| second_model_delta() |  0.3001 | 0.6234 |
 
 Despite having reasonable similarities to the published results, we had to run inference
 for a large number of samples. Doing so resulted in posteriors that have high frequency
@@ -1146,7 +1132,8 @@ queries = [alpha(), delta(), p(), theta()] + [s(i) for i in range(N)]
 # Observations are all equal to 1.
 observations = {d(i): torch.tensor(1.0) for i in range(df.shape[0])}
 
-samples = bm.GlobalNoUTurnSampler().infer(
+# NNC compilation gets into some issues with this model so we will turn it off for now
+samples = bm.GlobalNoUTurnSampler(nnc_compile=False).infer(
     queries=queries,
     observations=observations,
     num_samples=thrd_mdl_num_samples,
@@ -1156,13 +1143,9 @@ samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{`Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]`}
 </CellOutput>
 

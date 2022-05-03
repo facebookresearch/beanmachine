@@ -1,6 +1,6 @@
 {
   "target_id": "trailing-team-committing-plot",
-  "root_id": "3987",
+  "root_id": "3361",
   "doc": {
     "defs": [],
     "roots": {
@@ -9,65 +9,112 @@
           "attributes": {
             "below": [
               {
-                "id": "3998"
+                "id": "3372"
               }
             ],
             "center": [
               {
-                "id": "4001"
+                "id": "3375"
               },
               {
-                "id": "4005"
+                "id": "3379"
               },
               {
-                "id": "4036"
+                "id": "3410"
               }
             ],
             "height": 500,
             "left": [
               {
-                "id": "4002"
+                "id": "3376"
               }
             ],
             "outline_line_color": "black",
             "renderers": [
               {
-                "id": "4024"
+                "id": "3398"
               },
               {
-                "id": "4044"
+                "id": "3418"
               }
             ],
             "title": {
-              "id": "3988"
+              "id": "3362"
             },
             "toolbar": {
-              "id": "4013"
+              "id": "3387"
             },
             "width": 700,
             "x_range": {
-              "id": "3990"
+              "id": "3364"
             },
             "x_scale": {
-              "id": "3994"
+              "id": "3368"
             },
             "y_range": {
-              "id": "3992"
+              "id": "3366"
             },
             "y_scale": {
-              "id": "3996"
+              "id": "3370"
             }
           },
-          "id": "3987",
+          "id": "3361",
           "subtype": "Figure",
           "type": "Plot"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "3360"
+            }
+          },
+          "id": "3419",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "3383",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#0072B2",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3396",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.1,
+            "line_color": "#E69F00",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3416",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3408",
+          "type": "Selection"
         },
         {
           "attributes": {
             "callback": null,
             "renderers": [
               {
-                "id": "4024"
+                "id": "3418"
               }
             ],
             "tooltips": [
@@ -81,29 +128,13 @@
               ]
             ]
           },
-          "id": "4038",
+          "id": "3433",
           "type": "HoverTool"
         },
         {
-          "attributes": {
-            "axis": {
-              "id": "4002"
-            },
-            "coordinates": null,
-            "dimension": 1,
-            "grid_line_alpha": 0.2,
-            "grid_line_color": "grey",
-            "grid_line_width": 0.2,
-            "group": null,
-            "ticker": null
-          },
-          "id": "4005",
-          "type": "Grid"
-        },
-        {
           "attributes": {},
-          "id": "4031",
-          "type": "BasicTickFormatter"
+          "id": "3430",
+          "type": "Selection"
         },
         {
           "attributes": {
@@ -241,76 +272,38 @@
               }
             },
             "selected": {
-              "id": "4034"
+              "id": "3408"
             },
             "selection_policy": {
-              "id": "4033"
+              "id": "3407"
             }
           },
-          "id": "3985",
+          "id": "3359",
           "type": "ColumnDataSource"
         },
         {
           "attributes": {
-            "line_alpha": 0.1,
-            "line_color": "#0072B2",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4022",
-          "type": "Line"
-        },
-        {
-          "attributes": {
-            "label": {
-              "value": "No"
-            },
-            "renderers": [
-              {
-                "id": "4024"
-              }
-            ]
-          },
-          "id": "4037",
-          "type": "LegendItem"
-        },
-        {
-          "attributes": {},
-          "id": "3994",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
+            "axis_label": "Observed foul rate",
             "coordinates": null,
-            "data_source": {
-              "id": "3986"
-            },
-            "glyph": {
-              "id": "4041"
+            "formatter": {
+              "id": "3402"
             },
             "group": null,
-            "hover_glyph": null,
-            "muted_glyph": {
-              "id": "4043"
+            "major_label_policy": {
+              "id": "3403"
             },
-            "nonselection_glyph": {
-              "id": "4042"
-            },
-            "view": {
-              "id": "4045"
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "3377"
             }
           },
-          "id": "4044",
-          "type": "GlyphRenderer"
+          "id": "3376",
+          "type": "LinearAxis"
         },
         {
           "attributes": {},
-          "id": "4009",
-          "type": "SaveTool"
+          "id": "3370",
+          "type": "LinearScale"
         },
         {
           "attributes": {
@@ -323,15 +316,33 @@
               "field": "y"
             }
           },
-          "id": "4023",
+          "id": "3397",
           "type": "Line"
+        },
+        {
+          "attributes": {
+            "line_color": "#E69F00",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3415",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3385",
+          "type": "HelpTool"
         },
         {
           "attributes": {
             "callback": null,
             "renderers": [
               {
-                "id": "4044"
+                "id": "3398"
               }
             ],
             "tooltips": [
@@ -345,171 +356,18 @@
               ]
             ]
           },
-          "id": "4059",
+          "id": "3412",
           "type": "HoverTool"
         },
         {
           "attributes": {},
-          "id": "4028",
-          "type": "BasicTickFormatter"
-        },
-        {
-          "attributes": {
-            "coordinates": null,
-            "group": null,
-            "items": [
-              {
-                "id": "4037"
-              },
-              {
-                "id": "4058"
-              }
-            ],
-            "location": "top_left"
-          },
-          "id": "4036",
-          "type": "Legend"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "3985"
-            }
-          },
-          "id": "4025",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {
-            "line_color": "#E69F00",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4041",
-          "type": "Line"
-        },
-        {
-          "attributes": {},
-          "id": "4006",
-          "type": "PanTool"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.1,
-            "line_color": "#E69F00",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4042",
-          "type": "Line"
-        },
-        {
-          "attributes": {},
-          "id": "4010",
-          "type": "ResetTool"
-        },
-        {
-          "attributes": {},
-          "id": "4029",
-          "type": "AllLabels"
-        },
-        {
-          "attributes": {},
-          "id": "4003",
-          "type": "BasicTicker"
-        },
-        {
-          "attributes": {
-            "line_alpha": 0.2,
-            "line_color": "#E69F00",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
-          },
-          "id": "4043",
-          "type": "Line"
-        },
-        {
-          "attributes": {
-            "source": {
-              "id": "3986"
-            }
-          },
-          "id": "4045",
-          "type": "CDSView"
-        },
-        {
-          "attributes": {
-            "label": {
-              "value": "Yes"
-            },
-            "renderers": [
-              {
-                "id": "4044"
-              }
-            ]
-          },
-          "id": "4058",
-          "type": "LegendItem"
-        },
-        {
-          "attributes": {},
-          "id": "4055",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {},
-          "id": "4011",
-          "type": "HelpTool"
-        },
-        {
-          "attributes": {},
-          "id": "4033",
-          "type": "UnionRenderers"
-        },
-        {
-          "attributes": {},
-          "id": "4034",
-          "type": "Selection"
-        },
-        {
-          "attributes": {},
-          "id": "4056",
-          "type": "Selection"
-        },
-        {
-          "attributes": {
-            "end": 15,
-            "start": 125
-          },
-          "id": "3990",
-          "type": "Range1d"
-        },
-        {
-          "attributes": {},
-          "id": "3992",
-          "type": "DataRange1d"
-        },
-        {
-          "attributes": {},
-          "id": "3999",
-          "type": "BasicTicker"
+          "id": "3368",
+          "type": "LinearScale"
         },
         {
           "attributes": {
             "axis": {
-              "id": "3998"
+              "id": "3372"
             },
             "coordinates": null,
             "grid_line_alpha": 0.2,
@@ -518,86 +376,129 @@
             "group": null,
             "ticker": null
           },
-          "id": "4001",
+          "id": "3375",
           "type": "Grid"
         },
         {
           "attributes": {
-            "tools": [
-              {
-                "id": "4006"
-              },
-              {
-                "id": "4007"
-              },
-              {
-                "id": "4008"
-              },
-              {
-                "id": "4009"
-              },
-              {
-                "id": "4010"
-              },
-              {
-                "id": "4011"
-              },
-              {
-                "id": "4038"
-              },
-              {
-                "id": "4059"
-              }
-            ]
+            "source": {
+              "id": "3359"
+            }
           },
-          "id": "4013",
-          "type": "Toolbar"
+          "id": "3399",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "3381",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "end": 15,
+            "start": 125
+          },
+          "id": "3364",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {},
+          "id": "3402",
+          "type": "BasicTickFormatter"
         },
         {
           "attributes": {
             "coordinates": null,
             "data_source": {
-              "id": "3985"
+              "id": "3360"
             },
             "glyph": {
-              "id": "4021"
+              "id": "3415"
             },
             "group": null,
             "hover_glyph": null,
             "muted_glyph": {
-              "id": "4023"
+              "id": "3417"
             },
             "nonselection_glyph": {
-              "id": "4022"
+              "id": "3416"
             },
             "view": {
-              "id": "4025"
+              "id": "3419"
             }
           },
-          "id": "4024",
+          "id": "3418",
           "type": "GlyphRenderer"
         },
         {
           "attributes": {
             "coordinates": null,
+            "data_source": {
+              "id": "3359"
+            },
+            "glyph": {
+              "id": "3395"
+            },
             "group": null,
-            "text": "Committing team is trailing"
+            "hover_glyph": null,
+            "muted_glyph": {
+              "id": "3397"
+            },
+            "nonselection_glyph": {
+              "id": "3396"
+            },
+            "view": {
+              "id": "3399"
+            }
           },
-          "id": "3988",
-          "type": "Title"
+          "id": "3398",
+          "type": "GlyphRenderer"
         },
         {
           "attributes": {
-            "line_color": "#0072B2",
-            "x": {
-              "field": "x"
-            },
-            "y": {
-              "field": "y"
-            }
+            "tools": [
+              {
+                "id": "3380"
+              },
+              {
+                "id": "3381"
+              },
+              {
+                "id": "3382"
+              },
+              {
+                "id": "3383"
+              },
+              {
+                "id": "3384"
+              },
+              {
+                "id": "3385"
+              },
+              {
+                "id": "3412"
+              },
+              {
+                "id": "3433"
+              }
+            ]
           },
-          "id": "4021",
-          "type": "Line"
+          "id": "3387",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "Yes"
+            },
+            "renderers": [
+              {
+                "id": "3418"
+              }
+            ]
+          },
+          "id": "3432",
+          "type": "LegendItem"
         },
         {
           "attributes": {
@@ -619,8 +520,135 @@
             "syncable": false,
             "top_units": "screen"
           },
-          "id": "4012",
+          "id": "3386",
           "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "3384",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "3376"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "3379",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Committing team is trailing"
+          },
+          "id": "3362",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "3403",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "3380",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "3373",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "label": {
+              "value": "No"
+            },
+            "renderers": [
+              {
+                "id": "3398"
+              }
+            ]
+          },
+          "id": "3411",
+          "type": "LegendItem"
+        },
+        {
+          "attributes": {},
+          "id": "3406",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {},
+          "id": "3366",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "line_color": "#0072B2",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3395",
+          "type": "Line"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "3386"
+            }
+          },
+          "id": "3382",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "items": [
+              {
+                "id": "3411"
+              },
+              {
+                "id": "3432"
+              }
+            ],
+            "location": "top_left"
+          },
+          "id": "3410",
+          "type": "Legend"
+        },
+        {
+          "attributes": {
+            "line_alpha": 0.2,
+            "line_color": "#E69F00",
+            "x": {
+              "field": "x"
+            },
+            "y": {
+              "field": "y"
+            }
+          },
+          "id": "3417",
+          "type": "Line"
+        },
+        {
+          "attributes": {},
+          "id": "3407",
+          "type": "UnionRenderers"
         },
         {
           "attributes": {
@@ -758,80 +786,52 @@
               }
             },
             "selected": {
-              "id": "4056"
+              "id": "3430"
             },
             "selection_policy": {
-              "id": "4055"
+              "id": "3429"
             }
           },
-          "id": "3986",
+          "id": "3360",
           "type": "ColumnDataSource"
         },
         {
           "attributes": {},
-          "id": "3996",
-          "type": "LinearScale"
-        },
-        {
-          "attributes": {
-            "axis_label": "Observed foul rate",
-            "coordinates": null,
-            "formatter": {
-              "id": "4028"
-            },
-            "group": null,
-            "major_label_policy": {
-              "id": "4029"
-            },
-            "minor_tick_line_color": "grey",
-            "ticker": {
-              "id": "4003"
-            }
-          },
-          "id": "4002",
-          "type": "LinearAxis"
+          "id": "3377",
+          "type": "BasicTicker"
         },
         {
           "attributes": {},
-          "id": "4032",
-          "type": "AllLabels"
+          "id": "3405",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {},
+          "id": "3429",
+          "type": "UnionRenderers"
         },
         {
           "attributes": {
             "axis_label": "Seconds remaining",
             "coordinates": null,
             "formatter": {
-              "id": "4031"
+              "id": "3405"
             },
             "group": null,
             "major_label_policy": {
-              "id": "4032"
+              "id": "3406"
             },
             "minor_tick_line_color": "grey",
             "ticker": {
-              "id": "3999"
+              "id": "3373"
             }
           },
-          "id": "3998",
+          "id": "3372",
           "type": "LinearAxis"
-        },
-        {
-          "attributes": {},
-          "id": "4007",
-          "type": "WheelZoomTool"
-        },
-        {
-          "attributes": {
-            "overlay": {
-              "id": "4012"
-            }
-          },
-          "id": "4008",
-          "type": "BoxZoomTool"
         }
       ],
       "root_ids": [
-        "3987"
+        "3361"
       ]
     },
     "title": "Bokeh Application",
