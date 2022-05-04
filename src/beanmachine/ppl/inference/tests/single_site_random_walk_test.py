@@ -204,13 +204,13 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_adaptive_random_walk(self):
         model = NormalNormalModel(
-            mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
+            mu=torch.tensor(0.0), std=torch.tensor(1.0), sigma=torch.ones(1)
         )
         mh = bm.SingleSiteRandomWalk(step_size=4)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor(100.0)}
-        predictions = mh.infer(queries, observations, 100, 30)
+        predictions = mh.infer(queries, observations, 100, num_adaptive_samples=30)
         predictions = predictions.get_chain()[p_key]
         self.assertIn(True, [45 < pred < 55 for pred in predictions])
 

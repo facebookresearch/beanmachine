@@ -81,6 +81,7 @@ class Sampler(Generator[World, Optional[World], None]):
         for proposer in proposers:
             try:
                 new_world, accept_log_prob = proposer.propose(world)
+                accept_log_prob = accept_log_prob.clamp(max=0.0)
                 accepted = torch.rand_like(accept_log_prob).log() < accept_log_prob
                 if accepted:
                     world = new_world
