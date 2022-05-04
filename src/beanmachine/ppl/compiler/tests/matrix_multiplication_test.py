@@ -43,6 +43,17 @@ def op_matmul():
     return operator.matmul(operator.matmul(m1, norm()), m2)
 
 
+# Matrix multiplication of single-valued tensors is turned into ordinary multiplication.
+@bm.random_variable
+def norm_matrix():
+    return Normal(torch.tensor([0.0]), torch.tensor([1.0]))
+
+
+@bm.functional
+def trivial():
+    return norm_matrix() @ norm_matrix()
+
+
 class MatMulTest(unittest.TestCase):
     def test_matrix_multiplication(self) -> None:
         # TODO: Matrix multiplications should be accumulated but they are not
@@ -121,3 +132,21 @@ The unsupported node was created in function call op_matmul().
         with self.assertRaises(ValueError) as ex:
             BMGInference().to_dot([op_matmul()], {}, after_transform=True)
         self.assertEqual(expected_error.strip(), str(ex.exception))
+
+        expected_trivial = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label="*"];
+  N5[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+  N3 -> N4;
+  N4 -> N5;
+}"""
+        observed = BMGInference().to_dot([trivial()], {})
+        self.assertEqual(expected_trivial.strip(), observed.strip())

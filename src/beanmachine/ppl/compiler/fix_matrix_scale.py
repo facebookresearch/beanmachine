@@ -13,13 +13,11 @@ from beanmachine.ppl.compiler.fix_problem import (
 )
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
-"""This node fixer takes a Bean Machine Graph builder and attempts to
-rewrite binary multiplications that involve a matrix and a scalar into
-a matrix_scale node.
-"""
-
 
 def matrix_scale_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+    """This node fixer attempts to rewrite binary multiplications that involve
+    a matrix and a scalar into a matrix_scale node."""
+
     def fixer(n: bn.BMGNode) -> NodeFixerResult:
         # A matrix multiplication is fixable (to matrix_scale) if it is
         # a binary multiplication with non-singleton result type
@@ -43,5 +41,25 @@ def matrix_scale_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
         else:
             scalar, matrix = left, right
         return bmg.add_matrix_scale(scalar, matrix)
+
+    return fixer
+
+
+def trivial_matmul_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+    """This node fixer attempts to rewrite matrix multiplications of two scalars
+    into an ordinary multiplication."""
+
+    def fixer(n: bn.BMGNode) -> NodeFixerResult:
+        if not isinstance(n, bn.MatrixMultiplicationNode):
+            return Inapplicable
+        left = n.inputs[0]
+        left_type = typer[left]
+        if not left_type.is_singleton():
+            return Inapplicable
+        right = n.inputs[1]
+        right_type = typer[right]
+        if not right_type.is_singleton():
+            return Inapplicable
+        return bmg.add_multiplication(left, right)
 
     return fixer
