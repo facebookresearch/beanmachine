@@ -27,7 +27,8 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         if torch.isnan(accept_log_prob):
             return
         accept_prob = accept_log_prob.exp()
-        if world[self.node].shape[0] == 1:
+        val_shape = world[self.node].shape
+        if len(val_shape) == 0 or val_shape[0] == 1:
             target_acc_rate = self.target_acc_rate[False]
             c = torch.reciprocal(target_acc_rate)
         else:
