@@ -12,12 +12,9 @@ from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
 from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
 from beanmachine.ppl.compiler.fix_problem import (
-    Fatal,
-    Inapplicable,
-    NodeFixerResult,
     NodeFixer,
     GraphFixer,
-    ancestors_first_graph_fixer,
+    edge_error_pass,
     node_fixer_first_match,
     type_guard,
 )
@@ -316,31 +313,32 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
 # move this check for unsupported constant value to AFTER that rewrite.
 
 
-def _check_supported(n: bn.BMGNode) -> NodeFixerResult:
-    # Constants that can be converted to constant nodes of the appropriate type
-    # will be converted in the requirements checking pass. Here we just detect
-    # constants that cannot possibly be supported because they are the wrong
-    # dimensionality.
-    if isinstance(n, bn.ConstantNode):
-        t = bt.type_of_value(n.value)
-        return Fatal if t == bt.Tensor or t == bt.Untypable else Inapplicable
-    return Inapplicable if is_supported_by_bmg(n) else Fatal
-
-
 def unsupported_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
     def _error_for_unsupported_node(n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
         # Consider fixing this.
-        unsupported_node = n.inputs[index]
+
+        # Constants that can be converted to constant nodes of the appropriate type
+        # will be converted in the requirements checking pass. Here we just detect
+        # constants that cannot possibly be supported because they are the wrong
+        # dimensionality.
+
+        parent = n.inputs[index]
+
+        if isinstance(parent, bn.ConstantNode):
+            t = bt.type_of_value(parent.value)
+            if t != bt.Tensor and t != bt.Untypable:
+                return None
+
+        if is_supported_by_bmg(parent):
+            return None
+
         return UnsupportedNode(
-            unsupported_node,
+            parent,
             n,
             get_edge_label(n, index),
-            bmg.execution_context.node_locations(unsupported_node),
+            bmg.execution_context.node_locations(parent),
         )
 
-    # TODO: Make the typer optional
-    return ancestors_first_graph_fixer(
-        bmg, LatticeTyper(), _check_supported, _error_for_unsupported_node
-    )
+    return edge_error_pass(bmg, _error_for_unsupported_node)

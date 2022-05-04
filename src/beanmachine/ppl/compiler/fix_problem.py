@@ -170,6 +170,34 @@ def ancestors_first_graph_fixer(  # noqa
     return ancestors_first
 
 
+def edge_error_pass(
+    bmg: BMGraphBuilder, get_error: Callable[[bn.BMGNode, int], Optional[BMGError]]
+) -> GraphFixer:
+    """Given a function that takes an edge in the graph and returns an optional error,
+    build a pass which checks for errors every edge in the graph that is an ancestor
+    of a query, observation, or sample. The edge is given as the descendant node and
+    the index of the parent node."""
+
+    def error_pass() -> Tuple[bool, ErrorReport]:
+        errors = ErrorReport()
+        reported = set()
+        nodes = bmg.all_ancestor_nodes()
+        for node in nodes:
+            for i in range(len(node.inputs)):
+                parent = node.inputs[i]
+                # We might find errors on many edges, but we only report
+                # one error per parent node.
+                if parent in reported:
+                    continue
+                error = get_error(node, i)
+                if error is not None:
+                    errors.add_error(error)
+                    reported.add(parent)
+        return False, errors
+
+    return error_pass
+
+
 def sequential_graph_fixer(fixers: List[GraphFixer]) -> GraphFixer:
     """Takes a list of graph fixers and applies each in turn once unless one fails."""
 
