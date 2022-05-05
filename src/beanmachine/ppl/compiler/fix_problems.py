@@ -16,7 +16,10 @@ from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
 from beanmachine.ppl.compiler.fix_bool_arithmetic import bool_arithmetic_fixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import bool_comparison_fixer
 from beanmachine.ppl.compiler.fix_logsumexp import logsumexp_fixer
-from beanmachine.ppl.compiler.fix_matrix_scale import matrix_scale_fixer
+from beanmachine.ppl.compiler.fix_matrix_scale import (
+    matrix_scale_fixer,
+    trivial_matmul_fixer,
+)
 from beanmachine.ppl.compiler.fix_multiary_ops import (
     multiary_addition_fixer,
     multiary_multiplication_fixer,
@@ -66,6 +69,7 @@ _arithmetic_fixer_factories: List[
     matrix_scale_fixer,
     multiary_addition_fixer,
     multiary_multiplication_fixer,
+    trivial_matmul_fixer,
     unsupported_node_fixer,
 ]
 
