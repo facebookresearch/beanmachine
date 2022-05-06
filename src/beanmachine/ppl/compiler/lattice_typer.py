@@ -161,8 +161,9 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.ExpNode: self._type_exp,
             bn.IfThenElseNode: self._type_if,
             bn.LogNode: self._type_log,
-            bn.MultiplicationNode: self._type_multiplication,
+            bn.MatrixMultiplicationNode: self._type_matrix_multiplication,
             bn.MatrixScaleNode: self._type_matrix_scale,
+            bn.MultiplicationNode: self._type_multiplication,
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
@@ -290,6 +291,21 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         if bt.supremum(it, bt.Real) == bt.Real:
             return it
         return bt.Real
+
+    def _type_matrix_multiplication(
+        self, node: bn.MatrixMultiplicationNode
+    ) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 2
+        lt = self[node.left]
+        assert lt is not bt.Untypable
+        assert isinstance(lt, bt.BMGMatrixType)
+        rt = self[node.right]
+        assert rt is not bt.Untypable
+        assert isinstance(rt, bt.BMGMatrixType)
+        # Note that we do not detect here if lt.columns != rt.rows, which would
+        # be illegal. We assume the type of the output is a real matrix with
+        # lt.rows and rt.columns. That error condition will be checked elsewhere.
+        return bt.RealMatrix(lt.rows, rt.columns)
 
     def _type_matrix_scale(self, node: bn.MatrixScaleNode) -> bt.BMGLatticeType:
         assert len(node.inputs) == 2
