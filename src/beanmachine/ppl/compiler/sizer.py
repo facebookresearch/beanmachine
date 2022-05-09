@@ -234,9 +234,18 @@ class Sizer(TyperBase[Size]):
         # TODO: Torch supports both broadcasting and non-broadcasting versions
         # of matrix multiplication. We might need to track both separately and
         # ensure that we compute size, support, and so on, accordingly.
+        #
+        # The behavior of mm is: both operands must be a matrix.
+        # The behavior of matmul is:
+        # * do the dot product if both operands are 1-d
+        # * do the matrix product if both operands are 2-d
+        # * 1-d matmul 2-d converts the 1-d to 2-d and does matrix product
+        # * 2-d matmul 1-d converts the 1-d to 2-d, transposes it and does
+        #   matrix product
+        # * n-dimensional cases are complicated.
         left = torch.zeros(self[node.left])
         right = torch.zeros(self[node.right])
-        return left.mm(right).size()
+        return left.matmul(right).size()
 
     def _size_switch(self, node: bn.SwitchNode) -> Size:
         s = self[node.inputs[2]]
