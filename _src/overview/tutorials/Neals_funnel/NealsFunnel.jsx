@@ -1,64 +1,64 @@
 import React from 'react';
 import { PlotlyFigure } from '../../../../website/src/components/Plotting.jsx';
 
-export const PlotlyFigure1efad47dec1a45e6b01318af1d46e27c = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigure1efad47d-ec1a-45e6-b013-18af1d46e27c.json";
+export const PlotlyFigure3339f5a7e4654093832907fd487759e2 = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigure3339f5a7-e465-4093-8329-07fd487759e2.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFiguredcd6190bdbf14a31b3a10f1ba61e950b = () => {
-  const pathToData = "./assets/plot_data/PlotlyFiguredcd6190b-dbf1-4a31-b3a1-0f1ba61e950b.json";
+export const PlotlyFigureef38fc5d9f214b03b319ba3c05eb3ffa = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigureef38fc5d-9f21-4b03-b319-ba3c05eb3ffa.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigure4e80543bada84f5b9116fb0a47be7d25 = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigure4e80543b-ada8-4f5b-9116-fb0a47be7d25.json";
+export const PlotlyFigured914c8a9918c4236bd2256adb693edb4 = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigured914c8a9-918c-4236-bd22-56adb693edb4.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigurea2b9452bf9d04f5996182bcec01d6ba9 = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigurea2b9452b-f9d0-4f59-9618-2bcec01d6ba9.json";
+export const PlotlyFigure482d1f5d7fc14d3cbb94fd6e87474026 = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigure482d1f5d-7fc1-4d3c-bb94-fd6e87474026.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigureef06ef32ec424ba68b6bd7dc1bd92e58 = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigureef06ef32-ec42-4ba6-8b6b-d7dc1bd92e58.json";
+export const PlotlyFigure1638824a1c854413bb88d65491258ebd = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigure1638824a-1c85-4413-bb88-d65491258ebd.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigure28021bd59bb44fc0bc0ac1424c77c35d = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigure28021bd5-9bb4-4fc0-bc0a-c1424c77c35d.json";
+export const PlotlyFigure7879838904b84ffb8448bb6b66a47590 = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigure78798389-04b8-4ffb-8448-bb6b66a47590.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigure89c4ecc7b4e54286a7deab1b7bb2fc1a = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigure89c4ecc7-b4e5-4286-a7de-ab1b7bb2fc1a.json";
+export const PlotlyFigurec48f6d60f6194f6d961d8c7314613fae = () => {
+  const pathToData = "./assets/plot_data/PlotlyFigurec48f6d60-f619-4f6d-961d-8c7314613fae.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
   return <PlotlyFigure data={data} layout={layout} />
 };
 
-export const PlotlyFigurec81549b271234b3f8cc054072124e496 = () => {
-  const pathToData = "./assets/plot_data/PlotlyFigurec81549b2-7123-4b3f-8cc0-54072124e496.json";
+export const PlotlyFiguref4619d1f9b8f43bb9c3db9179cfcd7b0 = () => {
+  const pathToData = "./assets/plot_data/PlotlyFiguref4619d1f-9b8f-43bb-9c3d-b9179cfcd7b0.json";
   const plotData = React.useMemo(() => require(`${pathToData}`), []);
   const data = plotData["data"];
   const layout = plotData["layout"];
