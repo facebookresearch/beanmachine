@@ -12,6 +12,27 @@
 namespace beanmachine {
 namespace oper {
 
+/*
+ * Transposes a non-scalar parent.
+ */
+class Transpose : public Operator {
+ public:
+  explicit Transpose(const std::vector<graph::Node*>& in_nodes);
+  ~Transpose() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override {}
+  void compute_gradients() override {}
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<Transpose>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class MatrixMultiply : public Operator {
  public:
   explicit MatrixMultiply(const std::vector<graph::Node*>& in_nodes);

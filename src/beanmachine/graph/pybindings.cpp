@@ -72,6 +72,7 @@ PYBIND11_MODULE(graph, module) {
       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
       .value("LOG", OperatorType::LOG)
       .value("POW", OperatorType::POW)
+      .value("TRANSPOSE", OperatorType::TRANSPOSE)
       .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
       .value("MATRIX_SCALE", OperatorType::MATRIX_SCALE)
       .value("TO_PROBABILITY", OperatorType::TO_PROBABILITY)

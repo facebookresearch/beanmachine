@@ -112,6 +112,10 @@ bool Log::is_registered =
     OperatorFactory::register_op(graph::OperatorType::LOG, &(Log::new_op));
 
 // linear algebra op
+bool Transpose::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::TRANSPOSE,
+    &(Transpose::new_op));
+
 bool MatrixMultiply::is_registered = OperatorFactory::register_op(
     graph::OperatorType::MATRIX_MULTIPLY,
     &(MatrixMultiply::new_op));

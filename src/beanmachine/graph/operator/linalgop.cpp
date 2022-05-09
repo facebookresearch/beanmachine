@@ -27,6 +27,30 @@ data is stored in _matrix.
 namespace beanmachine {
 namespace oper {
 
+Transpose::Transpose(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::TRANSPOSE) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("TRANSPOSE requires one parent node");
+  }
+  graph::ValueType type = in_nodes[0]->value.type;
+  if (type.variable_type == graph::VariableType::SCALAR) {
+    throw std::invalid_argument("TRANSPOSE cannot have a SCALAR parent");
+  }
+  CHECK_TYPE_DOUBLE(type.atomic_type, "TRANSPOSE")
+  graph::ValueType new_type = graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      type.atomic_type,
+      type.rows,
+      type.cols);
+
+  value = graph::NodeValue(new_type);
+}
+
+void Transpose::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = in_nodes[0]->value._matrix.transpose();
+}
+
 MatrixMultiply::MatrixMultiply(const std::vector<graph::Node*>& in_nodes)
     : Operator(graph::OperatorType::MATRIX_MULTIPLY) {
   if (in_nodes.size() != 2) {

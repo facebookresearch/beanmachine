@@ -1219,6 +1219,40 @@ def f_grad(x):
   EXPECT_NEAR(grad1[4]->coeff(1), 13.9038, 1e-3);
 }
 
+TEST(testoperator, transpose) {
+  Graph g;
+  // empty initialization
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{}),
+      std::invalid_argument);
+  // incorrect types
+  auto b1 = g.add_constant(true);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{b1}),
+      std::invalid_argument);
+  // transpose a scalar
+  auto cr1 = g.add_constant_pos_real(1.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{cr1}),
+      std::invalid_argument);
+
+  // transpose a matrix
+  Eigen::MatrixXd m1(2, 2);
+  m1 << 1.0, 2.0, 3.0, 4.0;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  uint cm1t = g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{cm1});
+  auto cm1t_node = g.get_node(cm1t);
+  std::mt19937 generator(31245);
+  cm1t_node->eval(generator);
+  auto result = cm1t_node->value;
+
+  EXPECT_EQ(result.type.variable_type, graph::VariableType::BROADCAST_MATRIX);
+  EXPECT_EQ(result._matrix(0, 0), 1.0);
+  EXPECT_EQ(result._matrix(0, 1), 3.0);
+  EXPECT_EQ(result._matrix(1, 0), 2.0);
+  EXPECT_EQ(result._matrix(1, 1), 4.0);
+}
+
 TEST(testoperator, index) {
   Graph g;
   // negative initialization

@@ -323,6 +323,7 @@ enum class OperatorType {
   LOG,
   POW,
   LOG1MEXP,
+  TRANSPOSE,
   MATRIX_MULTIPLY,
   MATRIX_SCALE,
   TO_PROBABILITY,
