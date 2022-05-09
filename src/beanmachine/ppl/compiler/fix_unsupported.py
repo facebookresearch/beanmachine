@@ -10,11 +10,17 @@ import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
-from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
+from beanmachine.ppl.compiler.error_report import (
+    BadMatrixMultiplication,
+    BMGError,
+    UnsupportedNode,
+    UntypableNode,
+)
 from beanmachine.ppl.compiler.fix_problem import (
     NodeFixer,
     GraphFixer,
     edge_error_pass,
+    node_error_pass,
     node_fixer_first_match,
     type_guard,
 )
@@ -342,3 +348,53 @@ def unsupported_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
         )
 
     return edge_error_pass(bmg, _error_for_unsupported_node)
+
+
+def bad_matmul_reporter(bmg: BMGraphBuilder) -> GraphFixer:
+    typer = LatticeTyper()
+
+    def get_error(node: bn.BMGNode) -> Optional[BMGError]:
+        if not isinstance(node, bn.MatrixMultiplicationNode):
+            return None
+
+        # If an operand is bad then we'll produce an error later. This
+        # pass just looks for row/column mismatches.
+        lt = typer[node.left]
+        if not isinstance(lt, bt.BMGMatrixType):
+            return None
+        rt = typer[node.right]
+        if not isinstance(rt, bt.BMGMatrixType):
+            return None
+        if lt.columns == rt.rows:
+            return None
+        return BadMatrixMultiplication(
+            node, lt, rt, bmg.execution_context.node_locations(node)
+        )
+
+    return node_error_pass(bmg, get_error)
+
+
+def untypable_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
+    # By the time this pass runs every node in the graph should
+    # be a valid BMG node (except constants, which are rewritten later)
+    # and therefore should have a valid type. Later passes rely on this
+    # invariant, so if it is violated, let's find out now and stop
+    # the compiler rather than producing some strange error later on.
+    typer = LatticeTyper()
+
+    def get_error(node: bn.BMGNode) -> Optional[BMGError]:
+        # If a node is untypable then all its descendants will be too.
+        # We do not want to produce a cascading error here so let's just
+        # report the nodes that are untypable who have no untypable parents.
+        if isinstance(node, bn.ConstantNode):
+            return None
+        t = typer[node]
+        if t != bt.Untypable and t != bt.Tensor:
+            return None
+        for i in node.inputs:
+            t = typer[i]
+            if t == bt.Untypable or t == bt.Tensor:
+                return None
+        return UntypableNode(node, bmg.execution_context.node_locations(node))
+
+    return node_error_pass(bmg, get_error)

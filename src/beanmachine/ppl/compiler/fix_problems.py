@@ -40,8 +40,10 @@ from beanmachine.ppl.compiler.fix_problem import (
 )
 from beanmachine.ppl.compiler.fix_requirements import requirements_fixer
 from beanmachine.ppl.compiler.fix_unsupported import (
+    bad_matmul_reporter,
     unsupported_node_fixer,
     unsupported_node_reporter,
+    untypable_node_reporter,
 )
 from beanmachine.ppl.compiler.fix_vectorized_models import (
     vectorized_observation_fixer,
@@ -109,6 +111,8 @@ def fix_problems(
         [
             arithmetic_graph_fixer(skip_optimizations, bmg),
             unsupported_node_reporter(bmg),
+            bad_matmul_reporter(bmg),
+            untypable_node_reporter(bmg),
             conjugacy_graph_fixer(skip_optimizations, bmg),
             requirements_fixer(bmg),
             observations_fixer(bmg),

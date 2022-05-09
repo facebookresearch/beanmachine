@@ -9,9 +9,15 @@ when compiling Bean Machine models to Bean Machine Graph."""
 from abc import ABC
 from typing import List, Set
 
-from beanmachine.ppl.compiler.bmg_nodes import BMGNode, Observation, SampleNode
+from beanmachine.ppl.compiler.bmg_nodes import (
+    BMGNode,
+    Observation,
+    SampleNode,
+    MatrixMultiplicationNode,
+)
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
+    BMGMatrixType,
     Requirement,
     requirement_to_type,
 )
@@ -121,6 +127,66 @@ class UnsupportedNode(BMGError):
         else:
             msg += f"\nThe unsupported node is the {self.edge} "
             msg += f"of {a_or_an(get_node_error_label(self.consumer))}."
+
+        return msg
+
+
+class BadMatrixMultiplication(BMGError):
+    node: MatrixMultiplicationNode
+    left_type: BMGMatrixType
+    right_type: BMGMatrixType
+    node_locations: Set[FunctionCall]
+
+    def __init__(
+        self,
+        node: MatrixMultiplicationNode,
+        left_type: BMGMatrixType,
+        right_type: BMGMatrixType,
+        node_locations: Set[FunctionCall],
+    ) -> None:
+        self.node = node
+        self.left_type = left_type
+        self.right_type = right_type
+        self.node_locations = node_locations
+
+    def __str__(self) -> str:
+        # TODO: Improve wording and diagnosis.
+        msg = f"The model uses {a_or_an(get_node_error_label(self.node))} "
+        msg += "operation unsupported by Bean Machine Graph.\nThe dimensions of the"
+        msg += f" operands are {self.left_type.rows}x{self.left_type.columns} and "
+        msg += f"{self.right_type.rows}x{self.right_type.columns}."
+
+        if len(self.node_locations) > 0:
+            msg += "\nThe unsupported node was created in function call "
+            msg += ", ".join(sorted(str(loc) for loc in self.node_locations))
+            msg += "."
+
+        return msg
+
+
+class UntypableNode(BMGError):
+    node: BMGNode
+    node_locations: Set[FunctionCall]
+
+    def __init__(
+        self,
+        node: BMGNode,
+        node_locations: Set[FunctionCall],
+    ) -> None:
+        self.node = node
+        self.node_locations = node_locations
+
+    def __str__(self) -> str:
+        msg = "INTERNAL COMPILER ERROR: Untypable node\n"
+        msg += "(This indicates a defect in the compiler, not in the model.)\n"
+        msg = f"The model uses {a_or_an(get_node_error_label(self.node))} node.\n"
+        msg += "The compiler is unable to determine its type in the Bean Machine Graph"
+        msg += " type system."
+
+        if len(self.node_locations) > 0:
+            msg += "\nThe untypable node was created in function call "
+            msg += ", ".join(sorted(str(loc) for loc in self.node_locations))
+            msg += "."
 
         return msg
 
