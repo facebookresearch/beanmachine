@@ -198,6 +198,25 @@ def edge_error_pass(
     return error_pass
 
 
+def node_error_pass(
+    bmg: BMGraphBuilder, get_error: Callable[[bn.BMGNode], Optional[BMGError]]
+) -> GraphFixer:
+    """Given a function that takes an node in the graph and returns an optional error,
+    build a pass which checks for errors every node in the graph that is an ancestor
+    of a query, observation, or sample."""
+
+    def error_pass() -> Tuple[bool, ErrorReport]:
+        errors = ErrorReport()
+        nodes = bmg.all_ancestor_nodes()
+        for node in nodes:
+            error = get_error(node)
+            if error is not None:
+                errors.add_error(error)
+        return False, errors
+
+    return error_pass
+
+
 def sequential_graph_fixer(fixers: List[GraphFixer]) -> GraphFixer:
     """Takes a list of graph fixers and applies each in turn once unless one fails."""
 

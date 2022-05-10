@@ -50,14 +50,8 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     # Operators
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
-    # TODO: We haven't implemented restrictions on matmul yet. What we need to do is:
-    #
-    # (1) create an error handling pass that looks for violations of the size rules.
-    # That is, we need both operands to be matrices, and their sizes must be (a, b) and
-    # (b, c).  Do not attempt to express this rule as a requirement on edges because
-    # it's unclear which edge is the bad one and there's no obvious way to fix it.
-    #
-    # (2) We'll need a special requirement with the semantics "input must be a matrix
+    # TODO: We haven't implemented restrictions on matmul yet.
+    # We'll need a special requirement with the semantics "input must be a matrix
     # with real, +real, -real or prob elements". To meet the requirement if unmet we
     # can simply insert a ToRealMatrix node.
     bn.MatrixMultiplicationNode: [bt.AnyRequirement(), bt.AnyRequirement()],
