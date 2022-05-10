@@ -49,7 +49,12 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
 
         if is_constraint_eq(node_support, dist.constraints.real):
             return dist.Normal(node.value, self.step_size)
-        elif is_constraint_eq(node_support, dist.constraints.greater_than):
+        elif any(
+            is_constraint_eq(
+                node_support,
+                (dist.constraints.greater_than, dist.constraints.greater_than_eq),
+            )
+        ):
             lower_bound = node_support.lower_bound
             proposal_distribution = self.gamma_dist_from_moments(
                 node.value - lower_bound, self.step_size ** 2

@@ -73,7 +73,12 @@ class SingleSiteNewtonianMonteCarlo(BaseInference):
         support = distribution.support
         if is_constraint_eq(support, dist.constraints.real):
             return SingleSiteRealSpaceNMCProposer(node, self.alpha, self.beta)
-        elif is_constraint_eq(support, dist.constraints.greater_than):
+        elif any(
+            is_constraint_eq(
+                support,
+                (dist.constraints.greater_than, dist.constraints.greater_than_eq),
+            )
+        ):
             return SingleSiteHalfSpaceNMCProposer(node)
         elif is_constraint_eq(support, dist.constraints.simplex) or (
             isinstance(support, dist.constraints.independent)
