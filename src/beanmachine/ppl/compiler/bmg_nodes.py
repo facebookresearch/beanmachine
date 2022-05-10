@@ -8,6 +8,7 @@ from typing import Any, Iterable, List
 
 import beanmachine.ppl.compiler.bmg_types as bt
 import torch
+import gg_algebra
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor
 
@@ -513,6 +514,10 @@ class NormalNode(DistributionNode):
     @property
     def sigma(self) -> BMGNode:
         return self.inputs[1]
+    
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        return gg_algebra.normal(self.mu.value, self.sigma.value)
 
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
@@ -615,7 +620,16 @@ class AdditionNode(OperatorNode):
 
     def __str__(self) -> str:
         return "(" + "+".join([str(inp) for inp in self.inputs]) + ")"
-
+        
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        acc = None
+        for node in self.inputs:
+            if acc is None:
+                acc = node.gga
+            else:
+                acc += node.gga
+        return acc
 
 class MultiplicationNode(OperatorNode):
     """This represents multiplication of values."""
@@ -626,7 +640,16 @@ class MultiplicationNode(OperatorNode):
 
     def __str__(self) -> str:
         return "(" + "*".join([str(inp) for inp in self.inputs]) + ")"
-
+          
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        acc = None
+        for node in self.inputs:
+            if acc is None:
+                acc = node.gga
+            else:
+                acc *= node.gga
+        return acc
 
 # We have three kinds of logsumexp nodes.
 #
@@ -869,6 +892,10 @@ class DivisionNode(BinaryOperatorNode):
 
     def __str__(self) -> str:
         return "(" + str(self.left) + "/" + str(self.right) + ")"
+    
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        return self.left.gga / self.right.gga
 
 
 class FloorDivNode(BinaryOperatorNode):
@@ -1241,6 +1268,10 @@ class SampleNode(UnaryOperatorNode):
         assert isinstance(c, DistributionNode)
         return c
 
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        return self.operand.gga
+    
     def __str__(self) -> str:
         return "Sample(" + str(self.operand) + ")"
 

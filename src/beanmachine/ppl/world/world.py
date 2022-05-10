@@ -104,8 +104,14 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             # recursively add parent nodes to the graph
             for node in queries:
                 world.call(node)
+                # print(
+                #     node, 
+                #     world.get_variable(node),
+                #     world.get_variable(node).log_prob)
             for node in observations:
                 world.call(node)
+                # print(node, world.get_variable(node))
+            # print('='*10)
 
             # check if the initial state is valid
             log_prob = world.log_prob()
