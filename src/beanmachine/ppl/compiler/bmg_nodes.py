@@ -1245,6 +1245,14 @@ class SampleNode(UnaryOperatorNode):
         return "Sample(" + str(self.operand) + ")"
 
 
+class SumNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Sum(" + str(self.operand) + ")"
+
+
 class ToRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)

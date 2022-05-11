@@ -83,6 +83,7 @@ _always_scalar: Set[type] = {
     bn.ItemNode,
     bn.NotInNode,
     bn.NotNode,
+    bn.SumNode,
     bn.ToIntNode,
     bn.ToNegativeRealNode,
     bn.ToRealNode,
