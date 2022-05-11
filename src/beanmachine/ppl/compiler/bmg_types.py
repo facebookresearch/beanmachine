@@ -745,6 +745,17 @@ class AnyRequirement(BaseRequirement):
 any_requirement = AnyRequirement()
 
 
+class AnyRealMatrix(BaseRequirement):
+    # BMG's matrix multiplication node requires that both inputs be
+    # a real, positive real, negative real or probability matrix.
+    # This singleton represents that requirement.
+    def __init__(self) -> None:
+        BaseRequirement.__init__(self, "ARM", "any real matrix")
+
+
+any_real_matrix = AnyRealMatrix()
+
+
 # TODO: Memoize these, remove memoization of construction functions below.
 class UpperBound(BaseRequirement):
     bound: BMGLatticeType
@@ -803,6 +814,8 @@ def must_be_matrix(r: Requirement) -> bool:
     """Does the requirement indicate that the edge must be a matrix?"""
     if r is any_requirement:
         return False
+    if r is any_real_matrix:
+        return True
     if isinstance(r, AlwaysMatrix):
         return True
     t = requirement_to_type(r)

@@ -10,7 +10,7 @@ import beanmachine.ppl as bm
 import torch
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Normal
+from torch.distributions import Bernoulli, Binomial, Normal
 
 
 m1 = tensor([[12.0, 13.0], [14.0, 15.0]])
@@ -64,6 +64,26 @@ def matmul_bad_dimensions():
     n = norm()  # 2x2
     m = torch.eye(3)  # 3x3
     return n @ m
+
+
+@bm.random_variable
+def bern():
+    return Bernoulli(0.5)
+
+
+@bm.random_variable
+def bino():
+    return Binomial(5, 0.5)
+
+
+@bm.functional
+def bool_times_nat():
+    b1 = torch.tensor([[0, 1], [0, 1]])
+    b2 = torch.tensor([[0, bern()], [bern(), 1]])
+    n1 = torch.tensor([[1, bino()], [bino(), 2]])
+    n2 = torch.tensor([[2, 3], [4, 5]])
+
+    return b1 @ b2 @ n1 @ n2
 
 
 class MatMulTest(unittest.TestCase):
@@ -137,3 +157,57 @@ The model uses a matrix multiplication (@) operation unsupported by Bean Machine
 The dimensions of the operands are 2x2 and 3x3.
 The unsupported node was created in function call matmul_bad_dimensions()."""
         self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        expected = """
+digraph "graph" {
+  N00[label=0.5];
+  N01[label=Bernoulli];
+  N02[label=Sample];
+  N03[label=5];
+  N04[label=Binomial];
+  N05[label=Sample];
+  N06[label="[[0,1],\\\\n[0,1]]"];
+  N07[label=2];
+  N08[label=False];
+  N09[label=True];
+  N10[label=ToMatrix];
+  N11[label=ToRealMatrix];
+  N12[label="@"];
+  N13[label=1];
+  N14[label=ToMatrix];
+  N15[label=ToRealMatrix];
+  N16[label="@"];
+  N17[label="[[2,3],\\\\n[4,5]]"];
+  N18[label="@"];
+  N19[label=Query];
+  N00 -> N01;
+  N00 -> N04;
+  N01 -> N02;
+  N02 -> N10;
+  N02 -> N10;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N14;
+  N05 -> N14;
+  N06 -> N12;
+  N07 -> N10;
+  N07 -> N10;
+  N07 -> N14;
+  N07 -> N14;
+  N07 -> N14;
+  N08 -> N10;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N16;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N18;
+  N17 -> N18;
+  N18 -> N19;
+}
+        """
+
+        observed = BMGInference().to_dot([bool_times_nat()], {})
+        self.assertEqual(expected.strip(), observed.strip())

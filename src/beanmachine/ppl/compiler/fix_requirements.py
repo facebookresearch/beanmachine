@@ -23,6 +23,18 @@ from beanmachine.ppl.compiler.internal_error import InternalError
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
+def _is_real_matrix(t: bt.BMGLatticeType) -> bool:
+    return any(
+        isinstance(t, m)
+        for m in {
+            bt.RealMatrix,
+            bt.PositiveRealMatrix,
+            bt.NegativeRealMatrix,
+            bt.ProbabilityMatrix,
+        }
+    )
+
+
 class RequirementsFixer:
     """This class takes a Bean Machine Graph builder and attempts to
     fix violations of BMG type system requirements.
@@ -49,6 +61,8 @@ class RequirementsFixer:
         assert t != bt.Untypable
         if r is bt.any_requirement:
             return True
+        if r is bt.any_real_matrix:
+            return _is_real_matrix(t)
         if isinstance(r, bt.UpperBound):
             return bt.supremum(t, r.bound) == r.bound
         if isinstance(r, bt.AlwaysMatrix):
@@ -61,6 +75,10 @@ class RequirementsFixer:
         if isinstance(r, bt.AlwaysMatrix):
             return self._typer.is_matrix(node) and self._type_meets_requirement(
                 lattice_type, r.bound
+            )
+        if r is bt.any_real_matrix:
+            return self._typer.is_matrix(node) and self._type_meets_requirement(
+                lattice_type, r
             )
         return self._type_meets_requirement(lattice_type, r)
 
@@ -84,6 +102,17 @@ class RequirementsFixer:
         # NOTE: By this point we should have already rejected any graph that contains
         # a reachable but untypable constant node.  See comment in fix_unsupported
         # regarding UntypedConstantNode support.
+
+        if requirement is bt.any_real_matrix:
+            if _is_real_matrix(it):
+                # It's already an R, R+, R- or P matrix, but it might be a single
+                # value. Ensure that it is marked as a matrix, not a single value.
+                assert isinstance(it, bt.BMGMatrixType)
+                return self.bmg.add_constant_of_matrix_type(node.value, it)
+            else:
+                # It's some other type, such as Boolean or Natural matrix.
+                # Emit the value as the equivalent real matrix:
+                return self.bmg.add_real_matrix(node.value)
 
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
             if requirement is bt.any_requirement:
@@ -270,7 +299,9 @@ class RequirementsFixer:
         # meets an upper bound requirement, then the conversion we want exists.
 
         node_type = self._typer[node]
-        if self._type_meets_requirement(node_type, bt.upper_bound(requirement)):
+        if requirement is bt.any_real_matrix:
+            result = self.bmg.add_to_real_matrix(node)
+        elif self._type_meets_requirement(node_type, bt.upper_bound(requirement)):
             # If we got here then the node did NOT meet the requirement,
             # but its type DID meet an upper bound requirement, which
             # implies that the requirement was not an upper bound requirement.

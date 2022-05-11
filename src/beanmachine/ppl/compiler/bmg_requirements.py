@@ -50,11 +50,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     # Operators
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
-    # TODO: We haven't implemented restrictions on matmul yet.
-    # We'll need a special requirement with the semantics "input must be a matrix
-    # with real, +real, -real or prob elements". To meet the requirement if unmet we
-    # can simply insert a ToRealMatrix node.
-    bn.MatrixMultiplicationNode: [bt.any_requirement, bt.any_requirement],
+    bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],
     bn.PhiNode: [bt.Real],
     bn.ToIntNode: [bt.upper_bound(bt.Real)],
     bn.ToNegativeRealNode: [bt.Real],
