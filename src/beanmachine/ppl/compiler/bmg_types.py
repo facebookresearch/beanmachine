@@ -737,12 +737,15 @@ class BaseRequirement:
         self.long_name = long_name
 
 
-# TODO: Memoize these, remove memoization of construction functions below.
 class AnyRequirement(BaseRequirement):
     def __init__(self) -> None:
         BaseRequirement.__init__(self, "any", "any")
 
 
+any_requirement = AnyRequirement()
+
+
+# TODO: Memoize these, remove memoization of construction functions below.
 class UpperBound(BaseRequirement):
     bound: BMGLatticeType
 
@@ -774,7 +777,7 @@ def upper_bound(bound: Requirement) -> BaseRequirement:
         return upper_bound(bound.bound)
     if isinstance(bound, BMGLatticeType):
         return UpperBound(bound)
-    assert isinstance(bound, AnyRequirement)
+    assert bound is any_requirement
     return bound
 
 
@@ -798,7 +801,7 @@ def requirement_to_type(r: Requirement) -> BMGLatticeType:
 
 def must_be_matrix(r: Requirement) -> bool:
     """Does the requirement indicate that the edge must be a matrix?"""
-    if isinstance(r, AnyRequirement):
+    if r is any_requirement:
         return False
     if isinstance(r, AlwaysMatrix):
         return True

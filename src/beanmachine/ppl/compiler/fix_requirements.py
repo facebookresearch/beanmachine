@@ -47,7 +47,7 @@ class RequirementsFixer:
 
     def _type_meets_requirement(self, t: bt.BMGLatticeType, r: bt.Requirement) -> bool:
         assert t != bt.Untypable
-        if isinstance(r, bt.AnyRequirement):
+        if r is bt.any_requirement:
             return True
         if isinstance(r, bt.UpperBound):
             return bt.supremum(t, r.bound) == r.bound
@@ -86,7 +86,7 @@ class RequirementsFixer:
         # regarding UntypedConstantNode support.
 
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
-            if isinstance(requirement, bt.AnyRequirement):
+            if requirement is bt.any_requirement:
                 # The lattice type of the constant might be Zero or One; in that case,
                 # generate a bool constant node.
                 required_type = bt.lattice_to_bmg(it)
