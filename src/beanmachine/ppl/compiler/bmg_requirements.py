@@ -35,8 +35,8 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # what their inputs are.
 
 _known_requirements: Dict[type, List[bt.Requirement]] = {
-    bn.Observation: [bt.AnyRequirement()],
-    bn.Query: [bt.AnyRequirement()],
+    bn.Observation: [bt.any_requirement],
+    bn.Query: [bt.any_requirement],
     # Distributions
     bn.BernoulliLogitNode: [bt.Real],
     bn.BernoulliNode: [bt.Probability],
@@ -54,7 +54,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     # We'll need a special requirement with the semantics "input must be a matrix
     # with real, +real, -real or prob elements". To meet the requirement if unmet we
     # can simply insert a ToRealMatrix node.
-    bn.MatrixMultiplicationNode: [bt.AnyRequirement(), bt.AnyRequirement()],
+    bn.MatrixMultiplicationNode: [bt.any_requirement, bt.any_requirement],
     bn.PhiNode: [bt.Real],
     bn.ToIntNode: [bt.upper_bound(bt.Real)],
     bn.ToNegativeRealNode: [bt.Real],
@@ -436,7 +436,7 @@ class EdgeRequirements:
         if input_count == 0:
             result = []
         elif self.typer[node] == bt.Untypable:
-            result = [bt.AnyRequirement()] * input_count
+            result = [bt.any_requirement] * input_count
         else:
             t = type(node)
             if t in _known_requirements:
@@ -444,7 +444,7 @@ class EdgeRequirements:
             elif t in self._dispatch:
                 result = self._dispatch[t](node)
             else:
-                result = [bt.AnyRequirement()] * input_count
+                result = [bt.any_requirement] * input_count
 
         assert _requirements_valid(node, result)
         return result
