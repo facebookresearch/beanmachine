@@ -103,6 +103,7 @@ _broadcast_the_inputs: Set[type] = {
     bn.BitOrNode,
     bn.BitXorNode,
     bn.Chi2Node,
+    bn.CholeskyNode,
     bn.ComplementNode,
     bn.DivisionNode,
     bn.DirichletNode,

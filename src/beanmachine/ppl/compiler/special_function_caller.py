@@ -401,6 +401,8 @@ class SpecialFunctionCaller:
             torch.bitwise_left_shift: self._torch_bitwise_left_shift,
             torch.Tensor.bitwise_right_shift: self._torch_bitwise_right_shift,  # pyre-ignore
             torch.bitwise_right_shift: self._torch_bitwise_right_shift,
+            torch.Tensor.cholesky: self._torch_cholesky,  # pyre-ignore
+            torch.linalg.cholesky: self._torch_cholesky,
             torch.Tensor.div: self._torch_div,
             torch.div: self._torch_div,
             torch.Tensor.divide: self._torch_div,  # pyre-ignore
@@ -867,6 +869,15 @@ class SpecialFunctionCaller:
         self, input: BMGNode, other: BMGNode, out: Any = None
     ) -> BMGNode:
         return self._bmg.add_bitxor(input, other)
+
+    def _torch_cholesky(
+        self,
+        input: BMGNode,
+        upper: Optional[BMGNode] = None,
+        out: Any = None,
+    ) -> BMGNode:
+        # TODO: What to do with upper?
+        return self._bmg.add_cholesky(input)
 
     def _torch_div(
         self,

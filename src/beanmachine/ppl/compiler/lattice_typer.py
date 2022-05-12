@@ -129,6 +129,7 @@ _constant_matrix_graph_types: Dict[type, bt.BMGMatrixType] = {
 # These are the node types which always represent a matrix in BMG.
 # Even if the node is a 1x1 matrix, it is a matrix and not an atomic value.
 _always_matrix_types: Set[type] = {
+    bn.CholeskyNode,
     bn.ColumnIndexNode,
     bn.ConstantBooleanMatrixNode,
     bn.ConstantNaturalMatrixNode,
@@ -155,6 +156,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             # Operators
             bn.AdditionNode: self._type_addition,
             bn.ChoiceNode: self._type_choice,
+            bn.CholeskyNode: self._type_cholesky,
             bn.ColumnIndexNode: self._type_column_index,
             bn.ComplementNode: self._type_complement,
             bn.ExpM1Node: self._type_expm1,
@@ -259,6 +261,10 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         if result == bt.Zero or result == bt.One:
             result = bt.Boolean
         return result
+
+    def _type_cholesky(self, node: bn.CholeskyNode) -> bt.BMGLatticeType:
+        # TODO: Check to see if the input is a square matrix.
+        return self[node.operand]
 
     def _type_index(self, node: bn.VectorIndexNode) -> bt.BMGLatticeType:
         # The lattice type of an index is derived from the lattice type of

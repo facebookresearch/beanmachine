@@ -92,6 +92,7 @@ _product_of_inputs = {
     bn.BitAndNode: torch.Tensor.__and__,
     bn.BitOrNode: torch.Tensor.__or__,
     bn.BitXorNode: torch.Tensor.__xor__,
+    bn.CholeskyNode: torch.Tensor.cholesky,  # pyre-ignore
     bn.DivisionNode: torch.Tensor.div,
     bn.EqualNode: torch.Tensor.eq,
     bn.ExpM1Node: torch.Tensor.expm1,  # pyre-ignore
