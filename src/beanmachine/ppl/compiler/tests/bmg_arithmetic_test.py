@@ -2640,15 +2640,49 @@ digraph "graph" {
             sum_3(),
             sum_4(),
         ]
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer(queries, {}, 1)
+
         expected = """
-The model uses a sum operation unsupported by Bean Machine Graph.
-The unsupported node was created in function call sum_3().
-The model uses a sum operation unsupported by Bean Machine Graph.
-The unsupported node was created in function call sum_4()."""
-        observed = str(ex.exception)
-        self.assertEqual(observed.strip(), expected.strip())
+digraph "graph" {
+  N00[label=3.0];
+  N01[label=Query];
+  N02[label=6.0];
+  N03[label=Query];
+  N04[label=2.0];
+  N05[label=Beta];
+  N06[label=Sample];
+  N07[label=0.0];
+  N08[label=1.0];
+  N09[label=Normal];
+  N10[label=Sample];
+  N11[label=ToReal];
+  N12[label=3.0];
+  N13[label="+"];
+  N14[label=Query];
+  N15[label=4.0];
+  N16[label="+"];
+  N17[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N04 -> N05;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N11;
+  N07 -> N09;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N13;
+  N10 -> N16;
+  N11 -> N13;
+  N11 -> N16;
+  N12 -> N13;
+  N13 -> N14;
+  N15 -> N16;
+  N16 -> N17;
+}
+"""
+        observed = BMGInference().to_dot(queries, {})
+
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_bmg_arithmetic_xor(self) -> None:
         self.maxDiff = None
