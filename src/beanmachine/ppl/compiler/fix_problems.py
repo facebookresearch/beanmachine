@@ -8,7 +8,7 @@ from typing import Callable, List, Set
 import beanmachine.ppl.compiler.profiler as prof
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
-from beanmachine.ppl.compiler.fix_additions import addition_fixer
+from beanmachine.ppl.compiler.fix_additions import addition_fixer, sum_fixer
 from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
     beta_bernoulli_conjugate_fixer,
     beta_binomial_conjugate_fixer,
@@ -71,6 +71,7 @@ _arithmetic_fixer_factories: List[
     matrix_scale_fixer,
     multiary_addition_fixer,
     multiary_multiplication_fixer,
+    sum_fixer,
     trivial_matmul_fixer,
     unsupported_node_fixer,
 ]
