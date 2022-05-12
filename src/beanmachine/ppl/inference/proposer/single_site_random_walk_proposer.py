@@ -57,7 +57,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         ):
             lower_bound = node_support.lower_bound
             proposal_distribution = self.gamma_dist_from_moments(
-                node.value - lower_bound, self.step_size ** 2
+                node.value - lower_bound, self.step_size**2
             )
             transform = dist.AffineTransform(loc=lower_bound, scale=1.0)
             transformed_proposal = dist.TransformedDistribution(
@@ -96,7 +96,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         :param sigma: sigma value
         :returns: returns the Beta distribution given mu and sigma.
         """
-        beta = expectation / (sigma ** 2)
+        beta = expectation / (sigma**2)
         beta = torch.clamp(beta, min=1e-3)
         alpha = expectation * beta
         alpha = torch.clamp(alpha, min=1e-3)
@@ -117,7 +117,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         https://stats.stackexchange.com/questions/12232/calculating-the-
         parameters-of-a-beta-distribution-using-the-mean-and-variance
         """
-        alpha = ((1.0 - mu) / (sigma ** 2) - (1.0 / mu)) * (mu ** 2)
+        alpha = ((1.0 - mu) / (sigma**2) - (1.0 / mu)) * (mu**2)
         beta = alpha * (1.0 / mu - 1.0)
         distribution = dist.Beta(concentration1=alpha, concentration0=beta)
         return distribution
@@ -134,5 +134,5 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         :param sigma: sigma value
         :returns: returns the Dirichlet distribution given mu and sigma.
         """
-        alpha = mu / (torch.norm(mu) * sigma ** 2)
+        alpha = mu / (torch.norm(mu) * sigma**2)
         return dist.Dirichlet(concentration=alpha)

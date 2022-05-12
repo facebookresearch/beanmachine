@@ -27,7 +27,7 @@ torch.manual_seed(11)
 # Model
 def normal_log_prob(mu, sigma, x):
     z = (x - mu) / sigma
-    return (-1.0 / 2.0) * math.log(2.0 * math.pi) - (z ** 2.0 / 2.0)
+    return (-1.0 / 2.0) * math.log(2.0 * math.pi) - (z**2.0 / 2.0)
 
 
 @bm.random_variable

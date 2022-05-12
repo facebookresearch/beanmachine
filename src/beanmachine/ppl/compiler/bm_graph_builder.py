@@ -676,7 +676,7 @@ class BMGraphBuilder:
     @memoize
     def add_power(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
-            return self.add_constant(left.value ** right.value)
+            return self.add_constant(left.value**right.value)
         node = bn.PowerNode(left, right)
         self.add_node(node)
         return node

@@ -32,7 +32,7 @@ class AbstractInference(object, metaclass=ABCMeta):
     """
 
     world_: World
-    _rand_int_max: ClassVar[int] = 2 ** 62
+    _rand_int_max: ClassVar[int] = 2**62
 
     def __init__(self):
         self.initial_world_ = World()

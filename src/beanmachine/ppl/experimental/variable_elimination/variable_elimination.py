@@ -64,6 +64,5 @@ try:
             """
             self.model = self.make_neuralpp_model(bm_model_info)
 
-
 except ImportError:
     pass

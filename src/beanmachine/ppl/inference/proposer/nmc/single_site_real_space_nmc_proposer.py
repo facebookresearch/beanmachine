@@ -197,7 +197,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         # alpha and beta are calculated following the link below.
         # https://stats.stackexchange.com/questions/12232/calculating-the-
         # parameters-of-a-beta-distribution-using-the-mean-and-variance
-        alpha = ((1.0 - new_mu) / new_var - (1.0 / new_mu)) * (new_mu ** 2)
+        alpha = ((1.0 - new_mu) / new_var - (1.0 / new_mu)) * (new_mu**2)
         beta = alpha * (1.0 - new_mu) / new_mu
         alpha = torch.where(alpha <= 0, torch.ones_like(alpha), alpha)
         beta = torch.where(beta <= 0, torch.ones_like(beta), beta)

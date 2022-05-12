@@ -99,11 +99,11 @@ class TestNMC(unittest.TestCase):
         SIGMA_X = 5.0
         SIGMA_Y = 2.0
         RHO = 0.7
-        x_sq_term = g.add_constant_real(-0.5 / (1 - RHO ** 2) / SIGMA_X ** 2)
+        x_sq_term = g.add_constant_real(-0.5 / (1 - RHO**2) / SIGMA_X**2)
         g.add_factor(graph.FactorType.EXP_PRODUCT, [x_sq, x_sq_term])
-        y_sq_term = g.add_constant_real(-0.5 / (1 - RHO ** 2) / SIGMA_Y ** 2)
+        y_sq_term = g.add_constant_real(-0.5 / (1 - RHO**2) / SIGMA_Y**2)
         g.add_factor(graph.FactorType.EXP_PRODUCT, [y_sq, y_sq_term])
-        x_y_term = g.add_constant_real(RHO / (1 - RHO ** 2) / SIGMA_X / SIGMA_Y)
+        x_y_term = g.add_constant_real(RHO / (1 - RHO**2) / SIGMA_X / SIGMA_Y)
         g.add_factor(graph.FactorType.EXP_PRODUCT, [x_y, x_y_term])
         g.query(x)
         g.query(x_sq)
@@ -116,11 +116,11 @@ class TestNMC(unittest.TestCase):
         print("means", means)  # only printed on error
         self.assertTrue(abs(means[0] - 0.0) < 0.2, "mean of x should be 0")
         self.assertTrue(
-            abs(means[1] - SIGMA_X ** 2) < 0.5, f"mean of x^2 should be {SIGMA_X**2}"
+            abs(means[1] - SIGMA_X**2) < 0.5, f"mean of x^2 should be {SIGMA_X**2}"
         )
         self.assertTrue(abs(means[2] - 0.0) < 0.2, "mean of y should be 0")
         self.assertTrue(
-            abs(means[3] - SIGMA_Y ** 2) < 0.2, f"mean of y^2 should be {SIGMA_Y**2}"
+            abs(means[3] - SIGMA_Y**2) < 0.2, f"mean of y^2 should be {SIGMA_Y**2}"
         )
         post_cov = means[4] / math.sqrt(means[1]) / math.sqrt(means[3])
         self.assertTrue(
@@ -206,8 +206,8 @@ class TestNMC(unittest.TestCase):
         ITEM_LABELS = [[False, False], [False, True], [True, True]]
         # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
         # a reference on this covariance function
-        covar = ALPHA ** 2 * np.exp(
-            -((np.expand_dims(SCORES, 1) - SCORES) ** 2) / 2 / RHO ** 2
+        covar = ALPHA**2 * np.exp(
+            -((np.expand_dims(SCORES, 1) - SCORES) ** 2) / 2 / RHO**2
         )
         tau = np.linalg.inv(covar)  # the precision matrix
         g = graph.Graph()
@@ -334,8 +334,8 @@ class TestNMC(unittest.TestCase):
     def create_GPfactor(cls, bmg, alpha, rho, scores, mu=0.0):
         # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
         # a reference on this covariance function
-        covar = alpha ** 2 * np.exp(
-            -((np.expand_dims(scores, 1) - scores) ** 2) / 2 / rho ** 2
+        covar = alpha**2 * np.exp(
+            -((np.expand_dims(scores, 1) - scores) ** 2) / 2 / rho**2
         )
         tau = np.linalg.inv(covar)  # the precision matrix
         neg_mu = bmg.add_constant_real(-mu)

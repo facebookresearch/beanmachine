@@ -44,16 +44,12 @@ def observations_fixer(bmg: BMGraphBuilder) -> GraphFixer:
             elif sample_type == Natural and not isinstance(v, int):
                 o.value = int(v)
                 made_progress = True
-            elif (
-                sample_type
-                in {
-                    Probability,
-                    PositiveReal,
-                    NegativeReal,
-                    Real,
-                }
-                and not isinstance(v, float)
-            ):
+            elif sample_type in {
+                Probability,
+                PositiveReal,
+                NegativeReal,
+                Real,
+            } and not isinstance(v, float):
                 o.value = float(v)
                 made_progress = True
             else:

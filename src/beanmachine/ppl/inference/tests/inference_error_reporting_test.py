@@ -50,7 +50,7 @@ class ErrorDist(torch.distributions.Distribution):
         self.counter += 1
         if self.counter == 5:
             torch.linalg.cholesky(torch.zeros(3, 3))
-        return -(value ** 2)
+        return -(value**2)
 
 
 @bm.random_variable

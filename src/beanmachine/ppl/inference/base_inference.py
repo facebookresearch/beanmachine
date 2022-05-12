@@ -34,7 +34,7 @@ class BaseInference(metaclass=ABCMeta):
     """
 
     # maximum value of a seed
-    _MAX_SEED_VAL: int = 2 ** 32 - 1
+    _MAX_SEED_VAL: int = 2**32 - 1
 
     @abstractmethod
     def get_proposers(

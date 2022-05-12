@@ -44,8 +44,8 @@ class HypothesisTestingTest(unittest.TestCase):
         our basic hypothesis tests."""
         exp_mean = self.random(exp_min, exp_max)
         exp_std = exp_mean + self.random(-3, 3)
-        true_mean = self.random(-1, 1) * 10 ** exp_mean
-        true_std = self.random(0, 1) * 10 ** exp_std
+        true_mean = self.random(-1, 1) * 10**exp_mean
+        true_std = self.random(0, 1) * 10**exp_std
         return true_mean, true_std
 
     # Main procedure for testing the hypothesis test

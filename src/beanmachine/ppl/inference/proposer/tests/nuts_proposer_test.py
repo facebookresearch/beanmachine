@@ -83,4 +83,4 @@ def test_build_tree(tree_node, tree_args, nuts):
     tree = nuts._build_tree(root=tree_node, tree_depth=tree_depth, args=tree_args)
     assert isinstance(tree, _Tree)
     assert tree.turned_or_diverged or (tree.left is not tree.right)
-    assert tree.turned_or_diverged or tree.num_proposals == 2 ** tree_depth
+    assert tree.turned_or_diverged or tree.num_proposals == 2**tree_depth

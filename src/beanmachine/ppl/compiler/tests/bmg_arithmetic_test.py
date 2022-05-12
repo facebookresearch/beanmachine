@@ -234,7 +234,7 @@ def pow_1():
     # Ordinary constant, power operator. Note that a functional is
     # required to return a tensor. Verify that ordinary
     # arithmetic still works in a model.
-    return torch.tensor(1.0 ** 10.0)
+    return torch.tensor(1.0**10.0)
 
 
 @bm.functional

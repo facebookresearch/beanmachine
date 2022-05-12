@@ -271,7 +271,7 @@ class ComputeSupport(TyperBase[SetOfTensors]):
         # thousands or millions of possibilities.
         s = self._sizer[node]
         p = _prod(s)
-        if 2.0 ** p >= _limit:
+        if 2.0**p >= _limit:
             return TooBig
         return SetOfTensors(
             tensor(i).reshape(s) for i in itertools.product(*([[0.0, 1.0]] * p))
@@ -301,7 +301,7 @@ class ComputeSupport(TyperBase[SetOfTensors]):
 
         # TODO: Move this prod helper function out of bmg_nodes.py
         num_result_elements = _prod(result_size)
-        if max_element ** num_result_elements >= _limit:
+        if max_element**num_result_elements >= _limit:
             return TooBig
 
         return SetOfTensors(

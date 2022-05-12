@@ -257,7 +257,7 @@ class HMCProposer(BaseProposer):
         )
         # NaN will evaluate to False and set direction to -1
         new_direction = direction = 1 if energy - new_energy > target else -1
-        step_size_scale = 2 ** direction
+        step_size_scale = 2**direction
         while new_direction == direction:
             step_size *= step_size_scale
             # not covered in the paper, but both Stan and Pyro re-sample the momentum
