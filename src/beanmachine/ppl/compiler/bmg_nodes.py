@@ -8,7 +8,7 @@ from typing import Any, Iterable, List
 
 import beanmachine.ppl.compiler.bmg_types as bt
 import torch
-import gg_algebra
+import beanmachine.ppl.experimental.gg_algebra as gg_algebra
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor
 
@@ -539,6 +539,9 @@ class HalfNormalNode(DistributionNode):
     def __str__(self) -> str:
         return f"HalfNormal({str(self.sigma)})"
 
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        return gg_algebra.normal(0, self.sigma.value)
 
 class StudentTNode(DistributionNode):
     """The Student T distribution is a bell curve with zero mean
@@ -1416,6 +1419,10 @@ class Query(BMGNode):
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
+    
+    @property
+    def gga(self) -> gg_algebra.GGTail:
+        return self.inputs[0].gga
 
 
 # The basic idea of the Metropolis algorithm is: each possible state of
