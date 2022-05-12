@@ -19,7 +19,7 @@ REQUIRED_MINOR = 7
 INSTALL_REQUIRES = [
     "arviz>=0.11.0",
     "astor>=0.7.1",
-    "black==21.4b2",
+    "black==22.3.0",
     "botorch>=0.5.1",
     "gpytorch>=1.3.0",
     "graphviz>=0.17",
