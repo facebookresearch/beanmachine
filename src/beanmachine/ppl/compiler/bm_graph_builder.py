@@ -809,6 +809,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_cholesky(self, operand: BMGNode) -> BMGNode:
+        node = bn.CholeskyNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_exp(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(torch.exp(operand.value))

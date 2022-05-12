@@ -1046,6 +1046,17 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         return self.inputs[0]
 
 
+class CholeskyNode(UnaryOperatorNode):
+    """This represents an Cholesky operation; it is generated when
+    a model contains calls to Tensor.cholesky."""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Cholesky(" + str(self.operand) + ")"
+
+
 class ExpNode(UnaryOperatorNode):
     """This represents an exponentiation operation; it is generated when
     a model contains calls to Tensor.exp or math.exp."""
