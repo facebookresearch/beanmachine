@@ -745,6 +745,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_sum(self, operand: BMGNode) -> BMGNode:
+        node = bn.SumNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_to_real(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.RealNode):
             return operand

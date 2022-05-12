@@ -1472,6 +1472,30 @@ def sub_9():
 
 
 @bm.functional
+def sum_1():
+    # Constant value, Tensor.sum.
+    return torch.Tensor.sum(torch.tensor([1.0, 1.0, 1.0]))
+
+
+@bm.functional
+def sum_2():
+    # Constant value, instance sum
+    return torch.tensor([2.0, 2.0, 2.0]).sum()
+
+
+@bm.functional
+def sum_3():
+    # Stochastic value, Tensor.sum
+    return torch.Tensor.sum(torch.tensor([beta(), norm(), 3.0]))
+
+
+@bm.functional
+def sum_4():
+    # Stochastic value, instance sum
+    return torch.tensor([beta(), norm(), 4.0]).sum()
+
+
+@bm.functional
 def xor_1():
     # Ordinary arithmetic, ^ operator
     return torch.tensor(1 ^ 3)
@@ -2602,6 +2626,28 @@ digraph "graph" {
   N22 -> N23;
 }
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_sum(self) -> None:
+        self.maxDiff = None
+
+        # TODO: sum operators are not yet properly supported by the compiler/BMG;
+        # update this test when we get them working.
+
+        queries = [
+            sum_1(),
+            sum_2(),
+            sum_3(),
+            sum_4(),
+        ]
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, {}, 1)
+        expected = """
+The model uses a sum operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call sum_3().
+The model uses a sum operation unsupported by Bean Machine Graph.
+The unsupported node was created in function call sum_4()."""
+        observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_bmg_arithmetic_xor(self) -> None:

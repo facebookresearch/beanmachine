@@ -479,6 +479,8 @@ class SpecialFunctionCaller:
             torch.sub: self._torch_sub,
             torch.Tensor.subtract: self._torch_sub,  # pyre-ignore
             torch.subtract: self._torch_sub,
+            torch.Tensor.sum: self._torch_sum,
+            torch.sum: self._torch_sum,
             torch.Tensor.true_divide: self._torch_div,  # pyre-ignore
             torch.true_divide: self._torch_div,
         }
@@ -983,6 +985,13 @@ class SpecialFunctionCaller:
         # TODO: tensor sub has the semantics input - alpha * other; if alpha is present
         # then we need to generate a multiply and an subtraction
         return self._bmg.add_subtraction(input, other)
+
+    def _torch_sum(
+        self,
+        input: BMGNode,
+        dtype: Any = None,
+    ) -> Any:
+        return self._bmg.add_sum(input)
 
     #
     # Operators as functions
