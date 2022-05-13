@@ -1,3 +1,4 @@
+import torch.distributions as dist
 import numpy as np
 import scipy.special as sp
 
@@ -9,6 +10,7 @@ def _leq(a,b):
 
 def _geq(a,b):
     return b - a < 1e-15
+
 
 class GGTail(object):
     
@@ -428,3 +430,45 @@ def MatGGTail(size, distn):
     return matrix
 
 gauss_ens = lambda *size: MatGGTail(size, normal(0,1))
+
+class AbsTransform(dist.transforms.Transform):
+    r"""
+    Transform via the mapping :math:`y = |x|`.
+    """
+    domain = dist.constraints.real
+    codomain = dist.constraints.positive
+
+    def __eq__(self, other):
+        return isinstance(other, AbsTransform)
+
+    def _call(self, x):
+        return x.abs()
+
+    def _inverse(self, y):
+        return y
+
+    def log_abs_det_jacobian(self, x, y):
+        return torch.tensor(2.0).log().expand(x.shape)
+
+
+def make_positive(d: dist.Distribution) -> dist.Distribution:
+    return dist.TransformedDistribution(
+        d,
+        [AbsTransform()],
+    )
+
+
+def make_ggdist(tail: GGTail) -> dist.Distribution:
+    if abs(tail.rho) < 0.1:
+        return make_positive(
+            dist.StudentT(
+                df=-(tail.nu + 1),
+            )
+        )
+    return dist.TransformedDistribution(
+        dist.Gamma(
+            concentration=(tail.nu + 1) / tail.rho,
+            rate=tail.sigma,
+        ),
+        [dist.transforms.PowerTransform(exponent=1.0 / tail.rho)],
+    )
