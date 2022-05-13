@@ -8,7 +8,7 @@ import inspect
 import math
 import operator
 from types import MethodType
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Set, Tuple
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import torch
@@ -50,6 +50,15 @@ _in_place_to_regular = {
     operator.itruediv: operator.truediv,
     operator.ixor: operator.xor,
 }
+
+
+def _raise_unsupported(func: Any) -> NoReturn:
+    if inspect.ismethoddescriptor(func) or isinstance(
+        func, _builtin_function_or_method
+    ):
+        func = func.__name__
+
+    raise ValueError(f"Function {func} is not supported by Bean Machine Graph.")
 
 
 def _is_in_place_operator(func: Callable) -> bool:
@@ -158,6 +167,46 @@ _empty_kwargs = {}
 _builtin_function_or_method = type(abs)
 
 
+def _is_any_torch_function(f: Callable) -> bool:
+    # Torch functions we either know about or we reject them immediately;
+    # we do not attempt to extract a graph of a model which contains
+    # a call to an unknown torch function with stochastic arguments.
+    #
+    # Given a reference to a function, how can we know if it is
+    # a torch function? Torch does not make it very easy on us to figure
+    # out what module a function is from. Let's choose some typical
+    # methods as examples, like arccos or erf:
+    #
+    # * torch.Tensor.arccos has no __module__ attribute.
+    # * torch.arccos.__module__ is None but .__objclass__ has a module string.
+    # * torch.special.erf.__module__ is the string "torch.special.erf.__module__"
+    # * torch.tensor(1).arccos.__module__ is None and has no .__objclass__, but
+    #   does have a __self__ with a module.
+    #
+    # Our first step then is to see if we have a module.
+    m = getattr(f, "__module__", None)
+    if m is None:
+        # We don't have a module. Do we have an __objclass__ with a module?
+        oc = getattr(f, "__objclass__", None)
+        if oc is not None:
+            m = getattr(oc, "__module__", None)
+
+    if m is None:
+        # We still don't have a module. Maybe __self__ has a module.
+        s = getattr(f, "__self__", None)
+        if s is not None:
+            m = getattr(s, "__module__", None)
+
+    if m is not None:
+        return isinstance(m, str) and (m == "torch" or m.startswith("torch."))
+
+    # We don't have a module or an objclass.
+    #
+    # If we have something like torch.arccos then we can simply
+    # check the torch module to see if we can find this exact reference.
+    return any(item is f for _, item in torch.__dict__.items())
+
+
 def _is_tensor_unbound_instance_method(f: Callable) -> bool:
     # This identifies if a function object is a method *descriptor*
     # such as torch.Tensor.add; that is, the method before it is bound
@@ -211,7 +260,6 @@ def canonicalize_function(
     #
     # It is useful when analyzing calls to have them in a consistent form. This function
     # turns bound function calls into the equivalent unbound function call.
-
     if isinstance(function, MethodType):
         f = function.__func__
         args = [function.__self__] + arguments
@@ -223,11 +271,12 @@ def canonicalize_function(
         f = function
         args = arguments
     else:
-        raise ValueError(f"Function {function} is not supported by Bean Machine Graph.")
-    assert isinstance(f, Callable), (
-        "_canonicalize_function should return callable " + f"but got {type(f)} {str(f)}"
+        _raise_unsupported(function)
+    assert isinstance(f, Callable), (  # pyre-ignore
+        "_canonicalize_function should return callable "
+        + f"but got {type(f)} {str(f)}"  # pyre-ignore
     )
-    return (f, args)
+    return (f, args)  # pyre-ignore
 
 
 # This helper class is to solve a problem in the simulated
@@ -498,7 +547,11 @@ class SpecialFunctionCaller:
     def bind_tensor_instance_function(
         self, receiver: BMGNode, name: str
     ) -> KnownFunction:
-        return KnownFunction(receiver, getattr(torch.Tensor, name))
+        # TODO: What if the node represents a distribution, not a tensor?
+        # Should we produce a better error message?
+        if hasattr(torch.Tensor, name):
+            return KnownFunction(receiver, getattr(torch.Tensor, name))
+        _raise_unsupported(name)
 
     def is_special_tensor_bound_instance_method(self, f: Callable) -> bool:
         return self._is_special_tensor_bound_instance_method_name(
@@ -515,18 +568,12 @@ class SpecialFunctionCaller:
     def is_special_function(
         self,
         func: Callable,
-        args: List[Any] = _empty_args,
-        kwargs: Dict[str, Any] = _empty_kwargs,
+        args: List[Any] = _empty_args,  # TODO: Unused
+        kwargs: Dict[str, Any] = _empty_kwargs,  # TODO: Unused
     ) -> bool:
         if isinstance(func, KnownFunction):
             return True
-        if _is_tensor_unbound_instance_method(func):
-            return True
-        if _is_tensor_bound_instance_method(func):
-            return True
-        if _is_phi(func, args, kwargs):
-            return True
-        if func is torch.tensor and len(args) == 1:
+        if _is_any_torch_function(func):
             return True
         if not _hashable(func):
             return False
@@ -599,10 +646,10 @@ class SpecialFunctionCaller:
         else:
             # We are trying to do an always-stochastic call on a function that
             # we do not yet know how to handle.
-            raise ValueError(f"Function {func} is not supported by Bean Machine Graph.")
+            _raise_unsupported(func)
         new_args = (self._make_constant(arg) for arg in args)
         new_kwargs = {key: self._make_constant(arg) for key, arg in kwargs.items()}
-        return node_constructor(*new_args, **new_kwargs)
+        return node_constructor(*new_args, **new_kwargs)  # pyre-ignore
 
     #
     # Builtins; these must have the same signature as their corresponding
@@ -643,12 +690,6 @@ class SpecialFunctionCaller:
     ) -> bn.DistributionNode:
         t = type(distribution)
 
-        if not self.is_special_function(t):
-            # TODO: Better error
-            raise TypeError(
-                f"Distribution '{t.__name__}' is not supported by Bean Machine Graph."
-            )
-
         if isinstance(distribution, dist.Bernoulli):
             args = [distribution.probs]
         elif isinstance(distribution, dist.Beta):
@@ -676,8 +717,9 @@ class SpecialFunctionCaller:
         elif isinstance(distribution, dist.Uniform):
             args = [distribution.low, distribution.high]
         else:
-            raise AssertionError(
-                "Internal compiler error: missing case when converting distribution to node."
+            # TODO: Better error
+            raise TypeError(
+                f"Distribution '{t.__name__}' is not supported by Bean Machine Graph."
             )
 
         d = self.do_special_call_always_stochastic(t, args, {})
