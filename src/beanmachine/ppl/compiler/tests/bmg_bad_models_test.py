@@ -6,6 +6,7 @@
 import unittest
 
 import beanmachine.ppl as bm
+import torch
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
 from torch.distributions import Bernoulli, Cauchy, Normal
@@ -39,6 +40,55 @@ def no_distribution_rv():
 @bm.random_variable
 def unsupported_distribution_rv():
     return Cauchy(1.0, 2.0)
+
+
+@bm.functional
+def missing_tensor_instance_function():
+    # What happens if we call a function on a tensor instance
+    # that does not exist at all?
+    return norm(1).not_a_real_function()
+
+
+@bm.functional
+def unsupported_tensor_instance_function_1():
+    # Tensor instance function exists but we do not handle it.
+    return norm(1).arccos()
+
+
+@bm.functional
+def unsupported_tensor_instance_function_2():
+    # Same as above but called via Tensor:
+    return torch.Tensor.arccos(norm(1))
+
+
+@bm.functional
+def unsupported_tensor_instance_function_3():
+    # Regular receiver, stochastic argument:
+    return torch.tensor(7.0).dot(norm(1))
+
+
+@bm.functional
+def unsupported_torch_function():
+    # Same as above but called via torch:
+    return torch.arccos(norm(1))
+
+
+@bm.functional
+def unsupported_torch_submodule_function():
+    # What if we call an unsupported function in submodule of torch?
+    return torch.special.erf(norm(1))
+
+
+@bm.functional
+def missing_distribution_function():
+    # What happens if we try to get a nonsensical attr from a
+    # stochastic distribution?
+    return Normal(norm(1), 1.0).no_such_function()
+
+
+@bm.functional
+def unsupported_distribution_function():
+    return Normal(norm(1), 1.0).entropy()
 
 
 class BMGBadModelsTest(unittest.TestCase):
@@ -134,3 +184,59 @@ class BMGBadModelsTest(unittest.TestCase):
             str(ex.exception),
             "Distribution 'Cauchy' is not supported by Bean Machine Graph.",
         )
+
+    def test_bad_tensor_operations(self) -> None:
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_tensor_instance_function_1()], {}, 1)
+        expected = """
+Function arccos is not supported by Bean Machine Graph.
+       """
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_tensor_instance_function_2()], {}, 1)
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_torch_function()], {}, 1)
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        expected = """
+Function dot is not supported by Bean Machine Graph.
+        """
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_tensor_instance_function_3()], {}, 1)
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        # I have no idea why torch gives the name of torch.special.erf as
+        # "special_erf" rather than "erf", but it does.
+        expected = """
+Function special_erf is not supported by Bean Machine Graph.
+        """
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_torch_submodule_function()], {}, 1)
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([missing_tensor_instance_function()], {}, 1)
+        expected = """
+Function not_a_real_function is not supported by Bean Machine Graph.
+        """
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([missing_distribution_function()], {}, 1)
+        expected = """
+Function no_such_function is not supported by Bean Machine Graph.
+        """
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_distribution_function()], {}, 1)
+        expected = """
+Function entropy is not supported by Bean Machine Graph.
+        """
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
