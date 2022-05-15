@@ -11,7 +11,7 @@ import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_ast
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Normal, Dirichlet, Bernoulli
+from torch.distributions import Bernoulli, Dirichlet, Normal
 
 
 class BaseModel:

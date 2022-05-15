@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import copy
 import itertools
-from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Union, cast
+from typing import cast, Dict, Iterator, List, Optional, TYPE_CHECKING, Union
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples

@@ -13,11 +13,7 @@ import beanmachine.graph as bmgraph
 import pandas as pd
 
 from .abstract_model import AbstractModel
-from .configs import (
-    ModelConfig,
-    PriorConfig,
-    StructuredPriorConfig,
-)
+from .configs import ModelConfig, PriorConfig, StructuredPriorConfig
 
 
 logger = logging.getLogger("hme")

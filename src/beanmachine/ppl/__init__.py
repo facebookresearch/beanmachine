@@ -10,18 +10,18 @@ from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
 from .inference import (
     CompositionalInference,
+    empirical,
     GlobalHamiltonianMonteCarlo,
     GlobalNoUTurnSampler,
     RejectionSampling,
+    seed,
+    simulate,
     SingleSiteAncestralMetropolisHastings,
     SingleSiteHamiltonianMonteCarlo,
     SingleSiteNewtonianMonteCarlo,
     SingleSiteNoUTurnSampler,
     SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
-    empirical,
-    seed,
-    simulate,
 )
 from .model import (
     functional,

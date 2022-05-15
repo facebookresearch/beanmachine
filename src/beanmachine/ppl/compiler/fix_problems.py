@@ -30,12 +30,12 @@ from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
 from beanmachine.ppl.compiler.fix_observations import observations_fixer
 from beanmachine.ppl.compiler.fix_observe_true import observe_true_fixer
 from beanmachine.ppl.compiler.fix_problem import (
-    GraphFixer,
-    NodeFixer,
     ancestors_first_graph_fixer,
     conditional_graph_fixer,
     fixpoint_graph_fixer,
+    GraphFixer,
     node_fixer_first_match,
+    NodeFixer,
     sequential_graph_fixer,
 )
 from beanmachine.ppl.compiler.fix_requirements import requirements_fixer

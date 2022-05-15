@@ -16,7 +16,7 @@ from beanmachine.ppl.compiler.fix_problems import (
 )
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels, get_node_label
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
-from beanmachine.ppl.compiler.sizer import Sizer, size_to_str
+from beanmachine.ppl.compiler.sizer import size_to_str, Sizer
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 
 

@@ -5,7 +5,7 @@
 
 import math
 import warnings
-from typing import Union, cast, Dict, Set
+from typing import cast, Dict, Set, Union
 
 import torch
 import torch.distributions as dist

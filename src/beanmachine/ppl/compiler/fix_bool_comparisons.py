@@ -8,9 +8,9 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_types import Boolean
 from beanmachine.ppl.compiler.fix_problem import (
     Inapplicable,
+    node_fixer_first_match,
     NodeFixer,
     NodeFixerResult,
-    node_fixer_first_match,
     type_guard,
 )
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper

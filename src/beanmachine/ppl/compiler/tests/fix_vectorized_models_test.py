@@ -8,7 +8,7 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Normal, Uniform, HalfCauchy, StudentT
+from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal, StudentT, Uniform
 
 
 @bm.random_variable

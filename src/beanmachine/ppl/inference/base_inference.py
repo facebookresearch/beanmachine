@@ -10,18 +10,16 @@ from typing import List, Optional, Set, Tuple
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.sampler import Sampler
 from beanmachine.ppl.inference.utils import (
-    VerboseLevel,
+    _execute_in_new_thread,
     _verify_queries_and_observations,
     seed as set_seed,
-    _execute_in_new_thread,
+    VerboseLevel,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import RVDict, World, InitializeFn, init_to_uniform
+from beanmachine.ppl.world import init_to_uniform, InitializeFn, RVDict, World
 from torch import multiprocessing as mp
 from tqdm.auto import tqdm
 from tqdm.notebook import tqdm as notebook_tqdm

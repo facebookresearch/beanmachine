@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Optional, Callable, List, Tuple, Type, Union
+from typing import Callable, List, Optional, Tuple, Type, Union
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder

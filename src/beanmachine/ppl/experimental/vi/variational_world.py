@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, MutableMapping, Mapping
+from typing import Mapping, MutableMapping, Optional
 
 import torch
 import torch.distributions as dist

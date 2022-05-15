@@ -17,11 +17,11 @@ from beanmachine.ppl.compiler.error_report import (
     UntypableNode,
 )
 from beanmachine.ppl.compiler.fix_problem import (
-    NodeFixer,
-    GraphFixer,
     edge_error_pass,
+    GraphFixer,
     node_error_pass,
     node_fixer_first_match,
+    NodeFixer,
     type_guard,
 )
 from beanmachine.ppl.compiler.graph_labels import get_edge_label

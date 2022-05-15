@@ -12,16 +12,16 @@ from typing import Any, Dict
 
 import torch
 from beanmachine.ppl.compiler.patterns import (
-    ListAll as list_all,
-    MatchResult,
-    Pattern,
-    PatternBase,
-    PredicatePattern,
     anyPattern as _any,
+    ListAll as list_all,
     match,
     match_any,
     match_every,
+    MatchResult,
     negate,
+    Pattern,
+    PatternBase,
+    PredicatePattern,
     type_and_attributes,
 )
 from beanmachine.ppl.compiler.rules import RuleDomain

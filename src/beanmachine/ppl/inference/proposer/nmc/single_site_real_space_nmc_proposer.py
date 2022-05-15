@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
-from typing import Tuple, NamedTuple, Union, Optional
+from typing import NamedTuple, Optional, Tuple, Union
 
 import torch
 import torch.distributions as dist
@@ -12,10 +12,10 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
+    hessian_of_log_prob,
     is_scalar,
     is_valid,
     soft_abs_inverse,
-    hessian_of_log_prob,
 )
 from beanmachine.ppl.legacy.inference.proposer.normal_eig import NormalEig
 from beanmachine.ppl.model.rv_identifier import RVIdentifier

@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, Callable, List, Dict, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
 from beanmachine.ppl.utils.multidictionary import MultiDictionary

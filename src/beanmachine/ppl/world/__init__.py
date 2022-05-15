@@ -5,15 +5,12 @@
 
 from beanmachine.ppl.world.base_world import get_world_context
 from beanmachine.ppl.world.initialize_fn import (
-    InitializeFn,
     init_from_prior,
     init_to_uniform,
+    InitializeFn,
 )
-from beanmachine.ppl.world.utils import (
-    BetaDimensionTransform,
-    get_default_transforms,
-)
-from beanmachine.ppl.world.world import World, RVDict
+from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
+from beanmachine.ppl.world.world import RVDict, World
 
 
 __all__ = [

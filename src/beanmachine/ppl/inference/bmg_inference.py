@@ -12,7 +12,7 @@ import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import graphviz
 import torch
-from beanmachine.graph import Graph, InferenceType, InferConfig
+from beanmachine.graph import Graph, InferConfig, InferenceType
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph

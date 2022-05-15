@@ -10,9 +10,9 @@ import torch
 import torch.jit
 import torch.utils._pytree as pytree
 from functorch.compile import (
-    nop,
     aot_function,
     decomposition_table,
+    nop,
     register_decomposition,
 )
 

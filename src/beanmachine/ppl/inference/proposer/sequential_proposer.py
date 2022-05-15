@@ -3,12 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Tuple, cast
+from typing import cast, List, Tuple
 
 import torch
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.world import World
 
 

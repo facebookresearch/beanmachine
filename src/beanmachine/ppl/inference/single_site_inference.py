@@ -6,9 +6,7 @@
 from typing import List, Set, Type
 
 from beanmachine.ppl.inference.base_inference import BaseInference
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.base_single_site_mh_proposer import (
     BaseSingleSiteMHProposer,
 )

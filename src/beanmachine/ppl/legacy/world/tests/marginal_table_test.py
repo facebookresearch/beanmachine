@@ -7,7 +7,7 @@ import unittest
 
 import torch
 from beanmachine.ppl import random_variable as rv
-from beanmachine.ppl.legacy.world.marginal_table import Table, Entry
+from beanmachine.ppl.legacy.world.marginal_table import Entry, Table
 from torch.distributions import Bernoulli
 
 

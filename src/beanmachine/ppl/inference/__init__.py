@@ -17,9 +17,7 @@ from beanmachine.ppl.inference.predictive import empirical, simulate
 from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
-from beanmachine.ppl.inference.single_site_nmc import (
-    SingleSiteNewtonianMonteCarlo,
-)
+from beanmachine.ppl.inference.single_site_nmc import SingleSiteNewtonianMonteCarlo
 from beanmachine.ppl.inference.single_site_random_walk import SingleSiteRandomWalk
 from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,

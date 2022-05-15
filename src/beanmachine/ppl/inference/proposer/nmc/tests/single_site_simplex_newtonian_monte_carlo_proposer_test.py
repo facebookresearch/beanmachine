@@ -8,12 +8,8 @@ import unittest
 import torch
 import torch.distributions as dist
 from beanmachine import ppl as bm
-from beanmachine.ppl.inference.proposer.nmc import (
-    SingleSiteSimplexSpaceNMCProposer,
-)
-from beanmachine.ppl.inference.single_site_nmc import (
-    SingleSiteNewtonianMonteCarlo,
-)
+from beanmachine.ppl.inference.proposer.nmc import SingleSiteSimplexSpaceNMCProposer
+from beanmachine.ppl.inference.single_site_nmc import SingleSiteNewtonianMonteCarlo
 from beanmachine.ppl.world import World
 from torch import tensor
 

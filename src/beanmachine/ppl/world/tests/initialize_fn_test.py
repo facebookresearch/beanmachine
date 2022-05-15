@@ -6,10 +6,7 @@
 import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.world.initialize_fn import (
-    init_from_prior,
-    init_to_uniform,
-)
+from beanmachine.ppl.world.initialize_fn import init_from_prior, init_to_uniform
 
 
 @pytest.mark.parametrize("init_fn", [init_from_prior, init_to_uniform])

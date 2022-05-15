@@ -7,18 +7,14 @@
 
 from collections import namedtuple
 
-from patsy.desc import (
-    Evaluator,
-    INTERCEPT,
-    IntermediateExpr,
-    ModelDesc,
+from patsy.desc import Evaluator, INTERCEPT, IntermediateExpr, ModelDesc
+from patsy.infix_parser import infix_parse, ParseNode
+from patsy.parse_formula import (
+    _atomic_token_types,
+    _default_ops,
+    _tokenize_formula,
+    Operator,
 )
-from patsy.infix_parser import ParseNode
-from patsy.infix_parser import infix_parse
-from patsy.parse_formula import Operator
-from patsy.parse_formula import _atomic_token_types
-from patsy.parse_formula import _default_ops
-from patsy.parse_formula import _tokenize_formula
 
 
 RandomEffectsTerm = namedtuple("RandomEffectsTerm", ["expr", "factor"])

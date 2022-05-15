@@ -5,11 +5,7 @@
 
 import pandas as pd
 import pytest
-from beanmachine.applications.hme import (
-    HME,
-    ModelConfig,
-    RegressionConfig,
-)
+from beanmachine.applications.hme import HME, ModelConfig, RegressionConfig
 from beanmachine.applications.hme.abstract_model import AbstractModel
 
 

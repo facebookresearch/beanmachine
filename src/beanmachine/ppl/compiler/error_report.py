@@ -11,9 +11,9 @@ from typing import List, Set
 
 from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
+    MatrixMultiplicationNode,
     Observation,
     SampleNode,
-    MatrixMultiplicationNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,

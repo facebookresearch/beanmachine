@@ -5,10 +5,10 @@
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.statistical_model import (
-    StatisticalModel,
     functional,
     param,
     random_variable,
+    StatisticalModel,
 )
 from beanmachine.ppl.model.utils import get_beanmachine_logger
 

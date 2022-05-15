@@ -8,21 +8,13 @@ from __future__ import annotations
 import random
 import warnings
 from types import TracebackType
-from typing import (
-    Generator,
-    NoReturn,
-    Optional,
-    Type,
-    TYPE_CHECKING,
-)
+from typing import Generator, NoReturn, Optional, Type, TYPE_CHECKING
 
 import torch
 
 
 if TYPE_CHECKING:
-    from beanmachine.ppl.inference.base_inference import (
-        BaseInference,
-    )
+    from beanmachine.ppl.inference.base_inference import BaseInference
 
 from beanmachine.ppl.world import World
 

@@ -10,10 +10,8 @@ import beanmachine.ppl as bm
 import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
-from beanmachine.ppl.world import World, init_from_prior
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
+from beanmachine.ppl.world import init_from_prior, World
 
 
 class SampleModel:

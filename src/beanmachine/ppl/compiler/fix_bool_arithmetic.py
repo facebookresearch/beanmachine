@@ -6,9 +6,9 @@
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import (
+    Inapplicable,
     node_fixer_first_match,
     NodeFixer,
-    Inapplicable,
     NodeFixerResult,
     type_guard,
 )

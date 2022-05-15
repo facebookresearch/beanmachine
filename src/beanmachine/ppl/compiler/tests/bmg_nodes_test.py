@@ -8,12 +8,12 @@ import unittest
 
 import torch
 from beanmachine.ppl.compiler.bmg_nodes import (
+    ConstantRealMatrixNode,
+    ConstantTensorNode,
+    MatrixMultiplicationNode,
+    MultiplicationNode,
     NormalNode,
     RealNode,
-    MultiplicationNode,
-    ConstantTensorNode,
-    ConstantRealMatrixNode,
-    MatrixMultiplicationNode,
 )
 from beanmachine.ppl.compiler.sizer import Sizer
 from beanmachine.ppl.compiler.support import ComputeSupport

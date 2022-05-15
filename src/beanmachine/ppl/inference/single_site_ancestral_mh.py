@@ -6,9 +6,7 @@
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.inference.single_site_inference import (
-    SingleSiteInference,
-)
+from beanmachine.ppl.inference.single_site_inference import SingleSiteInference
 
 
 class SingleSiteAncestralMetropolisHastings(SingleSiteInference):

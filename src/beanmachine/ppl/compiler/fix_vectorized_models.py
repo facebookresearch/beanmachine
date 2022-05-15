@@ -3,17 +3,17 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Dict, Type, Callable
+from typing import Callable, Dict, List, Type
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_problem import (
     ancestors_first_graph_fixer,
-    node_fixer_first_match,
     GraphFixer,
     GraphFixerResult,
     Inapplicable,
+    node_fixer_first_match,
     NodeFixer,
     NodeFixerResult,
 )

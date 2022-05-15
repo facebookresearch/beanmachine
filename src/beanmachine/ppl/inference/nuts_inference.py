@@ -6,12 +6,8 @@
 from typing import List, Set
 
 from beanmachine.ppl.inference.base_inference import BaseInference
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
-from beanmachine.ppl.inference.proposer.nuts_proposer import (
-    NUTSProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
+from beanmachine.ppl.inference.proposer.nuts_proposer import NUTSProposer
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
 

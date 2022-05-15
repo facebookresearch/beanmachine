@@ -6,27 +6,21 @@
 import inspect
 from collections import defaultdict
 from typing import (
-    Dict,
-    Tuple,
     Callable,
-    Union,
-    List,
-    Set,
-    Optional,
-    TYPE_CHECKING,
     cast,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 from beanmachine.ppl.inference.base_inference import BaseInference
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
-from beanmachine.ppl.inference.proposer.nuts_proposer import (
-    NUTSProposer,
-)
-from beanmachine.ppl.inference.proposer.sequential_proposer import (
-    SequentialProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
+from beanmachine.ppl.inference.proposer.nuts_proposer import NUTSProposer
+from beanmachine.ppl.inference.proposer.sequential_proposer import SequentialProposer
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )

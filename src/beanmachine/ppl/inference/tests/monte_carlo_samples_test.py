@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.distributions as dist
 import xarray as xr
-from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples, merge_dicts
+from beanmachine.ppl.inference.monte_carlo_samples import merge_dicts, MonteCarloSamples
 
 
 class MonteCarloSamplesTest(unittest.TestCase):

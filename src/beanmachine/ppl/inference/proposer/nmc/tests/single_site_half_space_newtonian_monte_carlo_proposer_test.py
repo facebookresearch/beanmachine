@@ -8,9 +8,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.nmc import (
-    SingleSiteHalfSpaceNMCProposer,
-)
+from beanmachine.ppl.inference.proposer.nmc import SingleSiteHalfSpaceNMCProposer
 from beanmachine.ppl.world import World
 from torch import tensor
 

@@ -8,10 +8,10 @@ import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.nuts_proposer import (
-    NUTSProposer,
     _Tree,
     _TreeArgs,
     _TreeNode,
+    NUTSProposer,
 )
 from beanmachine.ppl.world import World
 

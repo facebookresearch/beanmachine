@@ -10,7 +10,7 @@ from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Normal, Dirichlet
+from torch.distributions import Bernoulli, Beta, Dirichlet, Normal
 
 
 # Random variable that takes an argument

@@ -13,17 +13,12 @@ import beanmachine.graph as bmgraph
 import beanmachine.ppl.diagnostics.common_statistics as bm_diag_util
 import numpy as np
 import pandas as pd
-from patsy import ModelDesc, dmatrix, dmatrices, build_design_matrices
+from patsy import build_design_matrices, dmatrices, dmatrix, ModelDesc
 import torch  # usort: skip # noqa: F401
 
-from .configs import (
-    InferConfig,
-    ModelConfig,
-    PriorConfig,
-    StructuredPriorConfig,
-)
+from .configs import InferConfig, ModelConfig, PriorConfig, StructuredPriorConfig
 from .patsy_mixed import evaluate_formula, RandomEffectsTerm
-from .priors import ParamType, Distribution
+from .priors import Distribution, ParamType
 
 logger = logging.getLogger("hme")
 

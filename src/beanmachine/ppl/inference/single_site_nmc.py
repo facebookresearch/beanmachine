@@ -8,12 +8,10 @@ from typing import List, Set
 
 import torch.distributions as dist
 from beanmachine.ppl.inference.base_inference import BaseInference
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.nmc import (
-    SingleSiteRealSpaceNMCProposer,
     SingleSiteHalfSpaceNMCProposer,
+    SingleSiteRealSpaceNMCProposer,
     SingleSiteSimplexSpaceNMCProposer,
 )
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
@@ -21,10 +19,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
-from beanmachine.ppl.world.utils import (
-    BetaDimensionTransform,
-)
-from beanmachine.ppl.world.utils import is_constraint_eq
+from beanmachine.ppl.world.utils import BetaDimensionTransform, is_constraint_eq
 
 LOGGER = logging.getLogger("beanmachine")
 

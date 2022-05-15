@@ -9,7 +9,7 @@ import re
 import sys
 from glob import glob
 
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+from pybind11.setup_helpers import build_ext, Pybind11Extension
 from setuptools import find_packages, setup
 
 

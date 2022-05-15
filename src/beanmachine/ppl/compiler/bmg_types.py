@@ -7,7 +7,7 @@ from abc import abstractmethod
 from typing import Any, Union
 
 import torch
-from beanmachine.ppl.utils.memoize import MemoizedClass, memoize
+from beanmachine.ppl.utils.memoize import memoize, MemoizedClass
 from torch import Size
 
 

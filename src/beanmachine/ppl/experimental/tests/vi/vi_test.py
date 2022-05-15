@@ -14,10 +14,7 @@ import torch.nn as nn
 from beanmachine.ppl.distributions.flat import Flat
 
 try:
-    from beanmachine.ppl.experimental.vi.optim import (
-        BMMultiOptimizer,
-        BMOptim,
-    )
+    from beanmachine.ppl.experimental.vi.optim import BMMultiOptimizer, BMOptim
     from beanmachine.ppl.experimental.vi.variational_infer import (
         MeanFieldVariationalInference,
         VariationalInference,

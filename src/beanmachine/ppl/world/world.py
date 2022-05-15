@@ -7,15 +7,15 @@ from __future__ import annotations
 
 import dataclasses
 from typing import (
-    Iterable,
+    Collection,
     Dict,
+    Iterable,
     Iterator,
     List,
     Mapping,
     Optional,
     Set,
     Tuple,
-    Collection,
 )
 
 import torch
@@ -23,10 +23,7 @@ import torch.distributions as dist
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import init_to_uniform
 from beanmachine.ppl.world.base_world import BaseWorld
-from beanmachine.ppl.world.initialize_fn import (
-    InitializeFn,
-    init_from_prior,
-)
+from beanmachine.ppl.world.initialize_fn import init_from_prior, InitializeFn
 from beanmachine.ppl.world.variable import Variable
 
 

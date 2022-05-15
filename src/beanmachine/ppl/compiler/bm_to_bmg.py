@@ -10,15 +10,15 @@ import ast
 import inspect
 import sys
 import types
-from typing import Callable, List, Tuple, Optional, Dict, Any
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import astor
 from beanmachine.ppl.compiler.ast_patterns import (
-    ast_if,
-    ast_for,
     assign,
     ast_assert,
     ast_domain,
+    ast_for,
+    ast_if,
     attribute,
     aug_assign,
     binary_compare,
@@ -29,9 +29,9 @@ from beanmachine.ppl.compiler.ast_patterns import (
     keyword,
     load,
     name,
+    slice_pattern,
     starred,
     subscript,
-    slice_pattern,
     unaryop,
 )
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
@@ -39,12 +39,12 @@ from beanmachine.ppl.compiler.patterns import match_any
 from beanmachine.ppl.compiler.rules import (
     AllOf as all_of,
     FirstMatch as first,
+    ListEdit,
     Pattern,
     PatternRule,
+    remove_from_list,
     Rule,
     TryOnce as once,
-    remove_from_list,
-    ListEdit,
 )
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.single_assignment import single_assignment

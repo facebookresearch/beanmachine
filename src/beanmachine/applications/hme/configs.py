@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Union, Dict, List
+from typing import Dict, List, Union
 
 
 @dataclass

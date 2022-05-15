@@ -8,8 +8,10 @@ import unittest
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_types import (
+    _lookup,
     Boolean,
     BooleanMatrix,
+    bottom,
     Natural,
     NaturalMatrix,
     NegativeReal,
@@ -23,13 +25,11 @@ from beanmachine.ppl.compiler.bmg_types import (
     Real,
     RealMatrix,
     SimplexMatrix,
+    supremum,
     Tensor,
+    type_of_value,
     Zero,
     ZeroMatrix,
-    bottom,
-    supremum,
-    type_of_value,
-    _lookup,
 )
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor

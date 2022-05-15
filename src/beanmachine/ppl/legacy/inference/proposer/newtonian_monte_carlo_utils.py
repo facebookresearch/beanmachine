@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Optional, Tuple, Union, Callable
+from typing import Callable, Optional, Tuple, Union
 
 import torch
 import torch.distributions as dist

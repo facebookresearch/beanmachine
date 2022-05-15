@@ -8,9 +8,7 @@ from abc import abstractmethod
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World

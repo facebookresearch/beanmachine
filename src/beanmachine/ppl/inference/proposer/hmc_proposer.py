@@ -5,18 +5,16 @@
 
 import math
 import warnings
-from typing import Callable, Optional, Tuple, cast, Set
+from typing import Callable, cast, Optional, Set, Tuple
 
 import torch
 from beanmachine.ppl.experimental.nnc import nnc_jit
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.hmc_utils import (
     DualAverageAdapter,
     MassMatrixAdapter,
-    WindowScheme,
     RealSpaceTransform,
+    WindowScheme,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World

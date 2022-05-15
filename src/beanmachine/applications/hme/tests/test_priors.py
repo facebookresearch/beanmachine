@@ -9,14 +9,14 @@ from beanmachine.applications.hme.abstract_linear_model import AbstractLinearMod
 from beanmachine.applications.hme.abstract_model import AbstractModel
 from beanmachine.applications.hme.configs import (
     InferConfig,
-    ModelConfig,
     MixtureConfig,
-    RegressionConfig,
+    ModelConfig,
     PriorConfig,
+    RegressionConfig,
     StructuredPriorConfig,
 )
 from beanmachine.applications.hme.interface import HME
-from beanmachine.applications.hme.priors import ParamType, Distribution
+from beanmachine.applications.hme.priors import Distribution, ParamType
 
 
 class RealizedModel(AbstractModel):

@@ -7,9 +7,9 @@
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import (
+    Inapplicable,
     NodeFixer,
     NodeFixerResult,
-    Inapplicable,
 )
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 

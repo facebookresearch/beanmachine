@@ -7,9 +7,7 @@ import beanmachine.ppl as bm
 import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.hmc_proposer import (
-    HMCProposer,
-)
+from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
 from beanmachine.ppl.world import World
 
 

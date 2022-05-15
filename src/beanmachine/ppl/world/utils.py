@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from collections.abc import Iterable
-from typing import Iterable as IterableType, Type, Union, overload
+from typing import Iterable as IterableType, overload, Type, Union
 
 import torch
 import torch.distributions as dist

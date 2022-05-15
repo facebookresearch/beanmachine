@@ -16,7 +16,7 @@ import itertools
 import random
 from collections import defaultdict
 from functools import wraps
-from typing import NamedTuple, Callable, Tuple, Dict, Optional, List, Any
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 import torch
 import torch.distributions as dist

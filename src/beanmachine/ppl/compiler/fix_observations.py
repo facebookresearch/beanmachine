@@ -11,9 +11,9 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
-    Untypable,
     supremum,
     type_of_value,
+    Untypable,
 )
 from beanmachine.ppl.compiler.error_report import ErrorReport, ImpossibleObservation
 from beanmachine.ppl.compiler.fix_problem import GraphFixer

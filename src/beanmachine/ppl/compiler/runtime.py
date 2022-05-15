@@ -59,17 +59,17 @@ import beanmachine.ppl.compiler.profiler as prof
 import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
-from beanmachine.ppl.compiler.execution_context import FunctionCall, ExecutionContext
+from beanmachine.ppl.compiler.execution_context import ExecutionContext, FunctionCall
 from beanmachine.ppl.compiler.special_function_caller import (
-    SpecialFunctionCaller,
     canonicalize_function,
+    SpecialFunctionCaller,
 )
 from beanmachine.ppl.compiler.support import (
-    ComputeSupport,
-    TooBig,
-    Infinite,
-    Unknown,
     _limit as max_possibilities,
+    ComputeSupport,
+    Infinite,
+    TooBig,
+    Unknown,
 )
 from beanmachine.ppl.inference.utils import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier

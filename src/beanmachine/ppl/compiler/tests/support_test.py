@@ -10,7 +10,7 @@ import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.support import ComputeSupport, Infinite, TooBig
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli, Normal, Categorical
+from torch.distributions import Bernoulli, Categorical, Normal
 
 
 def tidy(s: str) -> str:

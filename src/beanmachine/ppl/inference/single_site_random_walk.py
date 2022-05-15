@@ -6,9 +6,7 @@
 from typing import List, Set
 
 from beanmachine.ppl.inference.base_inference import BaseInference
-from beanmachine.ppl.inference.proposer.base_proposer import (
-    BaseProposer,
-)
+from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
     SingleSiteRandomWalkProposer,
 )

@@ -9,11 +9,11 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 
 from beanmachine.ppl.compiler.patterns import (
-    Pattern,
     anyPattern,
     failPattern,
     is_any,
     match,
+    Pattern,
     to_pattern,
 )
 

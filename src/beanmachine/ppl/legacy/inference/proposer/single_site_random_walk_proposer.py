@@ -12,9 +12,9 @@ from beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer im
 )
 from beanmachine.ppl.legacy.world import (
     ProposalDistribution,
+    TransformType,
     Variable,
     World,
-    TransformType,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.utils import is_constraint_eq

@@ -15,10 +15,7 @@ import torch.optim as optim
 from torch import Tensor, tensor
 from tqdm.auto import tqdm
 
-from ...legacy.inference.abstract_infer import (
-    AbstractInference,
-    AbstractMCInference,
-)
+from ...legacy.inference.abstract_infer import AbstractInference, AbstractMCInference
 from ...legacy.inference.abstract_mh_infer import AbstractMHInference
 from ...legacy.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,

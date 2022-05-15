@@ -12,8 +12,8 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
-    is_valid,
     hessian_of_log_prob,
+    is_valid,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
