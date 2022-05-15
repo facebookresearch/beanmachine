@@ -58,7 +58,7 @@ DEV_REQUIRES = (
         "toml>=0.10.2",
         # `black` is included in `INSTALL_REQUIRES` above.
         "ufmt==1.3.2",
-        "usort==0.6.4",
+        "usort==1.0.2",
     ]
 )
 
