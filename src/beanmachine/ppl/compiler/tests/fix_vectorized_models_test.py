@@ -86,6 +86,11 @@ def operators():
     return ((beta_2_2() + tensor([[5.0, 6.0], [7.0, 8.0]])) * 10.0).exp()
 
 
+@bm.functional
+def multiplication():
+    return beta_2_2() * tensor([5.0, 6.0])
+
+
 class FixVectorizedModelsTest(unittest.TestCase):
     def test_fix_vectorized_models_1(self) -> None:
         self.maxDiff = None
@@ -833,6 +838,77 @@ digraph "graph" {
   N31 -> N32;
   N32 -> N33;
   N33 -> N34;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_8(self) -> None:
+        self.maxDiff = None
+        observations = {}
+        queries = [multiplication()]
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+
+        # The model before the rewrite:
+
+        expected = """
+digraph "graph" {
+  N0[label="[2.0,2.0]"];
+  N1[label="[3.0,4.0]"];
+  N2[label=Beta];
+  N3[label=Sample];
+  N4[label="[5.0,6.0]"];
+  N5[label="*"];
+  N6[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N5;
+  N4 -> N5;
+  N5 -> N6;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # After:
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        expected = """
+digraph "graph" {
+  N00[label=2];
+  N01[label=1];
+  N02[label=2.0];
+  N03[label=3.0];
+  N04[label=Beta];
+  N05[label=Sample];
+  N06[label=ToPosReal];
+  N07[label=5.0];
+  N08[label="*"];
+  N09[label=4.0];
+  N10[label=Beta];
+  N11[label=Sample];
+  N12[label=ToPosReal];
+  N13[label=6.0];
+  N14[label="*"];
+  N15[label=ToMatrix];
+  N16[label=Query];
+  N00 -> N15;
+  N01 -> N15;
+  N02 -> N04;
+  N02 -> N10;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N08;
+  N07 -> N08;
+  N08 -> N15;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N14;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
