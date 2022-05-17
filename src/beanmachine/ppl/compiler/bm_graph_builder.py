@@ -825,6 +825,14 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_exp2(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(torch.exp2(operand.value))
+        node = bn.Exp2Node(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_expm1(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(torch.expm1(operand.value))
@@ -863,12 +871,44 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_log10(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, bn.ConstantNode):
+            return self.add_constant(torch.log10(operand.value))
+        node = bn.Log10Node(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_log1p(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, bn.ConstantNode):
+            return self.add_constant(torch.log1p(operand.value))
+        node = bn.Log1pNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_log2(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, bn.ConstantNode):
+            return self.add_constant(torch.log2(operand.value))
+        node = bn.Log2Node(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_log1mexp(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(log1mexp(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math_log1mexp(operand.value))
         node = bn.Log1mexpNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_squareroot(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, bn.ConstantNode):
+            return self.add_constant(torch.sqrt(operand.value))
+        node = bn.SquareRootNode(operand)
         self.add_node(node)
         return node
 

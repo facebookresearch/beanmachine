@@ -184,6 +184,162 @@ def log_7():
 
 
 @bm.functional
+def log10_1():
+    # Tensor constant, torch.log10.
+    return torch.log10(torch.tensor(10.0))
+
+
+@bm.functional
+def log10_2():
+    # Stochastic tensor, torch.log10.
+    return torch.log10(beta() + 2.0)
+
+
+@bm.functional
+def log10_3():
+    # Tensor constant, Tensor.log10.
+    return torch.Tensor.log10(torch.tensor(1000.0))
+
+
+@bm.functional
+def log10_4():
+    # Tensor constant, instance log10
+    return torch.tensor(10000.0).log10()
+
+
+@bm.functional
+def log10_5():
+    # Stochastic value, Tensor.log10
+    return torch.Tensor.log10(beta() + 5.0)
+
+
+@bm.functional
+def log10_6():
+    # Stochastic value, instance log10
+    return (beta() + 6.0).log10()
+
+
+@bm.functional
+def log1p_1():
+    # Tensor constant, torch.log1p.
+    return torch.log1p(torch.tensor(1.0))
+
+
+@bm.functional
+def log1p_2():
+    # Stochastic tensor, torch.log1p.
+    return torch.log1p(beta() + 2.0)
+
+
+@bm.functional
+def log1p_3():
+    # Tensor constant, torch.special.log1p.
+    return torch.special.log1p(torch.tensor(3.0))
+
+
+@bm.functional
+def log1p_4():
+    # Stochastic tensor, torch.special.log1p.
+    return torch.special.log1p(beta() + 4.0)
+
+
+@bm.functional
+def log1p_5():
+    # Tensor constant, Tensor.log1p.
+    return torch.Tensor.log1p(torch.tensor(5.0))
+
+
+@bm.functional
+def log1p_6():
+    # Tensor constant, instance log1p
+    return torch.tensor(6.0).log1p()
+
+
+@bm.functional
+def log1p_7():
+    # Stochastic value, Tensor.log1p
+    return torch.Tensor.log1p(beta() + 7.0)
+
+
+@bm.functional
+def log1p_8():
+    # Stochastic value, instance log1p
+    return (beta() + 8.0).log1p()
+
+
+@bm.functional
+def log2_1():
+    # Tensor constant, torch.log2.
+    return torch.log2(torch.tensor(2.0))
+
+
+@bm.functional
+def log2_2():
+    # Stochastic tensor, torch.log2.
+    return torch.log2(beta() + 2.0)
+
+
+@bm.functional
+def log2_3():
+    # Tensor constant, Tensor.log2.
+    return torch.Tensor.log2(torch.tensor(8.0))
+
+
+@bm.functional
+def log2_4():
+    # Tensor constant, instance log2
+    return torch.tensor(16.0).log2()
+
+
+@bm.functional
+def log2_5():
+    # Stochastic value, Tensor.log2
+    return torch.Tensor.log2(beta() + 5.0)
+
+
+@bm.functional
+def log2_6():
+    # Stochastic value, instance log2
+    return (beta() + 6.0).log2()
+
+
+@bm.functional
+def sqrt_1():
+    # Tensor constant, torch.sqrt.
+    return torch.sqrt(torch.tensor(1.0))
+
+
+@bm.functional
+def sqrt_2():
+    # Stochastic tensor, torch.sqrt.
+    return torch.sqrt(beta() + 2.0)
+
+
+@bm.functional
+def sqrt_3():
+    # Tensor constant, Tensor.sqrt.
+    return torch.Tensor.sqrt(torch.tensor(9.0))
+
+
+@bm.functional
+def sqrt_4():
+    # Tensor constant, instance sqrt
+    return torch.tensor(16.0).sqrt()
+
+
+@bm.functional
+def sqrt_5():
+    # Stochastic value, Tensor.sqrt
+    return torch.Tensor.sqrt(beta() + 5.0)
+
+
+@bm.functional
+def sqrt_6():
+    # Stochastic value, instance sqrt
+    return (beta() + 6.0).sqrt()
+
+
+@bm.functional
 def exp_1():
     # Ordinary constant, math.exp. Note that a functional is
     # required to return a tensor. Verify that ordinary
@@ -227,6 +383,54 @@ def exp_6():
 def exp_7():
     # Stochastic value, instance exp
     return (beta() + 7.0).exp()
+
+
+@bm.functional
+def exp2_1():
+    # Tensor constant, torch.exp2.
+    return torch.exp2(torch.tensor(1.0))
+
+
+@bm.functional
+def exp2_2():
+    # Stochastic tensor, torch.exp2.
+    return torch.exp2(beta() + 2.0)
+
+
+@bm.functional
+def exp2_3():
+    # Tensor constant, torch.special.exp2.
+    return torch.special.exp2(torch.tensor(3.0))
+
+
+@bm.functional
+def exp2_4():
+    # Stochastic tensor, torch.special.exp2.
+    return torch.special.exp2(beta() + 4.0)
+
+
+@bm.functional
+def exp2_5():
+    # Tensor constant, Tensor.exp2.
+    return torch.Tensor.exp2(torch.tensor(5.0))
+
+
+@bm.functional
+def exp2_6():
+    # Tensor constant, instance exp2
+    return torch.tensor(6.0).exp2()
+
+
+@bm.functional
+def exp2_7():
+    # Stochastic value, Tensor.exp2
+    return torch.Tensor.exp2(beta() + 7.0)
+
+
+@bm.functional
+def exp2_8():
+    # Stochastic value, instance exp2
+    return (beta() + 8.0).exp2()
 
 
 @bm.functional
@@ -1677,6 +1881,296 @@ digraph "graph" {
 }"""
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_bmg_arithmetic_log10(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                log10_1(),
+                log10_2(),
+                log10_3(),
+                log10_4(),
+                log10_5(),
+                log10_6(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=ToPosReal];
+  N06[label="+"];
+  N07[label=Log];
+  N08[label=0.43429448190325176];
+  N09[label="*"];
+  N10[label=Query];
+  N11[label=3.0];
+  N12[label=Query];
+  N13[label=4.0];
+  N14[label=Query];
+  N15[label=5.0];
+  N16[label="+"];
+  N17[label=Log];
+  N18[label="*"];
+  N19[label=Query];
+  N20[label=6.0];
+  N21[label="+"];
+  N22[label=Log];
+  N23[label="*"];
+  N24[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N02 -> N03;
+  N02 -> N06;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N05 -> N16;
+  N05 -> N21;
+  N06 -> N07;
+  N07 -> N09;
+  N08 -> N09;
+  N08 -> N18;
+  N08 -> N23;
+  N09 -> N10;
+  N11 -> N12;
+  N13 -> N14;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+  N23 -> N24;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_log1p(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                log1p_1(),
+                log1p_2(),
+                log1p_3(),
+                log1p_4(),
+                log1p_5(),
+                log1p_6(),
+                log1p_7(),
+                log1p_8(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=0.6931471824645996];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=1.0];
+  N06[label=ToPosReal];
+  N07[label="+"];
+  N08[label="+"];
+  N09[label=Log];
+  N10[label=Query];
+  N11[label=1.3862943649291992];
+  N12[label=Query];
+  N13[label=4.0];
+  N14[label="+"];
+  N15[label="+"];
+  N16[label=Log];
+  N17[label=Query];
+  N18[label=1.7917594909667969];
+  N19[label=Query];
+  N20[label=1.945910096168518];
+  N21[label=Query];
+  N22[label=7.0];
+  N23[label="+"];
+  N24[label="+"];
+  N25[label=Log];
+  N26[label=Query];
+  N27[label=8.0];
+  N28[label="+"];
+  N29[label="+"];
+  N30[label=Log];
+  N31[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N02 -> N03;
+  N02 -> N07;
+  N03 -> N04;
+  N04 -> N06;
+  N05 -> N08;
+  N05 -> N15;
+  N05 -> N24;
+  N05 -> N29;
+  N06 -> N07;
+  N06 -> N14;
+  N06 -> N23;
+  N06 -> N28;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N10;
+  N11 -> N12;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N17;
+  N18 -> N19;
+  N20 -> N21;
+  N22 -> N23;
+  N23 -> N24;
+  N24 -> N25;
+  N25 -> N26;
+  N27 -> N28;
+  N28 -> N29;
+  N29 -> N30;
+  N30 -> N31;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_log2(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                log2_1(),
+                log2_2(),
+                log2_3(),
+                log2_4(),
+                log2_5(),
+                log2_6(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=ToPosReal];
+  N06[label="+"];
+  N07[label=Log];
+  N08[label=1.4426950408889634];
+  N09[label="*"];
+  N10[label=Query];
+  N11[label=3.0];
+  N12[label=Query];
+  N13[label=4.0];
+  N14[label=Query];
+  N15[label=5.0];
+  N16[label="+"];
+  N17[label=Log];
+  N18[label="*"];
+  N19[label=Query];
+  N20[label=6.0];
+  N21[label="+"];
+  N22[label=Log];
+  N23[label="*"];
+  N24[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N02 -> N03;
+  N02 -> N06;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N05 -> N16;
+  N05 -> N21;
+  N06 -> N07;
+  N07 -> N09;
+  N08 -> N09;
+  N08 -> N18;
+  N08 -> N23;
+  N09 -> N10;
+  N11 -> N12;
+  N13 -> N14;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+  N23 -> N24;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_sqrt(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                sqrt_1(),
+                sqrt_2(),
+                sqrt_3(),
+                sqrt_4(),
+                sqrt_5(),
+                sqrt_6(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=1.0];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=ToPosReal];
+  N06[label="+"];
+  N07[label=0.5];
+  N08[label="**"];
+  N09[label=Query];
+  N10[label=3.0];
+  N11[label=Query];
+  N12[label=4.0];
+  N13[label=Query];
+  N14[label=5.0];
+  N15[label="+"];
+  N16[label="**"];
+  N17[label=Query];
+  N18[label=6.0];
+  N19[label="+"];
+  N20[label="**"];
+  N21[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N02 -> N03;
+  N02 -> N06;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N05 -> N15;
+  N05 -> N19;
+  N06 -> N08;
+  N07 -> N08;
+  N07 -> N16;
+  N07 -> N20;
+  N08 -> N09;
+  N10 -> N11;
+  N12 -> N13;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N17;
+  N18 -> N19;
+  N19 -> N20;
+  N20 -> N21;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_bmg_arithmetic_pow(self) -> None:
         self.maxDiff = None
 
@@ -2777,6 +3271,83 @@ digraph "graph" {
   N20 -> N21;
   N21 -> N22;
   N22 -> N23;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_arithmetic_exp2(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot(
+            [
+                exp2_1(),
+                exp2_2(),
+                exp2_3(),
+                exp2_4(),
+                exp2_5(),
+                exp2_6(),
+                exp2_7(),
+                exp2_8(),
+            ],
+            {},
+        )
+        expected = """
+digraph "graph" {
+  N00[label=2.0];
+  N01[label=Query];
+  N02[label=2.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=ToPosReal];
+  N06[label="+"];
+  N07[label="**"];
+  N08[label=Query];
+  N09[label=8.0];
+  N10[label=Query];
+  N11[label=4.0];
+  N12[label="+"];
+  N13[label="**"];
+  N14[label=Query];
+  N15[label=32.0];
+  N16[label=Query];
+  N17[label=64.0];
+  N18[label=Query];
+  N19[label=7.0];
+  N20[label="+"];
+  N21[label="**"];
+  N22[label=Query];
+  N23[label=8.0];
+  N24[label="+"];
+  N25[label="**"];
+  N26[label=Query];
+  N00 -> N01;
+  N02 -> N03;
+  N02 -> N03;
+  N02 -> N06;
+  N02 -> N07;
+  N02 -> N13;
+  N02 -> N21;
+  N02 -> N25;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N05 -> N12;
+  N05 -> N20;
+  N05 -> N24;
+  N06 -> N07;
+  N07 -> N08;
+  N09 -> N10;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+  N15 -> N16;
+  N17 -> N18;
+  N19 -> N20;
+  N20 -> N21;
+  N21 -> N22;
+  N23 -> N24;
+  N24 -> N25;
+  N25 -> N26;
 }
 """
         self.assertEqual(observed.strip(), expected.strip())

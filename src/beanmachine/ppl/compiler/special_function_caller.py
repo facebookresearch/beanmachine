@@ -462,8 +462,9 @@ class SpecialFunctionCaller:
             torch.equal: self._torch_eq,
             torch.Tensor.exp: self._torch_exp,  # pyre-ignore
             torch.exp: self._torch_exp,
-            # TODO: exp2
-            # TODO: special.exp2
+            torch.Tensor.exp2: self._torch_exp2,  # pyre-ignore
+            torch.exp2: self._torch_exp2,
+            torch.special.exp2: self._torch_exp2,
             torch.Tensor.expm1: self._torch_expm1,  # pyre-ignore
             torch.expm1: self._torch_expm1,
             torch.special.expm1: self._torch_expm1,
@@ -491,15 +492,22 @@ class SpecialFunctionCaller:
             torch.less_equal: self._torch_le,
             torch.Tensor.log: self._torch_log,
             torch.log: self._torch_log,
-            # TODO: log10
-            # TODO: log2
+            torch.Tensor.log10: self._torch_log10,  # pyre-ignore
+            torch.log10: self._torch_log10,
+            torch.Tensor.log1p: self._torch_log1p,  # pyre-ignore
+            torch.log1p: self._torch_log1p,
+            torch.special.log1p: self._torch_log1p,
+            torch.Tensor.log2: self._torch_log2,  # pyre-ignore
+            torch.log2: self._torch_log2,
             # TODO: logical_and
+            # TODO: special.logit
             torch.Tensor.logical_not: self._torch_logical_not,  # pyre-ignore
             torch.logical_not: self._torch_logical_not,
             # TODO: logical_or
             # TODO: logical_xor
             torch.Tensor.logsumexp: self._torch_logsumexp,
             torch.logsumexp: self._torch_logsumexp,
+            torch.special.logsumexp: self._torch_logsumexp,
             torch.Tensor.lt: self._torch_lt,
             torch.lt: self._torch_lt,
             torch.Tensor.matmul: self._torch_matmul,
@@ -525,7 +533,8 @@ class SpecialFunctionCaller:
             torch.sigmoid: self._torch_sigmoid,
             torch.Tensor.sigmoid: self._torch_sigmoid,
             torch.special.expit: self._torch_sigmoid,
-            # TODO: sqrt
+            torch.Tensor.sqrt: self._torch_sqrt,
+            torch.sqrt: self._torch_sqrt,
             torch.Tensor.sub: self._torch_sub,
             torch.sub: self._torch_sub,
             torch.Tensor.subtract: self._torch_sub,  # pyre-ignore
@@ -937,6 +946,9 @@ class SpecialFunctionCaller:
     def _torch_exp(self, input: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_exp(input)
 
+    def _torch_exp2(self, input: BMGNode, out: Any = None) -> BMGNode:
+        return self._bmg.add_exp2(input)
+
     def _torch_expm1(self, input: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_expm1(input)
 
@@ -986,6 +998,15 @@ class SpecialFunctionCaller:
     def _torch_log(self, input: BMGNode, out: Any = None) -> Any:
         return self._bmg.add_log(input)
 
+    def _torch_log10(self, input: BMGNode, out: Any = None) -> Any:
+        return self._bmg.add_log10(input)
+
+    def _torch_log1p(self, input: BMGNode, out: Any = None) -> Any:
+        return self._bmg.add_log1p(input)
+
+    def _torch_log2(self, input: BMGNode, out: Any = None) -> Any:
+        return self._bmg.add_log2(input)
+
     def _torch_logical_not(self, input: BMGNode, out: Any = None) -> Any:
         return self._bmg.add_not(input)
 
@@ -1027,6 +1048,9 @@ class SpecialFunctionCaller:
 
     def _torch_sigmoid(self, input: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_logistic(input)
+
+    def _torch_sqrt(self, input: BMGNode, out: Any = None) -> Any:
+        return self._bmg.add_squareroot(input)
 
     def _torch_sub(
         self,

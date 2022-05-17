@@ -1068,6 +1068,14 @@ class ExpNode(UnaryOperatorNode):
         return "Exp(" + str(self.operand) + ")"
 
 
+class Exp2Node(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Exp2(" + str(self.operand) + ")"
+
+
 class ExpM1Node(UnaryOperatorNode):
     """This represents the operation exp(x) - 1; it is generated when
     a model contains calls to Tensor.expm1."""
@@ -1105,6 +1113,38 @@ class LogNode(UnaryOperatorNode):
 
     def __str__(self) -> str:
         return "Log(" + str(self.operand) + ")"
+
+
+class Log10Node(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Log10(" + str(self.operand) + ")"
+
+
+class Log1pNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Log1p(" + str(self.operand) + ")"
+
+
+class Log2Node(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Log2(" + str(self.operand) + ")"
+
+
+class SquareRootNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "SquareRoot(" + str(self.operand) + ")"
 
 
 # TODO: replace "log" with "log1mexp" as needed below and update defs

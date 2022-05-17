@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
@@ -58,6 +59,34 @@ class UnsupportedNodeFixer:
         neg1 = self._bmg.add_constant(-1.0)
         powr = self._bmg.add_power(r, neg1)
         return self._bmg.add_multiplication(node.left, powr)
+
+    def _replace_exp2(self, node: bn.Exp2Node) -> bn.BMGNode:
+        two = self._bmg.add_constant(2.0)
+        return self._bmg.add_power(two, node.operand)
+
+    def _replace_log10(self, node: bn.Log10Node) -> bn.BMGNode:
+        # log10(x) = log(x) * (1/log(10))
+        c = self._bmg.add_constant(1.0 / math.log(10))
+        ln = self._bmg.add_log(node.operand)
+        return self._bmg.add_multiplication(ln, c)
+
+    def _replace_log1p(self, node: bn.Log1pNode) -> bn.BMGNode:
+        # log1p(x) = log(1+x)
+        # TODO: If we added a log1p node to BMG then it could get
+        # more accurate results.
+        one = self._bmg.add_constant(1.0)
+        add = self._bmg.add_addition(one, node.operand)
+        return self._bmg.add_log(add)
+
+    def _replace_log2(self, node: bn.Log10Node) -> bn.BMGNode:
+        # log2(x) = log(x) * (1/log(2))
+        c = self._bmg.add_constant(1.0 / math.log(2))
+        ln = self._bmg.add_log(node.operand)
+        return self._bmg.add_multiplication(ln, c)
+
+    def _replace_squareroot(self, node: bn.SquareRootNode) -> bn.BMGNode:
+        half = self._bmg.add_constant(0.5)
+        return self._bmg.add_power(node.operand, half)
 
     def _replace_uniform(self, node: bn.UniformNode) -> Optional[bn.BMGNode]:
         # TODO: Suppose we have something like Uniform(1.0, 2.0).  Can we replace that
@@ -300,9 +329,14 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
         [
             type_guard(bn.Chi2Node, usnf._replace_chi2),
             type_guard(bn.DivisionNode, usnf._replace_division),
+            type_guard(bn.Exp2Node, usnf._replace_exp2),
             type_guard(bn.IndexNode, usnf._replace_index),
             type_guard(bn.ItemNode, usnf._replace_item),
+            type_guard(bn.Log10Node, usnf._replace_log10),
+            type_guard(bn.Log1pNode, usnf._replace_log1p),
+            type_guard(bn.Log2Node, usnf._replace_log2),
             type_guard(bn.LogSumExpTorchNode, usnf._replace_lse),
+            type_guard(bn.SquareRootNode, usnf._replace_squareroot),
             type_guard(bn.SwitchNode, usnf._replace_switch),
             type_guard(bn.TensorNode, usnf._replace_tensor),
             type_guard(bn.UniformNode, usnf._replace_uniform),

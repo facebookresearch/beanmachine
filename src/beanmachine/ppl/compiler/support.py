@@ -97,6 +97,7 @@ _product_of_inputs = {
     bn.EqualNode: torch.Tensor.eq,
     bn.ExpM1Node: torch.Tensor.expm1,  # pyre-ignore
     bn.ExpNode: torch.Tensor.exp,  # pyre-ignore
+    bn.Exp2Node: torch.exp2,
     bn.FloorDivNode: torch.Tensor.__floordiv__,
     bn.GreaterThanEqualNode: torch.Tensor.ge,
     bn.GreaterThanNode: torch.Tensor.gt,
@@ -106,6 +107,9 @@ _product_of_inputs = {
     bn.LessThanNode: torch.Tensor.lt,
     bn.LogisticNode: torch.Tensor.sigmoid,
     bn.LogNode: torch.Tensor.log,
+    bn.Log10Node: torch.log10,
+    bn.Log1pNode: torch.log1p,
+    bn.Log2Node: torch.log2,
     bn.LShiftNode: torch.Tensor.__lshift__,
     bn.MatrixMultiplicationNode: torch.Tensor.mm,  # pyre-ignore
     bn.ModNode: torch.Tensor.__mod__,
@@ -115,6 +119,7 @@ _product_of_inputs = {
     bn.PhiNode: torch.distributions.Normal(0.0, 1.0).cdf,
     bn.PowerNode: torch.Tensor.pow,
     bn.RShiftNode: torch.Tensor.__rshift__,
+    bn.SquareRootNode: torch.sqrt,
 }
 
 
