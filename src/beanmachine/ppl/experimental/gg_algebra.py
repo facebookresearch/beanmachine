@@ -1,3 +1,4 @@
+import torch
 import torch.distributions as dist
 import numpy as np
 import scipy.special as sp
@@ -22,7 +23,6 @@ class GGTail(object):
             
     def __add__(self, other):
         """The addition operation (additive convolution)"""
-        
         if not isinstance(other, self.__class__):
             return self._copy()
         
@@ -53,8 +53,11 @@ class GGTail(object):
         
     def __mul__(self, other):
         """The multiplication operation (multiplicative convolution)"""
-        
+        if self is other:
+            return self**2
         if not isinstance(other, self.__class__):
+            if _eq(other, 0):
+                return 0
             # Scalar multiplication
             return self._rv(self.nu, 
                             self.sigma / abs(other)**self.rho,
