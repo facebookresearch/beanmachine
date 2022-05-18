@@ -262,11 +262,27 @@ class Sizer(TyperBase[Size]):
         return s
 
     def _size_to_matrix(self, node: bn.ToMatrixNode) -> Size:
+        # The size of a 2-d torch tensor is [rows, columns], but
+        # BMG matrices are column-major. Therefore the values are
+        # swapped into the opposite order. That is, if we have
+        # a tensor of the form [[A, B, C], [D, E, F]] with two rows
+        # and three columns, that will be transformed into a ToMatrix
+        # node with three rows and two columns. When we ask "what's the
+        # size of the equivalent of this ToMatrix in torch?" we need
+        # to swap them back.
+        #
+        # Moreover, just because BMG matrices are all exactly-2 dimensional
+        # does not imply that the original tensor was. If we have a vector,
+        # size it as a vector.
         rows = node.inputs[0]
         assert isinstance(rows, bn.NaturalNode)
+        rows = rows.value
         columns = node.inputs[1]
         assert isinstance(columns, bn.NaturalNode)
-        return Size([rows.value, columns.value])
+        columns = columns.value
+        if columns == 1:
+            return Size([rows])
+        return Size([columns, rows])
 
     # This implements the abstract base type method.
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> Size:

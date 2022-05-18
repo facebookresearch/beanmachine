@@ -91,6 +91,11 @@ def multiplication():
     return beta_2_2() * tensor([5.0, 6.0])
 
 
+@bm.functional
+def complement_with_log1p():
+    return (-beta_2_2()).log1p()
+
+
 class FixVectorizedModelsTest(unittest.TestCase):
     def test_fix_vectorized_models_1(self) -> None:
         self.maxDiff = None
@@ -911,4 +916,71 @@ digraph "graph" {
   N15 -> N16;
 }
 """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_9(self) -> None:
+        self.maxDiff = None
+        observations = {}
+        queries = [complement_with_log1p()]
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+
+        # The model before the rewrite:
+
+        expected = """
+digraph "graph" {
+  N0[label="[2.0,2.0]"];
+  N1[label="[3.0,4.0]"];
+  N2[label=Beta];
+  N3[label=Sample];
+  N4[label="-"];
+  N5[label=Log1p];
+  N6[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+  N4 -> N5;
+  N5 -> N6;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # After:
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        expected = """
+digraph "graph" {
+  N00[label=2];
+  N01[label=1];
+  N02[label=2.0];
+  N03[label=3.0];
+  N04[label=Beta];
+  N05[label=Sample];
+  N06[label=complement];
+  N07[label=Log];
+  N08[label=4.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=complement];
+  N12[label=Log];
+  N13[label=ToMatrix];
+  N14[label=Query];
+  N00 -> N13;
+  N01 -> N13;
+  N02 -> N04;
+  N02 -> N09;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N13;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+}
+        """
         self.assertEqual(expected.strip(), observed.strip())

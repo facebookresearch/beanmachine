@@ -60,24 +60,44 @@ def _is_fixable_size(s: Size) -> bool:
 def _node_to_index_list(
     bmg: BMGraphBuilder, sizer: Sizer, n: bn.BMGNode
 ) -> List[bn.BMGNode]:
+
     size = sizer[n]
     dim = len(size)
     index_list = []
+    # This code is a little confusing because BMG uses column-major matrices
+    # and torch uses row-major tensors.  The Sizer always gives the size
+    # that a graph node would be in *torch*, so if we have a Size([2, 3])
+    # matrix node, that has two rows and three columns in torch, and would
+    # be indexed first by row and then by column. But in BMG, that would
+    # be two columns, three rows, and indexed by column first, then row.
+    #
+    # The practical upshot is: if we have, say, Size([3]) OR Size([1, 3])
+    # then either way, we will have a one-column, three row BMG node, and
+    # therefore we only need a single level of indexing.
+
     if dim == 0:
         # If we have just a single value then there's no indexing required.
         index_list.append(n)
     elif dim == 1:
+
         for i in range(0, size[0]):
             ci = bmg.add_constant(i)
             ni = bmg.add_index(n, ci)
             index_list.append(ni)
+    elif size[0] == 1:
+        assert dim == 2
+        for i in range(0, size[1]):
+            ci = bmg.add_constant(i)
+            ni = bmg.add_index(n, ci)
+            index_list.append(ni)
     else:
+        # We need two levels of indexing.
         assert dim == 2
         for i in range(0, size[0]):
+            ci = bmg.add_constant(i)
+            ni = bmg.add_index(n, ci)
             for j in range(0, size[1]):
-                ci = bmg.add_constant(i)
                 cj = bmg.add_constant(j)
-                ni = bmg.add_index(n, ci)
                 nij = bmg.add_index(ni, cj)
                 index_list.append(nij)
     return index_list
@@ -167,7 +187,7 @@ def _is_fixable_sample(sizer: Sizer, n: bn.BMGNode) -> bool:
 def _vectorized_distribution_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFixer:
     distribution_factories = _distribution_factories(bmg)
 
-    def fixer(node: bn.BMGNode) -> NodeFixerResult:
+    def vect_dist_fixer(node: bn.BMGNode) -> NodeFixerResult:
         if not _is_fixable_sample(sizer, node):
             return Inapplicable
         assert isinstance(node, bn.SampleNode)
@@ -182,7 +202,7 @@ def _vectorized_distribution_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> No
         t = bmg.add_tensor(size, *samples)
         return t
 
-    return fixer
+    return vect_dist_fixer
 
 
 def _operator_factories(bmg: BMGraphBuilder) -> Dict[Type, Callable]:
@@ -207,7 +227,7 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
 
     operator_factories = _operator_factories(bmg)
 
-    def node_fixer(n: bn.BMGNode) -> NodeFixerResult:
+    def vect_op_node_fixer(n: bn.BMGNode) -> NodeFixerResult:
         if type(n) not in operator_factories:
             return Inapplicable
         # We do not rewrite multiplications of matrices by scalars; that's
@@ -236,11 +256,11 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
         t = bmg.add_tensor(size, *results)
         return t
 
-    return node_fixer
+    return vect_op_node_fixer
 
 
 def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def fixer() -> GraphFixerResult:
+    def vop_fixer() -> GraphFixerResult:
         sizer = Sizer()
 
         dist_fixer = _vectorized_distribution_node_fixer(bmg, sizer)
@@ -258,11 +278,11 @@ def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
                     bmg.remove_leaf(n)
         return made_progress, errors
 
-    return fixer
+    return vop_fixer
 
 
 def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def fixer() -> GraphFixerResult:
+    def vobs_fixer() -> GraphFixerResult:
         made_change = False
         # We might have an illegal observation. Fix it.
         for o in bmg.all_observations():
@@ -292,4 +312,4 @@ def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
             made_change = True
         return made_change, ErrorReport()
 
-    return fixer
+    return vobs_fixer
