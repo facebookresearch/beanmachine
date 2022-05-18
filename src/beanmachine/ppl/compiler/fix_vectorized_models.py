@@ -211,11 +211,17 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
         if type(n) not in operator_factories:
             return Inapplicable
         # We do not rewrite multiplications of matrices by scalars; that's
-        # handled in a later rewriter.
+        # handled in a later rewriter. If both operands are "fixable" then
+        # both are vectors or matrices. If one or both operands are not
+        # "fixable" then either they are scalars or higher-dimensional tensors.
+        # Either way, we can skip fixing the multiplication.
         if (
             isinstance(n, bn.MultiplicationNode)
             and len(n.inputs) == 2
-            and (len(sizer[n.inputs[0]]) <= 1 or len(sizer[n.inputs[1]]) <= 1)
+            and (
+                not _is_fixable_size(sizer[n.inputs[0]])
+                or not _is_fixable_size(sizer[n.inputs[1]])
+            )
         ):
             return Inapplicable
         if not _is_fixable_size(sizer[n]):
