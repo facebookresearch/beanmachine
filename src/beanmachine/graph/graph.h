@@ -357,6 +357,7 @@ enum class DistributionType {
   BIMIXTURE,
   CATEGORICAL,
   POISSON,
+  GEOMETRIC,
   DUMMY,
 };
 
