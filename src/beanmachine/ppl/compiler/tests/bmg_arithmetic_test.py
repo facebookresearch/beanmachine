@@ -1176,49 +1176,49 @@ def lshift_1():
 @bm.functional
 def lshift_2():
     # Tensor arithmetic, << operator
-    return torch.tensor(2.0) << torch.tensor(2.0)
+    return torch.tensor(2) << torch.tensor(2)
 
 
 @bm.functional
 def lshift_3():
     # Tensor constants, Tensor.bitwise_left_shift.
-    return torch.Tensor.bitwise_left_shift(torch.tensor(6.0), torch.tensor(2.0))
+    return torch.Tensor.bitwise_left_shift(torch.tensor(6), torch.tensor(2))
 
 
 @bm.functional
 def lshift_4():
     # Tensor constant, instance bitwise_left_shift
-    return torch.tensor(8.0).bitwise_left_shift(torch.tensor(2.0))
+    return torch.tensor(8).bitwise_left_shift(torch.tensor(2))
 
 
 @bm.functional
 def lshift_5():
     # Stochastic value, << operator
-    return beta() << 4.0
+    return beta() << 4
 
 
 @bm.functional
 def lshift_6():
     # Stochastic value, Tensor.bitwise_left_shift
-    return torch.Tensor.bitwise_left_shift(beta(), torch.tensor(8.0))
+    return torch.Tensor.bitwise_left_shift(beta(), torch.tensor(8))
 
 
 @bm.functional
 def lshift_7():
     # Stochastic value, instance bitwise_left_shift
-    return beta().bitwise_left_shift(torch.tensor(16.0))
+    return beta().bitwise_left_shift(torch.tensor(16))
 
 
 @bm.functional
 def lshift_8():
     # Constant values, operator.lshift
-    return operator.lshift(torch.tensor(16.0), torch.tensor(2.0))
+    return operator.lshift(torch.tensor(16), torch.tensor(2))
 
 
 @bm.functional
 def lshift_9():
     # Stochastic values, operator.lshift
-    return operator.lshift(beta(), torch.tensor(32.0))
+    return operator.lshift(beta(), torch.tensor(32))
 
 
 @bm.functional
@@ -1572,49 +1572,49 @@ def rshift_1():
 @bm.functional
 def rshift_2():
     # Tensor arithmetic, << operator
-    return torch.tensor(4.0) >> torch.tensor(2.0)
+    return torch.tensor(4) >> torch.tensor(2)
 
 
 @bm.functional
 def rshift_3():
     # Tensor constants, Tensor.bitwise_right_shift.
-    return torch.Tensor.bitwise_right_shift(torch.tensor(6.0), torch.tensor(2.0))
+    return torch.Tensor.bitwise_right_shift(torch.tensor(6), torch.tensor(2))
 
 
 @bm.functional
 def rshift_4():
     # Tensor constant, instance bitwise_right_shift
-    return torch.tensor(8.0).bitwise_right_shift(torch.tensor(2.0))
+    return torch.tensor(8).bitwise_right_shift(torch.tensor(2))
 
 
 @bm.functional
 def rshift_5():
     # Stochastic value, >> operator
-    return beta() >> 4.0
+    return beta() >> 4
 
 
 @bm.functional
 def rshift_6():
     # Stochastic value, Tensor.bitwise_right_shift
-    return torch.Tensor.bitwise_right_shift(beta(), torch.tensor(8.0))
+    return torch.Tensor.bitwise_right_shift(beta(), torch.tensor(8))
 
 
 @bm.functional
 def rshift_7():
     # Stochastic value, instance bitwise_right_shift
-    return beta().bitwise_right_shift(torch.tensor(16.0))
+    return beta().bitwise_right_shift(torch.tensor(16))
 
 
 @bm.functional
 def rshift_8():
     # Constant values, operator.rshift
-    return operator.rshift(torch.tensor(16.0), torch.tensor(2.0))
+    return operator.rshift(torch.tensor(16), torch.tensor(2))
 
 
 @bm.functional
 def rshift_9():
-    # Stochastic values, operator.lshift
-    return operator.rshift(beta(), torch.tensor(32.0))
+    # Stochastic values, operator.rshift
+    return operator.rshift(beta(), torch.tensor(32))
 
 
 @bm.functional
