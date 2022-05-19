@@ -16,6 +16,7 @@
 #include "beanmachine/graph/distribution/dirichlet.h"
 #include "beanmachine/graph/distribution/flat.h"
 #include "beanmachine/graph/distribution/gamma.h"
+#include "beanmachine/graph/distribution/geometric.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
 #include "beanmachine/graph/distribution/half_normal.h"
 #include "beanmachine/graph/distribution/log_normal.h"
@@ -82,6 +83,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::POISSON: {
         return std::make_unique<Poisson>(atype, in_nodes);
+      }
+      case graph::DistributionType::GEOMETRIC: {
+        return std::make_unique<Geometric>(atype, in_nodes);
       }
       default: {
         throw std::invalid_argument(
