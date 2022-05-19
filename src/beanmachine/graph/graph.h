@@ -349,6 +349,7 @@ enum class DistributionType {
   DIRICHLET,
   FLAT,
   NORMAL,
+  LOG_NORMAL,
   HALF_NORMAL,
   HALF_CAUCHY,
   STUDENT_T,
