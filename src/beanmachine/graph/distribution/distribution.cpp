@@ -20,6 +20,7 @@
 #include "beanmachine/graph/distribution/half_normal.h"
 #include "beanmachine/graph/distribution/log_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
+#include "beanmachine/graph/distribution/poisson.h"
 #include "beanmachine/graph/distribution/student_t.h"
 #include "beanmachine/graph/distribution/tabular.h"
 
@@ -78,6 +79,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::CATEGORICAL: {
         return std::make_unique<Categorical>(atype, in_nodes);
+      }
+      case graph::DistributionType::POISSON: {
+        return std::make_unique<Poisson>(atype, in_nodes);
       }
       default: {
         throw std::invalid_argument(
