@@ -7,10 +7,12 @@ from typing import Dict, List, Optional
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.legacy.inference.single_site_ancestral_mh import (
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import init_from_prior, World
+from torch import Tensor
 from torch.distributions import Categorical
 
 
@@ -29,6 +31,22 @@ class Predictive(object):
     """
     Class for the posterior predictive distribution.
     """
+
+    @staticmethod
+    def _extract_values_from_world(
+        world: World, queries: List[RVIdentifier]
+    ) -> Dict[RVIdentifier, Tensor]:
+        query_dict = {query: [] for query in queries}
+        # Extract samples
+        for query in queries:
+            raw_val = world.call(query)
+            if not isinstance(raw_val, torch.Tensor):
+                raise TypeError(
+                    "The value returned by a queried function must be a tensor."
+                )
+            query_dict[query].append(raw_val)
+        query_dict = {node: torch.stack(val) for node, val in query_dict.items()}
+        return query_dict
 
     @staticmethod  # noqa: C901
     def simulate(  # noqa: C901
@@ -62,19 +80,19 @@ class Predictive(object):
         assert (
             (posterior is not None) + (num_samples is not None)
         ) == 1, "Only one of posterior or num_samples should be set."
-        sampler = SingleSiteAncestralMetropolisHastings()
+        inference = SingleSiteAncestralMetropolisHastings()
         if posterior is not None:
             n_warmup = posterior.num_adaptive_samples
             # drop the warm up samples
             obs = {k: v[:, n_warmup:] for k, v in posterior.items()}
             if vectorized:
-                # predictives are jointly sampled
-                sampler.queries_ = queries
-                sampler.observations_ = obs
-                try:
-                    query_dict = sampler._infer(1, initialize_from_prior=True)
-                finally:
-                    sampler.reset()
+                sampler = inference.sampler(
+                    queries, obs, num_samples, initialize_fn=init_from_prior
+                )
+                query_dict = Predictive._extract_values_from_world(
+                    next(sampler), queries
+                )
+
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
@@ -92,14 +110,14 @@ class Predictive(object):
                     rv_dicts = []
                     for i in range(posterior.get_num_samples()):
                         obs = {rv: posterior.get_chain(c)[rv][i] for rv in posterior}
-                        sampler.queries_ = queries
-                        sampler.observations_ = obs
-                        try:
-                            rv_dicts.append(
-                                sampler._infer(1, initialize_from_prior=True)
+                        sampler = inference.sampler(
+                            queries, obs, num_samples, initialize_fn=init_from_prior
+                        )
+                        rv_dicts.append(
+                            Predictive._extract_values_from_world(
+                                next(sampler), queries
                             )
-                        finally:
-                            sampler.reset()
+                        )
                     preds.append(_concat_rv_dicts(rv_dicts))
                 post_pred = MonteCarloSamples(
                     preds,
@@ -113,12 +131,12 @@ class Predictive(object):
 
             # pyre-fixme
             for _ in range(num_samples):
-                sampler.queries_ = queries
-                sampler.observations_ = obs
-                try:
-                    query_dict = sampler._infer(1, initialize_from_prior=True)
-                finally:
-                    sampler.reset()
+                sampler = inference.sampler(
+                    queries, obs, num_samples, initialize_fn=init_from_prior
+                )
+                query_dict = Predictive._extract_values_from_world(
+                    next(sampler), queries
+                )
                 predictives.append(query_dict)
 
             rv_dict = {}
