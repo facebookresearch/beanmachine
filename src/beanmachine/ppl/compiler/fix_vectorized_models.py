@@ -41,11 +41,6 @@ from torch import Size, tensor
 #   return tensor([f0()), f1())])
 #
 # which we can represent in BMG.
-#
-# TODO: Consider optimizing distributions where the tensor elements are all
-# the same; if we have Bernoulli([[0.5, 0.5], [0.5, 0.5]]) then that can be represented in
-# BMG as an IID_SAMPLE(2,2) from Bernoulli(0.5). We could write another fixer
-# which makes this transformation, or we could modify this fixer.
 
 
 def _is_fixable_size(s: Size) -> bool:
@@ -55,6 +50,25 @@ def _is_fixable_size(s: Size) -> bool:
     if dim == 2:
         return s[0] > 1 or s[1] > 1
     return False
+
+
+def _is_scalar(s: Size) -> bool:
+    return all(d == 1 for d in s)
+
+
+def _is_indexable_node(sizer: Sizer, n: bn.BMGNode) -> bool:
+    if type(n) not in _indexable_node_types:
+        return False
+    return _is_fixable_size(sizer[n])
+
+
+def _inputs_are_devectorizable(sizer: Sizer, node: bn.BMGNode) -> bool:
+    # For a node to be devectorizable:
+    # * All its inputs must be either indexable or scalars.
+    # * At least one input must be indexable.
+    return all(
+        _is_indexable_node(sizer, i) or _is_scalar(sizer[i]) for i in node.inputs
+    ) and any(_is_indexable_node(sizer, i) for i in node.inputs)
 
 
 def _node_to_index_list(
@@ -181,24 +195,78 @@ def _is_fixable_sample(sizer: Sizer, n: bn.BMGNode) -> bool:
     dist = n.operand
     if type(dist) not in _distribution_types:
         return False
-    return _is_fixable_size(sizer[dist])
+    if not _is_fixable_size(sizer[dist]):
+        return False
+    # Every input must be either a scalar or indexable,
+    # and at least one input must be indexable.
+    if not _inputs_are_devectorizable(sizer, dist):
+        return False
+    return True
+
+
+_indexable_node_types = [
+    bn.ColumnIndexNode,
+    bn.ConstantTensorNode,
+    bn.IndexNode,
+    bn.MatrixMultiplicationNode,
+    bn.MatrixScaleNode,
+    bn.SampleNode,
+    bn.TensorNode,
+    bn.ToMatrixNode,
+    bn.UntypedConstantNode,
+]
 
 
 def _vectorized_distribution_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFixer:
     distribution_factories = _distribution_factories(bmg)
 
     def vect_dist_fixer(node: bn.BMGNode) -> NodeFixerResult:
+        # The graph transformation we're doing here takes graphs of the form:
+        #
+        # indexable  -->   dist  -->  sample  -->  consumer
+        #
+        # where the "indexable" produces a matrix, the consumer takes a matrix,
+        # but the distribution requires scalar inputs and produces a scalar
+        # output.
+        #
+        # We transform it into the graph:
+        #
+        #           --> index[0]  -->  dist  --> sample -->
+        # indexable                                        to_matrix  --> consumer
+        #           --> index[1]  -->  dist  --> sample  -->
+        #           ...
+        #
+        # And now everyone is happy; the operators get scalars and the
+        # consumer gets a matrix.
+        #
+        #
+        # TODO: Consider optimizing distributions where the tensor elements are all
+        # the same; if we have Bernoulli([[0.5, 0.5], [0.5, 0.5]]) then that can be
+        # represented in BMG as an IID_SAMPLE(2,2) from Bernoulli(0.5). We could
+        # write another fixer which makes this transformation, or we could modify
+        # this fixer.  NOTE that not all inference algorithms might support
+        # IID_SAMPLE nodes; look into this before attempting the optimization.
+
         if not _is_fixable_sample(sizer, node):
             return Inapplicable
         assert isinstance(node, bn.SampleNode)
         dist = node.operand
+        # We need to generate n new distribution and sample nodes, each of
+        # which takes some scalar indexed from its inputs. The factory method that
+        # builds the distribution is in the distribution factories list.
+        # _generate_arglists constructs the arguments to that factory method.
         arglists = _generate_arglists(bmg, sizer, dist)
         samples = []
+        factory = distribution_factories[type(dist)]
         for arglist in arglists:
-            b = distribution_factories[type(dist)](*arglist)
+            b = factory(*arglist)
             s = bmg.add_sample(b)
             samples.append(s)
         size = sizer[dist]
+        # We now have n new operator nodes; stick them into a tensor.  We then
+        # return that tensor. The caller will retarget the input edge of the
+        # consumer from the original operator to the tensor, and the graph is
+        # rewritten.
         t = bmg.add_tensor(size, *samples)
         return t
 
@@ -207,7 +275,9 @@ def _vectorized_distribution_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> No
 
 def _operator_factories(bmg: BMGraphBuilder) -> Dict[Type, Callable]:
     return {
-        # TODO: Do addition and multiply need to be the multi- versions?
+        # TODO: We get devectorization wrong in the scenario where
+        # the addition/multiplication optimizer first produces a multiary
+        # add/mult node and then it needs devectorizing.
         bn.AdditionNode: bmg.add_addition,
         bn.DivisionNode: bmg.add_division,
         bn.ExpNode: bmg.add_exp,
@@ -227,32 +297,70 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
 
     operator_factories = _operator_factories(bmg)
 
-    def vect_op_node_fixer(n: bn.BMGNode) -> NodeFixerResult:
-        if type(n) not in operator_factories:
-            return Inapplicable
-        # We do not rewrite multiplications of matrices by scalars; that's
-        # handled in a later rewriter. If both operands are "fixable" then
-        # both are vectors or matrices. If one or both operands are not
-        # "fixable" then either they are scalars or higher-dimensional tensors.
-        # Either way, we can skip fixing the multiplication.
-        if (
-            isinstance(n, bn.MultiplicationNode)
-            and len(n.inputs) == 2
-            and (
-                not _is_fixable_size(sizer[n.inputs[0]])
-                or not _is_fixable_size(sizer[n.inputs[1]])
-            )
+    def _is_fixable_operator(sizer: Sizer, operator: bn.BMGNode) -> bool:
+        # * The operator must be on the list of devectorizable operators
+        #   in operator_factories above.
+        # * The sizer must judge that the operator in its current
+        #   place in the graph produces a 1-d or 2-d tensor, not a scalar.
+        # * Every input must be either a scalar or indexable,
+        # * At least one input must be indexable.
+        # * All inputs of a multiplication must be non-scalars.
+        #   (We rewrite scalar-matrix multiplications in a different fixer.)
+
+        if type(operator) not in operator_factories:
+            return False
+        if not _is_fixable_size(sizer[operator]):
+            return False
+        if not _inputs_are_devectorizable(sizer, operator):
+            return False
+        if isinstance(operator, bn.MultiplicationNode) and not all(
+            _is_indexable_node(sizer, i) for i in operator.inputs
         ):
+            return False
+        return True
+
+    def vect_op_node_fixer(operator: bn.BMGNode) -> NodeFixerResult:
+
+        # The graph transformation we're doing here takes graphs of the form:
+        #
+        # indexable  -->   operator  -->  consumer
+        #
+        # where the "indexable" produces a matrix, the consumer takes a matrix,
+        # but the BMG operator only operates on scalars.
+        #
+        # We transform it into the graph:
+        #
+        #           --> index[0]  -->  operator -->
+        # indexable                                to_matrix  --> consumer
+        #           --> index[1]  -->  operator -->
+        #           ...
+        #
+        # And now everyone is happy; the operators get scalars and the
+        # consumer gets a matrix.
+        #
+        # Obviously this increases the number of nodes in the graph by O(n) in
+        # the size of the indexible matrix but until we have more vectorized BMG
+        # operators we cannot do much better.  (Also, we can often optimize away
+        # some of the indexing operations in the arithmetic graph rewriter.)
+        #
+        if not _is_fixable_operator(sizer, operator):
             return Inapplicable
-        if not _is_fixable_size(sizer[n]):
-            return Inapplicable
-        assert isinstance(n, bn.OperatorNode)
-        arglists = _generate_arglists(bmg, sizer, n)
+
+        # We need to generate n new operator nodes, each of which takes
+        # some scalar indexed from its operands. The factory method that
+        # builds those operator nodes is in the operator factories list;
+        # _generate_arglists constructs the arguments to that factory method.
+        arglists = _generate_arglists(bmg, sizer, operator)
         results = []
+        factory = operator_factories[type(operator)]
         for arglist in arglists:
-            r = operator_factories[type(n)](*arglist)
+            r = factory(*arglist)
             results.append(r)
-        size = sizer[n]
+        size = sizer[operator]
+        # We now have n new operator nodes; stick them into a tensor.  We then
+        # return that tensor. The caller will retarget the input edge of the
+        # consumer from the original operator to the tensor, and the graph is
+        # rewritten.
         t = bmg.add_tensor(size, *results)
         return t
 
