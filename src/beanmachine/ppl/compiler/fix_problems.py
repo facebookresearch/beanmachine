@@ -16,10 +16,7 @@ from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
 from beanmachine.ppl.compiler.fix_bool_arithmetic import bool_arithmetic_fixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import bool_comparison_fixer
 from beanmachine.ppl.compiler.fix_logsumexp import logsumexp_fixer
-from beanmachine.ppl.compiler.fix_matrix_scale import (
-    matrix_scale_fixer,
-    trivial_matmul_fixer,
-)
+from beanmachine.ppl.compiler.fix_matrix_scale import trivial_matmul_fixer
 from beanmachine.ppl.compiler.fix_multiary_ops import (
     multiary_addition_fixer,
     multiary_multiplication_fixer,
@@ -45,15 +42,9 @@ from beanmachine.ppl.compiler.fix_unsupported import (
     unsupported_node_reporter,
     untypable_node_reporter,
 )
-from beanmachine.ppl.compiler.fix_vectorized_models import (
-    vectorized_observation_fixer,
-    vectorized_operator_fixer,
-)
+from beanmachine.ppl.compiler.fix_vectorized_models import vectorized_model_fixer
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
-
-# TODO[Walid]: Investigate ways to generalize transformations such as MatrixScale to
-# work with multiary multiplications.
 
 default_skip_optimizations: Set[str] = {
     "beta_bernoulli_conjugate_fixer",
@@ -68,7 +59,6 @@ _arithmetic_fixer_factories: List[
     bool_arithmetic_fixer,
     bool_comparison_fixer,
     logsumexp_fixer,
-    matrix_scale_fixer,
     multiary_addition_fixer,
     multiary_multiplication_fixer,
     sum_fixer,
@@ -79,14 +69,12 @@ _arithmetic_fixer_factories: List[
 
 def arithmetic_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
     typer = LatticeTyper()
-    vector_ops = vectorized_operator_fixer(bmg)
-    vector_obs = vectorized_observation_fixer(bmg)
     node_fixers = [
         f(bmg, typer) for f in _arithmetic_fixer_factories if f.__name__ not in skip
     ]
     node_fixer = node_fixer_first_match(node_fixers)
     arith = ancestors_first_graph_fixer(bmg, typer, node_fixer)
-    return fixpoint_graph_fixer(sequential_graph_fixer([vector_ops, vector_obs, arith]))
+    return fixpoint_graph_fixer(arith)
 
 
 _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
@@ -110,6 +98,7 @@ def fix_problems(
 
     all_fixers = sequential_graph_fixer(
         [
+            vectorized_model_fixer(bmg),
             arithmetic_graph_fixer(skip_optimizations, bmg),
             unsupported_node_reporter(bmg),
             bad_matmul_reporter(bmg),

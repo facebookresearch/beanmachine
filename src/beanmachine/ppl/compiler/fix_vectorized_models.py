@@ -8,16 +8,19 @@ from typing import Callable, Dict, List, Type
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
+from beanmachine.ppl.compiler.fix_matrix_scale import matrix_scale_fixer
 from beanmachine.ppl.compiler.fix_problem import (
     ancestors_first_graph_fixer,
+    fixpoint_graph_fixer,
     GraphFixer,
     GraphFixerResult,
     Inapplicable,
     node_fixer_first_match,
     NodeFixer,
     NodeFixerResult,
+    sequential_graph_fixer,
 )
-from beanmachine.ppl.compiler.sizer import Sizer
+from beanmachine.ppl.compiler.sizer import Sizer, is_scalar
 
 # TODO Move this to a utils module
 from beanmachine.ppl.compiler.support import _prod
@@ -52,10 +55,6 @@ def _is_fixable_size(s: Size) -> bool:
     return False
 
 
-def _is_scalar(s: Size) -> bool:
-    return all(d == 1 for d in s)
-
-
 def _is_indexable_node(sizer: Sizer, n: bn.BMGNode) -> bool:
     if type(n) not in _indexable_node_types:
         return False
@@ -67,7 +66,7 @@ def _inputs_are_devectorizable(sizer: Sizer, node: bn.BMGNode) -> bool:
     # * All its inputs must be either indexable or scalars.
     # * At least one input must be indexable.
     return all(
-        _is_indexable_node(sizer, i) or _is_scalar(sizer[i]) for i in node.inputs
+        _is_indexable_node(sizer, i) or is_scalar(sizer[i]) for i in node.inputs
     ) and any(_is_indexable_node(sizer, i) for i in node.inputs)
 
 
@@ -275,22 +274,28 @@ def _vectorized_distribution_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> No
 
 def _operator_factories(bmg: BMGraphBuilder) -> Dict[Type, Callable]:
     return {
-        # TODO: We get devectorization wrong in the scenario where
-        # the addition/multiplication optimizer first produces a multiary
-        # add/mult node and then it needs devectorizing.
+        # Note that we expect devectorization to run *before* multiary
+        # addition/multiplication rewriting, so we can assume that
+        # all additions and multiplications are binary.
         bn.AdditionNode: bmg.add_addition,
         bn.DivisionNode: bmg.add_division,
+        bn.Exp2Node: bmg.add_exp2,
         bn.ExpNode: bmg.add_exp,
+        bn.ExpM1Node: bmg.add_expm1,
         bn.LogisticNode: bmg.add_logistic,
+        bn.Log10Node: bmg.add_log10,
+        bn.Log1pNode: bmg.add_log1p,
+        bn.Log2Node: bmg.add_log2,
+        bn.Log1mexpNode: bmg.add_log1mexp,
         bn.LogNode: bmg.add_log,
         bn.MultiplicationNode: bmg.add_multiplication,
         bn.NegateNode: bmg.add_negate,
         bn.PhiNode: bmg.add_phi,
         bn.PowerNode: bmg.add_power,
+        bn.SquareRootNode: bmg.add_squareroot,
     }
-    # TODO soon: LogSumExp, ExpM1, Logm1exp
-    # TODO later: all comparisons, all bitwise, floordiv,
-    # shifts, mod, not, invert,
+    # TODO: LogSumExp, all comparisons, all bitwise, floordiv,
+    # shifts, mod, invert.  Should we devectorize "not"?
 
 
 def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFixer:
@@ -373,7 +378,8 @@ def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
 
         dist_fixer = _vectorized_distribution_node_fixer(bmg, sizer)
         oper_fixer = _vectorized_operator_node_fixer(bmg, sizer)
-        node_fixer = node_fixer_first_match([dist_fixer, oper_fixer])
+        scale_fixer = matrix_scale_fixer(bmg, sizer)
+        node_fixer = node_fixer_first_match([dist_fixer, oper_fixer, scale_fixer])
         vof = ancestors_first_graph_fixer(bmg, sizer, node_fixer)
         made_progress, errors = vof()
 
@@ -421,3 +427,9 @@ def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
         return made_change, ErrorReport()
 
     return vobs_fixer
+
+
+def vectorized_model_fixer(bmg: BMGraphBuilder) -> GraphFixer:
+    vector_ops = vectorized_operator_fixer(bmg)
+    vector_obs = vectorized_observation_fixer(bmg)
+    return fixpoint_graph_fixer(sequential_graph_fixer([vector_ops, vector_obs]))
