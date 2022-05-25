@@ -16,6 +16,7 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    TypeVar,
 )
 
 import torch
@@ -28,6 +29,7 @@ from beanmachine.ppl.world.variable import Variable
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
+T = TypeVar("T", bound="World")
 
 
 @dataclasses.dataclass
@@ -75,13 +77,13 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
     @classmethod
     def initialize_world(
-        cls,
+        cls: type[T],
         queries: Iterable[RVIdentifier],
         observations: Optional[RVDict] = None,
         initialize_fn: InitializeFn = init_to_uniform,
         max_retries: int = 100,
         **kwargs,
-    ) -> World:
+    ) -> T:
         """
         Initializes a world with all of the random variables (queries and observations).
         In case of initializing values outside of support of the distributions, the
