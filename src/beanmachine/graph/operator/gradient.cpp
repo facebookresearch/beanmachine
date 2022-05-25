@@ -445,5 +445,15 @@ void Cholesky::compute_gradients() {
   }
 }
 
+void MatrixExp::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // f(x) = e^g(x)
+  // f'(x) = e^g(x) * g'(x)
+  // f''(x) = e^g(x) * g'(x) * g'(x) + e^g(x) * g''(x)
+  Grad1 = value._matrix.cwiseProduct(in_nodes[0]->Grad1);
+  Grad2 = Grad1.cwiseProduct(in_nodes[0]->Grad1) +
+      value._matrix.cwiseProduct(in_nodes[0]->Grad2);
+}
+
 } // namespace oper
 } // namespace beanmachine
