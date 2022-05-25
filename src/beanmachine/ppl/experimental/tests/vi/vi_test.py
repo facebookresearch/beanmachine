@@ -130,9 +130,6 @@ class BinaryGaussianMixture:
 
 
 class ADVITest(unittest.TestCase):
-    def setUp(self):
-        self.skipTest("ADVI not implemented!")
-
     def test_neals_funnel(self):
         nf = bm.random_variable(NealsFunnel)
 

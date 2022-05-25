@@ -19,8 +19,9 @@ class Flat(dist.Distribution):
     has_enumerate_support = False
     support = dist.constraints.real
     has_rsample = True
+    arg_constraints = {}
 
-    def __init__(self, shape):
+    def __init__(self, shape=(1,)):
         self.shape = shape
         self._event_shape = [shape]
 
