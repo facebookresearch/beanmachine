@@ -337,6 +337,7 @@ enum class OperatorType {
   CHOICE,
   TO_INT,
   CHOLESKY,
+  MATRIX_EXP,
 };
 
 enum class DistributionType {

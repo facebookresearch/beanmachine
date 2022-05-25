@@ -6,6 +6,7 @@
  */
 
 #include "beanmachine/graph/operator/linalgop.h"
+#include <beanmachine/graph/graph.h>
 #include "beanmachine/graph/graph.h"
 
 /*
@@ -337,6 +338,36 @@ Cholesky::Cholesky(const std::vector<graph::Node*>& in_nodes)
 void Cholesky::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   value._matrix = in_nodes[0]->value._matrix.llt().matrixL();
+}
+
+MatrixExp::MatrixExp(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_EXP) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_EXP requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_EXP must be a BROADCAST_MATRIX");
+  }
+  auto atomic_type = type.atomic_type;
+  graph::AtomicType new_type;
+  if (atomic_type == graph::AtomicType::REAL or
+      atomic_type == graph::AtomicType::POS_REAL) {
+    new_type = graph::AtomicType::POS_REAL;
+  } else if (atomic_type == graph::AtomicType::NEG_REAL) {
+    new_type = graph::AtomicType::PROBABILITY;
+  } else {
+    throw std::invalid_argument(
+        "operator MATRIX_EXP requires a neg_real, real or pos_real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX, new_type, type.rows, type.cols));
+}
+
+void MatrixExp::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = Eigen::exp(in_nodes[0]->value._matrix.array());
 }
 
 } // namespace oper

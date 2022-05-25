@@ -128,11 +128,15 @@ bool BroadcastAdd::is_registered = OperatorFactory::register_op(
     graph::OperatorType::BROADCAST_ADD,
     &(BroadcastAdd::new_op));
 
+bool MatrixExp::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::MATRIX_EXP,
+    &(MatrixExp::new_op));
+
 // matrix index
 bool Index::is_registered =
     OperatorFactory::register_op(graph::OperatorType::INDEX, &(Index::new_op));
 
-// matrix index
+// column index
 bool ColumnIndex::is_registered = OperatorFactory::register_op(
     graph::OperatorType::COLUMN_INDEX,
     &(ColumnIndex::new_op));
