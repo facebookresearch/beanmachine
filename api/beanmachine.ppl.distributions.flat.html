@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="beanmachine.ppl.distributions.unit module" href="beanmachine.ppl.distributions.unit.html" />
-    <link rel="prev" title="beanmachine.ppl.distributions package" href="beanmachine.ppl.distributions.html" /> 
+    <link rel="prev" title="beanmachine.ppl.distributions.delta module" href="beanmachine.ppl.distributions.delta.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,6 +42,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler package</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.distributions.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.delta.html">beanmachine.ppl.distributions.delta module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.distributions.flat module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.unit.html">beanmachine.ppl.distributions.unit module</a></li>
 </ul>
@@ -84,7 +85,7 @@
 <span id="beanmachine-ppl-distributions-flat-module"></span><h1>beanmachine.ppl.distributions.flat module<a class="headerlink" href="#module-beanmachine.ppl.distributions.flat" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.distributions.flat.Flat">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.distributions.flat.</span></span><span class="sig-name descname"><span class="pre">Flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.flat.Flat" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.distributions.flat.</span></span><span class="sig-name descname"><span class="pre">Flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.flat.Flat" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.distribution.Distribution</span></code></p>
 <p>Flat distribution used as an improper prior. Samples 0 with
 shape sample shape</p>
@@ -92,6 +93,11 @@ shape sample shape</p>
 <dt>Args</dt><dd><p>shape: pass a tuple, and give a shape of Flat prior.</p>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.flat.Flat.arg_constraints">
+<span class="sig-name descname"><span class="pre">arg_constraints</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#beanmachine.ppl.distributions.flat.Flat.arg_constraints" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="beanmachine.ppl.distributions.flat.Flat.has_enumerate_support">
 <span class="sig-name descname"><span class="pre">has_enumerate_support</span></span><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#beanmachine.ppl.distributions.flat.Flat.has_enumerate_support" title="Permalink to this definition"></a></dt>
@@ -142,7 +148,7 @@ samples if the distribution parameters are batched.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="beanmachine.ppl.distributions.html" class="btn btn-neutral float-left" title="beanmachine.ppl.distributions package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.distributions.delta.html" class="btn btn-neutral float-left" title="beanmachine.ppl.distributions.delta module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="beanmachine.ppl.distributions.unit.html" class="btn btn-neutral float-right" title="beanmachine.ppl.distributions.unit module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

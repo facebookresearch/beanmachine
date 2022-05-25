@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.distributions.delta module &mdash; Bean Machine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.distributions.flat module" href="beanmachine.ppl.distributions.flat.html" />
+    <link rel="prev" title="beanmachine.ppl.distributions package" href="beanmachine.ppl.distributions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Bean Machine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.distributions.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.distributions.delta module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.flat.html">beanmachine.ppl.distributions.flat module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.distributions.unit.html">beanmachine.ppl.distributions.unit module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.distributions.html#module-beanmachine.ppl.distributions">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Bean Machine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl package</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.distributions.html">beanmachine.ppl.distributions package</a> &raquo;</li>
+      <li>beanmachine.ppl.distributions.delta module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.distributions.delta.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-beanmachine.ppl.distributions.delta">
+<span id="beanmachine-ppl-distributions-delta-module"></span><h1>beanmachine.ppl.distributions.delta module<a class="headerlink" href="#module-beanmachine.ppl.distributions.delta" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.distributions.delta.</span></span><span class="sig-name descname"><span class="pre">Delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.distribution.Distribution</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.arg_constraints">
+<span class="sig-name descname"><span class="pre">arg_constraints</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{'log_density':</span> <span class="pre">Real(),</span> <span class="pre">'v':</span> <span class="pre">Real()}</span></em><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.arg_constraints" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.event_dim">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">event_dim</span></span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.event_dim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.expand">
+<span class="sig-name descname"><span class="pre">expand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_instance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.expand" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a new distribution instance (or populates an existing instance
+provided by a derived class) with batch dimensions expanded to
+<cite>batch_shape</cite>. This method calls <code class="xref py py-class docutils literal notranslate"><span class="pre">expand</span></code> on
+the distribution’s parameters. As such, this does not allocate new
+memory for the expanded distribution instance. Additionally,
+this does not repeat any args checking or parameter broadcasting in
+<cite>__init__.py</cite>, when an instance is first created.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_shape</strong> (<em>torch.Size</em>) – the desired expanded size.</p></li>
+<li><p><strong>_instance</strong> – new instance provided by subclasses that
+need to override <cite>.expand</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>New distribution instance with batch dimensions expanded to
+<cite>batch_size</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.has_rsample">
+<span class="sig-name descname"><span class="pre">has_rsample</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.has_rsample" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the log of the probability density/mass function evaluated at
+<cite>value</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>Tensor</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.mean">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mean</span></span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.mean" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the mean of the distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.rsample">
+<span class="sig-name descname"><span class="pre">rsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.Size([])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.rsample" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a sample_shape shaped reparameterized sample or sample_shape
+shaped batch of reparameterized samples if the distribution parameters
+are batched.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.Size([])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.shape" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.support">
+<span class="sig-name descname"><span class="pre">support</span></span><em class="property"> <span class="pre">=</span> <span class="pre">Real()</span></em><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.support" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.Delta.variance">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">variance</span></span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.Delta.variance" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the variance of the distribution.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.distributions.delta.sum_rightmost">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.distributions.delta.</span></span><span class="sig-name descname"><span class="pre">sum_rightmost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.distributions.delta.sum_rightmost" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.distributions.html" class="btn btn-neutral float-left" title="beanmachine.ppl.distributions package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.distributions.flat.html" class="btn btn-neutral float-right" title="beanmachine.ppl.distributions.flat module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

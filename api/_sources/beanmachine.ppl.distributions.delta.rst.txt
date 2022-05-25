@@ -1,0 +1,7 @@
+beanmachine.ppl.distributions.delta module
+==========================================
+
+.. automodule:: beanmachine.ppl.distributions.delta
+   :members:
+   :undoc-members:
+   :show-inheritance:
