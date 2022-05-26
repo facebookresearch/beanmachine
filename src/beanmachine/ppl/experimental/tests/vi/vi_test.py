@@ -12,12 +12,7 @@ import scipy.stats
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.distributions.flat import Flat
-from beanmachine.ppl.experimental.vi import VariationalInfer
-
-try:
-    from beanmachine.ppl.experimental.vi import ADVI
-except ImportError:
-    pass
+from beanmachine.ppl.experimental.vi import ADVI, VariationalInfer
 from beanmachine.ppl.experimental.vi.gradient_estimator import (
     monte_carlo_approximate_sf,
 )
