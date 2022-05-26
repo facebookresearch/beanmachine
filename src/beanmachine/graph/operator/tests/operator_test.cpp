@@ -1031,6 +1031,88 @@ produces:
   EXPECT_NEAR(grad1[3]->coeff(1), 0.8053, 1e-3);
 }
 
+TEST(testoperator, matrix_elementwise_mult) {
+  Graph g;
+  // negative tests:
+  // requires two parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m0(2, 2);
+  m0 << 0.3, -0.1, 1.2, 0.9;
+  auto cm0 = g.add_constant_real_matrix(m0);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm0}),
+      std::invalid_argument);
+  // requires matrix parents
+  auto c1 = g.add_constant(1.5);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{c1, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm0, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{c1, cm0}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  Eigen::MatrixXd m2(2, 3);
+  m2 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm2 = g.add_constant_real_matrix(m2);
+  Eigen::MatrixXb m3 = Eigen::MatrixXb::Random(1, 2);
+  auto cm3 = g.add_constant_bool_matrix(m3);
+  // requires real/pos_real/neg_real/probability types
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm3, cm0}),
+      std::invalid_argument);
+  // requires compatible dimension
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm1, cm2}),
+      std::invalid_argument);
+
+  // test eval()
+  auto zero = g.add_constant(0.0);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos1});
+  auto two = g.add_constant((natural_t)2);
+  auto three = g.add_constant((natural_t)3);
+
+  auto x = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+  auto y = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+
+  Eigen::MatrixXd m4(3, 2);
+  m4 << 0.4, 0.1, 0.5, -1.1, 0.7, -0.6;
+  g.observe(x, m1);
+  g.observe(y, m4);
+
+  auto xy = g.add_operator(
+      OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{x, y});
+  g.query(xy);
+  const auto& xy_eval = g.infer(1, InferenceType::NMC);
+  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 3);
+  EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
+  // result should be m4 * m1 (elementwise)
+  EXPECT_NEAR(xy_eval[0][0]._matrix(0, 0), 0.12, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(1, 0), 0.6, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(2, 0), -1.82, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(0, 1), -0.01, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(1, 1), -0.99, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(2, 1), -0.48, 0.001);
+}
+
 TEST(testoperator, matrix_scale) {
   Graph g;
   // negative tests:
