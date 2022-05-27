@@ -188,6 +188,43 @@ void MatrixScale::compute_gradients() {
   }
 }
 
+ElementwiseMultiply::ElementwiseMultiply(
+    const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::ELEMENTWISE_MULTIPLY) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument(
+        "ELEMENTWISE_MULTIPLY requires two parent nodes");
+  }
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  graph::ValueType type1 = in_nodes[1]->value.type;
+  if (type0.variable_type == graph::VariableType::SCALAR or
+      type1.variable_type == graph::VariableType::SCALAR) {
+    throw std::invalid_argument(
+        "ELEMENTWISE_MULTIPLY cannot have SCALAR parents");
+  }
+  if (type0.cols != type1.cols or type0.rows != type1.rows) {
+    throw std::invalid_argument(
+        "parent nodes have incompatible dimensions for ELEMENTWISE_MULTIPLY");
+  }
+  CHECK_TYPE_DOUBLE(type0.atomic_type, "ELEMENTWISE_MULTIPLY")
+  graph::ValueType new_type = graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      type0.atomic_type,
+      type0.rows,
+      type0.cols);
+
+  value = graph::NodeValue(new_type);
+}
+
+void ElementwiseMultiply::eval(std::mt19937& /* gen */) {
+  value._matrix =
+      (in_nodes[0]->value._matrix.array() * in_nodes[1]->value._matrix.array())
+          .matrix();
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    to_scalar();
+  }
+}
+
 Index::Index(const std::vector<graph::Node*>& in_nodes)
     : Operator(graph::OperatorType::INDEX) {
   if (in_nodes.size() != 2) {

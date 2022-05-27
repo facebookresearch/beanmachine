@@ -915,3 +915,122 @@ TEST(testgradient, matrix_exp_grad) {
   EXPECT_NEAR((*grad1[1]), 0.2183, 1e-3);
   EXPECT_NEAR((*grad1[2]), 0.1487, 1e-3);
 }
+
+TEST(testgradient, matrix_elementwise_mult_forward) {
+  Graph g;
+
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+
+  Node* cm1_node = g.get_node(cm1);
+  cm1_node->Grad1 = Eigen::MatrixXd::Ones(3, 2);
+  cm1_node->Grad2 = Eigen::MatrixXd::Ones(3, 2);
+
+  auto cm = g.add_operator(OperatorType::ELEMENTWISE_MULTIPLY, {cm1, cm1});
+  Node* cm_node = g.get_node(cm);
+  std::mt19937 gen;
+  cm_node->eval(gen);
+  cm_node->compute_gradients();
+
+  Eigen::MatrixXd first_grad_x = cm_node->Grad1;
+  Eigen::MatrixXd expected_first_grad_x(3, 2);
+  expected_first_grad_x << 0.6, -0.2, 2.4, 1.8, -5.2, 1.6;
+  _expect_near_matrix(first_grad_x, expected_first_grad_x);
+  Eigen::MatrixXd second_grad_x = cm_node->Grad2;
+  Eigen::MatrixXd expected_second_grad_x(3, 2);
+  expected_second_grad_x << 2.0, 2.0, 2.0, 2.0, 2.0, 2.0;
+  _expect_near_matrix(second_grad_x, expected_second_grad_x);
+}
+
+TEST(testgradient, matrix_elementwise_mult_backward) {
+  Graph g;
+  auto zero = g.add_constant(0.0);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos1});
+  auto one = g.add_constant((natural_t)1);
+  auto two = g.add_constant((natural_t)2);
+  auto three = g.add_constant((natural_t)3);
+
+  Eigen::MatrixXd m1(3, 2);
+  Eigen::MatrixXd m2(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  m2 << 0.4, 0.1, 0.5, -1.1, 0.7, -0.6;
+
+  auto x = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+  auto y = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+  auto xy = g.add_operator(
+      OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{x, y});
+
+  g.observe(x, m1);
+  g.observe(y, m2);
+
+  // test backwards
+  //
+  // Pytorch validation:
+  // X = tensor([[0.3, -0.1], [1.2, 0.9], [-2.6, 0.8]], requires_grad=True)
+  // Y = tensor([[0.4, 0.1], [0.5, -1.1], [0.7, -0.6]], requires_grad=True)
+  // def f_grad(x):
+  //   XYSum = torch.mul(X, Y).sum()
+  //   log_p = (
+  //       dist.Normal(XYSum, tensor(1.0)).log_prob(tensor(1.7))
+  //       dist.Normal(tensor(0.0), tensor(1.0)).log_prob(X).sum()
+  //       dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Y).sum()
+  //   )
+  //  return torch.autograd.grad(log_p, x)[0]
+  //
+  // result:
+  // [tensor([[ 1.4120,  0.5280],
+  //          [ 0.9400, -5.6080],
+  //       [ 5.5960, -3.3680]]),
+  // tensor([[  0.8840,  -0.5280],
+  //        [  4.6360,   4.9520],
+  //        [-11.8280,   4.0240]])]
+
+  // Uses two matrix multiplications to sum the result of xy
+  auto col_sum_m = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two, one});
+  auto row_sum_m = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, one, three});
+  Eigen::MatrixXd m5(2, 1);
+  m5 << 1.0, 1.0;
+  Eigen::MatrixXd m6(1, 3);
+  m6 << 1.0, 1.0, 1.0;
+  g.observe(col_sum_m, m5);
+  g.observe(row_sum_m, m6);
+  auto xy_sum_rows = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{xy, col_sum_m});
+  auto xy_sum = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{row_sum_m, xy_sum_rows});
+  auto xy_sum_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{xy_sum, pos1});
+
+  auto xyz_sum_sample =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{xy_sum_dist});
+  g.observe(xyz_sum_sample, 1.7);
+
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 5);
+  // grad x
+  EXPECT_NEAR(grad1[0]->coeff(0), 1.4120, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(1), 0.9400, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(2), 5.5960, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(3), 0.5280, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(4), -5.6080, 1e-3);
+  EXPECT_NEAR(grad1[0]->coeff(5), -3.3680, 1e-3);
+  // grad y
+  EXPECT_NEAR(grad1[1]->coeff(0), 0.8840, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(1), 4.6360, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(2), -11.8280, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(3), -0.5280, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(4), 4.9520, 1e-3);
+  EXPECT_NEAR(grad1[1]->coeff(5), 4.0240, 1e-3);
+}

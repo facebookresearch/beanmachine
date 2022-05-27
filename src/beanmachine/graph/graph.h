@@ -310,6 +310,7 @@ enum class OperatorType {
   TO_POS_REAL,
   COMPLEMENT,
   NEGATE,
+  ELEMENTWISE_MULTIPLY,
   EXP,
   EXPM1,
   MULTIPLY,

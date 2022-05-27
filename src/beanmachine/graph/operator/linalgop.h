@@ -72,6 +72,24 @@ class MatrixScale : public Operator {
   static bool is_registered;
 };
 
+class ElementwiseMultiply : public Operator {
+ public:
+  explicit ElementwiseMultiply(const std::vector<graph::Node*>& in_nodes);
+  ~ElementwiseMultiply() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ElementwiseMultiply>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class Index : public Operator {
  public:
   explicit Index(const std::vector<graph::Node*>& in_nodes);

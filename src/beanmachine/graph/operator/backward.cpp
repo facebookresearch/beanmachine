@@ -231,6 +231,21 @@ void MatrixScale::backward() {
   }
 }
 
+void ElementwiseMultiply::backward() {
+  assert(in_nodes.size() == 2);
+  auto node_a = in_nodes[0];
+  auto node_b = in_nodes[1];
+  Eigen::MatrixXd& A = node_a->value._matrix;
+  Eigen::MatrixXd& B = node_b->value._matrix;
+
+  if (node_a->needs_gradient()) {
+    node_a->back_grad1 += (back_grad1.array() * B.array()).matrix();
+  }
+  if (node_b->needs_gradient()) {
+    node_b->back_grad1 += (back_grad1.array() * A.array()).matrix();
+  }
+}
+
 void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];

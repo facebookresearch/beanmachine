@@ -281,6 +281,21 @@ void Multiply::compute_gradients() {
   grad2 = sum_product_two_grad1 * 2 + sum_product_one_grad2;
 }
 
+void ElementwiseMultiply::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  int rows = static_cast<int>(in_nodes[1]->value.type.rows);
+  int cols = static_cast<int>(in_nodes[1]->value.type.cols);
+  Grad1.resize(rows, cols);
+  Grad2.resize(rows, cols);
+
+  Grad1 = (in_nodes[0]->Grad1.array() * in_nodes[1]->value._matrix.array() +
+           in_nodes[1]->Grad1.array() * in_nodes[0]->value._matrix.array())
+              .matrix();
+  Grad2 = (in_nodes[1]->Grad2.array() * in_nodes[0]->Grad1.array() +
+           in_nodes[0]->Grad2.array() * in_nodes[1]->Grad1.array())
+              .matrix();
+}
+
 void LogSumExp::compute_gradients() {
   // f(g1, ..., gn) = log(sum_i^n exp(gi))
   // note: in the following equations, df/dx means partial derivative
