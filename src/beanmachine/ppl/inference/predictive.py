@@ -14,6 +14,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import init_from_prior, World
 from torch import Tensor
 from torch.distributions import Categorical
+from tqdm.auto import trange
 
 
 def _concat_rv_dicts(rvdict: List) -> Dict:
@@ -54,6 +55,7 @@ class Predictive(object):
         posterior: Optional[MonteCarloSamples] = None,
         num_samples: Optional[int] = None,
         vectorized: Optional[bool] = False,
+        progress_bar: Optional[bool] = True,
     ) -> MonteCarloSamples:
         """
         Generates predictives from a generative model.
@@ -108,7 +110,11 @@ class Predictive(object):
 
                 for c in range(posterior.num_chains):
                     rv_dicts = []
-                    for i in range(posterior.get_num_samples()):
+                    for i in trange(
+                        posterior.get_num_samples(),
+                        desc="Samples collected",
+                        disable=not progress_bar,
+                    ):
                         obs = {rv: posterior.get_chain(c)[rv][i] for rv in posterior}
                         sampler = inference.sampler(
                             queries, obs, num_samples, initialize_fn=init_from_prior
@@ -129,8 +135,9 @@ class Predictive(object):
             obs = {}
             predictives = []
 
-            # pyre-fixme
-            for _ in range(num_samples):
+            for _ in trange(
+                num_samples, desc="Samples collected", disable=not progress_bar
+            ):
                 sampler = inference.sampler(
                     queries, obs, num_samples, initialize_fn=init_from_prior
                 )
