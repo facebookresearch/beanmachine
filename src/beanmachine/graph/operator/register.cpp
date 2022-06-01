@@ -128,6 +128,10 @@ bool ElementwiseMultiply::is_registered = OperatorFactory::register_op(
     graph::OperatorType::ELEMENTWISE_MULTIPLY,
     &(ElementwiseMultiply::new_op));
 
+bool MatrixAdd::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::MATRIX_ADD,
+    &(MatrixAdd::new_op));
+
 bool BroadcastAdd::is_registered = OperatorFactory::register_op(
     graph::OperatorType::BROADCAST_ADD,
     &(BroadcastAdd::new_op));

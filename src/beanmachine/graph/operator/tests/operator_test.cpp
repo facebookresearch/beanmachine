@@ -1301,6 +1301,57 @@ def f_grad(x):
   EXPECT_NEAR(grad1[4]->coeff(1), 13.9038, 1e-3);
 }
 
+TEST(testoperator, matrix_add) {
+  Graph g;
+  // negative tests:
+  // requires two parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1}),
+      std::invalid_argument);
+  // requires two matrices matrix parent
+  auto c1 = g.add_constant(1.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{c1, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{c1, cm1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1, c1}),
+      std::invalid_argument);
+  // Arguments should have same atomic type
+  Eigen::MatrixXd mp1(3, 2);
+  mp1 << 0.3, 0.1, 1.2, 0.9, 2.6, 0.8;
+  auto cmp1 = g.add_constant_pos_matrix(mp1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1, cmp1}),
+      std::invalid_argument);
+  // requires real/pos_real/probability types
+  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
+  auto cmb2 = g.add_constant_bool_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cmb2, cmb2}),
+      std::invalid_argument);
+
+  // Test eval():
+  auto add =
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1, cm1});
+  g.query(add);
+  auto add_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  for (uint i = 0; i < add_infer.type.rows; i++) {
+    for (uint j = 0; j < add_infer.type.cols; j++) {
+      auto expected = 2 * m1(i, j);
+      EXPECT_NEAR(expected, add_infer._matrix(i, j), 1e-4);
+    }
+  }
+}
+
 TEST(testoperator, transpose) {
   Graph g;
   // empty initialization

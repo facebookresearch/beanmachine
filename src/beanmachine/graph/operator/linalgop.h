@@ -90,6 +90,24 @@ class ElementwiseMultiply : public Operator {
   static bool is_registered;
 };
 
+class MatrixAdd : public Operator {
+ public:
+  explicit MatrixAdd(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixAdd() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixAdd>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class Index : public Operator {
  public:
   explicit Index(const std::vector<graph::Node*>& in_nodes);

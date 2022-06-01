@@ -729,6 +729,64 @@ void _expect_near_matrix(
   }
 }
 
+TEST(testgradient, matrix_add_grad) {
+  Graph g;
+
+  Eigen::MatrixXd m1 = Eigen::MatrixXd::Random(3, 2);
+  auto cm1 = g.add_constant_real_matrix(m1);
+  Eigen::MatrixXd m1_grad1 = Eigen::MatrixXd::Random(3, 2);
+  Eigen::MatrixXd m1_grad2 = Eigen::MatrixXd::Random(3, 2);
+  g.get_node(cm1)->Grad1 = m1_grad1;
+  g.get_node(cm1)->Grad2 = m1_grad2;
+
+  Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(3, 2);
+  auto cm2 = g.add_constant_real_matrix(m2);
+  Eigen::MatrixXd m2_grad1 = Eigen::MatrixXd::Random(3, 2);
+  Eigen::MatrixXd m2_grad2 = Eigen::MatrixXd::Random(3, 2);
+  g.get_node(cm2)->Grad1 = m2_grad1;
+  g.get_node(cm2)->Grad2 = m2_grad2;
+
+  auto result = g.add_operator(OperatorType::MATRIX_ADD, {cm1, cm2});
+  auto rn = g.get_node(result);
+  std::mt19937 gen;
+  rn->eval(gen);
+  rn->compute_gradients();
+
+  auto grad1 = rn->Grad1;
+  auto expected_grad1 = m1_grad1 + m2_grad1;
+  _expect_near_matrix(grad1, expected_grad1);
+
+  auto grad2 = rn->Grad2;
+  auto expected_grad2 = m1_grad2 + m2_grad2;
+  _expect_near_matrix(grad2, expected_grad2);
+}
+
+TEST(testgradient, matrix_add_back_grad1) {
+  Graph g;
+  std::mt19937 gen;
+
+  Eigen::MatrixXd m1 = Eigen::MatrixXd::Random(3, 2);
+  auto cm1 = g.add_constant_real_matrix(m1);
+  auto r1 = g.add_operator(OperatorType::MATRIX_ADD, {cm1, cm1});
+  Node* a = g.get_node(r1);
+  a->eval(gen);
+
+  auto result = g.add_operator(OperatorType::MATRIX_ADD, {r1, r1});
+  Node* rn = g.get_node(result);
+  rn->eval(gen);
+  _expect_near_matrix(rn->value._matrix, m1 * 4.0);
+
+  a->reset_backgrad();
+  rn->reset_backgrad();
+
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Random(3, 2);
+  rn->back_grad1 += grad;
+  _expect_near_matrix(rn->back_grad1.as_matrix(), grad);
+
+  rn->backward();
+  _expect_near_matrix(a->back_grad1.as_matrix(), grad * 2.0);
+}
+
 TEST(testgradient, forward_cholesky) {
   // Test cholesky gradients for a 2x2 matrix
 

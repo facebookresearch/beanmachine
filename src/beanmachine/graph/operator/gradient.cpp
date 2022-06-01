@@ -403,6 +403,11 @@ void BroadcastAdd::compute_gradients() {
   }
 }
 
+void MatrixAdd::compute_gradients() {
+  Grad1 = in_nodes[0]->Grad1 + in_nodes[1]->Grad1;
+  Grad2 = in_nodes[0]->Grad2 + in_nodes[1]->Grad2;
+}
+
 void Cholesky::compute_gradients() {
   // equation 19 and 20 of
   // Differentiation of the Cholesky decomposition by Iain Murray

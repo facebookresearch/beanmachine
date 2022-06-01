@@ -76,6 +76,7 @@ PYBIND11_MODULE(graph, module) {
       .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
       .value("MATRIX_SCALE", OperatorType::MATRIX_SCALE)
       .value("ELEMENTWISE_MULTIPLY", OperatorType::ELEMENTWISE_MULTIPLY)
+      .value("MATRIX_ADD", OperatorType::MATRIX_ADD)
       .value("TO_PROBABILITY", OperatorType::TO_PROBABILITY)
       .value("INDEX", OperatorType::INDEX)
       .value("BROADCAST_ADD", OperatorType::BROADCAST_ADD)

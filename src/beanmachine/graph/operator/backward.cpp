@@ -246,6 +246,18 @@ void ElementwiseMultiply::backward() {
   }
 }
 
+void MatrixAdd::backward() {
+  assert(in_nodes.size() == 2);
+  auto node_a = in_nodes[0];
+  auto node_b = in_nodes[1];
+  if (node_a->needs_gradient()) {
+    node_a->back_grad1 += back_grad1;
+  }
+  if (node_b->needs_gradient()) {
+    node_b->back_grad1 += back_grad1;
+  }
+}
+
 void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
