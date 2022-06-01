@@ -40,6 +40,8 @@ TUTORIALS_REQUIRES = [
     "ipywidgets",
     "jupyter",
     "matplotlib",
+    "mdformat",
+    "mdformat-myst",
     "scikit-learn>=1.0.0",
     "seaborn",
     "torchvision",
