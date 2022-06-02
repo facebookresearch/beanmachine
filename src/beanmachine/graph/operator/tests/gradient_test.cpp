@@ -1092,3 +1092,38 @@ TEST(testgradient, matrix_elementwise_mult_backward) {
   EXPECT_NEAR(grad1[1]->coeff(4), 4.9520, 1e-3);
   EXPECT_NEAR(grad1[1]->coeff(5), 4.0240, 1e-3);
 }
+
+TEST(testgradient, matrix_mult_forward) {
+  Graph g;
+
+  Eigen::MatrixXd m1(2, 3);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+
+  Eigen::MatrixXd m2(3, 2);
+  m2 << 0.8, 1.1, 0.4, 4.3, 1.0, 0.8;
+  auto cm2 = g.add_constant_real_matrix(m2);
+
+  Node* cm1_node = g.get_node(cm1);
+  cm1_node->Grad1 = Eigen::MatrixXd::Ones(2, 3);
+  cm1_node->Grad2 = Eigen::MatrixXd::Ones(2, 3);
+
+  Node* cm2_node = g.get_node(cm2);
+  cm2_node->Grad1 = Eigen::MatrixXd::Ones(3, 2);
+  cm2_node->Grad2 = 0.5 * Eigen::MatrixXd::Ones(3, 2);
+
+  auto cm = g.add_operator(OperatorType::MATRIX_MULTIPLY, {cm1, cm2});
+  Node* cm_node = g.get_node(cm);
+  std::mt19937 gen;
+  cm_node->eval(gen);
+  cm_node->compute_gradients();
+
+  Eigen::MatrixXd first_grad_x = cm_node->Grad1;
+  Eigen::MatrixXd expected_first_grad_x(2, 2);
+  expected_first_grad_x << 3.6, 7.6, 1.3, 5.3;
+  _expect_near_matrix(first_grad_x, expected_first_grad_x);
+  Eigen::MatrixXd second_grad_x = cm_node->Grad2;
+  Eigen::MatrixXd expected_second_grad_x(2, 2);
+  expected_second_grad_x << 4.5, 4.5, 4.5, 4.5;
+  _expect_near_matrix(second_grad_x, expected_second_grad_x);
+}

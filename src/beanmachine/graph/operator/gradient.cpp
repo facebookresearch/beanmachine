@@ -252,6 +252,19 @@ void Add::compute_gradients() {
   }
 }
 
+void MatrixMultiply::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  int rows = static_cast<int>(in_nodes[0]->value.type.rows);
+  int cols = static_cast<int>(in_nodes[1]->value.type.cols);
+  Grad1.resize(rows, cols);
+  Grad2.resize(rows, cols);
+
+  Grad1 = in_nodes[0]->Grad1 * in_nodes[1]->value._matrix +
+      in_nodes[0]->value._matrix * in_nodes[1]->Grad1;
+  Grad2 = in_nodes[0]->Grad2 * in_nodes[1]->Grad1 +
+      in_nodes[0]->Grad1 * in_nodes[1]->Grad2;
+}
+
 void Multiply::compute_gradients() {
   // in general, computing the first and second derivatives of a product
   // would have a quadratic number of terms to add if we naively applied
