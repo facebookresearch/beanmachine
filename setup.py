@@ -43,6 +43,7 @@ TUTORIALS_REQUIRES = [
     "matplotlib",
     "scikit-learn>=1.0.0",
     "seaborn",
+    "tabulate",
     "torchvision",
 ]
 DEV_REQUIRES = (
