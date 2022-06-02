@@ -336,7 +336,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         # the output. We will use this token to determine if a pandas
                         # DataFrame is being displayed.
                         if "dataframe" in cell_output_data:
-                            df = pd.read_html(cell_output_data)
+                            df = pd.read_html(cell_output_data, flavor="lxml")
                             # NOTE: The return is a list of dataframes and we only care
                             #       about the first one.
                             md_df = df[0]
