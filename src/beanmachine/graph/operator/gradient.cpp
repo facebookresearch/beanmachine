@@ -298,15 +298,27 @@ void ElementwiseMultiply::compute_gradients() {
   assert(in_nodes.size() == 2);
   int rows = static_cast<int>(in_nodes[1]->value.type.rows);
   int cols = static_cast<int>(in_nodes[1]->value.type.cols);
-  Grad1.resize(rows, cols);
-  Grad2.resize(rows, cols);
+  Grad1 = Eigen::MatrixXd::Zero(rows, cols);
+  Grad2 = Eigen::MatrixXd::Zero(rows, cols);
 
-  Grad1 = (in_nodes[0]->Grad1.array() * in_nodes[1]->value._matrix.array() +
-           in_nodes[1]->Grad1.array() * in_nodes[0]->value._matrix.array())
-              .matrix();
-  Grad2 = (in_nodes[1]->Grad2.array() * in_nodes[0]->Grad1.array() +
-           in_nodes[0]->Grad2.array() * in_nodes[1]->Grad1.array())
-              .matrix();
+  bool parent_0_has_grad = in_nodes[0]->Grad1.size() != 0;
+  bool parent_1_has_grad = in_nodes[1]->Grad1.size() != 0;
+  if (parent_0_has_grad) {
+    Grad1 += (in_nodes[0]->Grad1.array() * in_nodes[1]->value._matrix.array())
+                 .matrix();
+    Grad2 += (in_nodes[0]->Grad2.array() * in_nodes[1]->value._matrix.array())
+                 .matrix();
+  }
+  if (parent_1_has_grad) {
+    Grad1 += (in_nodes[1]->Grad1.array() * in_nodes[0]->value._matrix.array())
+                 .matrix();
+    Grad2 += (in_nodes[1]->Grad2.array() * in_nodes[0]->value._matrix.array())
+                 .matrix();
+  }
+  if (parent_0_has_grad and parent_1_has_grad) {
+    Grad2 +=
+        2 * (in_nodes[0]->Grad1.array() * in_nodes[1]->Grad1.array()).matrix();
+  }
 }
 
 void LogSumExp::compute_gradients() {
