@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "beanmachine/graph/graph.h"
+#include <beanmachine/graph/graph.h>
 
 using namespace beanmachine::graph;
 
@@ -759,6 +759,40 @@ TEST(testgradient, matrix_add_grad) {
   auto grad2 = rn->Grad2;
   auto expected_grad2 = m1_grad2 + m2_grad2;
   _expect_near_matrix(grad2, expected_grad2);
+
+  // test where constant matrices don't have gradient initialized
+  Graph g1;
+  auto zero = g1.add_constant(0.0);
+  auto one = g1.add_constant_pos_real(1.0);
+  Eigen::MatrixXd constant(2, 1);
+  constant << -2.0, 1.0;
+  auto cm = g1.add_constant_real_matrix(constant);
+
+  auto normal_dist = g1.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {zero, one});
+  auto two_natural = g1.add_constant((natural_t)2);
+  auto sample = g1.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two_natural});
+  auto add = g1.add_operator(OperatorType::MATRIX_ADD, {cm, sample});
+  g1.query(add);
+
+  auto cm_node = g1.get_node(cm);
+  auto sample_node = g1.get_node(sample);
+  sample_node->Grad1 = Eigen::MatrixXd::Ones(2, 1);
+  sample_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+  auto add_node = g1.get_node(add);
+  cm_node->eval(gen);
+  sample_node->eval(gen);
+  sample_node->compute_gradients();
+  add_node->eval(gen);
+  add_node->compute_gradients();
+
+  Eigen::MatrixXd expected_Grad1 = Eigen::MatrixXd::Ones(2, 1);
+  Eigen::MatrixXd expected_Grad2 = Eigen::MatrixXd::Zero(2, 1);
+  Eigen::MatrixXd Grad1 = add_node->Grad1;
+  _expect_near_matrix(Grad1, expected_Grad1);
+  Eigen::MatrixXd Grad2 = add_node->Grad2;
+  _expect_near_matrix(Grad2, expected_Grad2);
 }
 
 TEST(testgradient, matrix_add_back_grad1) {
@@ -1124,6 +1158,32 @@ TEST(testgradient, matrix_mult_forward) {
   _expect_near_matrix(first_grad_x, expected_first_grad_x);
   Eigen::MatrixXd second_grad_x = cm_node->Grad2;
   Eigen::MatrixXd expected_second_grad_x(2, 2);
-  expected_second_grad_x << 4.5, 4.5, 4.5, 4.5;
+  expected_second_grad_x << 8.9, 12.9, 7.75, 11.75;
   _expect_near_matrix(second_grad_x, expected_second_grad_x);
+
+  // node does not have Grad initialized
+  Graph g1;
+  Eigen::MatrixXd mat1(2, 2);
+  mat1 << 0.5, 2.0, -1.0, -0.2;
+  auto cmat1 = g1.add_constant_real_matrix(mat1);
+  Eigen::MatrixXd mat2(2, 2);
+  mat2 << 0.6, 2.5, 1.0, 0.4;
+  auto cmat2 = g1.add_constant_real_matrix(mat2);
+  auto mult = g1.add_operator(OperatorType::MATRIX_MULTIPLY, {cmat1, cmat2});
+
+  auto mat2_node = g1.get_node(cmat2);
+  mat2_node->Grad1 = Eigen::MatrixXd::Ones(2, 2);
+  mat2_node->Grad2 = Eigen::MatrixXd::Ones(2, 2) * 3;
+  mat2_node->compute_gradients();
+  auto mult_node = g1.get_node(mult);
+  mult_node->eval(gen);
+  mult_node->compute_gradients();
+  Eigen::MatrixXd first_grad = mult_node->Grad1;
+  Eigen::MatrixXd expected_first_grad(2, 2);
+  expected_first_grad << 2.5, 2.5, -1.2, -1.2;
+  _expect_near_matrix(first_grad, expected_first_grad);
+  Eigen::MatrixXd second_grad = mult_node->Grad2;
+  Eigen::MatrixXd expected_second_grad(2, 2);
+  expected_second_grad << 7.5, 7.5, -3.6, -3.6;
+  _expect_near_matrix(second_grad, expected_second_grad);
 }

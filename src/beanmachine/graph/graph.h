@@ -844,10 +844,8 @@ struct Graph {
 
   :param src_idx: The index of the node to evaluate the gradients w.r.t., must
                   be a vector valued node.
-  :param grad1: Output value of first gradient (double), or gradient vector
-                (Eigen::MatrixXd)
-  :param grad2: Output value of the second gradient (double), or the diagonal
-                terms of the gradient matrix (Eigen::MatrixXd).
+  :param grad1: Output value of first gradient (double)
+  :param grad2: Output value of the second gradient (double)
   */
   void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
   /*

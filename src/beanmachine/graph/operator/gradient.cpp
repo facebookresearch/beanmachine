@@ -256,13 +256,22 @@ void MatrixMultiply::compute_gradients() {
   assert(in_nodes.size() == 2);
   int rows = static_cast<int>(in_nodes[0]->value.type.rows);
   int cols = static_cast<int>(in_nodes[1]->value.type.cols);
-  Grad1.resize(rows, cols);
-  Grad2.resize(rows, cols);
+  Grad1 = Eigen::MatrixXd::Zero(rows, cols);
+  Grad2 = Eigen::MatrixXd::Zero(rows, cols);
 
-  Grad1 = in_nodes[0]->Grad1 * in_nodes[1]->value._matrix +
-      in_nodes[0]->value._matrix * in_nodes[1]->Grad1;
-  Grad2 = in_nodes[0]->Grad2 * in_nodes[1]->Grad1 +
-      in_nodes[0]->Grad1 * in_nodes[1]->Grad2;
+  bool parent_0_has_grad = in_nodes[0]->Grad1.size() != 0;
+  bool parent_1_has_grad = in_nodes[1]->Grad1.size() != 0;
+  if (parent_0_has_grad) {
+    Grad1 += in_nodes[0]->Grad1 * in_nodes[1]->value._matrix;
+    Grad2 += in_nodes[0]->Grad2 * in_nodes[1]->value._matrix;
+  }
+  if (parent_1_has_grad) {
+    Grad1 += in_nodes[0]->value._matrix * in_nodes[1]->Grad1;
+    Grad2 += in_nodes[0]->value._matrix * in_nodes[1]->Grad2;
+  }
+  if (parent_0_has_grad and parent_1_has_grad) {
+    Grad2 += 2 * (in_nodes[0]->Grad1 * in_nodes[1]->Grad1);
+  }
 }
 
 void Multiply::compute_gradients() {
@@ -417,8 +426,18 @@ void BroadcastAdd::compute_gradients() {
 }
 
 void MatrixAdd::compute_gradients() {
-  Grad1 = in_nodes[0]->Grad1 + in_nodes[1]->Grad1;
-  Grad2 = in_nodes[0]->Grad2 + in_nodes[1]->Grad2;
+  auto rows = in_nodes[0]->value.type.rows;
+  auto cols = in_nodes[0]->value.type.cols;
+  Grad1.setZero(rows, cols);
+  Grad2.setZero(rows, cols);
+  if (in_nodes[0]->Grad1.size() != 0) {
+    Grad1 += in_nodes[0]->Grad1;
+    Grad2 += in_nodes[0]->Grad2;
+  }
+  if (in_nodes[1]->Grad1.size() != 0) {
+    Grad1 += in_nodes[1]->Grad1;
+    Grad2 += in_nodes[1]->Grad2;
+  }
 }
 
 void Cholesky::compute_gradients() {
