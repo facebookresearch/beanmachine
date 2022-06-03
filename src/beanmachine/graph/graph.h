@@ -503,8 +503,27 @@ class Node {
   // evaluate the node and store the result in `value` if appropriate
   // eval may involve sampling and that's why we need the random number engine
   virtual void eval(std::mt19937& gen) = 0;
-  // populate the derivatives
+
+  // Computes the first and second gradients of this node
+  // with respect to some (unspecified -- see below) variable.
+  // More specifically, it uses the values stored in this node's input
+  // nodes grad1 and grad2 fields (or Grad1 and Grad2 if they are matrices)
+  // to compute the value of this node's own gradient fields
+  // (again grad1, grad2 or Grad1 and Grad2).
+  // Note that this method does *not* compute the gradient of
+  // this node with respect to its inputs,
+  // but with respect to some (possibly distant) variable.
+  // The method is neutral regarding which variable this is,
+  // and simply computes its own gradient with respect
+  // to the same variable its input node gradients are
+  // with respect to.
+  // In the planned refactoring of BMG's autograd (as of May 2022)
+  // this should be replaced by the more fundamental and modular function
+  // computing a node's gradient with respect to its own inputs,
+  // which should then be used as needed in
+  // applications of the chain rule.
   virtual void compute_gradients() {}
+
   /*
   Gradient backward propagation: computes the 1st-order gradient update and
   add it to the parent's back_grad1.
@@ -732,6 +751,11 @@ struct Graph {
   since client code will often need to manipulate them very differently,
   typically re-computing the *values* of deterministic nodes,
   and re-computing the *probability* of stochastic nodes.
+
+  The method guarantees to return the deterministic node in
+  a breadth-first order from the source.
+  This ensures that evaluating these nodes individually
+  in the given order produces the correct global result.
 
   :param node_id: the id (index in topological order) of the node for which
   we are computing the descendants

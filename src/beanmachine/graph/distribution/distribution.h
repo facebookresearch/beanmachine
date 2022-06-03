@@ -40,11 +40,40 @@ class Distribution : public graph::Node {
   virtual void log_prob_iid(
       const graph::NodeValue& /* value */,
       Eigen::MatrixXd& /* log_probs */) const {}
-  // these function add the gradients to the passed in gradients
+
+  // Computes the first and second gradients of the log probability
+  // with respect to given value and *adds* them to the
+  // passed-by-reference parameters grad1 and grad2.
+  //
+  // Note that the analogy with gradient_log_prob_*param*
+  // is not quite precise, because that method does *not*
+  // compute the gradient with respect to the parameters,
+  // but *through* them.
+  //
+  // See gradient_log_prob_param.
   virtual void gradient_log_prob_value(
       const graph::NodeValue& value,
       double& grad1,
       double& grad2) const = 0;
+
+  // Computes the first and second gradients of the log probability
+  // and *adds* them to the passed-by-reference grad1 and grad1 parameters.
+  // Note that, similarly to Node::compute_gradient,
+  // the gradient is with respect to some unspecified variable,
+  // *not* with respect to the parameters of the distribution.
+  // Instead, the method uses the parameters's grad1 and grad2 fields,
+  // so the resulting gradient is with respect to the same variable
+  // those fields are with respect to.
+  //
+  // Note that, *unlike* Node::compute_gradients, the result is stored
+  // in parameters passed by reference (compute_gradients stores
+  // them in the node's grad1 and grad2 fields).
+  // The main reason for this is that the log prob is not itself
+  // a node in the graph. Unifying these two methods is one of
+  // the goals of the refactoring of the autograd component of BMG
+  // planned as of May 2022.
+  //
+  // See gradient_log_prob_value.
   virtual void gradient_log_prob_param(
       const graph::NodeValue& value,
       double& grad1,
