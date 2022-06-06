@@ -1031,7 +1031,7 @@ TEST(testgradient, matrix_elementwise_mult_forward) {
   _expect_near_matrix(first_grad_x, expected_first_grad_x);
   Eigen::MatrixXd second_grad_x = cm_node->Grad2;
   Eigen::MatrixXd expected_second_grad_x(3, 2);
-  expected_second_grad_x << 2.0, 2.0, 2.0, 2.0, 2.0, 2.0;
+  expected_second_grad_x << 2.6, 1.8, 4.4, 3.8, -3.2, 3.6;
   _expect_near_matrix(second_grad_x, expected_second_grad_x);
 }
 
