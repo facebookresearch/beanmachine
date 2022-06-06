@@ -33,15 +33,15 @@ const Plotly = Loadable({
     timedOut ? (
       <blockquote>Error: Loading Plotly timed out.</blockquote>
     ) : (
-      <div>phooey</div>
+      <div>loading...</div>
     ),
   timeout: 10000,
 });
 
-export const PlotlyFigure = React.memo(({data, layout}) => {
+export const PlotlyFigure = React.memo(({data}) => {
   return (
     <div className="plotly-figure">
-      <Plotly data={data} layout={layout} />
+      <Plotly data={data['data']} layout={data['layout']} />
     </div>
   );
 });

@@ -157,6 +157,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
     jsx_output = ""
     link_btn = "../../../../website/src/components/LinkButtons.jsx"
     cell_out = "../../../../website/src/components/CellOutput.jsx"
+    plot_out = "../../../../website/src/components/Plotting.jsx"
     components_output = f'import LinkButtons from "{link_btn}";\n'
     components_output += f'import CellOutput from "{cell_out}";\n'
 
@@ -229,37 +230,28 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
                 # Handle plotly images.
                 if plotly_flag:
+                    components_output += f'import {{PlotlyFigure}} from "{plot_out}";\n'
                     cell_output_data = cell_output["data"]
                     for key, value in cell_output_data.items():
                         if key == "application/vnd.plotly.v1+json":
                             # Save the plotly JSON data.
                             file_name = "PlotlyFigure" + str(uuid.uuid4())
-                            component_name = file_name.replace("-", "")
-                            components_output += (
-                                f'import { {component_name} } from "./{filename}.jsx";\n'
-                            ).replace("'", " ")
                             file_path = str(
                                 plot_data_folder.joinpath(f"{file_name}.json")
                             )
                             with open(file_path, "w") as f:
                                 json.dump(value, f, indent=2)
 
-                            # Add a React component to the jsx output.
+                            # Add the Plotly figure to the MDX output.
                             path_to_data = f"./assets/plot_data/{file_name}.json"
-                            jsx_output += (
-                                f"export const {component_name} = () => {{\n"
-                                f'  const pathToData = "{path_to_data}";\n'
-                                "  const plotData = React.useMemo(() => "
-                                "require(`${pathToData}`), []);\n"
-                                '  const data = plotData["data"];\n'
-                                '  const layout = plotData["layout"];\n'
-                                "  return <PlotlyFigure data={data} layout={layout} />\n"
-                                f"}};\n\n"
+                            mdx_output += (
+                                f"<PlotlyFigure data={{require('{path_to_data}')}} "
+                                "/>\n\n"
                             )
-                            mdx_output += f"<{component_name} />\n\n"
 
                 # Handle bokeh images.
                 if bokeh_flag:
+                    components_output += f'import {{BokehFigure}} from "{plot_out}";\n'
                     # Ignore any HTML data objects. The bokeh object we want is a
                     # `application/javascript` object. We will also ignore the first
                     # bokeh output, which is an image indicating that bokeh is loading.
@@ -277,13 +269,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         token = "show("
                         plot_name = plot_name[plot_name.find(token) + len(token) : -1]
                         div_name = plot_name.replace("_", "-")
-                        component_name = "".join(
-                            [token.title() for token in plot_name.split("_")]
-                        )
-                        components_output += (
-                            f'import { {component_name} } from "./{filename}.jsx";\n'
-                        ).replace("'", " ")
-                        mdx_output += f"<{component_name} />\n\n"
                         # Parse the javascript for the bokeh JSON data.
                         flag = "const docs_json = "
                         json_string = list(
@@ -315,15 +300,11 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         file_path = str(plot_data_folder.joinpath(f"{div_name}.json"))
                         with open(file_path, "w") as f:
                             json.dump(js, f, indent=2)
-                        # Add a React component to the jsx output.
+
+                            # Add the Bokeh figure to the MDX output.
                         path_to_data = f"./assets/plot_data/{div_name}.json"
-                        jsx_output += (
-                            f"export const {component_name} = () => {{\n"
-                            f'  const pathToData = "{path_to_data}";\n'
-                            f"  const data = React.useMemo(() => "
-                            "require(`${pathToData}`), []);\n"
-                            "  return <BokehFigure data={data} />\n"
-                            f"}};\n\n"
+                        mdx_output += (
+                            f"<BokehFigure data={{require('{path_to_data}')}} />\n\n"
                         )
 
             # Handle "execute_result".
