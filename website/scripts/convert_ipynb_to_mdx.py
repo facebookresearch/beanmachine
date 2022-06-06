@@ -12,13 +12,14 @@ from textwrap import wrap
 from typing import Dict, Tuple, Union
 
 import nbformat
+import pandas as pd
 from nbformat.notebooknode import NotebookNode
 
 try:
     from libfb.py.fbcode_root import get_fbcode_dir
 except ImportError:
     SCRIPTS_DIR = Path(__file__).parent.resolve()
-    LIB_DIR = SCRIPTS_DIR.joinpath("..").resolve()
+    LIB_DIR = SCRIPTS_DIR.parent.parent.resolve()
 else:
     LIB_DIR = (Path(get_fbcode_dir()) / "beanmachine").resolve()
 
@@ -328,6 +329,29 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
             # Handle "execute_result".
             if cell_output_type == "execute_result":
                 if data_category == "text":
+                    # Handle HTML.
+                    if data_type == "html":
+                        # Handle pandas DataFrames. There is a scoped style tag in the
+                        # DataFrame output that uses the class name `dataframe` to style
+                        # the output. We will use this token to determine if a pandas
+                        # DataFrame is being displayed.
+                        if "dataframe" in cell_output_data:
+                            df = pd.read_html(cell_output_data, flavor="lxml")
+                            # NOTE: The return is a list of dataframes and we only care
+                            #       about the first one.
+                            md_df = df[0]
+                            for column in md_df.columns:
+                                if column.startswith("Unnamed"):
+                                    md_df.rename(columns={column: ""}, inplace=True)
+                            # Remove the index if it is just a range, and output to
+                            # markdown.
+                            md = ""
+                            if isinstance(md_df.index, pd.RangeIndex):
+                                md = md_df.to_markdown(showindex=False)
+                            elif not isinstance(md_df.index, pd.RangeIndex):
+                                md = md_df.to_markdown()
+                            mdx_output += f"\n{md}\n\n"
+
                     # Handle plain text.
                     if data_type == "plain":
                         cell_output_data = "\n".join(

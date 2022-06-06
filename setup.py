@@ -39,9 +39,11 @@ TUTORIALS_REQUIRES = [
     "cma",
     "ipywidgets",
     "jupyter",
+    "lxml>=4.9",
     "matplotlib",
     "scikit-learn>=1.0.0",
     "seaborn",
+    "tabulate",
     "torchvision",
 ]
 DEV_REQUIRES = (
