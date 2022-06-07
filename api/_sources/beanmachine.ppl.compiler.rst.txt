@@ -27,6 +27,7 @@ Submodules
    beanmachine.ppl.compiler.error_report
    beanmachine.ppl.compiler.execution_context
    beanmachine.ppl.compiler.fix_additions
+   beanmachine.ppl.compiler.fix_arithmetic
    beanmachine.ppl.compiler.fix_beta_conjugate_prior
    beanmachine.ppl.compiler.fix_bool_arithmetic
    beanmachine.ppl.compiler.fix_bool_comparisons
