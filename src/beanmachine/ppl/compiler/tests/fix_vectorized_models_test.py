@@ -1010,19 +1010,21 @@ digraph "graph" {
   N04[label=Sample];
   N05[label=complement];
   N06[label=Log];
-  N07[label=ToReal];
+  N07[label="-"];
   N08[label="*"];
-  N09[label=6.0];
-  N10[label=2.0];
-  N11[label=4.0];
-  N12[label=Beta];
-  N13[label=Sample];
-  N14[label=complement];
-  N15[label=Log];
-  N16[label=ToReal];
-  N17[label="*"];
-  N18[label="+"];
-  N19[label=Query];
+  N09[label="-"];
+  N10[label=6.0];
+  N11[label=2.0];
+  N12[label=4.0];
+  N13[label=Beta];
+  N14[label=Sample];
+  N15[label=complement];
+  N16[label=Log];
+  N17[label="-"];
+  N18[label="*"];
+  N19[label="-"];
+  N20[label="+"];
+  N21[label=Query];
   N00 -> N08;
   N01 -> N03;
   N02 -> N03;
@@ -1031,10 +1033,10 @@ digraph "graph" {
   N05 -> N06;
   N06 -> N07;
   N07 -> N08;
-  N08 -> N18;
-  N09 -> N17;
-  N10 -> N12;
-  N11 -> N12;
+  N08 -> N09;
+  N09 -> N20;
+  N10 -> N18;
+  N11 -> N13;
   N12 -> N13;
   N13 -> N14;
   N14 -> N15;
@@ -1042,6 +1044,8 @@ digraph "graph" {
   N16 -> N17;
   N17 -> N18;
   N18 -> N19;
+  N19 -> N20;
+  N20 -> N21;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
