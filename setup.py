@@ -115,6 +115,12 @@ if sys.platform.startswith("linux"):
             "/usr/include/x86_64-linux-gnu",
         ]
     )
+elif sys.platform.startswith("darwin"):
+    # MacOS dependencies installed through HomeBrew
+    INCLUDE_DIRS.extend(
+        glob("/usr/local/Cellar/eigen/*/include/eigen3")
+        + glob("/usr/local/Cellar/boost/*/include")
+    )
 
 setup(
     name="beanmachine",
