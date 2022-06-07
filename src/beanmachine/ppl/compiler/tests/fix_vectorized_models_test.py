@@ -96,6 +96,17 @@ def complement_with_log1p():
     return (-beta_2_2()).log1p()
 
 
+@bm.random_variable
+def beta1234():
+    return Beta(tensor([1.0, 2.0]), tensor([3.0, 4.0]))
+
+
+@bm.functional
+def sum_inverted_log_probs():
+    p = tensor([5.0, 6.0]) * (-beta1234()).log1p()
+    return p.sum()
+
+
 class FixVectorizedModelsTest(unittest.TestCase):
     def test_fix_vectorized_models_1(self) -> None:
         self.maxDiff = None
@@ -983,4 +994,54 @@ digraph "graph" {
   N13 -> N14;
 }
         """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_10(self) -> None:
+        self.maxDiff = None
+        queries = [sum_inverted_log_probs()]
+        observations = {}
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N00[label=5.0];
+  N01[label=1.0];
+  N02[label=3.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=complement];
+  N06[label=Log];
+  N07[label=ToReal];
+  N08[label="*"];
+  N09[label=6.0];
+  N10[label=2.0];
+  N11[label=4.0];
+  N12[label=Beta];
+  N13[label=Sample];
+  N14[label=complement];
+  N15[label=Log];
+  N16[label=ToReal];
+  N17[label="*"];
+  N18[label="+"];
+  N19[label=Query];
+  N00 -> N08;
+  N01 -> N03;
+  N02 -> N03;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N18;
+  N09 -> N17;
+  N10 -> N12;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())

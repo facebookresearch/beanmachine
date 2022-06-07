@@ -12,31 +12,31 @@ from beanmachine.ppl.compiler.fix_problem import (
     NodeFixerResult,
 )
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
+from beanmachine.ppl.compiler.sizer import is_scalar, Sizer
 
 
-def matrix_scale_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+def matrix_scale_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFixer:
     """This node fixer attempts to rewrite binary multiplications that involve
     a matrix and a scalar into a matrix_scale node."""
 
     def fixer(n: bn.BMGNode) -> NodeFixerResult:
         # A matrix multiplication is fixable (to matrix_scale) if it is
-        # a binary multiplication with non-singleton result type
-        # and the type of one argument is matrix and the other is scalar
+        # a binary multiplication with non-singleton result size
+        # and the size of one argument is matrix and the other is scalar
         if not isinstance(n, bn.MultiplicationNode) or len(n.inputs) != 2:
             return Inapplicable
-        # The return type of the node should be matrix
-        if not typer[n].is_singleton():
-            return Inapplicable
-        # Now let's check the types of the inputs
-        input_types = [typer[i] for i in n.inputs]
+        # Now let's check the sizes of the inputs
+        input_scalars = [is_scalar(sizer[i]) for i in n.inputs]
         # If both are scalar, then there is nothing to do
-        if all(t.is_singleton() for t in input_types):
+        if all(input_scalars):
             return Inapplicable  # Both are scalar
         # If both are matrices, then there is nothing to do
-        if all(not (t.is_singleton()) for t in input_types):
+        if all(not t for t in input_scalars):
             return Inapplicable  # Both are matrices
+        # The return type of the node should be matrix
+        assert not is_scalar(sizer[n])
         left, right = n.inputs
-        if input_types[1].is_singleton():
+        if input_scalars[1]:
             scalar, matrix = right, left
         else:
             scalar, matrix = left, right

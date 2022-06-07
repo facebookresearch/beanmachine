@@ -192,6 +192,10 @@ def size_to_str(size: Size) -> str:
     return "[" + ",".join(str(i) for i in size) + "]"
 
 
+def is_scalar(s: Size) -> bool:
+    return all(d == 1 for d in s)
+
+
 class Sizer(TyperBase[Size]):
 
     _dispatch: Dict[type, Callable]
