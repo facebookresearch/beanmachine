@@ -356,7 +356,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                             # markdown.
                             md = ""
                             if isinstance(md_df.index, pd.RangeIndex):
-                                md = md_df.to_markdown(index=False)
+                                md = md_df.to_markdown(showindex=False)
                             elif not isinstance(md_df.index, pd.RangeIndex):
                                 md = md_df.to_markdown()
                             mdx_output += f"\n{md}\n\n"
