@@ -4,13 +4,14 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
+import re
 import shutil
 import uuid
 from os import PathLike
 from pathlib import Path
-from textwrap import wrap
 from typing import Dict, Tuple, Union
 
+import mdformat
 import nbformat
 import pandas as pd
 from nbformat.notebooknode import NotebookNode
@@ -96,23 +97,31 @@ def transform_markdown_cell(
         new_img_path = str(img_folder.joinpath(name))
         shutil.copy(str(old_img_path), new_img_path)
 
-    # Wrap lines using black's default of 88 characters. Used to help debug issues from
-    # the tutorials. Note that all tables (lines that start with |) are not wrapped as
-    # well as any LaTeX formulas that start new block math sections ($$).
-    cell_source = cell_source.splitlines()
-    math_lines = [i for i, line in enumerate(cell_source) if line.startswith("$$")]
-    math_lines = [(i, j) for i, j in zip(math_lines, math_lines[1:])]
-    math_line_check = [False] * len(cell_source)
-    for start, stop in math_lines:
-        math_line_check[start : stop + 1] = [True] * (stop + 1 - start)
-    new_cell_source = ""
-    for i, line in enumerate(cell_source):
-        if math_line_check[i] or line.startswith("|"):
-            new_cell_source += f"{line}\n"
-        elif not math_line_check[i]:
-            md = "\n".join(wrap(line, width=88, replace_whitespace=False))
-            new_cell_source += f"{md}\n"
+    # Wrap lines using black's default of 88 characters.
+    new_cell_source = mdformat.text(
+        cell_source,
+        options={"wrap": 88},
+        extensions={"myst"},
+    )
 
+    # We will attempt to handle inline style attributes written in HTML by converting
+    # them to something React can consume.
+    token = "style="
+    pattern = re.compile(f'{token}"([^"]*)"')
+    found_patterns = re.findall(pattern, new_cell_source)
+    for found_pattern in found_patterns:
+        react_style_string = json.dumps(
+            dict(
+                [
+                    [t.strip() for t in token.strip().split(":")]
+                    for token in found_pattern.split(";")
+                    if token
+                ]
+            )
+        )
+        react_style_string = f"{{{react_style_string}}}"
+        new_cell_source = new_cell_source.replace(found_pattern, react_style_string)
+        new_cell_source = new_cell_source.replace('"{{', "{{").replace('}}"', "}}")
     return f"{new_cell_source}\n\n"
 
 
@@ -347,7 +356,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                             # markdown.
                             md = ""
                             if isinstance(md_df.index, pd.RangeIndex):
-                                md = md_df.to_markdown(showindex=False)
+                                md = md_df.to_markdown(index=False)
                             elif not isinstance(md_df.index, pd.RangeIndex):
                                 md = md_df.to_markdown()
                             mdx_output += f"\n{md}\n\n"
