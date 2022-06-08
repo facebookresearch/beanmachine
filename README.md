@@ -1,6 +1,6 @@
 # Bean Machine
 <div align="center">
-  <a href="http://beanmachine.org"> <img width="220px" height="220px" src="https://beanmachine.org/img/beanmachine.svg"></a>
+  <a href="http://beanmachine.org"> <img width="220px" height="220px" src="https://beanmachine.org/img/beanmachine.svg" /></a>
 </div>
 
 [![Lint](https://github.com/facebookresearch/beanmachine/actions/workflows/lint.yml/badge.svg)](https://github.com/facebookresearch/beanmachine/actions/workflows/lint.yml)
@@ -11,7 +11,7 @@
 ## Overview
 
 Bean Machine is a probabilistic programming language for inference over statistical models written in the Python language using a declarative syntax. Bean Machine is built on top of PyTorch and Bean Machine Graph, a custom C++ backend.
-Check out our [tutorials](https://beanmachine.org/docs/tutorials/) and [Quick Start](https://beanmachine.org/docs/overview/quick_start/) to get started!
+Check out our [tutorials](http://localhost:3000/docs/overview/tutorials/Coin_flipping/CoinFlipping/) and [Quick Start](https://beanmachine.org/docs/overview/quick_start/) to get started!
 
 ## Installation
 Bean Machine supports Python 3.7-3.9 and PyTorch 1.10.
@@ -39,7 +39,7 @@ We recommend using [conda](https://docs.conda.io/en/latest/) to manage the virtu
 
 ```bash
 conda create -n {env name} python=3.8; conda activate {env name}
-conda install -c conda-forge boost-cpp eigen=3.4.0
+conda install -c conda-forge boost-cpp eigen=3.4.0 pip
 python -m pip install .
 ```
 
