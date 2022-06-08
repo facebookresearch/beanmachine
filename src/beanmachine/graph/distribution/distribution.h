@@ -65,6 +65,29 @@ class Distribution : public graph::Node {
   // so the resulting gradient is with respect to the same variable
   // those fields are with respect to.
   //
+  // Note: First order chain rule:
+  // d/dx[f(g(x))]
+  //     = f’(g(x)) g’(x)
+  // Second order chain rule:
+  // d^2/dx^2[f(g(x))]
+  //     = d/dx[f’(g(x)) g’(x)] // first order chain rule
+  //     = d/dx[f’(g(x))] g’(x) // product rule
+  //       + d/dx[g’(x)] f’(g(x))
+  //     = f’’(g(x)) g’(x) g’(x) // first order chain rule
+  //       + g’’(x) f’(g(x))
+  //     = f’’(g(x)) g’(x) g’(x) + g’’(x) f’(g(x))
+  // Here f is log(PDF), g is the value of the parameter to the function
+  // being differentiated, and g' and g'' are the incoming gradients of
+  // the value with respect to the distant variable x.
+  //
+  // If, for some parameter p, you compute
+  //   d1 = d/dp log(PDF)
+  //   d2 = d^2/dp^2 log(PDF)
+  // And d has incoming gradients d->grad1 and d->grad2, then this
+  // code should apply the chain rule by doing
+  //   grad1 += d1 * d->grad1;
+  //   grad2 += d2 * d->grad1 * d->grad1 + d->grad2 * d1;
+  //
   // Note that, *unlike* Node::compute_gradients, the result is stored
   // in parameters passed by reference (compute_gradients stores
   // them in the node's grad1 and grad2 fields).

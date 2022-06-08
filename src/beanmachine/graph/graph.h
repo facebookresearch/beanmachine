@@ -141,9 +141,7 @@ class NodeValue {
   // contains a non-static data member with a non-trivial special member
   // function (copy/move constructor, copy/move assignment, or destructor), that
   // function is deleted by default in the union and needs to be defined
-  // explicitly by the programmer."  Because anonymous unions cannot define
-  // destructors, we declare these outside the union so that they are
-  // destructed.
+  // explicitly by the programmer."
   Eigen::MatrixXd _matrix;
   Eigen::MatrixXb _bmatrix;
   Eigen::MatrixXn _nmatrix;
@@ -362,6 +360,7 @@ enum class DistributionType {
   CATEGORICAL,
   POISSON,
   GEOMETRIC,
+  CAUCHY,
   DUMMY,
 };
 
@@ -753,7 +752,7 @@ struct Graph {
   and re-computing the *probability* of stochastic nodes.
 
   The method guarantees to return the deterministic node in
-  a breadth-first order from the source.
+  a topologically sorted order from the source.
   This ensures that evaluating these nodes individually
   in the given order produces the correct global result.
 
