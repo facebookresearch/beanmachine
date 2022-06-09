@@ -19,6 +19,7 @@ Submodules
    beanmachine.ppl.inference.proposer.base_single_site_mh_proposer
    beanmachine.ppl.inference.proposer.hmc_proposer
    beanmachine.ppl.inference.proposer.hmc_utils
+   beanmachine.ppl.inference.proposer.mala_proposer
    beanmachine.ppl.inference.proposer.nuts_proposer
    beanmachine.ppl.inference.proposer.sequential_proposer
    beanmachine.ppl.inference.proposer.single_site_ancestral_proposer
