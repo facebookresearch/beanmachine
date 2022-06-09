@@ -190,3 +190,30 @@ class PredictiveTest(unittest.TestCase):
             1,
             2,
         )
+
+    def test_posterior_dict(self):
+        obs = {
+            self.likelihood_i(0): torch.tensor(1.0),
+            self.likelihood_i(1): torch.tensor(0.0),
+        }
+
+        posterior = {self.prior(): torch.tensor([0.5, 0.5])}
+
+        predictives_dict = bm.simulate(list(obs.keys()), posterior)
+        assert predictives_dict[self.likelihood_i(0)].shape == (1, 2)
+        assert predictives_dict[self.likelihood_i(1)].shape == (1, 2)
+
+    def test_posterior_dict_predictive(self):
+        obs = {
+            self.likelihood_i(0): torch.tensor(1.0),
+            self.likelihood_i(1): torch.tensor(0.0),
+        }
+        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
+            [self.prior()], obs, num_samples=10, num_chains=1
+        )
+        assert post_samples[self.prior()].shape == (1, 10)
+
+        post_samples_dict = dict(post_samples)
+        predictives_dict = bm.simulate(list(obs.keys()), post_samples_dict)
+        assert predictives_dict[self.likelihood_i(0)].shape == (1, 10)
+        assert predictives_dict[self.likelihood_i(1)].shape == (1, 10)

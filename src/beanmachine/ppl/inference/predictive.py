@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -11,7 +11,7 @@ from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import init_from_prior, World
+from beanmachine.ppl.world import init_from_prior, RVDict, World
 from torch import Tensor
 from torch.distributions import Categorical
 from tqdm.auto import trange
@@ -52,7 +52,7 @@ class Predictive(object):
     @staticmethod  # noqa: C901
     def simulate(  # noqa: C901
         queries: List[RVIdentifier],
-        posterior: Optional[MonteCarloSamples] = None,
+        posterior: Optional[Union[MonteCarloSamples, RVDict]] = None,
         num_samples: Optional[int] = None,
         vectorized: Optional[bool] = False,
         progress_bar: Optional[bool] = True,
@@ -74,7 +74,7 @@ class Predictive(object):
            predictives = simulate(queries, num_samples=1000)
 
         :param query: list of `random_variable`'s corresponding to the observations.
-        :param posterior: Optional `MonteCarloSamples` of the latent variables.
+        :param posterior: Optional `MonteCarloSamples` or `RVDict` of the latent variables.
         :param num_samples: Number of prior predictive samples, defaults to 1. Should
             not be specified if `posterior` is specified.
         :returns: `MonteCarloSamples` of the generated predictives.
@@ -84,9 +84,10 @@ class Predictive(object):
         ) == 1, "Only one of posterior or num_samples should be set."
         inference = SingleSiteAncestralMetropolisHastings()
         if posterior is not None:
-            n_warmup = posterior.num_adaptive_samples
-            # drop the warm up samples
-            obs = {k: v[:, n_warmup:] for k, v in posterior.items()}
+            if isinstance(posterior, dict):
+                posterior = MonteCarloSamples([posterior])
+
+            obs = dict(posterior)
             if vectorized:
                 sampler = inference.sampler(
                     queries, obs, num_samples, initialize_fn=init_from_prior
