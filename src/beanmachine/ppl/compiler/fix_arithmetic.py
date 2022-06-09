@@ -73,3 +73,29 @@ def negative_real_multiplication_fixer(
         return new_mult
 
     return _negative_real_multiplication_fixer
+
+
+def log1mexp_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+    # To take the complement of a log prob we need to convert
+    # the log prob back to an ordinary prob, then complement it,
+    # then convert it back to a log prob. In BMG we have a special
+    # node just for this operation that
+
+    def _log1mexp_fixer(node: bn.BMGNode) -> NodeFixerResult:
+        if not isinstance(node, bn.LogNode):
+            return Inapplicable
+        comp = node.inputs[0]
+        if not isinstance(comp, bn.ComplementNode):
+            return Inapplicable
+        ex = comp.inputs[0]
+        if not isinstance(ex, bn.ExpNode):
+            return Inapplicable
+        logp = ex.inputs[0]
+        # We should not have inserted a complement node unless the
+        # exp was given a negative real, but let's double-check
+        # that anyway.
+        if not typer.is_neg_real(logp):
+            return Inapplicable
+        return bmg.add_log1mexp(logp)
+
+    return _log1mexp_fixer

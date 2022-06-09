@@ -6,7 +6,6 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.hint import log1mexp
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch.distributions import Bernoulli, Beta
 
@@ -41,6 +40,10 @@ def bad_flip():
 
 
 # Similarly for log-probabilities which are negative reals.
+
+
+def log1mexp(x):
+    return (1 - x.exp()).log()
 
 
 @bm.functional
@@ -106,6 +109,11 @@ The probability of a Bernoulli is required to be a probability but is a positive
 The Bernoulli was created in function call bad_flip()."""
         self.assertEqual(expected.strip(), str(ex.exception).strip())
 
+    # TODO: We now generate LOG1MEXP nodes only if the program contains
+    # log(1-exp(x)), and x is a negative integer. Disabling this test
+    # until we decide whether we want to force the compiler to insert
+    # a cast node, and if so, where.
+    @unittest.skip("disabled")
     def test_to_neg_real_1(self) -> None:
         self.maxDiff = None
         observed = BMGInference().to_dot([to_neg_real()], {})

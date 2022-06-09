@@ -16,7 +16,6 @@ import torch.distributions as dist
 from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
-from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 
 
 _in_place_operator_names = {
@@ -356,11 +355,6 @@ class SpecialFunctionCaller:
             math.exp: self._math_exp,
             math.log: self._math_log,
             #
-            # Hints
-            #
-            log1mexp: self._hint_log1mexp,
-            math_log1mexp: self._hint_log1mexp,
-            #
             # Operators as functions
             #
             operator.add: self._operator_add,
@@ -680,15 +674,6 @@ class SpecialFunctionCaller:
 
     def _math_log(self, input: BMGNode) -> BMGNode:
         return self._bmg.add_log(input)
-
-    #
-    # Hints
-    # TODO: Eliminate this hack. Write a problem fixer which detects these
-    # patterns and rewrites them into the more efficient operator.
-    #
-
-    def _hint_log1mexp(self, x: BMGNode) -> BMGNode:
-        return self._bmg.add_log1mexp(x)
 
     #
     # Distributions; these must have the same signature as the corresponding

@@ -430,6 +430,10 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         t = self[node]
         return t != bt.Untypable and bt.supremum(t, bt.Probability) == bt.Probability
 
+    def is_neg_real(self, node: bn.BMGNode) -> bool:
+        t = self[node]
+        return t != bt.Untypable and bt.supremum(t, bt.NegativeReal) == bt.NegativeReal
+
     def is_matrix(self, node: bn.BMGNode) -> bool:
         t = type(node)
         if t in _always_matrix_types:
