@@ -209,7 +209,7 @@ def obtain_posterior(data_train, args_dict, model=None):
         n_categories,
         expected_correctness,
         concentration,
-        *data_train
+        *data_train,
     )
     curr = State()
     compile_time_t2 = time.time()

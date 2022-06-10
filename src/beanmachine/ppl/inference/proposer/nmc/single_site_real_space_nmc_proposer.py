@@ -209,7 +209,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         accept_log_prob: torch.Tensor,
         is_accepted: bool = False,
         *args,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Do adaption based on the learning rates.
