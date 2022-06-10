@@ -6,9 +6,9 @@ nb_path: tutorials/Coin_flipping.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb
 ---
-import { SamplesDiagnosticPlots } from "./CoinFlipping.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb"
@@ -457,7 +457,7 @@ samples_diagnostic_plots = gridplot(plots.plot_diagnostics(samples))
 show(samples_diagnostic_plots)
 ```
 
-<SamplesDiagnosticPlots />
+<BokehFigure data={require('./assets/plot_data/samples-diagnostic-plots.json')} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.

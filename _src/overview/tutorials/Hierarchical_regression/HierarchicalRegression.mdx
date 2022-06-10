@@ -6,17 +6,9 @@ nb_path: tutorials/Hierarchical_regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 ---
-import { SampleCountiesEss } from "./HierarchicalRegression.jsx";
-import { CountyPosteriors } from "./HierarchicalRegression.jsx";
-import { SampleOfPriors } from "./HierarchicalRegression.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { QueryEss } from "./HierarchicalRegression.jsx";
-import { LogPlotComparison } from "./HierarchicalRegression.jsx";
-import { TraceRanks } from "./HierarchicalRegression.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { Uranium } from "./HierarchicalRegression.jsx";
-import { BetaGamma } from "./HierarchicalRegression.jsx";
-import { FloorPlot } from "./HierarchicalRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
@@ -160,7 +152,7 @@ log_plot_comparison = radon.log_plot_comparison(df["activity"])
 show(log_plot_comparison)
 ```
 
-<LogPlotComparison />
+<BokehFigure data={require('./assets/plot_data/log-plot-comparison.json')} />
 
 Both plots show the histogram and the kernel density estimate of the radon activity
 data. The left plot shows the raw activity data, while the right plot shows the
@@ -186,7 +178,7 @@ floor_plot = radon.floor_plot(df)
 show(floor_plot)
 ```
 
-<FloorPlot />
+<BokehFigure data={require('./assets/plot_data/floor-plot.json')} />
 
 ## Model
 
@@ -379,7 +371,7 @@ sample_of_priors = radon.sample_of_priors()
 show(sample_of_priors)
 ```
 
-<SampleOfPriors />
+<BokehFigure data={require('./assets/plot_data/sample-of-priors.json')} />
 
 ### Inference
 
@@ -536,7 +528,7 @@ query_ess = gridplot([plots[:3], plots[3:]])
 show(query_ess)
 ```
 
-<QueryEss />
+<BokehFigure data={require('./assets/plot_data/query-ess.json')} />
 
 Rather than plot all effective sample size evolutions for each county's $\alpha$
 parameter, we will do so for a sample.
@@ -584,7 +576,7 @@ sample_counties_ess = gridplot([plots[:3], plots[3:6], plots[6:]])
 show(sample_counties_ess)
 ```
 
-<SampleCountiesEss />
+<BokehFigure data={require('./assets/plot_data/sample-counties-ess.json')} />
 
 Combined with our above analysis, we can show the rank plots of our model parameters.
 You might be familiar with `trace plots` that show parameter posterior distributions
@@ -605,7 +597,7 @@ trace_ranks = radon.plot_trace_ranks(
 show(trace_ranks)
 ```
 
-<TraceRanks />
+<BokehFigure data={require('./assets/plot_data/trace-ranks.json')} />
 
 Each of the above rank plots shows fairly uniform histograms for each parameter.
 
@@ -637,7 +629,7 @@ beta_gamma = gridplot([[beta_posterior, gamma_posterior]])
 show(beta_gamma)
 ```
 
-<BetaGamma />
+<BokehFigure data={require('./assets/plot_data/beta-gamma.json')} />
 
 Again we only show a sampling of the $\alpha$ parameters for the different counties in
 the model.
@@ -655,7 +647,7 @@ county_posteriors = gridplot([*az.plot_posterior(data, show=False)])
 show(county_posteriors)
 ```
 
-<CountyPosteriors />
+<BokehFigure data={require('./assets/plot_data/county-posteriors.json')} />
 
 We can inspect how the uranium concentration in a county's soil affects the intercept
 $\alpha$ by plotting our intercept estimate against the logarithm of uranium counts for
@@ -671,7 +663,7 @@ uranium = radon.uranium(summary_df, df)
 show(uranium)
 ```
 
-<Uranium />
+<BokehFigure data={require('./assets/plot_data/uranium.json')} />
 
 <a id="references"></a>
 

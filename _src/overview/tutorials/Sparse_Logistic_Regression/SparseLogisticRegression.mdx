@@ -6,21 +6,9 @@ nb_path: tutorials/Sparse_Logistic_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
 ---
-import { LambdaMarginalsPlot } from "./SparseLogisticRegression.jsx";
-import { LogProbPlot } from "./SparseLogisticRegression.jsx";
-import { BetasDensityPlot } from "./SparseLogisticRegression.jsx";
-import { PredictedDataPlot } from "./SparseLogisticRegression.jsx";
-import { BetaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
-import { GermanBetasDensityPlot } from "./SparseLogisticRegression.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { GermanLogProbPlot } from "./SparseLogisticRegression.jsx";
-import { LambdaMarginalsMhPlot } from "./SparseLogisticRegression.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { LogProbMhPlot } from "./SparseLogisticRegression.jsx";
-import { SyntheticDataPlot } from "./SparseLogisticRegression.jsx";
-import { BetaMarginalsPlot } from "./SparseLogisticRegression.jsx";
-import { DataPoint11Plot } from "./SparseLogisticRegression.jsx";
-import { RocPlot } from "./SparseLogisticRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb"
@@ -330,7 +318,7 @@ synthetic_data_plot = plots.scatter_plot(
 show(synthetic_data_plot)
 ```
 
-<SyntheticDataPlot />
+<BokehFigure data={require('./assets/plot_data/synthetic-data-plot.json')} />
 
 Now, we will split the dataset into a training set and a test set.
 
@@ -518,7 +506,7 @@ beta_marginals_plot = plots.marginal_2d(
 show(beta_marginals_plot)
 ```
 
-<BetaMarginalsPlot />
+<BokehFigure data={require('./assets/plot_data/beta-marginals-plot.json')} />
 
 ```python
 # Required for visualizing in Colab.
@@ -534,7 +522,7 @@ lambda_marginals_plot = plots.marginal_2d(
 show(lambda_marginals_plot)
 ```
 
-<LambdaMarginalsPlot />
+<BokehFigure data={require('./assets/plot_data/lambda-marginals-plot.json')} />
 
 The marginals and the joint for $\beta$ and $\lambda$ look reasonable. We note that
 posterior mean for $\beta$ closely matches the true values used to generate the data.
@@ -580,7 +568,7 @@ betas_density_plot.legend.click_policy = "mute"
 show(betas_density_plot)
 ```
 
-<BetasDensityPlot />
+<BokehFigure data={require('./assets/plot_data/betas-density-plot.json')} />
 
 We note that the majority of the posterior mass on all the variables that the outcome
 doesn't depend on is centered at 0 and the only non-zero values are the first two
@@ -626,7 +614,7 @@ log_prob_plot.legend.location = "bottom_left"
 show(log_prob_plot)
 ```
 
-<LogProbPlot />
+<BokehFigure data={require('./assets/plot_data/log-prob-plot.json')} />
 
 Let us plot the predictions from the model on the test dataset as a sanity check. For
 simplicity, we will compute the mean of the probability score (computed as `y_probs` in
@@ -686,7 +674,7 @@ predicted_data_plot.legend.location = "bottom_left"
 show(predicted_data_plot)
 ```
 
-<PredictedDataPlot />
+<BokehFigure data={require('./assets/plot_data/predicted-data-plot.json')} />
 
 As we can see, the model seems to have recovered the same decision boundary, and MCMC
 has converged to parameters that correctly predicted the test dataset. This was just a
@@ -706,7 +694,7 @@ data_point11_plot = plots.histogram_plot(
 show(data_point11_plot)
 ```
 
-<DataPoint11Plot />
+<BokehFigure data={require('./assets/plot_data/data-point11-plot.json')} />
 
 The `MonteCarloSamples` from Bean Machine's inference can be converted to arviz's
 internal `InferenceData` format so that we can make use of its inference statistics and
@@ -838,7 +826,7 @@ beta_marginals_mh_plot = plots.marginal_2d(
 show(beta_marginals_mh_plot)
 ```
 
-<BetaMarginalsMhPlot />
+<BokehFigure data={require('./assets/plot_data/beta-marginals-mh-plot.json')} />
 
 ```python
 # Required for visualizing in Colab.
@@ -854,7 +842,7 @@ lambda_marginals_mh_plot = plots.marginal_2d(
 show(lambda_marginals_mh_plot)
 ```
 
-<LambdaMarginalsMhPlot />
+<BokehFigure data={require('./assets/plot_data/lambda-marginals-mh-plot.json')} />
 
 From all of the above plots, we see that ancestral Metropolis-Hastings does a
 significantly worse job at recovering the true parameters! Not only do regions of
@@ -895,7 +883,7 @@ log_prob_mh_plot.legend.location = "bottom_left"
 show(log_prob_mh_plot)
 ```
 
-<LogProbMhPlot />
+<BokehFigure data={require('./assets/plot_data/log-prob-mh-plot.json')} />
 
 Surprisingly, the algorithm does eventually discover — and settle in on — parameters
 that seem to describe the test data well.
@@ -1063,7 +1051,7 @@ german_log_prob_plot = plots.line_plot(
 show(german_log_prob_plot)
 ```
 
-<GermanLogProbPlot />
+<BokehFigure data={require('./assets/plot_data/german-log-prob-plot.json')} />
 
 Let us also look at the diagnostics to ensure that the MCMC chains have converged to the
 posterior distribution. We note that $\hat{R}$ are all close to 1 and the $ess$ values
@@ -1173,7 +1161,7 @@ german_betas_density_plot.legend.click_policy = "mute"
 show(german_betas_density_plot)
 ```
 
-<GermanBetasDensityPlot />
+<BokehFigure data={require('./assets/plot_data/german-betas-density-plot.json')} />
 
 Finally, let us evaluate the mean predictions from the model using the
 [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) (Receiver
@@ -1218,7 +1206,7 @@ roc_plot.legend.location = "bottom_right"
 show(roc_plot)
 ```
 
-<RocPlot />
+<BokehFigure data={require('./assets/plot_data/roc-plot.json')} />
 
 <a id="references"></a>
 

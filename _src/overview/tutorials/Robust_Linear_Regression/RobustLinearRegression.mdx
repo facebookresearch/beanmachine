@@ -6,16 +6,9 @@ nb_path: tutorials/Robust_Linear_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
 ---
-import { AlphaBetaJointPlot } from "./RobustLinearRegression.jsx";
-import { SyntheticCleanDataPlot } from "./RobustLinearRegression.jsx";
-import { SamplesDiagnosticPlots } from "./RobustLinearRegression.jsx";
-import { PredictionPlot } from "./RobustLinearRegression.jsx";
-import { GammaPriorPlot } from "./RobustLinearRegression.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { SigmaPlot } from "./RobustLinearRegression.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { TestDataMhPlot } from "./RobustLinearRegression.jsx";
-import { SyntheticDataPlot } from "./RobustLinearRegression.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb"
@@ -160,7 +153,7 @@ gamma_prior_plot = plots.line_plot(
 show(gamma_prior_plot)
 ```
 
-<GammaPriorPlot />
+<BokehFigure data={require('./assets/plot_data/gamma-prior-plot.json')} />
 
 We can implement this model in Bean Machine by defining random variable objects with the
 `@bm.random_variable` decorator. These functions behave differently than ordinary Python
@@ -311,7 +304,7 @@ synthetic_clean_data_plot.legend.location = "bottom_left"
 show(synthetic_clean_data_plot)
 ```
 
-<SyntheticCleanDataPlot />
+<BokehFigure data={require('./assets/plot_data/synthetic-clean-data-plot.json')} />
 
 We will now corrupt this data with some extreme outliers.
 
@@ -359,7 +352,7 @@ synthetic_data_plot = gridplot(
 show(synthetic_data_plot)
 ```
 
-<SyntheticDataPlot />
+<BokehFigure data={require('./assets/plot_data/synthetic-data-plot.json')} />
 
 Let's split the dataset into a training and test set, which we'll use later to evaluate
 predictive performance.
@@ -474,7 +467,7 @@ alpha_beta_joint_plot = plots.plot_marginal(
 show(alpha_beta_joint_plot)
 ```
 
-<AlphaBetaJointPlot />
+<BokehFigure data={require('./assets/plot_data/alpha-beta-joint-plot.json')} />
 
 We seem to have faithfully recovered $\alpha$ and $\beta$. Let's see what the model
 predicts for the variance.
@@ -494,7 +487,7 @@ sigma_plot = plots.plot_marginal(
 show(sigma_plot)
 ```
 
-<SigmaPlot />
+<BokehFigure data={require('./assets/plot_data/sigma-plot.json')} />
 
 We seem to have recovered a reasonably good understanding of the variance.
 
@@ -547,7 +540,7 @@ test_data_mh_plot.legend.location = "bottom_right"
 show(test_data_mh_plot)
 ```
 
-<TestDataMhPlot />
+<BokehFigure data={require('./assets/plot_data/test-data-mh-plot.json')} />
 
 The posterior samples seems to capture the log probability using the ground truth
 parameters.
@@ -619,7 +612,7 @@ samples_diagnostic_plots = gridplot(plots.plot_diagnostics(samples))
 show(samples_diagnostic_plots)
 ```
 
-<SamplesDiagnosticPlots />
+<BokehFigure data={require('./assets/plot_data/samples-diagnostic-plots.json')} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
@@ -731,7 +724,7 @@ prediction_plot.circle(
 show(prediction_plot)
 ```
 
-<PredictionPlot />
+<BokehFigure data={require('./assets/plot_data/prediction-plot.json')} />
 
 <a id="references"></a>
 

@@ -6,21 +6,9 @@ nb_path: tutorials/Zero_inflated_count_data.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb
 ---
-import { SecondModelDiagPlot } from "./ZeroInflatedCountData.jsx";
-import { PriorPostPlots } from "./ZeroInflatedCountData.jsx";
-import { ThrdPThetaPlots } from "./ZeroInflatedCountData.jsx";
-import { FirstModelPriorPc } from "./ZeroInflatedCountData.jsx";
-import { DiagPlots } from "./ZeroInflatedCountData.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { ADPlots } from "./ZeroInflatedCountData.jsx";
-import { PThetaPlots } from "./ZeroInflatedCountData.jsx";
-import { ValueCountsPlot } from "./ZeroInflatedCountData.jsx";
-import { SecModelPriorPlot } from "./ZeroInflatedCountData.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { ThPBPlots } from "./ZeroInflatedCountData.jsx";
-import { SecPriorPostPlot } from "./ZeroInflatedCountData.jsx";
-import { SecThrdModelPostPlot } from "./ZeroInflatedCountData.jsx";
-import { FrstScndThrdPlots } from "./ZeroInflatedCountData.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Zero_inflated_count_data.ipynb"
@@ -201,7 +189,7 @@ value_counts_plot = gridplot(hearts.plot_value_counts(df))
 show(value_counts_plot)
 ```
 
-<ValueCountsPlot />
+<BokehFigure data={require('./assets/plot_data/value-counts-plot.json')} />
 
 The literature classifies zero count $(y_i=0)$ observations broadly into two kinds of
 plausible explanations, which we are interested in modeling statistically (see
@@ -461,7 +449,7 @@ first_model_prior_pc = (
 show(first_model_prior_pc)
 ```
 
-<FirstModelPriorPc />
+<BokehFigure data={require('./assets/plot_data/first-model-prior-pc.json')} />
 
 Next, we run inference using this model, and compare the prior predictive plot with a
 posterior predictive plot.
@@ -519,7 +507,7 @@ prior_post_plots = gridplot([[first_model_prior_pc, first_model_posterior_pc]])
 show(prior_post_plots)
 ```
 
-<PriorPostPlots />
+<BokehFigure data={require('./assets/plot_data/prior-post-plots.json')} />
 
 The left plot is exactly what we saw above, and the right plot is simulating data using
 the posterior predictive. The mean simulated density values shift towards data (magenta
@@ -674,7 +662,7 @@ sec_model_prior_plot = gridplot([[second_model_prior_pc]])
 show(sec_model_prior_plot)
 ```
 
-<SecModelPriorPlot />
+<BokehFigure data={require('./assets/plot_data/sec-model-prior-plot.json')} />
 
 The above plot is successfully simulating more zeros using the given priors than our
 first model. You can use the tools above the plot to zoom in on any patient. Doing so
@@ -749,7 +737,7 @@ sec_prior_post_plot = gridplot([[second_model_prior_pc, second_model_posterior_p
 show(sec_prior_post_plot)
 ```
 
-<SecPriorPostPlot />
+<BokehFigure data={require('./assets/plot_data/sec-prior-post-plot.json')} />
 
 The left plot is again the prior predictive simulation for our second model, and the
 right plot is the posterior predictive simulated data. You can see that this model is
@@ -885,7 +873,7 @@ p_theta_plots = gridplot([plots[:2], plots[2:]])
 show(p_theta_plots)
 ```
 
-<PThetaPlots />
+<BokehFigure data={require('./assets/plot_data/p-theta-plots.json')} />
 
 The _ess_ diagnostics look linear and are all above the rule-of-thumb value of 400 (the
 red dashed line) for each parameter in our model. We continue the diagnostics by
@@ -913,7 +901,7 @@ second_model_diag_plot = gridplot(hearts.plot_diagnostics(second_model_samples, 
 show(second_model_diag_plot)
 ```
 
-<SecondModelDiagPlot />
+<BokehFigure data={require('./assets/plot_data/second-model-diag-plot.json')} />
 
 The first plot for each row is the posterior for the query. The second multicolored line
 plot is the posterior for each chain, followed by the rank plot for each chain. Finally
@@ -1187,7 +1175,7 @@ sec_thrd_model_post_plot = gridplot([[second_model_posterior_pc, third_model_pos
 show(sec_thrd_model_post_plot)
 ```
 
-<SecThrdModelPostPlot />
+<BokehFigure data={require('./assets/plot_data/sec-thrd-model-post-plot.json')} />
 
 ### Analysis
 
@@ -1238,7 +1226,7 @@ thrd_p_theta_plots = gridplot([plots[:2], plots[2:]])
 show(thrd_p_theta_plots)
 ```
 
-<ThrdPThetaPlots />
+<BokehFigure data={require('./assets/plot_data/thrd-p-theta-plots.json')} />
 
 We are above the rule-of-thumb of greater than 400 for the effective sample size plots,
 and all plots also look linear. Below we look at the posteriors, rank plots, and
@@ -1253,7 +1241,7 @@ diag_plots = gridplot(hearts.plot_diagnostics(samples, values))
 show(diag_plots)
 ```
 
-<DiagPlots />
+<BokehFigure data={require('./assets/plot_data/diag-plots.json')} />
 
 In comparison to the second model all the above posteriors look smoother, and the
 autocorrelation plots also show less autocorrelation when sampling. The third model is
@@ -1286,7 +1274,7 @@ frst_scnd_thrd_plots = gridplot([plots])
 show(frst_scnd_thrd_plots)
 ```
 
-<FrstScndThrdPlots />
+<BokehFigure data={require('./assets/plot_data/frst-scnd-thrd-plots.json')} />
 
 Comparing our third model with the results of [Farewell and Sprott](#references) show we
 are still in good agreement.
@@ -1323,7 +1311,7 @@ a_d_plots = gridplot([[a, d]])
 show(a_d_plots)
 ```
 
-<ADPlots />
+<BokehFigure data={require('./assets/plot_data/a-d-plots.json')} />
 
 We plot the marginal posterior distributions for $\theta$, $p$, and $\beta$ below.
 Recall that $\beta=\exp(\alpha)$ is the coefficient of the Poisson mean for PVC events
@@ -1341,7 +1329,7 @@ th_p_b_plots = gridplot([[p_, th, b]])
 show(th_p_b_plots)
 ```
 
-<ThPBPlots />
+<BokehFigure data={require('./assets/plot_data/th-p-b-plots.json')} />
 
 The above plot shows the marginal posterior mean for $\theta$ is similar to what we see
 from the observed data calculated below.

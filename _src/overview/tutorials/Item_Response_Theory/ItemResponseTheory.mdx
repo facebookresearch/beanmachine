@@ -6,21 +6,9 @@ nb_path: tutorials/Item_Response_Theory.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb
 ---
-import { TypePlot } from "./ItemResponseTheory.jsx";
-import { FoulTypesPlot } from "./ItemResponseTheory.jsx";
-import { BasicResidPlot } from "./ItemResponseTheory.jsx";
-import { BasicModelPosteriorPlot } from "./ItemResponseTheory.jsx";
-import { StrTracePlot } from "./ItemResponseTheory.jsx";
-import { PossAutocorrPlot } from "./ItemResponseTheory.jsx";
-import { IrtResidPlot } from "./ItemResponseTheory.jsx";
-import { TrailingPossPlot } from "./ItemResponseTheory.jsx";
-import { TrailingTeamCommittingPlot } from "./ItemResponseTheory.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { FoulFreqPlot } from "./ItemResponseTheory.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { BasicAutocorrPlot } from "./ItemResponseTheory.jsx";
-import { PossResidPlot } from "./ItemResponseTheory.jsx";
-import { CallTypePlot } from "./ItemResponseTheory.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb"
@@ -167,7 +155,7 @@ foul_types_plot = nba.plot_foul_types(df["call_type"].value_counts())
 show(foul_types_plot)
 ```
 
-<FoulTypesPlot />
+<BokehFigure data={require('./assets/plot_data/foul-types-plot.json')} />
 
 ```python
 # Required for visualizing in Colab.
@@ -177,7 +165,7 @@ call_type_plot = nba.plot_call_type_means(df.groupby("call_type").mean()["foul_c
 show(call_type_plot)
 ```
 
-<CallTypePlot />
+<BokehFigure data={require('./assets/plot_data/call-type-plot.json')} />
 
 Next we investigate the frequency with which fouls are called for each of the
 NBA seasons in our data. The difference between the foul rates in the 2015/16
@@ -193,7 +181,7 @@ foul_freq_plot = nba.plot_foul_frequency(df.groupby("season").mean()["foul_calle
 show(foul_freq_plot)
 ```
 
-<FoulFreqPlot />
+<BokehFigure data={require('./assets/plot_data/foul-freq-plot.json')} />
 
 ## Basic model
 
@@ -450,7 +438,7 @@ basic_model_posterior_plot = gridplot(list(az.plot_posterior(basic_trace, show=F
 show(basic_model_posterior_plot)
 ```
 
-<BasicModelPosteriorPlot />
+<BokehFigure data={require('./assets/plot_data/basic-model-posterior-plot.json')} />
 
 Below we have two diagnostic plots for individual random variables: Rank plots
 and autocorrelation plots.
@@ -479,7 +467,7 @@ str_trace_plot = gridplot(list(az.plot_trace(str_trace, kind="rank_bars", show=F
 show(str_trace_plot)
 ```
 
-<StrTracePlot />
+<BokehFigure data={require('./assets/plot_data/str-trace-plot.json')} />
 
 ```python
 # Required for visualizing in Colab.
@@ -489,7 +477,7 @@ basic_autocorr_plot = gridplot(list(az.plot_autocorr(basic_trace, show=False)))
 show(basic_autocorr_plot)
 ```
 
-<BasicAutocorrPlot />
+<BokehFigure data={require('./assets/plot_data/basic-autocorr-plot.json')} />
 
 Now let's take our basic model and measure how well it predicts when fouls are
 called. As we can see, because the prediction can only depend on the season it
@@ -548,7 +536,7 @@ basic_resid_plot = nba.plot_basic_model_residuals(temp_df)
 show(basic_resid_plot)
 ```
 
-<BasicResidPlot />
+<BokehFigure data={require('./assets/plot_data/basic-resid-plot.json')} />
 
 ## Improving on the Basic Model
 
@@ -565,7 +553,7 @@ trailing_team_committing_plot = nba.plot_trailing_team_committing(df)
 show(trailing_team_committing_plot)
 ```
 
-<TrailingTeamCommittingPlot />
+<BokehFigure data={require('./assets/plot_data/trailing-team-committing-plot.json')} />
 
 Let's model that difference as a feature. To drive home how significant the
 trailing team's observed foul rate is within the final two minutes of a game, we
@@ -582,7 +570,7 @@ trailing_poss_plot = nba.plot_trailing_possessions(df)
 show(trailing_poss_plot)
 ```
 
-<TrailingPossPlot />
+<BokehFigure data={require('./assets/plot_data/trailing-poss-plot.json')} />
 
 As we can see, teams behind by a single possession have a lower observed foul
 rate than those that are behind by three possessions.
@@ -599,7 +587,7 @@ type_plot = nba.plot_call_type_means(df.groupby("call_type").mean()["foul_called
 show(type_plot)
 ```
 
-<TypePlot />
+<BokehFigure data={require('./assets/plot_data/type-plot.json')} />
 
 ## Possesion model
 
@@ -756,7 +744,7 @@ poss_autocorr_plot = gridplot(list(az.plot_autocorr(poss_trace, show=False)))
 show(poss_autocorr_plot)
 ```
 
-<PossAutocorrPlot />
+<BokehFigure data={require('./assets/plot_data/poss-autocorr-plot.json')} />
 
 ```python
 phat = poss_samples[poss_model.p()]
@@ -797,7 +785,7 @@ poss_resid_plot = nba.plot_possession_model_residuals(resid_df)
 show(poss_resid_plot)
 ```
 
-<PossResidPlot />
+<BokehFigure data={require('./assets/plot_data/poss-resid-plot.json')} />
 
 We now compare these the possession model to the basic model. To do this we
 will use the Watanabe-Akaike or widely available information criterion (WAIC).
@@ -1014,7 +1002,7 @@ irt_resid_plot = nba.plot_irt_residuals(resid_df)
 show(irt_resid_plot)
 ```
 
-<IrtResidPlot />
+<BokehFigure data={require('./assets/plot_data/irt-resid-plot.json')} />
 
 ```python
 irt_resid_df = resid_df.pivot_table("resid", "season")

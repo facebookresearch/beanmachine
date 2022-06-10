@@ -6,13 +6,9 @@ nb_path: tutorials/Bayesian_Logistic_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb
 ---
-import { InterceptHistPlot } from "./BayesianLogisticRegression.jsx";
-import { SyntheticDataWithCategoriesPlot } from "./BayesianLogisticRegression.jsx";
-import { SlopeHistPlot } from "./BayesianLogisticRegression.jsx";
-import { SyntheticDataPlot } from "./BayesianLogisticRegression.jsx";
-import { RandomlySelectedLinesPlot } from "./BayesianLogisticRegression.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb"
@@ -172,7 +168,7 @@ synthetic_data_plot = plots.scatter_plot(
 show(synthetic_data_plot)
 ```
 
-<SyntheticDataPlot />
+<BokehFigure data={require('./assets/plot_data/synthetic-data-plot.json')} />
 
 We now assign points to categories $0.0$ (blue) and $1.0$ (orange).
 
@@ -287,7 +283,7 @@ synthetic_data_with_categories_plot.line(
 show(synthetic_data_with_categories_plot)
 ```
 
-<SyntheticDataWithCategoriesPlot />
+<BokehFigure data={require('./assets/plot_data/synthetic-data-with-categories-plot.json')} />
 
 ## Model
 
@@ -392,7 +388,7 @@ slope_hist_plot.add_layout(span)
 show(slope_hist_plot)
 ```
 
-<SlopeHistPlot />
+<BokehFigure data={require('./assets/plot_data/slope-hist-plot.json')} />
 
 And similarly for the intercepts. Our model actually predicts a higher median intercept
 to capture the orange points above the slope in our ground truth.
@@ -414,7 +410,7 @@ intercept_hist_plot.add_layout(span)
 show(intercept_hist_plot)
 ```
 
-<InterceptHistPlot />
+<BokehFigure data={require('./assets/plot_data/intercept-hist-plot.json')} />
 
 Inference typically finds a reasonable distribution of possible lines that separate
 these two categories.
@@ -506,4 +502,4 @@ randomly_selected_lines_plot.line(
 show(randomly_selected_lines_plot)
 ```
 
-<RandomlySelectedLinesPlot />
+<BokehFigure data={require('./assets/plot_data/randomly-selected-lines-plot.json')} />

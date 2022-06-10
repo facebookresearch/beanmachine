@@ -6,16 +6,9 @@ nb_path: tutorials/Neals_funnel.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb
 ---
-import { PlotlyFigure135ad53945d342c4ba69fd9b86afdecc } from "./NealsFunnel.jsx";
-import { PlotlyFigure4bd26afd39764481a71761e275189106 } from "./NealsFunnel.jsx";
-import { PlotlyFigureede90ee1082d480bace6218eb3081783 } from "./NealsFunnel.jsx";
-import { PlotlyFigurec6bb028765c7473da97cf2bf5987d82c } from "./NealsFunnel.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { PlotlyFigure989956fc1d6544808147461d058a3d93 } from "./NealsFunnel.jsx";
-import { PlotlyFiguref11742bb6d65476081e32d4dc59c89e3 } from "./NealsFunnel.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { PlotlyFigure157d3832de7440d6ae059a3fb0420804 } from "./NealsFunnel.jsx";
-import { PlotlyFigure76c1e5e2fad645e08a98b906df610632 } from "./NealsFunnel.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb"
@@ -441,13 +434,13 @@ look:
 bm.Diagnostics(single_site_nmc_samples).plot(display=True);
 ```
 
-<PlotlyFigureede90ee1082d480bace6218eb3081783 />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigureb5f9f756-7e1e-4517-a8d5-c7ae1cea1399.json')} />
 
-<PlotlyFigure989956fc1d6544808147461d058a3d93 />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure36ea0b0b-1bc2-42c4-b9c1-3b8f10ed139c.json')} />
 
-<PlotlyFigurec6bb028765c7473da97cf2bf5987d82c />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigurececc42ae-6060-4b94-b8d8-c11ce387ba88.json')} />
 
-<PlotlyFigure135ad53945d342c4ba69fd9b86afdecc />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure95a436fd-84b0-4afa-ba35-c347902f52e8.json')} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
@@ -591,13 +584,13 @@ And the unhealthy trace and autocorrelation plots:
 bm.Diagnostics(hmc_samples).plot(display=True);
 ```
 
-<PlotlyFigure4bd26afd39764481a71761e275189106 />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigureccff4638-9f75-46db-a243-fedde2e4abe6.json')} />
 
-<PlotlyFigure157d3832de7440d6ae059a3fb0420804 />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure5cee8d60-4c2d-4fa3-b95b-7cbcc56b3fe8.json')} />
 
-<PlotlyFiguref11742bb6d65476081e32d4dc59c89e3 />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure5f01cedd-752d-4d20-86b1-e01630cdcdff.json')} />
 
-<PlotlyFigure76c1e5e2fad645e08a98b906df610632 />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure4e9e588f-d186-433a-a3ca-f8577ff48710.json')} />
 
 ## Appendix: Metropolis-Adjusted Langevin Algorithm
 

@@ -6,20 +6,9 @@ nb_path: tutorials/Hierarchical_modeling.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_modeling.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_modeling.ipynb
 ---
-import { CurrentHits } from "./HierarchicalModeling.jsx";
-import { CompletePoolingEssPlot } from "./HierarchicalModeling.jsx";
-import { CompletePoolingPhiPosterior } from "./HierarchicalModeling.jsx";
-import { CompleteNoPlot } from "./HierarchicalModeling.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
-import { ModelPlots } from "./HierarchicalModeling.jsx";
-import { ShrinkagePlot } from "./HierarchicalModeling.jsx";
-import { CompletePoolingModelPlot } from "./HierarchicalModeling.jsx";
-import { NoPoolingDiagPlots } from "./HierarchicalModeling.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import { CompletePoolingDiagnosticsPlot } from "./HierarchicalModeling.jsx";
-import { ParetoPlot } from "./HierarchicalModeling.jsx";
-import { PartialPoolingDiagPlots } from "./HierarchicalModeling.jsx";
-import { CompletePoolingPriors } from "./HierarchicalModeling.jsx";
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_modeling.ipynb"
@@ -232,7 +221,7 @@ current_hits = baseball.plot_current_hits(df)
 show(current_hits)
 ```
 
-<CurrentHits />
+<BokehFigure data={require('./assets/plot_data/current-hits.json')} />
 
 The data are telling us that each player is unique (there are not a lot with the same
 number of hits), but also that they are similar. The players are similar because they
@@ -358,7 +347,7 @@ complete_pooling_priors = baseball.plot_complete_pooling_priors()
 show(complete_pooling_priors)
 ```
 
-<CompletePoolingPriors />
+<BokehFigure data={require('./assets/plot_data/complete-pooling-priors.json')} />
 
 We can create our `complete-pooling` model in Bean Machine using the
 `@bm.random_variable` decorator.
@@ -561,7 +550,7 @@ complete_pooling_ess_plot.grid.grid_line_width = 0.2
 show(complete_pooling_ess_plot)
 ```
 
-<CompletePoolingEssPlot />
+<BokehFigure data={require('./assets/plot_data/complete-pooling-ess-plot.json')} />
 
 When the model is converging properly, both the bulk and tail lines from the `ess`
 evolution plot should be _roughly_ linear. We can see that both the `ess_bulk` and
@@ -595,7 +584,7 @@ complete_pooling_diagnostics_plot = gridplot(
 show(complete_pooling_diagnostics_plot)
 ```
 
-<CompletePoolingDiagnosticsPlot />
+<BokehFigure data={require('./assets/plot_data/complete-pooling-diagnostics-plot.json')} />
 
 The first figure is the distribution for each chain we ran inference for. We can see the
 distributions look well behaved (_i.e._ there are not a lot of oscillations). Next to
@@ -630,7 +619,7 @@ complete_pooling_phi_posterior.grid.grid_line_width = 0.2
 show(complete_pooling_phi_posterior)
 ```
 
-<CompletePoolingPhiPosterior />
+<BokehFigure data={require('./assets/plot_data/complete-pooling-phi-posterior.json')} />
 
 What this is telling us from our model and data is that every player will have the same
 chance of hitting a ball when at-bat. This finding is not correct and is evident when we
@@ -649,7 +638,7 @@ complete_pooling_model_plot = baseball.plot_complete_pooling_model(
 show(complete_pooling_model_plot)
 ```
 
-<CompletePoolingModelPlot />
+<BokehFigure data={require('./assets/plot_data/complete-pooling-model-plot.json')} />
 
 The above plot shows our predictions for each player's chance of hitting a ball when
 at-bat, with error bars being the 89% HDI and the markers being the mean of the
@@ -808,7 +797,7 @@ no_pooling_diag_plots = gridplot([*no_pooling_diagnostic_plots])
 show(no_pooling_diag_plots)
 ```
 
-<NoPoolingDiagPlots />
+<BokehFigure data={require('./assets/plot_data/no-pooling-diag-plots.json')} />
 
 All of our visual diagnostics above look good. Posteriors are smooth, `ess` plots look
 linear, density and rank plots for each chain look uniform and autocorrelation plots are
@@ -848,7 +837,7 @@ complete_no_plot = gridplot([[complete_pooling_model_plot, no_pooling_model_plot
 show(complete_no_plot)
 ```
 
-<CompleteNoPlot />
+<BokehFigure data={require('./assets/plot_data/complete-no-plot.json')} />
 
 Player's chances for the no-pooling model show a wide spread from around 0.2 to around
 0.4. It turns out that a hitting average for MLB players in the high 300's (0.3 in our
@@ -916,7 +905,7 @@ pareto_plot = baseball.plot_pareto_prior()
 show(pareto_plot)
 ```
 
-<ParetoPlot />
+<BokehFigure data={require('./assets/plot_data/pareto-plot.json')} />
 
 We can code our partial pooling model easily in Bean Machine. All we need to do is
 reintroduce $\phi$ as our estimate for the population's chance for hitting a ball when
@@ -1028,7 +1017,7 @@ partial_pooling_diag_plots = gridplot(
 show(partial_pooling_diag_plots)
 ```
 
-<PartialPoolingDiagPlots />
+<BokehFigure data={require('./assets/plot_data/partial-pooling-diag-plots.json')} />
 
 All summary diagnostics $(\hat{R}\text{ and }ess$) look good. All our `ess` evolution
 plots also look linear and breach the 400 rule-of-thumb threshold. Rank plots all look
@@ -1064,7 +1053,7 @@ model_plots = gridplot(
 show(model_plots)
 ```
 
-<ModelPlots />
+<BokehFigure data={require('./assets/plot_data/model-plots.json')} />
 
 The partial-pooling model has shifted our predictions. In fact, it has captured our data
 story, which stated that MLB players are unique (they do not lie on the population mean
@@ -1083,7 +1072,7 @@ shrinkage_plot = baseball.plot_shrinkage(
 show(shrinkage_plot)
 ```
 
-<ShrinkagePlot />
+<BokehFigure data={require('./assets/plot_data/shrinkage-plot.json')} />
 
 ## Conclusion
 
