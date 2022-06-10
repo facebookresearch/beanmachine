@@ -340,6 +340,7 @@ enum class OperatorType {
   TO_INT,
   CHOLESKY,
   MATRIX_EXP,
+  LOG_PROB,
 };
 
 enum class DistributionType {

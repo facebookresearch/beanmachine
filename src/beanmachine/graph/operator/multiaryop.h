@@ -132,5 +132,23 @@ class ToMatrix : public Operator {
   static bool is_registered;
 };
 
+class LogProb : public Operator {
+ public:
+  explicit LogProb(const std::vector<graph::Node*>& in_nodes);
+  ~LogProb() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+  void backward() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<LogProb>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 } // namespace oper
 } // namespace beanmachine

@@ -158,5 +158,10 @@ bool Cholesky::is_registered = OperatorFactory::register_op(
     graph::OperatorType::CHOLESKY,
     &(Cholesky::new_op));
 
+// logProb function
+bool LogProb::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::LOG_PROB,
+    &(LogProb::new_op));
+
 } // namespace oper
 } // namespace beanmachine

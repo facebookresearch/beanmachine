@@ -8,11 +8,14 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/controlop.h"
 #include "beanmachine/graph/operator/linalgop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/unaryop.h"
+
+using namespace beanmachine::distribution;
 
 namespace beanmachine {
 namespace oper {
@@ -523,6 +526,59 @@ void MatrixExp::compute_gradients() {
   Grad1 = value._matrix.cwiseProduct(in_nodes[0]->Grad1);
   Grad2 = Grad1.cwiseProduct(in_nodes[0]->Grad1) +
       value._matrix.cwiseProduct(in_nodes[0]->Grad2);
+}
+
+void LogProb::compute_gradients() {
+  auto dist = (Distribution*)in_nodes[0];
+  auto value = in_nodes[1];
+
+  // Compute the gradient with respect to the value.
+  // Note that we assume the value itself is a function g(x) of some distant
+  // variable x with respect to which we are computing the derivative.
+
+  // First compute d/dg logprob(g) and d^2/dg^2 logprob(g),
+  // which are the derivatives of the log probability of the distribution with
+  // respect to the value parameter.
+  double log_prob_value_grad1 = 0, log_prob_value_grad2 = 0;
+  dist->gradient_log_prob_value(
+      value->value, log_prob_value_grad1, log_prob_value_grad2);
+
+  // Note: First order chain rule:
+  // d/dx[f(g(x))]
+  //     = f’(g(x)) g’(x)
+  // Second order chain rule:
+  // d^2/dx^2[f(g(x))]
+  //     = d/dx[f’(g(x)) g’(x)] // first order chain rule
+  //     = d/dx[f’(g(x))] g’(x) // product rule
+  //       + d/dx[g’(x)] f’(g(x))
+  //     = f’’(g(x)) g’(x) g’(x) // first order chain rule
+  //       + g’’(x) f’(g(x))
+  //     = f’’(g(x)) g’(x) g’(x) + g’’(x) f’(g(x))
+  // Here f is log(PDF), g is the value of the parameter to the function
+  // being differentiated, and g' and g'' are the incoming gradients of
+  // the value.
+  // We apply the first and second order chain rules to compute this node's
+  // gradients (the component contributed by the value parameter).
+  double result_grad1 = value->grad1 * log_prob_value_grad1;
+  double result_grad2 = log_prob_value_grad2 * value->grad1 * value->grad1 +
+      value->grad2 * log_prob_value_grad1;
+
+  // Compute the gradient with respect to the parameters of the
+  // distribution and add them to result_*. Note that the function
+  // gradient_log_prob_param applies the chain rule so we do not have to do it.
+  dist->gradient_log_prob_param(value->value, result_grad1, result_grad2);
+
+  // Store the computed gradients.
+  this->grad1 = result_grad1;
+  this->grad2 = result_grad2;
+}
+
+void LogProb::backward() {
+  auto dist = (Distribution*)in_nodes[0];
+  auto value = in_nodes[1];
+  auto adjunct = back_grad1;
+  dist->backward_value(value->value, value->back_grad1, adjunct);
+  dist->backward_param(value->value, adjunct);
 }
 
 } // namespace oper
