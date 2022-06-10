@@ -10,7 +10,7 @@ from typing import Callable, Mapping
 import torch
 from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import RVDict, World
+from beanmachine.ppl.world import RVDict
 
 
 _CPU_DEVICE = torch.device("cpu")
@@ -40,7 +40,7 @@ def monte_carlo_approximate_reparam(
             params=params,
             queries_to_guides=queries_to_guides,
         )
-        world = World.initialize_world(
+        world = VariationalWorld.initialize_world(
             queries=[],
             observations={
                 **{
@@ -49,6 +49,7 @@ def monte_carlo_approximate_reparam(
                 },
                 **observations,
             },
+            params=params,
         )
 
         # form log density ratio logu = logp - logq
@@ -78,7 +79,7 @@ def monte_carlo_approximate_sf(
             params=params,
             queries_to_guides=queries_to_guides,
         )
-        world = World.initialize_world(
+        world = VariationalWorld.initialize_world(
             queries=[],
             observations={
                 **{
@@ -87,6 +88,7 @@ def monte_carlo_approximate_sf(
                 },
                 **observations,
             },
+            params=params,
         )
 
         # form log density ratio logu = logp - logq

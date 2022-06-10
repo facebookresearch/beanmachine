@@ -46,6 +46,7 @@ class VariationalInfer:
 
         self.observations = observations
         self.queries_to_guides = queries_to_guides
+        self.device = device
 
         # runs all guides to reify `param`s for `optimizer`
         # NOTE: assumes `params` is static and same across all worlds, consider MultiOptimizer (see Pyro)
@@ -56,8 +57,11 @@ class VariationalInfer:
             params={},
             queries_to_guides=queries_to_guides,
         )
-        for guide in queries_to_guides.values():
+        for query, guide in queries_to_guides.items():
+            world.call(query)
             world.call(guide)
+        for obs in observations:
+            world.call(obs)
         self.params = world._params
         self._optimizer = optimizer(self.params.values())
 
@@ -123,6 +127,7 @@ class VariationalInfer:
             discrepancy_fn,
             self.params,
             self.queries_to_guides,
+            self.device,
         )
         if not torch.isnan(loss) and not torch.isinf(loss):
             loss.backward()
