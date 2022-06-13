@@ -6,9 +6,9 @@ nb_path: tutorials/Hierarchical_regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hierarchical_regression.ipynb"
@@ -37,9 +37,9 @@ predictor.
 
 On completion of this tutorial, you should be able:
 
-* to prepare data for running a hierarchical regression with Bean Machine;
-* to execute a hierarchical regression with beanmachine;
-* to run diagnostics to understand what beanmachine is doing.
+- to prepare data for running a hierarchical regression with Bean Machine;
+- to execute a hierarchical regression with beanmachine;
+- to run diagnostics to understand what beanmachine is doing.
 
 
 ## Problem
@@ -47,8 +47,8 @@ On completion of this tutorial, you should be able:
 
 Our problem is to perform posterior inference over a linear model based on a
 hierarchical prior. Our data contains individual-level predictor measurements along with
-group-level predictor measurements. We will use concepts taken from the `Hierarchical
-Model` tutorial, and apply them here.
+group-level predictor measurements. We will use concepts taken from the
+`Hierarchical Model` tutorial, and apply them here.
 
 
 ## Prerequisites
@@ -56,10 +56,9 @@ Model` tutorial, and apply them here.
 
 We will be using the following packages within this tutorial.
 
-* [`arviz`](https://arviz-devs.github.io/arviz/) and
-  [`bokeh`](https://docs.bokeh.org/en/latest/docs/) for interactive
-  visualizations; and
-* [`pandas`](https://pandas.pydata.org/) for data manipulation.
+- [`arviz`](https://arviz-devs.github.io/arviz/) and
+  [`bokeh`](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations; and
+- [`pandas`](https://pandas.pydata.org/) for data manipulation.
 
 
 ```python
@@ -186,8 +185,8 @@ show(floor_plot)
 Our model will estimate the effects that individual-level predictors and group-level
 predictors have on estimating radon activity. We will incorporate the individual-level
 predictors found from the floor values in the `srrs` data, and the group-level
-predictors found from the uranium values in the `cty` data. In order to do that, we
-turn our earlier observation—that the response $y$ (the logarithmic activity level) is
+predictors found from the uranium values in the `cty` data. In order to do that, we turn
+our earlier observation—that the response $y$ (the logarithmic activity level) is
 approximately normally distributed—into a modeling assumption in terms of a prior over
 $y$. Thus we can state that
 
@@ -243,15 +242,7 @@ behave differently than ordinary Python functions.
 
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -351,8 +342,8 @@ def y() -> RVIdentifier:
 ```
 
 Note that the $\alpha$ random variable is expanding the returned tensor so that it is
-the same size as the number of counties we have in the data (`J`). Defining the model
-in this way allows us to run inference on $y$ in _batches_.
+the same size as the number of counties we have in the data (`J`). Defining the model in
+this way allows us to run inference on $y$ in _batches_.
 
 
 ### Priors
@@ -487,8 +478,8 @@ independent_ samples we draw, which is called the effective sample size. You can
 more about how this value is calculated in the [Vehtari _et al_](#references) paper,
 briefly it is a measure that combines information from the $\hat{R}$ value with the
 autocorrelation estimates within the chains. There are many ways to estimate effective
-samples sizes, however, we will be using the method defined in the [Vehtari _et
-al_](#references) paper.
+samples sizes, however, we will be using the method defined in the
+[Vehtari _et al_](#references) paper.
 
 The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
 average. Since we ran four chains, we need `ess_bulk` to be greater than 400 for each
@@ -606,8 +597,8 @@ logarithm of radon activity _vs_ the floor measurement we saw that there was a d
 in $log(radon)$ as we moved from the basement to the first floor of a building. From our
 initial data analysis, we expected the coefficient to be negative. Plotting the
 posterior for $\beta$ (below) we can see that it is always less than zero with a mean
-value of -0.64 and the 89% highest density interval between [-0.75, -0.54]. Similarly we
-can plot the posterior distribution for the coefficient of $log(uranium)$, which were
+value of -0.64 and the 89% highest density interval between \[-0.75, -0.54\]. Similarly
+we can plot the posterior distribution for the coefficient of $log(uranium)$, which were
 our group-level predictors.
 
 Why an 89% highest density interval (HDI)? To prevent you from thinking about a 95%
@@ -670,24 +661,21 @@ show(uranium)
 ## References
 
 
-* Gelman's website
-  [http://www.stat.columbia.edu/~gelman/arm/examples/radon/](
-  http://www.stat.columbia.edu/~gelman/arm/examples/radon/)
-* Hill J and Gelman A (2006) **Data Analysis Using Regression and
-  Multilevel/Hierarchical Models**. United States: Cambridge University Press.
-  ISBN: 9781139460934.
-* McElreath R (2020) **Statistical Rethinking: A Bayesian Course with Examples
-  in R and Stan** 2nd edition. Chapman and Hall/CRC.
+- Gelman's website
+  [http://www.stat.columbia.edu/~gelman/arm/examples/radon/](http://www.stat.columbia.edu/~gelman/arm/examples/radon/)
+- Hill J and Gelman A (2006) **Data Analysis Using Regression and
+  Multilevel/Hierarchical Models**. United States: Cambridge University Press. ISBN:
+  9781139460934\.
+- McElreath R (2020) **Statistical Rethinking: A Bayesian Course with Examples in R and
+  Stan** 2nd edition. Chapman and Hall/CRC.
   [doi: 10.1201/9780429029608](https://dx.doi.org/10.1201/9780429029608)
-* Price PN, Nero AV, Gelman A (1996) **Bayesian Prediction of Mean Indoor Radon
+- Price PN, Nero AV, Gelman A (1996) **Bayesian Prediction of Mean Indoor Radon
   Concentrations for Minnesota Counties**. Health Physics 71(6).
-  [doi: 10.1097/00004032-199612000-00009](
-  https://dx.doi.org/10.1097/00004032-199612000-00009)
-* Wikipedia (Decay chain)
-  [https://en.wikipedia.org/wiki/Decay_chain#Uranium_series](
-  https://en.wikipedia.org/wiki/Decay_chain#Uranium_series)
-* Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021)
-  **Rank-Normalization, Folding, and Localization: An Improved $\hat{R}$ for
-  Assessing Convergence of MCMC (with Discussion)**. Bayesian Analysis 16(2)
-  667–718. [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
+  [doi: 10.1097/00004032-199612000-00009](https://dx.doi.org/10.1097/00004032-199612000-00009)
+- Wikipedia (Decay chain)
+  [https://en.wikipedia.org/wiki/Decay_chain#Uranium_series](https://en.wikipedia.org/wiki/Decay_chain#Uranium_series)
+- Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021) **Rank-Normalization,
+  Folding, and Localization: An Improved $\hat{R}$ for Assessing Convergence of MCMC
+  (with Discussion)**. Bayesian Analysis 16(2) 667–718.
+  [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
 

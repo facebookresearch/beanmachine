@@ -6,9 +6,9 @@ nb_path: tutorials/Coin_flipping.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb"
@@ -29,8 +29,7 @@ features of Bean Machine.
 In this tutorial, we consider the problem of estimating the probability of heads for a
 potentially biased coin. In this setup, we have flipped the coin a few times and
 recorded the results as training data. We're interested in better understanding the
-coin's
-true heads rate.
+coin's true heads rate.
 
 
 ## Prerequisites
@@ -95,25 +94,25 @@ az.rcParams["stats.hdi_prob"] = 0.89
 
 We have the following definitions.
 
-* $\theta \in [0, 1]$: Heads rate of the coin.
-* $y_i \in \{0, 1\}$: Result of the $i$th coin flip. This is usually an observed value.
-* $N \in \mathbb{Z}^+$: Number of observed coin flips.
+- $\theta \in [0, 1]$: Heads rate of the coin.
+- $y_i \in \{0, 1\}$: Result of the $i$th coin flip. This is usually an observed value.
+- $N \in \mathbb{Z}^+$: Number of observed coin flips.
 
 We're interested in modeling:
 
-* $\mathbb{P}(\theta | \{y_i\}_{i=1}^N)$
+- $\mathbb{P}(\theta | \{y_i\}_{i=1}^N)$
 
 In Bayesian modeling, we encode our initial understanding of $\theta$ by specifying a
 prior distribution for it $\mathbb{P}(\theta)$. We then describe the relationship
 between the unobserved random variable $\theta$, and the observed random variables
 $\{y_i\}_{i=1}^N$. We can do this as follows:
 
-* $\theta \sim \text{Beta}(2, 2)$
-* $y_i \stackrel{iid}{\sim} \text{Bernoulli}(\theta)$
+- $\theta \sim \text{Beta}(2, 2)$
+- $y_i \stackrel{iid}{\sim} \text{Bernoulli}(\theta)$
 
-These will later combine to form the posterior distribution $\mathbb{P}(\theta |
-\{y_i\}_{i=1}^N)$
-which encodes our improved understanding of $\theta$.
+These will later combine to form the posterior distribution
+$\mathbb{P}(\theta | \{y_i\}_{i=1}^N)$ which encodes our improved understanding of
+$\theta$.
 
 As a convention, we will consider an outcome of 1 from the Bernoulli distribution to
 represent heads and zero to represent tails. Here we chose to use a Beta distribution
@@ -138,15 +137,7 @@ We can implement this model in Bean Machine by defining random variable objects 
 functions.
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -177,8 +168,9 @@ functions.
       </li>
   </ul>
 
-  Semantics for <code>@bm.random_variable</code> functions:
-  <ul>
+Semantics for <code>@bm.random_variable</code> functions:
+
+<ul>
     <li>
       This is a decorator that let's you treat deterministic code as if it's a Bean
       Machine random variable. This is used to transform the results of one or more
@@ -318,12 +310,12 @@ for more advanced examples!
 
 Running inference consists of a few arguments:
 
-| Name           | Usage                                                                                                    |
-| -------------- | -------------------------------------------------------------------------------------------------------- |
-| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                                |
-| `observations` | A dictionary of observations.                                                                            |
-| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in queries.   |
-| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly.  |
+| Name           | Usage                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                               |
+| `observations` | A dictionary of observations.                                                                           |
+| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in queries.  |
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly. |
 
 Let's run inference:
 
@@ -392,12 +384,14 @@ plt.legend();
 )
 
 The graph above is based on pseudo-randomly generated data, so, the results can be
-varied by changing the seed. Typically, <!--
-  the true $\theta$ will remain within the main non-zero probability part of the
-  histogram, but may not necessarily fall in the modal interval of the histogram. More
-  generally, for this particular problem, we can expect
---> the mean of inferred distribution will be closer to 0.5 than the true $\theta$. This
-is because 0.5 is the mean of our prior for $\theta$.
+varied by changing the seed. Typically,
+    <!--
+the true $\theta$ will remain within the main non-zero probability part of the
+histogram, but may not necessarily fall in the modal interval of the histogram. More
+generally, for this particular problem, we can expect
+-->
+the mean of inferred distribution will be closer to 0.5 than the true $\theta$. This is
+because 0.5 is the mean of our prior for $\theta$.
 
 Arviz provides helpful statistics about the result of the inference algorithm. We can
 query this information as follows:
@@ -427,14 +421,14 @@ The summary output shows two diagnostic statistics:
 [$N_\text{eff}$](https://www.mcmchandbook.net/HandbookChapter1.pdf) (effective sample
 size, `n_eff`).
 
-* $\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on
-  the correct posterior distribution for a particular random variable. It uses
-  information from all chains run in order to assess whether inference had a good
-  understanding of the distribution or not. Values very close to zero indicate that all
-  chains discovered similar distributions for a particular random variable. We do not
-  recommend using inference results where $\hat{R} > 1.1$, as inference may not have
-  converged. In that case, you may want to run inference for more samples.
-* $N_\text{eff} \in [1, \texttt{num}\_\texttt{samples}]$ summarizes how independent
+- $\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the
+  correct posterior distribution for a particular random variable. It uses information
+  from all chains run in order to assess whether inference had a good understanding of
+  the distribution or not. Values very close to zero indicate that all chains discovered
+  similar distributions for a particular random variable. We do not recommend using
+  inference results where $\hat{R} > 1.1$, as inference may not have converged. In that
+  case, you may want to run inference for more samples.
+- $N_\text{eff} \in [1, \texttt{num}\_\texttt{samples}]$ summarizes how independent
   posterior samples are from one another. Although inference was run for `num_samples`
   iterations, it's possible that those samples were very similar to each other (due to
   the way inference is implemented), and may not each be representative of the full
@@ -443,7 +437,6 @@ size, `n_eff`).
   $N_\text{eff}$ is at least that large.
 
 In this case, $\hat{R}$ and $N_\text{eff}$ seem to have acceptable values.
-
 
 Bean Machine can also plot diagnostical information to assess model fit. Let's take a
 look:
@@ -462,13 +455,13 @@ show(samples_diagnostic_plots)
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
 
-* Trace plots are simply a time series of values assigned to random variables over each
+- Trace plots are simply a time series of values assigned to random variables over each
   iteration of inference. The concrete values assigned are usually problem-specific.
   However, it's important that these values are "mixing" well over time. This means that
   they don't tend to get stuck in one region for large periods of time, and that each of
   the chains ends up exploring the same space as the other chains throughout the course
   of inference.
-* Autocorrelation plots measure how predictive the last several samples are of the
+- Autocorrelation plots measure how predictive the last several samples are of the
   current sample. Autocorrelation may vary between -1.0 (deterministically
   anticorrelated) and 1.0 (deterministically correlated). (We compute autocorrelation
   approximately, so it may sometimes exceed these bounds.) In an ideal world, the

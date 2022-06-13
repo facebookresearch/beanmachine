@@ -6,8 +6,8 @@ nb_path: tutorials/Gaussian_Process_Gpytorch.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Gaussian_Process_Gpytorch.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Gaussian_Process_Gpytorch.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Gaussian_Process_Gpytorch.ipynb"
@@ -21,8 +21,8 @@ This tutorial assumes familiarity with the following:
 
 1. Bean Machine [modeling](https://beanmachine.org/docs/overview/modeling/) and
    [inference](https://beanmachine.org/docs/overview/inference/)
-2. [Gaussian Processes](https://en.wikipedia.org/wiki/Gaussian_process)
-3. [GPyTorch](https://gpytorch.ai/)
+1. [Gaussian Processes](https://en.wikipedia.org/wiki/Gaussian_process)
+1. [GPyTorch](https://gpytorch.ai/)
 
 A Gaussian Process (GP) is a stochastic process commonly used in Bayesian
 non-parametrics, whose finite collection of random variables follow a multivariate
@@ -40,7 +40,7 @@ The aim is then to fit a posterior over *functions*. GPs allow us to learn a
 distribution over functions given our observed data and predict unseen data with
 well-calibrated uncertainty, and is commonly used in Bayesian Optimization as a
 surrogate function to maximize an objective. For a thorough introduction to Gaussian
-processes, please see [1]
+processes, please see \[1\]
 
 With a PPL such as Bean Machine, we can be Bayesian about the parameters we care about,
 _i.e._ learn posterior distributions over these parameters rather than a point estimate.
@@ -133,8 +133,7 @@ function respectively, the (hyper)parameters of the kernel we want to learn.
 GPytorch's exact inference algorithms allow you to compute maximum a posteriori (MAP)
 estimates of kernel parameters. Since a `SimpleGP` extends a GPytorch ExactGP model, you
 can use GPytorch to optimize the model. Let's try that, closely following the
-[GPytorch regression tutorial](https://docs.gpytorch.ai/en/latest/examples/01_Exact_GPs/
-Simple_GP_Regression.html).
+[GPytorch regression tutorial](https://docs.gpytorch.ai/en/latest/examples/01_Exact_GPs/Simple_GP_Regression.html).
 
 
 ```python
@@ -411,6 +410,7 @@ if not smoke_test:
 )
 
 ## References
-[1] Rasmussen, Carl and Williams, Christopher. **Gaussian Processes for Machine
+
+\[1\] Rasmussen, Carl and Williams, Christopher. **Gaussian Processes for Machine
 Learning**. 2006.
 

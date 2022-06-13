@@ -6,9 +6,9 @@ nb_path: tutorials/Sparse_Logistic_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Sparse_Logistic_Regression.ipynb"
@@ -46,9 +46,9 @@ shrinkage.
 
 We will be using the following packages within this tutorial.
 
-* [arviz](https://arviz-devs.github.io/arviz/) and
+- [arviz](https://arviz-devs.github.io/arviz/) and
   [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations;
-* [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), and
+- [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), and
   [scikit-learn](https://scikit-learn.org/) for data manipulation.
 
 Please import the following code packages for the rest of the code in the tutorial to
@@ -108,31 +108,30 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 
 We have the following definitions.
 
-* $N$: Size of the dataset.
-* $D$: Number of features of the dataset.
-* $\tau$: Global shrinkage of the model (input from the user).
-* $\beta_d$: Coefficient corresponding to dimension $d\in D$.
-* $\lambda_d$: Local shrinkage for the coefficient corresponding to dimension $d\in D$.
+- $N$: Size of the dataset.
+- $D$: Number of features of the dataset.
+- $\tau$: Global shrinkage of the model (input from the user).
+- $\beta_d$: Coefficient corresponding to dimension $d\in D$.
+- $\lambda_d$: Local shrinkage for the coefficient corresponding to dimension $d\in D$.
 
 The model is defined mathematically as follows:
 
-* $\lambda_d\stackrel{iid}{\sim}\text{HalfCauchy}(0,1)$
-* $\beta_d\stackrel{iid}{\sim}\mathcal{N}(0,\tau\lambda)$
-* $y_n\stackrel{iid}{\sim}\text{Bernoulli}(\sigma({X}^\textsf{T}\beta))$
+- $\lambda_d\stackrel{iid}{\sim}\text{HalfCauchy}(0,1)$
+- $\beta_d\stackrel{iid}{\sim}\mathcal{N}(0,\tau\lambda)$
+- $y_n\stackrel{iid}{\sim}\text{Bernoulli}(\sigma({X}^\textsf{T}\beta))$
 
 A few notes:
 
-* $\sigma(s)=\frac{1}{1+e^{-s}}$ is the logistic function. Its purpose is to
-  translate an unconstrained score $s\in(-\infty,\infty)$ predicted by the model into
-  a probability $\sigma(s)\in(0,1)$.
-* $\tau$ can be an input from the user which depends on the expected number of
-  non-zeros coefficients in the model. Alternatively, we can have a full Bayesian
-  treatment of $\tau$ as suggested by [Piironen and Vehtari](#references). For
-  simplicity, this is simply a constant in this tutorial but this can be replaced with
-  a `HalfNormal` prior with the same scale as $\tau$. This parameter is responsible for
-  global shrinkage, whereas $\lambda_d$ tends to shrink the influence of $\beta_d$ but
-  since the Cauchy distribution has fat tails, it can also help coefficients escape
-  shrinkage.
+- $\sigma(s)=\frac{1}{1+e^{-s}}$ is the logistic function. Its purpose is to translate
+  an unconstrained score $s\in(-\infty,\infty)$ predicted by the model into a
+  probability $\sigma(s)\in(0,1)$.
+- $\tau$ can be an input from the user which depends on the expected number of non-zeros
+  coefficients in the model. Alternatively, we can have a full Bayesian treatment of
+  $\tau$ as suggested by [Piironen and Vehtari](#references). For simplicity, this is
+  simply a constant in this tutorial but this can be replaced with a `HalfNormal` prior
+  with the same scale as $\tau$. This parameter is responsible for global shrinkage,
+  whereas $\lambda_d$ tends to shrink the influence of $\beta_d$ but since the Cauchy
+  distribution has fat tails, it can also help coefficients escape shrinkage.
 
 We can implement this model in Bean Machine by defining random variable objects with the
 `@bm.random_variable` decorator. These functions behave differently than ordinary Python
@@ -140,15 +139,7 @@ functions.
 
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -678,9 +669,9 @@ show(predicted_data_plot)
 
 As we can see, the model seems to have recovered the same decision boundary, and MCMC
 has converged to parameters that correctly predicted the test dataset. This was just a
-sanity check. Since we have built a probabilistic model, the probability that each
-data point has label 1 is itself a distribution! Let us see this for one of the test
-data points (marked by a blue circle above).
+sanity check. Since we have built a probabilistic model, the probability that each data
+point has label 1 is itself a distribution! Let us see this for one of the test data
+points (marked by a blue circle above).
 
 
 ```python
@@ -757,8 +748,8 @@ independent_ samples we draw, which is called the effective sample size. You can
 more about how this value is calculated in the [Vehtari _et al_](#references) paper,
 briefly it is a measure that combines information from the $\hat{R}$ value with the
 autocorrelation estimates within the chains. There are many ways to estimate effective
-samples sizes, however, we will be using the method defined in the [Vehtari _et
-al_](#references) paper.
+samples sizes, however, we will be using the method defined in the
+[Vehtari _et al_](#references) paper.
 
 The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
 average. Since we ran four chains, we need `ess_bulk` to be greater than 200 for each
@@ -908,9 +899,9 @@ Markdown(summary_mh_df.to_markdown())
 | lambda_(SparseLogisticRegression with 5 covariates,)[3, 0] |   1.085 |  1.601 |      0.315 |       1.049 |       0.711 |     0.535 |      2.261 |      2.008 |   3.069 |
 | lambda_(SparseLogisticRegression with 5 covariates,)[4, 0] |   0.439 |  0.314 |      0.149 |       0.696 |       0.209 |     0.173 |      2.284 |      2.008 |   2.941 |
 
-$\hat{R}$ values are extremely far from $1.0$. Further, the $ess$ and values for
-our sampled random variables are extremely small. As a result, these inference results
-would be unusable for any real application.
+$\hat{R}$ values are extremely far from $1.0$. Further, the $ess$ and values for our
+sampled random variables are extremely small. As a result, these inference results would
+be unusable for any real application.
 
 In comparison, NUTS seems to have developed a much more complete representation of the
 posterior surface. Now that we have validated the model on a synthetic dataset, we will
@@ -931,8 +922,7 @@ that may or may not be useful predictors for credit risk. Example covariates inc
 age, sex, and savings. The response variable is either 1, indicating good credit, or 2,
 indicating bad credit. You can read more about this dataset, and in particular what each
 of the first 24 covariate columns represent in the
-[documentation](https://archive.ics.uci.edu/ml/machine-learning-
-databases/statlog/german/german.doc).
+[documentation](https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.doc).
 
 
 ```python
@@ -942,7 +932,7 @@ input_data = np.genfromtxt(
 ```
 
 Let's scale covariates to range between -1 and 1, and add a constant factor. This yields
-a total of 25 covariates. We'll also translate the response variable to [0, 1].
+a total of 25 covariates. We'll also translate the response variable to \[0, 1\].
 
 
 ```python
@@ -1213,13 +1203,11 @@ show(roc_plot)
 # References
 
 
-* Carvalho CM, Polson NG, Scott JG. **Handling sparsity via the horseshoe**. In:
-  van Dyk D, Welling M, editors. _Proceedings of the Twelfth International Conference on
-  Artificial Intelligence and Statistics_; 2009.
-  pp. 73–80. Available from
-  [http://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf](http://proceedings.mlr.p
-ress/v5/carvalho09a/carvalho09a.pdf).
-* Piironen J, Vehtari A. **Sparsity information and regularization in the horseshoe and
+- Carvalho CM, Polson NG, Scott JG. **Handling sparsity via the horseshoe**. In: van Dyk
+  D, Welling M, editors. _Proceedings of the Twelfth International Conference on
+  Artificial Intelligence and Statistics_; 2009. pp. 73–80. Available from
+  [http://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf](http://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf).
+- Piironen J, Vehtari A. **Sparsity information and regularization in the horseshoe and
   other shrinkage priors**. _Electronic Journal of Statistics_. 2017;11(2) 5018–5051.
   [doi: 10.1214/17-EJS1337SI](https://dx.doi.org/10.1214/17-EJS1337SI).
 

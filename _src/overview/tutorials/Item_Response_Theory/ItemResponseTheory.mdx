@@ -6,9 +6,9 @@ nb_path: tutorials/Item_Response_Theory.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Item_Response_Theory.ipynb"
@@ -18,10 +18,10 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 ## Tutorial: Modeling NBA foul calls using **Item Response Theory**
 
 
-This tutorial demonstrates how to use Bean Machine to predict when NBA players
-will receive a foul call from a referee. This model and exposition is based on
-[Austin Rochford's 2018 analysis](#references) of the [2015/2016 NBA season
-games](#references) data.
+This tutorial demonstrates how to use Bean Machine to predict when NBA players will
+receive a foul call from a referee. This model and exposition is based on
+[Austin Rochford's 2018 analysis](#references) of the
+[2015/2016 NBA season games](#references) data.
 
 
 ## Learning Outcomes
@@ -29,13 +29,11 @@ games](#references) data.
 
 On completion of this tutorial, you should be able:
 
-* to prepare data for running an Item Response Theory model (IRT) with Bean
-  Machine;
-* to execute an IRT model with Bean Machine;
-* to show the advantage of an IRT model over regular regression;
-* to run diagnostics to understand what Bean Machine is doing; and
-* to generalize the techniques demonstrated to build an IRT model
-  based on new data.
+- to prepare data for running an Item Response Theory model (IRT) with Bean Machine;
+- to execute an IRT model with Bean Machine;
+- to show the advantage of an IRT model over regular regression;
+- to run diagnostics to understand what Bean Machine is doing; and
+- to generalize the techniques demonstrated to build an IRT model based on new data.
 
 
 ## Prerequisites
@@ -43,9 +41,8 @@ On completion of this tutorial, you should be able:
 
 We will be using the following packages within this tutorial.
 
-* [arviz](https://arviz-devs.github.io/arviz/) and
-  [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive
-  visualizations.
+- [arviz](https://arviz-devs.github.io/arviz/) and
+  [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations.
 
 
 ```python
@@ -96,17 +93,16 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ## Data
 
 
-Our data consist of every foul recorded in the last two minutes of every NBA
-game for the 2015/16 and 2016/17 seasons. The data consists of records for when
-the foul happened, which player committed it and against which other player,
-the current score when it happened, and the team each player was playing for.
+Our data consist of every foul recorded in the last two minutes of every NBA game for
+the 2015/16 and 2016/17 seasons. The data consists of records for when the foul
+happened, which player committed it and against which other player, the current score
+when it happened, and the team each player was playing for.
 
-Raw data can be found at [2015/2016 NBA season games](#references), and the
-official data is from [Last 2 minute reports](#references). Here we will load
-data that has been cleaned for the tutorial. The following columns and their
-descriptions are given below. As we treat many of the columns as categoricals,
-an `_id` column is often added that is the categorical encoding of the
-respective column.
+Raw data can be found at [2015/2016 NBA season games](#references), and the official
+data is from [Last 2 minute reports](#references). Here we will load data that has been
+cleaned for the tutorial. The following columns and their descriptions are given below.
+As we treat many of the columns as categoricals, an `_id` column is often added that is
+the categorical encoding of the respective column.
 
 | Column name                 | Description                                                        |
 | --------------------------- | ------------------------------------------------------------------ |
@@ -143,8 +139,8 @@ Markdown(df.head().to_markdown())
 |  3 |             30 | Offensive   |              2 |             0 | Jordan Hill         |                    229 | DeMar DeRozan          |                        98 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                2 |                   1 |
 |  4 |             24 | Offensive   |              2 |             0 | Jordan Hill         |                    229 | DeMarre Carroll        |                       100 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                1 |                   0 |
 
-Below is a figure showing the number of fouls within our data, and the observed
-foul call rate.
+Below is a figure showing the number of fouls within our data, and the observed foul
+call rate.
 
 
 ```python
@@ -167,10 +163,9 @@ show(call_type_plot)
 
 <BokehFigure data={require('./assets/plot_data/call-type-plot.json')} />
 
-Next we investigate the frequency with which fouls are called for each of the
-NBA seasons in our data. The difference between the foul rates in the 2015/16
-and 2016/17 seasons is easily shown below. We will account for this in our first
-model.
+Next we investigate the frequency with which fouls are called for each of the NBA
+seasons in our data. The difference between the foul rates in the 2015/16 and 2016/17
+seasons is easily shown below. We will account for this in our first model.
 
 
 ```python
@@ -186,16 +181,15 @@ show(foul_freq_plot)
 ## Basic model
 
 
-The initial model is a hierarchical logistic regression with a per-season
-latent variable to predict foul calls. This model just tries to predict how
-likely a play $k$ is to lead to a foul purely based on what season it is.
-There are two $\beta^{\textrm{season}}_s$ variables, one for each season. We
-include a $\eta^{\textrm{game}}_k$ variable for every game, but set it for now
-equal to $\beta^{\textrm{season}}_{s(k)}$ associated with which season the play
-happened during. Finally, we pass $eta^{\textrm{game}}_k$ into a sigmoid
-function to effectively turn it into a probability $p_k$ which we pass to a
-Bernoulli distribution so we can observe $y_k$ which models whether play $k$
-lead to a foul.
+The initial model is a hierarchical logistic regression with a per-season latent
+variable to predict foul calls. This model just tries to predict how likely a play $k$
+is to lead to a foul purely based on what season it is. There are two
+$\beta^{\textrm{season}}_s$ variables, one for each season. We include a
+$\eta^{\textrm{game}}_k$ variable for every game, but set it for now equal to
+$\beta^{\textrm{season}}_{s(k)}$ associated with which season the play happened during.
+Finally, we pass $eta^{\textrm{game}}_k$ into a sigmoid function to effectively turn it
+into a probability $p_k$ which we pass to a Bernoulli distribution so we can observe
+$y_k$ which models whether play $k$ lead to a foul.
 
 $$
 \begin{aligned}
@@ -206,25 +200,16 @@ y_k                       & \sim \textrm{Bernoulli}(p_k) .
 \end{aligned}
 $$
 
-This is model is now roughly equivalent to using `LogisticRegression` in
-`scikit-learn` where the only feature is which season did the foul occur
-during.
+This is model is now roughly equivalent to using `LogisticRegression` in `scikit-learn`
+where the only feature is which season did the foul occur during.
 
-**`NOTE`** We can implement this model in Bean Machine by defining random
-variable objects with the `@bm.random_variable` and `@bm.functional`
-decorators. These functions behave differently than ordinary Python functions.
+**`NOTE`** We can implement this model in Bean Machine by defining random variable
+objects with the `@bm.random_variable` and `@bm.functional` decorators. These functions
+behave differently than ordinary Python functions.
 
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -287,25 +272,24 @@ class BasicModel:
         return dist.Bernoulli(self.p()[self.df["season_id"]])
 ```
 
-We make use of the `expand` method on pytorch distribution objects to perform
-batch sampling. This has the advantage of being more computationally-efficient
-than explicit iteration. Bean Machine is also able to take advantage of the
-implicit broadcasting of pytorch tensors and pytorch samplers like
-`dist.Bernoulli` allowing us to sample or observe all $y$ values at once.
+We make use of the `expand` method on pytorch distribution objects to perform batch
+sampling. This has the advantage of being more computationally-efficient than explicit
+iteration. Bean Machine is also able to take advantage of the implicit broadcasting of
+pytorch tensors and pytorch samplers like `dist.Bernoulli` allowing us to sample or
+observe all $y$ values at once.
 
 
 ## Inference
 
 
-Inference is the process of combining model and data to obtain insights, in the
-form of probability distributions over values of interest. Bean Machine offers
-a powerful and general inference framework to enable fitting arbitrary models
-to data.
+Inference is the process of combining model and data to obtain insights, in the form of
+probability distributions over values of interest. Bean Machine offers a powerful and
+general inference framework to enable fitting arbitrary models to data.
 
-Our inference algorithms expect a list of query variables and observations in
-the form of a dictionary. The query list and the keys for the observation
-dictionary should consist of `@bm.random_variable` invocations as keys, and
-tensor data as values. You can see this in the example below.
+Our inference algorithms expect a list of query variables and observations in the form
+of a dictionary. The query list and the keys for the observation dictionary should
+consist of `@bm.random_variable` invocations as keys, and tensor data as values. You can
+see this in the example below.
 
 
 ```python
@@ -316,20 +300,19 @@ basic_model_observations = {
 }
 ```
 
-Now, we're ready to run inference! Although Bean Machine supports a rich library
-of inference methods, they all support a common `infer` method, with these
-arguments:
+Now, we're ready to run inference! Although Bean Machine supports a rich library of
+inference methods, they all support a common `infer` method, with these arguments:
 
-| Name           | Usage                                                                                                    | 
-| -------------- | -------------------------------------------------------------------------------------------------------- | 
-| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                                | 
-| `observations` | A dictionary of observations, as built above.                                                            | 
-| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in queries.   | 
-| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly.  |
+| Name           | Usage                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| `queries`      | List of `@bm.random_variable` targets to fit posterior distributions for.                               |
+| `observations` | A dictionary of observations, as built above.                                                           |
+| `num_samples`  | Number of Monte Carlo samples to approximate the posterior distributions for the variables in queries.  |
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can help verify that inference ran correctly. |
 
-For the models in this tutorial we will use the `GlobalNoUTurnSampler`
-inference algorithm, as it is particularly well-suited to handle hierarchical
-models with partial pooling and without discrete latent variables.
+For the models in this tutorial we will use the `GlobalNoUTurnSampler` inference
+algorithm, as it is particularly well-suited to handle hierarchical models with partial
+pooling and without discrete latent variables.
 
 
 ```python
@@ -357,10 +340,10 @@ Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
 ## Analysis
 
 
-`basic_samples` now contains our inference results. We begin our analysis by
-printing out summary statistics. Two important statistics to take note of are
-the $\hat{R}$ (`r_hat`) and effective sample size (`ess`) values in the below
-dataframe, see [Vehtari _et al_](#references).
+`basic_samples` now contains our inference results. We begin our analysis by printing
+out summary statistics. Two important statistics to take note of are the $\hat{R}$
+(`r_hat`) and effective sample size (`ess`) values in the below dataframe, see
+[Vehtari _et al_](#references).
 
 
 ```python
@@ -378,56 +361,54 @@ Markdown(basic_summary_df.to_markdown())
 ### Measuring variance between and within chains with $\hat{R}$
 
 
-$\hat{R}$ is a diagnostic tool that measures the between- and within-chain
-variances. It is a test that indicates a lack of convergence by comparing the
-variance between multiple chains to the variance within each chain. If the
-parameters are successfully exploring the full space for each chain, then
-$\hat{R}\approx 1$, since the between-chain and within-chain variance should be
-equal. $\hat{R}$ is calculated from $N$ samples as
+$\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
+is a test that indicates a lack of convergence by comparing the variance between
+multiple chains to the variance within each chain. If the parameters are successfully
+exploring the full space for each chain, then $\hat{R}\approx 1$, since the
+between-chain and within-chain variance should be equal. $\hat{R}$ is calculated from
+$N$ samples as
 
 $$
 \hat{R}=\frac{\hat{V}}{W} \\
 \hat{V} = \frac{N-1}{N} W + \frac{1}{N} B
 $$
 
-where $W$ is the within-chain variance, $B$ is the between-chain variance
-and $\hat{V}$ is the estimate of the posterior variance of the samples.
-The take-away here is that $\hat{R}$ converges to 1 when each of the chains
-begins to empirically approximate the same posterior distribution. We do not
-recommend using inference results if $\hat{R}>1.01$. More information
-about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
+where $W$ is the within-chain variance, $B$ is the between-chain variance and $\hat{V}$
+is the estimate of the posterior variance of the samples. The take-away here is that
+$\hat{R}$ converges to 1 when each of the chains begins to empirically approximate the
+same posterior distribution. We do not recommend using inference results if
+$\hat{R}>1.01$. More information about $\hat{R}$ can be found in the
+[Vehtari _et al_](#references) paper.
 
 
 ### Effective sample size $ess$
 
 
-MCMC samplers do not draw truly independent samples from the target
-distribution, which means that our samples are correlated. In an ideal
-situation all samples would be independent, but we do not have that luxury. We
-can, however, measure the number of _effectively independent_ samples we draw,
-which is called the effective sample size. You can read more about how this
-value is calculated in the [Vehtari _et al_](#references) paper. In brief, it
-is a measure that combines information from the $\hat{R}$ value with the
-autocorrelation estimates within the chains.
+MCMC samplers do not draw truly independent samples from the target distribution, which
+means that our samples are correlated. In an ideal situation all samples would be
+independent, but we do not have that luxury. We can, however, measure the number of
+_effectively independent_ samples we draw, which is called the effective sample size.
+You can read more about how this value is calculated in the
+[Vehtari _et al_](#references) paper. In brief, it is a measure that combines
+information from the $\hat{R}$ value with the autocorrelation estimates within the
+chains.
 
-ESS estimates come in two variants, `ess_bulk` and `ess_tail`. The former is
-the default, but the latter can be useful if you need good estimates of the
-tails of your posterior distribution. The rule of thumb for `ess_bulk` is for
-this value to be greater than 100 per chain on average. Since we ran four
-chains, we need `ess_bulk` to be greater than 400 for each parameter. The
-`ess_tail` is an estimate for effectively independent samples considering the
-more extreme values of the posterior. This is not the number of samples that
-landed in the tails of the posterior, but rather a measure of the number of
-effectively independent samples if we sampled the tails of the posterior. The
-rule of thumb for this value is also to be greater than 100 per chain on
-average.
+ESS estimates come in two variants, `ess_bulk` and `ess_tail`. The former is the
+default, but the latter can be useful if you need good estimates of the tails of your
+posterior distribution. The rule of thumb for `ess_bulk` is for this value to be greater
+than 100 per chain on average. Since we ran four chains, we need `ess_bulk` to be
+greater than 400 for each parameter. The `ess_tail` is an estimate for effectively
+independent samples considering the more extreme values of the posterior. This is not
+the number of samples that landed in the tails of the posterior, but rather a measure of
+the number of effectively independent samples if we sampled the tails of the posterior.
+The rule of thumb for this value is also to be greater than 100 per chain on average.
 
 
 ### Posterior plot of the Basic model
 
 
-With samples in hand, we can observe the posteriors of $\beta$s and see that
-fouls are slightly more likely during the earlier NBA season.
+With samples in hand, we can observe the posteriors of $\beta$s and see that fouls are
+slightly more likely during the earlier NBA season.
 
 
 ```python
@@ -440,22 +421,22 @@ show(basic_model_posterior_plot)
 
 <BokehFigure data={require('./assets/plot_data/basic-model-posterior-plot.json')} />
 
-Below we have two diagnostic plots for individual random variables: Rank plots
-and autocorrelation plots.
+Below we have two diagnostic plots for individual random variables: Rank plots and
+autocorrelation plots.
 
-* Rank plots are a histogram of the samples over time. All samples across all
-  chains are ranked and then we plot the average rank for each chain on regular
-  intervals. If the chains are mixing well this histogram should look roughly
-  uniform. If it looks highly irregular that suggests chains might be getting
-  stuck and not adequately exploring the sample space.
+- Rank plots are a histogram of the samples over time. All samples across all chains are
+  ranked and then we plot the average rank for each chain on regular intervals. If the
+  chains are mixing well this histogram should look roughly uniform. If it looks highly
+  irregular that suggests chains might be getting stuck and not adequately exploring the
+  sample space.
 
-* Autocorrelation plots measure how predictive the last several samples are of
-  the current sample. Autocorrelation may vary between -1.0 (deterministically
-  anticorrelated) and 1.0 (deterministically correlated). We compute
-  autocorrelation approximately, so it may sometimes exceed these bounds. In an
-  ideal world, the current sample is chosen independently of the previous
-  samples: an autocorrelation of zero. This is not possible in practice, due to
-  stochastic noise and the mechanics of how inference works.
+- Autocorrelation plots measure how predictive the last several samples are of the
+  current sample. Autocorrelation may vary between -1.0 (deterministically
+  anticorrelated) and 1.0 (deterministically correlated). We compute autocorrelation
+  approximately, so it may sometimes exceed these bounds. In an ideal world, the current
+  sample is chosen independently of the previous samples: an autocorrelation of zero.
+  This is not possible in practice, due to stochastic noise and the mechanics of how
+  inference works.
 
 
 ```python
@@ -479,9 +460,9 @@ show(basic_autocorr_plot)
 
 <BokehFigure data={require('./assets/plot_data/basic-autocorr-plot.json')} />
 
-Now let's take our basic model and measure how well it predicts when fouls are
-called. As we can see, because the prediction can only depend on the season it
-doesn't do the greatest.
+Now let's take our basic model and measure how well it predicts when fouls are called.
+As we can see, because the prediction can only depend on the season it doesn't do the
+greatest.
 
 
 ```python
@@ -522,9 +503,9 @@ Markdown(basic_model_resid_df.to_markdown())
 | 2015-2016 | -0.000241572 |
 | 2016-2017 | -0.000126373 |
 
-So what other features could we use? Let's plot residuals versus how many
-seconds are left in the game. If there is any trend in this plot, we can try to
-incorporate it into our model and likely improve the quality of our predictions.
+So what other features could we use? Let's plot residuals versus how many seconds are
+left in the game. If there is any trend in this plot, we can try to incorporate it into
+our model and likely improve the quality of our predictions.
 
 
 ```python
@@ -541,8 +522,8 @@ show(basic_resid_plot)
 ## Improving on the Basic Model
 
 
-We can get a sense of how to improve the model by noticing that it is the team
-that is behind that has a greater incentive to make a foul.
+We can get a sense of how to improve the model by noticing that it is the team that is
+behind that has a greater incentive to make a foul.
 
 
 ```python
@@ -555,11 +536,11 @@ show(trailing_team_committing_plot)
 
 <BokehFigure data={require('./assets/plot_data/trailing-team-committing-plot.json')} />
 
-Let's model that difference as a feature. To drive home how significant the
-trailing team's observed foul rate is within the final two minutes of a game, we
-will plot the foul rate _vs_ the number of trailing possessions over time.
-Trailing possessions is the number of points the trailing team would need to
-make before the shot-clock times out, which is 20 seconds.
+Let's model that difference as a feature. To drive home how significant the trailing
+team's observed foul rate is within the final two minutes of a game, we will plot the
+foul rate _vs_ the number of trailing possessions over time. Trailing possessions is the
+number of points the trailing team would need to make before the shot-clock times out,
+which is 20 seconds.
 
 
 ```python
@@ -572,11 +553,11 @@ show(trailing_poss_plot)
 
 <BokehFigure data={require('./assets/plot_data/trailing-poss-plot.json')} />
 
-As we can see, teams behind by a single possession have a lower observed foul
-rate than those that are behind by three possessions.
+As we can see, teams behind by a single possession have a lower observed foul rate than
+those that are behind by three possessions.
 
-We also notice that certain calls are much more associated with fouls. We will
-include this in our model as well.
+We also notice that certain calls are much more associated with fouls. We will include
+this in our model as well.
 
 
 ```python
@@ -592,15 +573,14 @@ show(type_plot)
 ## Possesion model
 
 
-In the improved model, we explore if who has possession of the ball determines
-how likely it is for a foul to be committed. This model incorporates a latent
-variable $\beta^{\textrm{call}}_{c}$ for each call-type, as well as latent
-variable $\beta^{\textrm{poss}}_{\textrm{t,r,c}}$ for each combination of call
-type $c$, how many possessions the committing team is trailing by $t$, and how
-many possessions $r$ are left in the game. Together all these $\beta$ variables
-are added to create a score $\eta^{\textrm{game}}_k$ which is converted into a
-probability of a foul call $p_k$, which is finally called into a Bernoulli to
-make our observation.
+In the improved model, we explore if who has possession of the ball determines how
+likely it is for a foul to be committed. This model incorporates a latent variable
+$\beta^{\textrm{call}}_{c}$ for each call-type, as well as latent variable
+$\beta^{\textrm{poss}}_{\textrm{t,r,c}}$ for each combination of call type $c$, how many
+possessions the committing team is trailing by $t$, and how many possessions $r$ are
+left in the game. Together all these $\beta$ variables are added to create a score
+$\eta^{\textrm{game}}_k$ which is converted into a probability of a foul call $p_k$,
+which is finally called into a Bernoulli to make our observation.
 
 $$
 \begin{aligned}
@@ -671,15 +651,15 @@ class PossesionModel:
         return dist.Bernoulli(self.p())
 ```
 
-You may have noticed that the Bean Machine program is not a direct translation
-of the model. We do this since the NUTS sampler works best when most of the
-latent variables are at roughly the same scale. So instead of sampling from $x
-\sim \mathcal{N}(0, \sigma)$, we sample from $y \sim \mathcal{N}(0,1)$ and
-assign $x = y \cdot \sigma$. The effective distribution of $x$ remains the
-same, but the scale of the algorithmically sampled random variable $y$ is no
-longer directly dependent on $\sigma$. This is called a *non-centered
-reparameterization* and is an encouraged change to make to any model you intend
-to use with NUTS.
+You may have noticed that the Bean Machine program is not a direct translation of the
+model. We do this since the NUTS sampler works best when most of the latent variables
+are at roughly the same scale. So instead of sampling from
+$x
+\sim \mathcal{N}(0, \sigma)$, we sample from $y \sim \mathcal{N}(0,1)$ and assign
+$x = y \cdot \sigma$. The effective distribution of $x$ remains the same, but the scale
+of the algorithmically sampled random variable $y$ is no longer directly dependent on
+$\sigma$. This is called a *non-centered reparameterization* and is an encouraged change
+to make to any model you intend to use with NUTS.
 
 
 ```python
@@ -710,8 +690,7 @@ Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
 poss_trace = poss_samples.to_inference_data()
 ```
 
-When we check diagnostics, we see the $ess$ is decent and $\hat{R}$ isn't too
-high.
+When we check diagnostics, we see the $ess$ is decent and $\hat{R}$ isn't too high.
 
 
 ```python
@@ -772,9 +751,9 @@ display(Markdown(basic_model_resid_df.to_markdown()))
 Basic model`}
 </CellOutput>
 
-We also check if our residuals are sensitive to how many seconds are left in the
-game. Since they are not, it means our possession model better captures the
-connection between fouls and how many seconds remain in the game.
+We also check if our residuals are sensitive to how many seconds are left in the game.
+Since they are not, it means our possession model better captures the connection between
+fouls and how many seconds remain in the game.
 
 
 ```python
@@ -787,10 +766,10 @@ show(poss_resid_plot)
 
 <BokehFigure data={require('./assets/plot_data/poss-resid-plot.json')} />
 
-We now compare these the possession model to the basic model. To do this we
-will use the Watanabe-Akaike or widely available information criterion (WAIC).
-An information criterion is a way of scoring how well does a model explain some
-data. WAIC in particular is defined as:
+We now compare these the possession model to the basic model. To do this we will use the
+Watanabe-Akaike or widely available information criterion (WAIC). An information
+criterion is a way of scoring how well does a model explain some data. WAIC in
+particular is defined as:
 
 $$
 \text{WAIC} = -2 \frac{1}{n} \sum_{i=1}^n \log \mu(y_i) - \sigma_{\text{log}}^2(y_i) \\
@@ -799,11 +778,10 @@ $$
 $$
 
 
-We can approximate the expectations in this equation using samples from our
-posterior.
+We can approximate the expectations in this equation using samples from our posterior.
 
-When we compare these models we see that the possession model better explains
-the data and is given a higher rank.
+When we compare these models we see that the possession model better explains the data
+and is given a higher rank.
 
 
 ```python
@@ -818,16 +796,14 @@ Markdown(az.compare({"possession": poss_trace, "basic": basic_trace}, ic="waic")
 ## Player item-response theory model
 
 
-We now try to improve our model once more by modeling the players involved in
-the foul calls. To do this we will associate with each player two latent
-variables, a propensity to foul another player $a$, and a propensity to be
-fouled by another player $b$. We can then have of a latent variable that for
-pairs of players $i$ and $j$ that models that interaction
-$\eta^{\textrm{player}}_{i,j} = a_i - b_j$. We further model this propensity on
-a per-season basis. This new factor is added to the $\eta$ from the possession
-model where the sum is passed into a sigmoid to turn it into a probability
-$p_k$. As in all the other models, this $p_k$ is passed to a Bernoulli which is
-observed.
+We now try to improve our model once more by modeling the players involved in the foul
+calls. To do this we will associate with each player two latent variables, a propensity
+to foul another player $a$, and a propensity to be fouled by another player $b$. We can
+then have of a latent variable that for pairs of players $i$ and $j$ that models that
+interaction $\eta^{\textrm{player}}_{i,j} = a_i - b_j$. We further model this propensity
+on a per-season basis. This new factor is added to the $\eta$ from the possession model
+where the sum is passed into a sigmoid to turn it into a probability $p_k$. As in all
+the other models, this $p_k$ is passed to a Bernoulli which is observed.
 
 $$
 \begin{aligned}
@@ -981,8 +957,8 @@ Markdown(irt_summary_df.loc[idx].to_markdown())
 | p(,)[8628] |  0.278 | 0.068 |      0.161 |       0.378 |       0.001 |     0.001 |       7627 |       3248 |       1 |
 | p(,)[8629] |  0.267 | 0.064 |      0.163 |       0.365 |       0.001 |     0.001 |       7294 |       3129 |       1 |
 
-The effective sample size is decently large and the $\hat{R}$ is close to 1,
-hence it seems likely that this model fitted the data well using NUTS.
+The effective sample size is decently large and the $\hat{R}$ is close to 1, hence it
+seems likely that this model fitted the data well using NUTS.
 
 Let's see how it compares with the previous models we defined and explored.
 
@@ -1021,9 +997,8 @@ Basic model
 IRT model`}
 </CellOutput>
 
-The residuals are not demonstratably smaller than the possession model, but they
-are still smaller than the basic model. Finally, let's compare all three models
-using WAIC.
+The residuals are not demonstratably smaller than the possession model, but they are
+still smaller than the basic model. Finally, let's compare all three models using WAIC.
 
 
 ```python
@@ -1041,42 +1016,37 @@ Markdown(
 | irt        |      1 | -5087.1  | 439.29     |  237.402 | 0.333333 |    0 |     0 | True      | log          |
 | basic      |      2 | -5576.19 |   0.911201 |  726.494 | 0.333333 |    0 |     0 | True      | log          |
 
-We can see the IRT model is slightly better than the possession model, and both
-are better than the basic model.
+We can see the IRT model is slightly better than the possession model, and both are
+better than the basic model.
 
 
 ## Conclusion
 
 
-With this tutorial we analyzed NBA foul data and came up with three models to
-predict when fouls happen. The best model explicitly models the players
-themselves and their own propensity to foul and be fouled. IRT models have a
-rich history in psychometrics and educational testing. If you have ever taken a
-standardized test, an IRT model was used to convert your test answers into an
-inference about your aptitude in math or reading comprehension.
+With this tutorial we analyzed NBA foul data and came up with three models to predict
+when fouls happen. The best model explicitly models the players themselves and their own
+propensity to foul and be fouled. IRT models have a rich history in psychometrics and
+educational testing. If you have ever taken a standardized test, an IRT model was used
+to convert your test answers into an inference about your aptitude in math or reading
+comprehension.
 
 
 <a id="references"></a>
+
 ## References
 
 
-1. Austin Rochford's 2018 analysis[
-   https://austinrochford.com/posts/2018-02-04-nba-irt-2.html](
-   https://austinrochford.com/posts/2018-02-04-nba-irt-2.html)
-1. 2015/2016 NBA season games [
-   https://github.com/polygraph-cool/last-two-minute-report](
-   https://github.com/polygraph-cool/last-two-minute-report)
-1. Last 2 minute reports [
-   http://official.nba.com/2017-18-nba-officiating-last-two-minute-reports/](
-   http://official.nba.com/2017-18-nba-officiating-last-two-minute-reports/)
-1. [Practical Issues in Implementing and Understanding Bayesian Ideal Point
-   Estimation](http://www.stat.columbia.edu/~gelman/research/published/171.pdf)
-1. [Bayesian Item Response Modeling—Theory and Applications](
-   http://www.springer.com/us/book/9781441907417)
-1. [NBA's Last Two Minute Report](https://github.com/polygraph-cool/last-two-minute-
-report)
-1. Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021)
-   **Rank-Normalization, Folding, and Localization: An Improved $\hat{R}$ for
-   Assessing Convergence of MCMC (with Discussion)**. Bayesian Analysis 16(2)
-   667–718. [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
+1. Austin Rochford's 2018
+   analysis[ https://austinrochford.com/posts/2018-02-04-nba-irt-2.html](https://austinrochford.com/posts/2018-02-04-nba-irt-2.html)
+1. 2015/2016 NBA season games
+   [ https://github.com/polygraph-cool/last-two-minute-report](https://github.com/polygraph-cool/last-two-minute-report)
+1. Last 2 minute reports
+   [ http://official.nba.com/2017-18-nba-officiating-last-two-minute-reports/](http://official.nba.com/2017-18-nba-officiating-last-two-minute-reports/)
+1. [Practical Issues in Implementing and Understanding Bayesian Ideal Point Estimation](http://www.stat.columbia.edu/~gelman/research/published/171.pdf)
+1. [Bayesian Item Response Modeling—Theory and Applications](http://www.springer.com/us/book/9781441907417)
+1. [NBA's Last Two Minute Report](https://github.com/polygraph-cool/last-two-minute-report)
+1. Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021) **Rank-Normalization,
+   Folding, and Localization: An Improved $\hat{R}$ for Assessing Convergence of MCMC
+   (with Discussion)**. Bayesian Analysis 16(2) 667–718.
+   [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
 

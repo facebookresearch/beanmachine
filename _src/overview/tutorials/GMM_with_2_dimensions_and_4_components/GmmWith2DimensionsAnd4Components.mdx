@@ -6,9 +6,9 @@ nb_path: tutorials/GMM_with_2_dimensions_and_4_components.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
@@ -18,8 +18,8 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 ## Tutorial: **Gaussian Mixture Model** with 2 dimensions and 4 components
 
 
- The purpose of this tutorial is to introduce some of Bean Machine's support for
- Gaussian Mixture Processes (GMM) problems.
+The purpose of this tutorial is to introduce some of Bean Machine's support for Gaussian
+Mixture Processes (GMM) problems.
 
 
 ## Problem
@@ -37,9 +37,9 @@ cluster assignments but also the number of clusters itself.
 
 In this tutorial, we will cover (all mathematical symbols defined in "Model" section):
 
-1. How to generate data $\{y_j\}_{j\in[n]}$ from the model, conditioned on the number
-   of clusters $K$ being fixed.
-2. Given $\{y_j\}_{j\in[n]}$, how to draw posterior samples of the latent (unobserved)
+1. How to generate data $\{y_j\}_{j\in[n]}$ from the model, conditioned on the number of
+   clusters $K$ being fixed.
+1. Given $\{y_j\}_{j\in[n]}$, how to draw posterior samples of the latent (unobserved)
    variables $\mu_i$,$\sigma_i$, and $c_j$.
 
 
@@ -92,20 +92,21 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 
 Concretely, we will consider a GMM where:
 
-* Number of mixture components $K=4$
-* The mixing weights $\alpha\sim\text{Dirichlet}([5,\ldots,5])$
-* For $i\in[K]$, each mixture component is a 2-dimensional isotropic Gaussian
+- Number of mixture components $K=4$
+
+- The mixing weights $\alpha\sim\text{Dirichlet}([5,\ldots,5])$
+
+- For $i\in[K]$, each mixture component is a 2-dimensional isotropic Gaussian
   $\mathcal{N}(\mu_i,\sigma_i^2 I)$ where
 
-  * $\mu_i\overset{\text{iid}}{\sim}\mathcal{N}(0,10I)$
-  * $\sigma_i\overset{\text{iid}}{\sim}\text{Gamma}(1,10)$
+  - $\mu_i\overset{\text{iid}}{\sim}\mathcal{N}(0,10I)$
+  - $\sigma_i\overset{\text{iid}}{\sim}\text{Gamma}(1,10)$
 
+- For $j \in [n]$:
 
-* For $j \in [n]$:
-
-  * Conditioned on $\alpha$, the component membership
+  - Conditioned on $\alpha$, the component membership
     $c_j\mid\alpha\overset{\text{iid}}{\sim}\text{Cat}(\alpha)$
-  * Conditioned on component membership, the data
+  - Conditioned on component membership, the data
     $y_j\mid c_j=i\sim\mathcal{N}(\mu_i,\sigma_i^2+0.001)$; we add $0.001$ here to
     ensure the covariance matrix is positive definite
 
@@ -116,15 +117,7 @@ behave differently than ordinary Python functions.
 
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -248,10 +241,10 @@ prior_sample = bm.SingleSiteAncestralMetropolisHastings().infer(
 Samples collected:   0%|          | 0/2 [00:00<?, ?it/s]`}
 </CellOutput>
 
-Below we visualize the distribution of the generated data points $\{x_j\}_{j\in[n]}$
-and use the color to denote the component memberships $\{c_j\}_{j\in[n]}$ of each
-point. In addition, we display contours at one standard deviation for each of the
-Gaussians in the mixture.
+Below we visualize the distribution of the generated data points $\{x_j\}_{j\in[n]}$ and
+use the color to denote the component memberships $\{c_j\}_{j\in[n]}$ of each point. In
+addition, we display contours at one standard deviation for each of the Gaussians in the
+mixture.
 
 
 ```python
@@ -315,7 +308,7 @@ fig = draw_points_and_components(
 fig.show()
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure0adaf0bf-1311-44ed-b674-1c5e2444d79d.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure7498a713-4e0d-4819-9ef7-c8f028f9b630.json')} />
 
 ## Inference
 
@@ -392,7 +385,7 @@ fig = draw_points_and_components(
 fig.show()
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure1fc61dbd-a43a-4e91-941f-3387c34f0592.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure2da8945e-d5c2-478e-b4d2-e7a336bda2e9.json')} />
 
 After running `n_samples` MCMC steps, the effects of initialization should be
 diminished.
@@ -433,4 +426,4 @@ fig = draw_points_and_components(
 fig.show()
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure237b0db1-e2ce-422b-9798-255b978abf1b.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure4d6f19b6-8c55-4b7c-b407-1f917c7be259.json')} />

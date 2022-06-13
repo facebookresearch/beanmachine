@@ -6,9 +6,9 @@ nb_path: tutorials/Robust_Linear_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Robust_Linear_Regression.ipynb"
@@ -45,9 +45,9 @@ visualization. We will follow the outline of the tutorial by
 
 We will be using the following packages within this tutorial.
 
-* [arviz](https://arviz-devs.github.io/arviz/) and
+- [arviz](https://arviz-devs.github.io/arviz/) and
   [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations; and
-* [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), and
+- [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), and
   [scikit-learn](https://scikit-learn.org/) for data manipulation.
 
 Let's code this in Bean Machine! Import the Bean Machine library and some fundamental
@@ -102,26 +102,26 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 
 We're interested in predicting a response variable $y$ given an observed covariate $x$:
 
-* $y = \beta x + \alpha + \text{error}$
+- $y = \beta x + \alpha + \text{error}$
 
 If we assume the error to stem from a heavy-tailed distribution, for instance a
 [Student's T](#references), we can reframe this as:
 
-* $y \sim \mathcal{T}(\beta x + \alpha, \sigma, \nu)$
+- $y \sim \mathcal{T}(\beta x + \alpha, \sigma, \nu)$
 
 Here, $\beta$ is a coefficient for $x$, $\alpha$ is a bias term, $\sigma$ is a term
 indicating a deviation, and $\nu$ is a term describing degrees of freedom. Specifically:
 
-* $N \in \mathbb{Z}^+$ is the size of the training data.
-* $x_i \in \mathbb{R}$ is the observed covariate.
-* $\beta \in \mathbb{R}$ is the coefficient for $x$. We'll use a prior of
+- $N \in \mathbb{Z}^+$ is the size of the training data.
+- $x_i \in \mathbb{R}$ is the observed covariate.
+- $\beta \in \mathbb{R}$ is the coefficient for $x$. We'll use a prior of
   $\mathcal{N}(0,1000)$.
-* $\alpha \in \mathbb{R}$ is the bias term. We'll use a prior of $\mathcal{N}(0,1000)$.
-* $\sigma \in \mathbb{R}^+$ is the error deviation. We'll use a Half-Normal prior
+- $\alpha \in \mathbb{R}$ is the bias term. We'll use a prior of $\mathcal{N}(0,1000)$.
+- $\sigma \in \mathbb{R}^+$ is the error deviation. We'll use a Half-Normal prior
   $\text{H}\mathcal{N}(0, 1000)$.
-* $\nu \in \mathbb{R}^+$ is the degrees of freedom of the Student's T. We'll use a Gamma
+- $\nu \in \mathbb{R}^+$ is the degrees of freedom of the Student's T. We'll use a Gamma
   prior $\text{G}(2,0.1)$.
-* $y_i \stackrel{iid}{\sim} \mathcal{T}(\beta x_i + \alpha, \sigma, \nu) \in \mathbb{R}$
+- $y_i \stackrel{iid}{\sim} \mathcal{T}(\beta x_i + \alpha, \sigma, \nu) \in \mathbb{R}$
   is the prediction.
 
 We are interested in fitting posterior distributions for $\beta$, $\alpha$, $\sigma$,
@@ -160,15 +160,7 @@ We can implement this model in Bean Machine by defining random variable objects 
 functions.
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -589,8 +581,8 @@ independent_ samples we draw, which is called the effective sample size. You can
 more about how this value is calculated in the [Vehtari _et al_](#references) paper,
 briefly it is a measure that combines information from the $\hat{R}$ value with the
 autocorrelation estimates within the chains. There are many ways to estimate effective
-samples sizes, however, we will be using the method defined in the [Vehtari _et
-al_](#references) paper.
+samples sizes, however, we will be using the method defined in the
+[Vehtari _et al_](#references) paper.
 
 The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
 average. Since we ran four chains, we need `ess_bulk` to be greater than 400 for each
@@ -617,19 +609,19 @@ show(samples_diagnostic_plots)
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
 
-* **Rank plots** are a histogram of the samples over time. All samples across
-  all chains are ranked and then we plot the average rank for each chain on
-  regular intervals. If the chains are mixing well this histogram should look
-  roughly uniform. If it looks highly irregular that suggests chains might be
-  getting stuck and not adequately exploring the sample space.
+- **Rank plots** are a histogram of the samples over time. All samples across all chains
+  are ranked and then we plot the average rank for each chain on regular intervals. If
+  the chains are mixing well this histogram should look roughly uniform. If it looks
+  highly irregular that suggests chains might be getting stuck and not adequately
+  exploring the sample space.
 
-* **Autocorrelation plots** measure how predictive the last several samples are
-  of the current sample. Autocorrelation may vary between -1.0
-  (deterministically anticorrelated) and 1.0 (deterministically correlated). We
-  compute autocorrelation approximately, so it may sometimes exceed these
-  bounds. In an ideal world, the current sample is chosen independently of the
-  previous samples: an autocorrelation of zero. This is not possible in
-  practice, due to stochastic noise and the mechanics of how inference works.
+- **Autocorrelation plots** measure how predictive the last several samples are of the
+  current sample. Autocorrelation may vary between -1.0 (deterministically
+  anticorrelated) and 1.0 (deterministically correlated). We compute autocorrelation
+  approximately, so it may sometimes exceed these bounds. In an ideal world, the current
+  sample is chosen independently of the previous samples: an autocorrelation of zero.
+  This is not possible in practice, due to stochastic noise and the mechanics of how
+  inference works.
 
 From the trace plots, we see each of the chains are relatively healthy: they don't get
 stuck, and do not explore a chain-specific subset of the space.
@@ -731,15 +723,13 @@ show(prediction_plot)
 ## References
 
 
-* Baez-Ortega, A (2018) **Robust Bayesian linear regression with Stan in R**.
-  Available from :
-   [https://baezortega.github.io/2018/08/06/robust_regression/](https://baezortega.githu
-b.io/2018/08/06/robust_regression/)
-* **Student's T distribution**
-  [https://en.wikipedia.org/wiki/Student's_t-
-distribution](https://en.wikipedia.org/wiki/Student's_t-distribution)
-* Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021)
-  **Rank-Normalization, Folding, and Localization: An Improved $\hat{R}$ for
-  Assessing Convergence of MCMC (with Discussion)**. Bayesian Analysis 16(2)
-  667–718. [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
+- Baez-Ortega, A (2018) **Robust Bayesian linear regression with Stan in R**. Available
+  from :
+  [https://baezortega.github.io/2018/08/06/robust_regression/](https://baezortega.github.io/2018/08/06/robust_regression/)
+- **Student's T distribution**
+  [https://en.wikipedia.org/wiki/Student's_t-distribution](https://en.wikipedia.org/wiki/Student's_t-distribution)
+- Vehtari A, Gelman A, Simpson D, Carpenter B, Bürkner PC (2021) **Rank-Normalization,
+  Folding, and Localization: An Improved $\hat{R}$ for Assessing Convergence of MCMC
+  (with Discussion)**. Bayesian Analysis 16(2) 667–718.
+  [doi: 10.1214/20-BA1221](https://dx.doi.org/10.1214/20-BA1221).
 

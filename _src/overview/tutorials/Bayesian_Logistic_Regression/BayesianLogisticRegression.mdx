@@ -6,9 +6,9 @@ nb_path: tutorials/Bayesian_Logistic_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Logistic_Regression.ipynb"
@@ -40,7 +40,7 @@ category, can we infer the boundary between the categories?*
 
 We will be using the following packages within this tutorial.
 
-* [arviz](https://arviz-devs.github.io/arviz/) and
+- [arviz](https://arviz-devs.github.io/arviz/) and
   [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations.
 
 Let's code this in Bean Machine! Import the Bean Machine library and some fundamental
@@ -95,8 +95,8 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 
 
 For the purposes of this tutorial our "things" will be two-dimensional points between
-$(-10,-10)$ and $(10,10)$. Our two categories will be represented by $0.0$, which
-we'll render as blue, and $1.0$, which we'll render as orange.
+$(-10,-10)$ and $(10,10)$. Our two categories will be represented by $0.0$, which we'll
+render as blue, and $1.0$, which we'll render as orange.
 
 The probability that a given point $(x,y)$ will be orange is
 
@@ -130,8 +130,8 @@ We start by creating a data set to illustrate the model. In order to make comput
 faster and easier, we will express the entire data set as a single tensor representing
 200 points. Each row of the tensor will be in the form
 $\begin{bmatrix}1.0&x&y\end{bmatrix}$. That way we can compute the linear combination by
-matrix-multiplying each row by $\begin{bmatrix}b_0\\b_1\\b_2\end{bmatrix}$ to obtain
-the log odds that the point is orange: $b_0+b_1x+b_2y$.
+matrix-multiplying each row by $\begin{bmatrix}b_0\\b_1\\b_2\end{bmatrix}$ to obtain the
+log odds that the point is orange: $b_0+b_1x+b_2y$.
 
 For our synthetic dataset, we will assume the following parameters.
 

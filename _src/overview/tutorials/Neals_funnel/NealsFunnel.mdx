@@ -6,9 +6,9 @@ nb_path: tutorials/Neals_funnel.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb
 ---
+import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import {PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Neals_funnel.ipynb"
@@ -93,13 +93,13 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 [Neal's funnel](https://projecteuclid.org/euclid.aos/1056562461) is defined
 mathematically as follows:
 
-* $z\sim\mathcal{N}(0,3)$
-* $x\sim\mathcal{N}(0,e^{z/2})$
+- $z\sim\mathcal{N}(0,3)$
+- $x\sim\mathcal{N}(0,e^{z/2})$
 
 Let's visualize the model's density. To do this, we recognize that the joint density is
 factored as follows:
 
-* $P(z,x)=\mathcal{N}(x;0,e^{z/2})\cdot\mathcal{N}(z;0,3)$
+- $P(z,x)=\mathcal{N}(x;0,e^{z/2})\cdot\mathcal{N}(z;0,3)$
 
 
 ```python
@@ -152,12 +152,12 @@ process, we'll have to reframe it into a generative process in order to run infe
 it. We'll do this as follows:
 
 1. Sample priors for $z$ and $x$.
-2. Imagine weighting the probabilities of $z$ and $x$ according to how likely they are
+1. Imagine weighting the probabilities of $z$ and $x$ according to how likely they are
    under the true Neal's funnel model. We can do this by imagining we're flipping a
    coin, where the probability of it landing heads is the probability of drawing that
    $z$ and $x$ from the Neal's funnel model, but where we've actually _observed_ it to
    be heads.
-3. Later, we will inform the inference engine that we observed heads. This will cause
+1. Later, we will inform the inference engine that we observed heads. This will cause
    the engine to find values for $z$ and $x$ that are consistent with samples from the
    true Neal's funnel posterior — since those are the samples that would have resulted
    in the observed "heads" from our coin flip!
@@ -182,15 +182,7 @@ functions.
 
 
 <div
-  style={
-    {
-      background: "#daeaf3",
-      border_left: "3px solid #2980b9",
-      display: "block",
-      margin: "16px 0",
-      padding: "12px",
-    }
-  }
+  style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
   Semantics for <code>@bm.random_variable</code> functions:
   <ul>
@@ -288,7 +280,7 @@ funnel. Check out the documentation for more information on NMC.
 Running inference consists of a few arguments:
 
 | Name           | Usage                                                                                         |
-|----------------|-----------------------------------------------------------------------------------------------|
+| -------------- | --------------------------------------------------------------------------------------------- |
 | `queries`      | A list of @bm.random_variable targets to fit posterior distributions for.                     |
 | `observations` | The Dict of observations we built up, above.                                                  |
 | `num_samples`  | Number of samples to build up distributions for the values listed in queries.                 |
@@ -409,14 +401,14 @@ The diagnostics output shows two diagnostic statistics:
 [$N_\text{eff}$](https://www.mcmchandbook.net/HandbookChapter1.pdf) (effective sample
 size, `n_eff`).
 
-* $\hat{R}\in[1,\infty)$ summarizes how effective inference was at converging on the
+- $\hat{R}\in[1,\infty)$ summarizes how effective inference was at converging on the
   correct posterior distribution for a particular random variable. It uses information
   from all chains run in order to assess whether inference had a good understanding of
   the distribution or not. Values very close to zero indicate that all chains discovered
   similar distributions for a particular random variable. We do not recommend using
   inference results where $\hat{R}>1.1$, as inference may not have converged. In that
   case, you may want to run inference for more samples.
-* $N_\text{eff}\in[1,\texttt{num}\_\texttt{samples}]$ summarizes how independent
+- $N_\text{eff}\in[1,\texttt{num}\_\texttt{samples}]$ summarizes how independent
   posterior samples are from one another. Although inference was run for `num_samples`
   iterations, it's possible that those samples were very similar to each other (due to
   the way inference is implemented), and may not each be representative of the full
@@ -434,25 +426,25 @@ look:
 bm.Diagnostics(single_site_nmc_samples).plot(display=True);
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure5a42a851-663f-45d6-a336-05c5d4fb4696.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure194c1979-e296-4c71-85cc-9571218d5ece.json')} />
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure6b9d35b6-d835-415d-be72-f7b75ee590f8.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure3adaa258-fcfd-4b26-99c0-30c7ff7ce332.json')} />
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure7bc923fb-62b9-487e-ad13-08d544037bf4.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure82372c7a-8491-441f-b7e4-fe40e1d82509.json')} />
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure74bc3bbd-4845-4658-9301-c32bee35d992.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure49f3357a-ee00-49cb-ac00-9ba7dbb4e348.json')} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
 
-* Trace plots are simply a time series of values assigned to random variables over each
+- Trace plots are simply a time series of values assigned to random variables over each
   iteration of inference. The concrete values assigned are usually problem-specific.
   However, it's important that these values are "mixing" well over time. This means that
   they don't tend to get stuck in one region for large periods of time, and that each of
   the chains ends up exploring the same space as the other chains throughout the course
   of inference.
 
-* Autocorrelation plots measure how predictive the last several samples are of the
+- Autocorrelation plots measure how predictive the last several samples are of the
   current sample. Autocorrelation may vary between -1.0 (deterministically
   anticorrelated) and 1.0 (deterministically correlated). (We compute autocorrelation
   approximately, so it may sometimes exceed these bounds.) In an ideal world, the
@@ -584,13 +576,13 @@ And the unhealthy trace and autocorrelation plots:
 bm.Diagnostics(hmc_samples).plot(display=True);
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure5c4be90c-4f42-4dca-b0ec-ee514461d38f.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigurec682e354-1251-4c44-807a-52547bbde5ba.json')} />
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure25050a2f-375e-4b4d-b5fa-dd4085f4412d.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigureff971409-7616-4689-8a5e-04968061e2e5.json')} />
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure11f75970-4e2b-4bba-8b69-186e9c62502d.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure0c815c78-03d4-44f1-809a-3c88e1c95fe5.json')} />
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFiguref8214c52-19cd-4e59-a98a-87e2bb260dcd.json')} />
+<PlotlyFigure data={require('./assets/plot_data/PlotlyFigure8bf57565-80fe-4ab8-ab27-a75730a2177e.json')} />
 
 ## Appendix: Metropolis-Adjusted Langevin Algorithm
 

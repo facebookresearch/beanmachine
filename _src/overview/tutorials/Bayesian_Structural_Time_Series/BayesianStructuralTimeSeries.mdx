@@ -6,8 +6,8 @@ nb_path: tutorials/Bayesian_Structural_Time_Series.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Structural_Time_Series.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Structural_Time_Series.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Bayesian_Structural_Time_Series.ipynb"
@@ -15,6 +15,7 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 />
 
 # Tutorial: Bayesian Structural Time Series Model
+
 This tutorial demonstrates modeling and running inference on various Bayesian Structural
 Time Series (STS) models. We demonstrate some great features of Bean Machine such as:
 modeling serially correlated variables, the NUTS sampler applied to a global pool of
@@ -32,28 +33,29 @@ smoke_test = ('SANDCASTLE_NEXUS' in os.environ or 'CI' in os.environ)
 ```
 
 # Problem
+
 [Bayesian STS](https://en.wikipedia.org/wiki/Bayesian_structural_time_series) is a
-general class of additive models for *Time Series* series data;
-$y_1, y_2, ..., y_n$ that have an associated *State Space* denoted by; $\alpha_1,
-\alpha_2, ..., \alpha_n$ which provides a probabilistic model for the serial correlation
-observed in the time series. For this tutorial, we will consider the case when
-$\alpha_i$ takes values in a continous state space (For a discussion of the discrete
-state space case, refer to this tutorial on [Hidden Markov Models](https://github.com/fa
-cebookresearch/beanmachine/blob/main/tutorials/Hidden_Markov_model.ipynb)).
+general class of additive models for *Time Series* series data; $y_1, y_2, ..., y_n$
+that have an associated *State Space* denoted by; $\alpha_1, \alpha_2, ..., \alpha_n$
+which provides a probabilistic model for the serial correlation observed in the time
+series. For this tutorial, we will consider the case when $\alpha_i$ takes values in a
+continous state space (For a discussion of the discrete state space case, refer to this
+tutorial on
+[Hidden Markov Models](https://github.com/facebookresearch/beanmachine/blob/main/tutorials/Hidden_Markov_model.ipynb)).
 
 Bayesian STS models typically contain, but are not limited to, some additive mixture of
 *Error* ($\epsilon$), *Trend* ($\mu$), and *Seasonality* ($\gamma$) components:
-$$y_t = \mu_t + \gamma_t + \epsilon_t$$
-Where each component is controlled either by some recursive relation of the state space,
-$\alpha_i$ or external covariates (i.e. Regression) such as day-of-week effects,
-business logic, or categories of the data.
-When STS just contains just the Error, Trend, and Seasonality components, it is
-sometimes referred to as the ETS model. Possibly the simpliest version of STS is called
-the *local level* model which is where we will start our discussion after some
-prerequisites.
+\$$y_t = \mu_t + \gamma_t + \epsilon_t$$
+Where each component is controlled either by some recursive relation of the state space, $\\alpha_i\$
+or external covariates (i.e. Regression) such as day-of-week effects, business logic, or
+categories of the data. When STS just contains just the Error, Trend, and Seasonality
+components, it is sometimes referred to as the ETS model. Possibly the simpliest version
+of STS is called the *local level* model which is where we will start our discussion
+after some prerequisites.
 
 
 # Prerequisites
+
 Let's code this in Bean Machine! Import the Bean Machine library, some fundamental
 PyTorch classes, and optionally typing for our code.
 
@@ -76,57 +78,61 @@ bm.seed(111)
 ```
 
 # Local Level Model
+
 In this simple *local level* version of an STS, $y_t$ is the sum of our state variable
 $\alpha_t$ plus Gaussian Noise, $\epsilon_t$. All of the time dependency is modeled in
 the evolution of $\alpha_{t+1}$, which is equal to its previous time value $\alpha_t$
 plus Gaussian Noise, $\eta_t$ that is independent of all $\epsilon_i$'s. This is
 sometimes referred to a *random walk* because at each step, noise is injected to the
-previous state to arrive at a new state.
-To summarize, the random variables in play at this point are:
-*  $\epsilon_t \stackrel{iid}{\sim} \text{Normal}(0, \sigma_\epsilon^2)$
-*   $\eta_t \stackrel{iid}{\sim} \text{Normal}(0, \sigma_\eta^2)$
-* $\eta_t \perp \epsilon_i, \forall i \in \{1,..., n\}$
+previous state to arrive at a new state. To summarize, the random variables in play at
+this point are:
 
-Most STS formulations are expressed in the [state
-space](https://en.wikipedia.org/wiki/State-space_representation) representation, which
-is a coupled set of equations known as the *measurement* and *state* equations. Using
-our notation from before, the *local level* state space representation is:
+- $\epsilon_t \stackrel{iid}{\sim} \text{Normal}(0, \sigma_\epsilon^2)$
+- $\eta_t \stackrel{iid}{\sim} \text{Normal}(0, \sigma_\eta^2)$
+- $\eta_t \perp \epsilon_i, \forall i \in \{1,..., n\}$
 
-| Name | Formula
-| --- | ---
-| Measurement Equation | $y_t =  \alpha_t + \epsilon_t$
-| State Equation | $\alpha_{t+1} = \alpha_t + \eta_t$  
+Most STS formulations are expressed in the
+[state space](https://en.wikipedia.org/wiki/State-space_representation) representation,
+which is a coupled set of equations known as the *measurement* and *state* equations.
+Using our notation from before, the *local level* state space representation is:
+
+| Name                 | Formula                            |
+| -------------------- | ---------------------------------- |
+| Measurement Equation | $y_t =  \alpha_t + \epsilon_t$     |
+| State Equation       | $\alpha_{t+1} = \alpha_t + \eta_t$ |
 
 This can be represented more compactly as:
-* $\alpha_{t+1} | \alpha_t \sim \text{Normal}(\alpha_{t}, \sigma_\eta^2)$
-* $y_t | \alpha_t \sim \text{Normal}(\alpha_t, \sigma_e^2)$
 
+- $\alpha_{t+1} | \alpha_t \sim \text{Normal}(\alpha_{t}, \sigma_\eta^2)$
+- $y_t | \alpha_t \sim \text{Normal}(\alpha_t, \sigma_e^2)$
 
 To make our STS "Bayesian", we will assign priors to $\sigma_\epsilon$, $\sigma_\eta$,
 and our initial state $\alpha_1$:
-* $\sigma_\epsilon \sim \text{Gamma}(\epsilon_{\text{shape}}, \epsilon_{\text{rate}})$
-* $\sigma_\eta \sim \text{Gamma}(\eta_{\text{shape}}, \eta_{\text{rate}})$
-* $\alpha_1 \sim \text{Normal}(a_1, p_1^2)$
+
+- $\sigma_\epsilon \sim \text{Gamma}(\epsilon_{\text{shape}}, \epsilon_{\text{rate}})$
+- $\sigma_\eta \sim \text{Gamma}(\eta_{\text{shape}}, \eta_{\text{rate}})$
+- $\alpha_1 \sim \text{Normal}(a_1, p_1^2)$
 
 We can implement this model in Bean Machine by defining random variable objects with the
 `@bm.random_variable` decorator. These functions behave differently than ordinary Python
 functions.
 
 Semantics for `@bm.random_variable` functions:
-* They must return PyTorch `Distribution` objects.
-* Though they return distributions, callees actually receive samples from the
-distribution. The machinery for obtaining samples from distributions is handled
-internally by Bean Machine.
-* Inference runs the model through many iterations. During a particular inference
-iteration, a distinct random variable will correspond to exactly one sampled value:
-**calls to the same random variable function with the same arguments will receive the
-same sampled value within one inference iteration**. This makes it easy for multiple
-components of your model to refer to the same logical random variable.
-* Consequently, to define distinct random variables that correspond to different sampled
-values during a particular inference iteration, an effective practice is to add a dummy
-"indexing" parameter to the function. Distinct random variables can be referred to with
-different values for this index.
-* Please see the documentation for more information about this decorator.
+
+- They must return PyTorch `Distribution` objects.
+- Though they return distributions, callees actually receive samples from the
+  distribution. The machinery for obtaining samples from distributions is handled
+  internally by Bean Machine.
+- Inference runs the model through many iterations. During a particular inference
+  iteration, a distinct random variable will correspond to exactly one sampled value:
+  **calls to the same random variable function with the same arguments will receive the
+  same sampled value within one inference iteration**. This makes it easy for multiple
+  components of your model to refer to the same logical random variable.
+- Consequently, to define distinct random variables that correspond to different sampled
+  values during a particular inference iteration, an effective practice is to add a
+  dummy "indexing" parameter to the function. Distinct random variables can be referred
+  to with different values for this index.
+- Please see the documentation for more information about this decorator.
 
 Note also that, compared to the statistical notation above, our implementation uses
 0-indexing instead of 1-indexing.
@@ -173,10 +179,10 @@ class LocalLevelModel:
 ```
 
 ## Data
+
 `iclaims` is a dataset containing the weekly initial claims for US unemployment benefits
 against a few related google trend queries (unemploy, filling and job)from Jan 2010 -
-June 2018.
-This dataset was curated
+June 2018. This dataset was curated
 [here](https://github.com/uber/orbit/blob/dev/orbit/utils/dataset.py#L5) and credit goes
 towards Uber's Orbit package.
 
@@ -229,6 +235,7 @@ plt.show()
 )
 
 ## Inference
+
 Inference is the process of combining _model_ with _data_ to obtain _insights_, in the
 form of probability distributions over values of interest. Bean Machine offers a
 powerful and general inference framework to enable fitting a arbitrary models to data.
@@ -263,12 +270,12 @@ model = LocalLevelModel(
 
 Running inference consists of a few arguments:
 
-| Name | Usage
-| --- | ---
-| `queries` | A list of `@bm.random_variable` targets to fit posterior distributions for.
-| `observations` | The `Dict` of observations we built up, above.
-| `num_samples` | Number of samples to build up distributions for the values listed in `queries`.
-| `num_chains` | Number of separate inference runs to use. Multiple chains can verify inference ran correctly.
+| Name           | Usage                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| `queries`      | A list of `@bm.random_variable` targets to fit posterior distributions for.                   |
+| `observations` | The `Dict` of observations we built up, above.                                                |
+| `num_samples`  | Number of samples to build up distributions for the values listed in `queries`.               |
+| `num_chains`   | Number of separate inference runs to use. Multiple chains can verify inference ran correctly. |
 
 The next step is to define the queries and observations. For this particular run, we're
 interested in infering $\alpha$, $\sigma_\epsilon$, and $\sigma_\eta$.
@@ -308,6 +315,7 @@ alpha_samples = torch.stack([samples[model.Alpha(n)] for n in range(model.N)], d
 ```
 
 ## Visualization
+
 We will look at the values of the samples collected for $\alpha$ and $\sigma_\epsilon$.
 We will take the mean of samples taken over the last 10% of the chain, and compare these
 to our data.
@@ -381,6 +389,7 @@ data did not contain alot of noise.
 
 
 ## Posterior Likelihood Checks
+
 One way to evaluate posterior samples is computing likelihoods of our posterior samples,
 and comparing these to the likelihood of the underlying data. Formally, we can compute
 the joint likelihood of posterior samples with the observations.
@@ -420,13 +429,14 @@ variables given the observed data is exceptionally high.
 
 
 # Vectorized Model
+
 Now lets try a vectorized model by using a custom `Distribution`. We first extend
 pytorch's `torch.distributions.Distribution` into a vectorized version of a random walk.
-The key idea behind this implementation is that a [Gaussian Random
-Walk](https://en.wikipedia.org/wiki/Random_walk#Gaussian_random_walk) can also be
-expressed as a chain of iid Gaussian random variables
-that have a `cumsum` operator applied to them (thus making the "walking" behavior). Now
-with this `cumsum` operator, we will be able to sample entire chains in one step!
+The key idea behind this implementation is that a
+[Gaussian Random Walk](https://en.wikipedia.org/wiki/Random_walk#Gaussian_random_walk)
+can also be expressed as a chain of iid Gaussian random variables that have a `cumsum`
+operator applied to them (thus making the "walking" behavior). Now with this `cumsum`
+operator, we will be able to sample entire chains in one step!
 
 
 ```python
@@ -479,9 +489,9 @@ class GaussianRandomWalk(Distribution):
 ```
 
 In our implementation above, we will now use the `sample()` and `log_prob()` functions
-to seamlessly integrate into Bean Machine!
-Specifically, we replace the `Alpha()` function with our vectorized distribution rather
-than recursively calling the univariate function from before.
+to seamlessly integrate into Bean Machine! Specifically, we replace the `Alpha()`
+function with our vectorized distribution rather than recursively calling the univariate
+function from before.
 
 
 ```python
@@ -617,9 +627,9 @@ plt.show()
 )
 
 ## Diagnostics
-Two important statistics to
-take note of are the $\hat{R}$ (`r_hat`) and effective sample size (`ess`) values in the
-below dataframe, see [Vehtari _et al_](#references).
+
+Two important statistics to take note of are the $\hat{R}$ (`r_hat`) and effective
+sample size (`ess`) values in the below dataframe, see [Vehtari _et al_](#references).
 
 
 ```python
@@ -669,8 +679,8 @@ independent_ samples we draw, which is called the effective sample size. You can
 more about how this value is calculated in the [Vehtari _et al_](#references) paper,
 briefly it is a measure that combines information from the $\hat{R}$ value with the
 autocorrelation estimates within the chains. There are many ways to estimate effective
-samples sizes, however, we will be using the method defined in the [Vehtari _et
-al_](#references) paper.
+samples sizes, however, we will be using the method defined in the
+[Vehtari _et al_](#references) paper.
 
 The rule of thumb for `ess_bulk` is for this value to be greater than 100 per chain on
 average. Since we ran four chains, we need `ess_bulk` to be greater than 400 for each
@@ -682,32 +692,32 @@ also to be greater than 100 per chain on average.
 
 
 # Heteroscedastic Model
+
 In the previous sections, one core assumption made about the data generation process is
-that $\epsilon_t \stackrel{iid}{\sim} \text{Normal}(0, \sigma_\epsilon^2)$,
-meaning that all of the noise in our measurement equation was sampled the same way, from
-the same distribution.
-In the Statistics literature, this is known as *homoscedastic* noise. Instead, we could
-postulate a second latent random variable, $\beta_t$ that would capture
-some of the serial correlation in the *noise* over time (as opposed to the level). This
-is referred to as a *heteroscedastic* noise. That is, we could say $\beta = g(\beta_{t -
-1})$.
-One simple choice for $g(\cdot)$ is the same choice we made for $\alpha_t$, that is:
-$$\beta_{t + 1} = \beta_{t} + \epsilon_{t}$$
-Where the definition of $\epsilon_t$ doesn't change (or its associated prior,
-$\sigma_\epsilon$). Now, our model looks like this:
-* $\alpha_{t+1} | \alpha_t \sim \text{Normal}(\alpha_{t}, \sigma_\eta^2)$
-* $\beta_{t+1} | \beta_t \sim \text{Normal}(\beta_{t}, \sigma_\epsilon^2)$
-* $y_t | \alpha_t \sim \text{Normal}(\alpha_t, f(\beta_t^2))$
+that $\epsilon_t \stackrel{iid}{\sim} \text{Normal}(0, \sigma_\epsilon^2)$, meaning that
+all of the noise in our measurement equation was sampled the same way, from the same
+distribution. In the Statistics literature, this is known as *homoscedastic* noise.
+Instead, we could postulate a second latent random variable, $\beta_t$ that would
+capture some of the serial correlation in the *noise* over time (as opposed to the
+level). This is referred to as a *heteroscedastic* noise. That is, we could say
+$\beta = g(\beta_{t - 1})$. One simple choice for $g(\cdot)$ is the same choice we made
+for $\alpha_t$, that is:
+\$$\beta_{t + 1} = \beta_{t} + \epsilon_{t}$$
+Where the definition of $\\epsilon_t$ doesn't change (or its associated prior, $\\sigma\_\\epsilon\$).
+Now, our model looks like this:
+
+- $\alpha_{t+1} | \alpha_t \sim \text{Normal}(\alpha_{t}, \sigma_\eta^2)$
+- $\beta_{t+1} | \beta_t \sim \text{Normal}(\beta_{t}, \sigma_\epsilon^2)$
+- $y_t | \alpha_t \sim \text{Normal}(\alpha_t, f(\beta_t^2))$
 
 So that as the process goes on, the noise can now "walk" just like our level from
-before. The last detail to attend to
-is the function $f(\cdot)$. Since the `Normal` distribution's `scale` argument lives in
-$\mathbb R^+$, we need to apply a transformation
-to $\beta_t$ for the `scale` argument to be valid. One nice candidate is
+before. The last detail to attend to is the function $f(\cdot)$. Since the `Normal`
+distribution's `scale` argument lives in $\mathbb R^+$, we need to apply a
+transformation to $\beta_t$ for the `scale` argument to be valid. One nice candidate is
 [torch.nn.Softplus()](https://pytorch.org/docs/stable/generated/torch.nn.Softplus.html)
 which is a smooth approximation to the `Relu` function. We will use the `@bm.functional`
-wrapper to accomplish this deterministic mapping,
-creating an intermediate random variable called `Scale` in the process.
+wrapper to accomplish this deterministic mapping, creating an intermediate random
+variable called `Scale` in the process.
 
 
 ```python
@@ -783,24 +793,21 @@ hetero_scale_samples = hetero_samples[hetero_model.Scale()]
 ```
 
 ## Visualization
+
 One last note before visualization, we are now computing uncertainty of both our level
-($\alpha_t$),
-our noise ($\beta_t$), and our observations $y_t$. These "types" of uncertainty can be
-broadly cast into two
-seperate categories: **aleatoric** uncertainty and **epistimic** uncertainty.
+($\alpha_t$), our noise ($\beta_t$), and our observations $y_t$. These "types" of
+uncertainty can be broadly cast into two seperate categories: **aleatoric** uncertainty
+and **epistimic** uncertainty.
 
 A quick read on the topic can be found
 [here](https://en.wikipedia.org/wiki/Uncertainty_quantification) but the gist is that
-**aleatoric** is the
-data uncertainty, and measures the inherent randomness in the observed data. This type
-of uncertainty would be appropriate
-for forming *prediction* intervals for new data. **Epistimic** uncertainty on the other
-hand, measures the uncertainty in a *parameter* estimate.
-So here, we are estimating the conditional mean ($\alpha_t$) and conditional variance
-($f(\beta_t)^2$). This type of
-uncertainty is useful for forming *credible* intervals. We first explore **aleatoric**
-uncertainty and then see how it is impacted by also considering **epistemic**
-uncertainty.
+**aleatoric** is the data uncertainty, and measures the inherent randomness in the
+observed data. This type of uncertainty would be appropriate for forming *prediction*
+intervals for new data. **Epistimic** uncertainty on the other hand, measures the
+uncertainty in a *parameter* estimate. So here, we are estimating the conditional mean
+($\alpha_t$) and conditional variance ($f(\beta_t)^2$). This type of uncertainty is
+useful for forming *credible* intervals. We first explore **aleatoric** uncertainty and
+then see how it is impacted by also considering **epistemic** uncertainty.
 
 
 ```python
@@ -824,15 +831,15 @@ plt.show()
 )
 
 As seen from the plot, the mean of $\alpha_t$ appears much smoother than before. The
-reason is because by fitting both the *location* and *scale* of $\text{Normal}(\alpha_t,
-f(\beta_t))$, we enable a more flexible fit to the data (contrast this from before when
-`SigmaEpsilon()` was a single parameter that was supposed to estimate the noise for the
-entire sequence!). For example, when the data becomes more noisy, our model can simply
-widen $\beta_t$ without overcorrecting $\alpha_t$ which ensures smoother connections
-with later points. Thus, the model is able to more accurately detect a *latent* trend
-while still learning an evolving (*heteroskedastic*) noise level. This is an example of
-learning the **aleatoric** uncertainty (inherent randomness), which we display with a
-*prediction* interval.
+reason is because by fitting both the *location* and *scale* of
+$\text{Normal}(\alpha_t, f(\beta_t))$, we enable a more flexible fit to the data
+(contrast this from before when `SigmaEpsilon()` was a single parameter that was
+supposed to estimate the noise for the entire sequence!). For example, when the data
+becomes more noisy, our model can simply widen $\beta_t$ without overcorrecting
+$\alpha_t$ which ensures smoother connections with later points. Thus, the model is able
+to more accurately detect a *latent* trend while still learning an evolving
+(*heteroskedastic*) noise level. This is an example of learning the **aleatoric**
+uncertainty (inherent randomness), which we display with a *prediction* interval.
 
 
 Now we show the other type of uncertainty, **epistemic** uncertainty.
