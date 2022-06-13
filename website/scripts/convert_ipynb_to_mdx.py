@@ -8,9 +8,9 @@ import shutil
 import uuid
 from os import PathLike
 from pathlib import Path
-from textwrap import wrap
 from typing import Dict, Tuple, Union
 
+import mdformat  # @manual=fbsource//third-party/pypi/mdformat:mdformat
 import nbformat
 import pandas as pd
 from nbformat.notebooknode import NotebookNode
@@ -96,22 +96,12 @@ def transform_markdown_cell(
         new_img_path = str(img_folder.joinpath(name))
         shutil.copy(str(old_img_path), new_img_path)
 
-    # Wrap lines using black's default of 88 characters. Used to help debug issues from
-    # the tutorials. Note that all tables (lines that start with |) are not wrapped as
-    # well as any LaTeX formulas that start new block math sections ($$).
-    cell_source = cell_source.splitlines()
-    math_lines = [i for i, line in enumerate(cell_source) if line.startswith("$$")]
-    math_lines = [(i, j) for i, j in zip(math_lines, math_lines[1:])]
-    math_line_check = [False] * len(cell_source)
-    for start, stop in math_lines:
-        math_line_check[start : stop + 1] = [True] * (stop + 1 - start)
-    new_cell_source = ""
-    for i, line in enumerate(cell_source):
-        if math_line_check[i] or line.startswith("|"):
-            new_cell_source += f"{line}\n"
-        elif not math_line_check[i]:
-            md = "\n".join(wrap(line, width=88, replace_whitespace=False))
-            new_cell_source += f"{md}\n"
+    # Wrap lines using black's default of 88 characters.
+    new_cell_source = mdformat.text(
+        cell_source,
+        options={"wrap": 88},
+        extensions={"myst"},
+    )
 
     return f"{new_cell_source}\n\n"
 

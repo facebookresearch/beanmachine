@@ -41,6 +41,8 @@ TUTORIALS_REQUIRES = [
     "jupyter",
     "lxml>=4.9",
     "matplotlib",
+    "mdformat",
+    "mdformat-myst",
     "scikit-learn>=1.0.0",
     "seaborn",
     "tabulate",
