@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
+import re
 import shutil
 import uuid
 from os import PathLike
@@ -103,6 +104,24 @@ def transform_markdown_cell(
         extensions={"myst"},
     )
 
+    # We will attempt to handle inline style attributes written in HTML by converting
+    # them to something React can consume.
+    token = "style="
+    pattern = re.compile(f'{token}"([^"]*)"')
+    found_patterns = re.findall(pattern, new_cell_source)
+    for found_pattern in found_patterns:
+        react_style_string = json.dumps(
+            dict(
+                [
+                    [t.strip() for t in token.strip().split(":")]
+                    for token in found_pattern.split(";")
+                    if token
+                ]
+            )
+        )
+        react_style_string = f"{{{react_style_string}}}"
+        new_cell_source = new_cell_source.replace(found_pattern, react_style_string)
+        new_cell_source = new_cell_source.replace('"{{', "{{").replace('}}"', "}}")
     return f"{new_cell_source}\n\n"
 
 
