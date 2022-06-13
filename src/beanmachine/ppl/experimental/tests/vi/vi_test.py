@@ -12,7 +12,7 @@ import scipy.stats
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.distributions.flat import Flat
-from beanmachine.ppl.experimental.vi import ADVI, VariationalInfer
+from beanmachine.ppl.experimental.vi import ADVI, MAP, VariationalInfer
 from beanmachine.ppl.experimental.vi.gradient_estimator import (
     monte_carlo_approximate_sf,
 )
@@ -485,3 +485,13 @@ class StochasticVariationalInferTest(unittest.TestCase):
         )
         l2_error = (world.get_param(w()) - W).norm()
         self.assertLess(l2_error, 0.5)
+
+
+class MAPTest(unittest.TestCase):
+    def test_dirichlet(self):
+        dirichlet = dist.Dirichlet(2 * torch.ones(2))
+        alpha = bm.random_variable(lambda: dirichlet)
+        world = MAP([alpha()], {}).infer(num_steps=100)
+        map_truth = torch.tensor([0.5, 0.5])
+        vi_estimate = world.get_guide_distribution(alpha()).sample((100,)).mean(dim=0)
+        self.assertTrue(vi_estimate.isclose(map_truth, atol=0.05).all().item())
