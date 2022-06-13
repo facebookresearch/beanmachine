@@ -916,6 +916,74 @@ TEST(testgradient, forward_cholesky) {
   _expect_near_matrix(second_grad1, expected_second_grad1);
 }
 
+TEST(testgradient, backward_cholesky) {
+  /*
+
+    PyTorch validation code:
+
+    x = tensor([[1.0, 0.98, 3.2], [0.2, 0.98, 1.0], [0.98, 0.2, 2.1]],
+            requires_grad=True)
+    choleskySum = cholesky(x).sum()
+    log_p = (
+        dist.Normal(choleskySum, tensor(1.0)).log_prob(tensor(1.7))
+        + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(x).sum()
+    )
+    autograd.grad(log_p, x)
+  */
+  Graph g;
+  auto zero = g.add_constant(0.0);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto one = g.add_constant((natural_t)1);
+  auto three = g.add_constant((natural_t)3);
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos1});
+
+  auto sigma_sample = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, three});
+  auto L =
+      g.add_operator(OperatorType::CHOLESKY, std::vector<uint>{sigma_sample});
+
+  Eigen::MatrixXd sigma(3, 3);
+  sigma << 1.0, 0.2, 0.98, 0.2, 0.98, 1.0, 0.98, 1.0, 2.1;
+
+  g.observe(sigma_sample, sigma);
+
+  // Uses two matrix multiplications to sum the result of Cholesky
+  auto col_sum_m = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, one});
+  auto row_sum_m = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, one, three});
+  Eigen::MatrixXd m1(3, 1);
+  m1 << 1.0, 1.0, 1.0;
+  Eigen::MatrixXd m2(1, 3);
+  m2 << 1.0, 1.0, 1.0;
+  g.observe(col_sum_m, m1);
+  g.observe(row_sum_m, m2);
+  auto sum_rows = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{L, col_sum_m});
+  auto sum_chol = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{row_sum_m, sum_rows});
+  auto sum_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{sum_chol, pos1});
+
+  auto sum_sample =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{sum_dist});
+  g.observe(sum_sample, 1.7);
+
+  std::vector<DoubleMatrix*> grad(4);
+  Eigen::MatrixXd expected_grad(3, 3);
+  expected_grad << -2.7761, -1.6587, -0.3756, -1.6587, -2.8059, -0.6445,
+      -0.3756, -0.6445, -4.2949;
+
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 4);
+  _expect_near_matrix(grad[0]->as_matrix(), expected_grad);
+}
+
 TEST(testgradient, matrix_exp_grad) {
   Graph g;
 
