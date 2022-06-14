@@ -9,6 +9,10 @@ from beanmachine.ppl.inference.hmc_inference import (
     GlobalHamiltonianMonteCarlo,
     SingleSiteHamiltonianMonteCarlo,
 )
+from beanmachine.ppl.inference.mala_inference import (
+    GlobalMetropolisAdapatedLangevinAlgorithm,
+    SingleSiteMetropolisAdapatedLangevinAlgorithm,
+)
 from beanmachine.ppl.inference.nuts_inference import (
     GlobalNoUTurnSampler,
     SingleSiteNoUTurnSampler,
@@ -30,10 +34,12 @@ __all__ = [
     "BMGInference",
     "CompositionalInference",
     "GlobalHamiltonianMonteCarlo",
+    "GlobalMetropolisAdapatedLangevinAlgorithm",
     "GlobalNoUTurnSampler",
     "RejectionSampling",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
+    "SingleSiteMetropolisAdapatedLangevinAlgorithm",
     "SingleSiteNewtonianMonteCarlo",
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
