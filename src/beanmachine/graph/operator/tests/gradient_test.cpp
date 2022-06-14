@@ -1255,3 +1255,139 @@ TEST(testgradient, matrix_mult_forward) {
   expected_second_grad << 7.5, 7.5, -3.6, -3.6;
   _expect_near_matrix(second_grad, expected_second_grad);
 }
+
+TEST(testgradient, log_prob) {
+  std::mt19937 gen;
+  Graph g;
+  double epsilon = 0.0000001;
+  auto zero = g.add_constant(0.0);
+  auto pos_zero = g.add_constant_pos_real(0.0);
+
+  auto makeConst = [&](double value) {
+    auto v = g.add_constant(value);
+    auto plus = g.add_operator(OperatorType::ADD, {zero, v});
+    g.get_node(plus)->eval(gen);
+    return plus;
+  };
+
+  auto makePosConst = [&](double value) {
+    auto v = g.add_constant_pos_real(value);
+    auto plus = g.add_operator(OperatorType::ADD, {pos_zero, v});
+    g.get_node(plus)->eval(gen);
+    return plus;
+  };
+
+  auto oneTest = [&](double value, double mean, double stdev) {
+    auto value_node = g.get_node(makeConst(value));
+    auto mean_node = g.get_node(makeConst(mean));
+    auto stdev_node = g.get_node(makePosConst(stdev));
+    auto distribution = g.add_distribution(
+        DistributionType::NORMAL,
+        AtomicType::REAL,
+        {mean_node->index, stdev_node->index});
+    auto logprob_node = g.get_node(g.add_operator(
+        OperatorType::LOG_PROB, {distribution, value_node->index}));
+    auto clear_gradient = [&](Node* node) {
+      node->grad1 = 0;
+      node->grad2 = 0;
+      node->back_grad1 = 0;
+    };
+    auto clear_gradients = [&]() {
+      clear_gradient(value_node);
+      clear_gradient(mean_node);
+      clear_gradient(stdev_node);
+      clear_gradient(logprob_node);
+    };
+
+    // test gradient1 with respect to mean
+    clear_gradients();
+    mean_node->grad1 = 1;
+    logprob_node->compute_gradients();
+    // See https://www.wolframalpha.com/
+    // D[Log[PDF[NormalDistribution[m, s], v]], m] => (-m + v)/s^2
+    EXPECT_NEAR(
+        logprob_node->grad1, (-mean + value) / (stdev * stdev), epsilon);
+    auto gradient_vs_mean1 = logprob_node->grad1;
+
+    // test gradient2 with respect to mean
+    // D[D[log(PDF(NormalDistribution[m, s], v)), m], m] => -s^(-2)
+    EXPECT_NEAR(logprob_node->grad2, -pow(stdev, -2), epsilon);
+
+    // test gradient1 with respect to stdev
+    clear_gradients();
+    stdev_node->grad1 = 1;
+    logprob_node->compute_gradients();
+    // D[Log[PDF[NormalDistribution[m, s], v]], s] =>
+    //      (m^2 - s^2 - 2 m v + v^2)/s^3
+    EXPECT_NEAR(
+        logprob_node->grad1,
+        (pow(mean, 2) - pow(stdev, 2) - 2 * mean * value + pow(value, 2)) /
+            pow(stdev, 3),
+        epsilon);
+    auto gradient_vs_stdev1 = logprob_node->grad1;
+
+    // test gradient2 with respect to stdev
+    // D[D[log(PDF(NormalDistribution[m, s], v)), s], s] =>
+    //        (-3 m^2 + s^2 + 6 m v - 3 v^2)/s^4
+    EXPECT_NEAR(
+        logprob_node->grad2,
+        (-3 * pow(mean, 2) + pow(stdev, 2) + 6 * mean * value -
+         3 * pow(value, 2)) /
+            pow(stdev, 4),
+        epsilon);
+
+    // test gradient1 with respect to value
+    clear_gradients();
+    value_node->grad1 = 1;
+    logprob_node->compute_gradients();
+    // D[log(PDF(NormalDistribution[m, s], v)), v] => (m - v)/s^2
+    EXPECT_NEAR(logprob_node->grad1, (mean - value) / (stdev * stdev), epsilon);
+    auto gradient_vs_value1 = logprob_node->grad1;
+
+    // test gradient2 with respect to value
+    // D[D[Log[PDF[NormalDistribution[m, s], v]], v], v] => -s^(-2)
+    EXPECT_NEAR(logprob_node->grad2, -pow(stdev, -2), epsilon);
+    auto gradient_vs_value2 = logprob_node->grad2;
+
+    // test for proper application of the chain rule (vs value).
+    clear_gradients();
+    value_node->grad1 = 1.1;
+    value_node->grad2 = 2.2;
+    logprob_node->compute_gradients();
+    EXPECT_NEAR(
+        logprob_node->grad1, value_node->grad1 * gradient_vs_value1, epsilon);
+    EXPECT_NEAR(
+        logprob_node->grad2,
+        gradient_vs_value2 * pow(value_node->grad1, 2) +
+            value_node->grad2 * gradient_vs_value1,
+        epsilon);
+
+    // test for backward gradients.
+    clear_gradients();
+    logprob_node->back_grad1 = 1.1;
+    logprob_node->backward();
+    EXPECT_NEAR(
+        value_node->back_grad1,
+        gradient_vs_value1 * logprob_node->back_grad1,
+        epsilon);
+    EXPECT_NEAR(
+        stdev_node->back_grad1,
+        gradient_vs_stdev1 * logprob_node->back_grad1,
+        epsilon);
+    EXPECT_NEAR(
+        mean_node->back_grad1,
+        gradient_vs_mean1 * logprob_node->back_grad1,
+        epsilon);
+  };
+
+  auto values = std::vector<double>({-1.2, 0, 2.13, 5});
+  for (const double value : values) {
+    for (const double mean : values) {
+      for (const double stdev : values) {
+        if (stdev != 0) {
+          oneTest(value, mean, std::abs(stdev));
+        }
+      }
+    }
+  }
+}

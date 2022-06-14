@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 
+#include <beanmachine/graph/graph.h>
 #include "beanmachine/graph/distribution/bernoulli.h"
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/graph.h"
@@ -1786,4 +1787,56 @@ TEST(testgradient, matrix_exp) {
       EXPECT_NEAR(exp_expected(i, j), exp_infer._matrix(i, j), 1e-4);
     }
   }
+}
+
+TEST(testoperator, log_prob) {
+  Graph g;
+  std::mt19937 gen;
+  double epsilon = 0.00000001;
+
+  // negative tests
+  // LOG_PROB requires two parents
+  auto two = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG_PROB, {}), std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG_PROB, {two}), std::invalid_argument);
+  // The first parent must be a distribution
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG_PROB, {two, two}),
+      std::invalid_argument);
+
+  // mean of two and standard deviation of three
+  auto distribution = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      {two, g.add_constant_pos_real(3.0)});
+
+  // test at 2
+  auto log_prob2 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(2.0)});
+  g.get_node(log_prob2)->eval(gen);
+  // log[PDF[NormalDistribution[2, 3], 2]] ~ -2.01755082187
+  EXPECT_NEAR(g.get_node(log_prob2)->value._double, -2.01755082187, epsilon);
+
+  // test at 3
+  auto log_prob3 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(3.0)});
+  g.get_node(log_prob3)->eval(gen);
+  // Log[PDF[NormalDistribution[2, 3], 3]] ~ -2.07310637743
+  EXPECT_NEAR(g.get_node(log_prob3)->value._double, -2.07310637743, epsilon);
+
+  // test at 5
+  auto log_prob5 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(5.0)});
+  g.get_node(log_prob5)->eval(gen);
+  // Log[PDF[NormalDistribution[2, 3], 5]] ~ -2.51755082187
+  EXPECT_NEAR(g.get_node(log_prob5)->value._double, -2.51755082187, epsilon);
+
+  // test at 10
+  auto log_prob10 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(10.0)});
+  g.get_node(log_prob10)->eval(gen);
+  // Log[PDF[NormalDistribution[2, 3], 10]] ~ -5.57310637743
+  EXPECT_NEAR(g.get_node(log_prob10)->value._double, -5.57310637743, epsilon);
 }

@@ -7,7 +7,11 @@
 
 #include <cmath>
 
+#include <beanmachine/graph/graph.h>
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/operator/multiaryop.h"
+
+using namespace beanmachine::distribution;
 
 namespace beanmachine {
 namespace oper {
@@ -246,6 +250,32 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
     }
     value._matrix = result;
   }
+}
+
+LogProb::LogProb(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::LOG_PROB) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument("operator LOG_PROB requires two input nodes");
+  }
+  if (in_nodes[0]->node_type != graph::NodeType::DISTRIBUTION) {
+    throw std::invalid_argument(
+        "operator LOG_PROB requires a distribution for its first parent");
+  }
+  auto dist = (Distribution*)in_nodes[0];
+  auto value = in_nodes[1];
+  if (value->node_type == graph::NodeType::DISTRIBUTION) {
+    throw std::invalid_argument(
+        "operator LOG_PROB requires a value for its second parent");
+  }
+  if (dist->sample_type != value->value.type) {
+    throw std::invalid_argument(
+        "operator LOG_PROB requires the value to be of the type produced by the distribution");
+  }
+}
+
+void LogProb::eval(std::mt19937&) {
+  auto dist = (Distribution*)in_nodes[0];
+  value._double = dist->log_prob(in_nodes[1]->value);
 }
 
 } // namespace oper
