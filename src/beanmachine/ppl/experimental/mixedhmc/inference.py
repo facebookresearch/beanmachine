@@ -1,18 +1,19 @@
 from typing import List, Set, Tuple
 
+import torch
+import torch.distributions as dist
+
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
+
+from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 
-from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
-
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
 
-import torch
-import torch.distributions as dist
 
 class MixedHMC(BaseInference):
     """
@@ -31,16 +32,15 @@ class MixedHMC(BaseInference):
     """
 
     def __init__(
-            self,
-            max_step_size,
-            num_discrete_updates,
-            trajectory_length,
+        self,
+        max_step_size,
+        num_discrete_updates,
+        trajectory_length,
     ):
         self.max_step_size = max_step_size
         self.num_discrete_updates = num_discrete_updates
         self.trajectory_length = trajectory_length
         self._proposer = None
-
 
     def get_proposers(
         self,
@@ -58,7 +58,7 @@ class MixedHMC(BaseInference):
                 self.trajectory_length,
             )
         return [self._proposer]
-            
+
 
 class MixedHMCProposer(BaseProposer):
     """
@@ -100,7 +100,7 @@ class MixedHMCProposer(BaseProposer):
                 self._disc_target_rvs.append(node)
 
         self.num_discretes = len(self._disc_target_rvs)
-                
+
         self.hmc_kernel = HMCProposer(
             initial_world,
             self._cont_target_rvs,
@@ -111,13 +111,14 @@ class MixedHMCProposer(BaseProposer):
         # initialize parameters
         self.trajectory_length = trajectory_length
 
-
-    def discrete_update(self, world: World, idx: torch.Tensor, ke_discrete) -> Tuple[World, torch.Tensor]:
+    def discrete_update(
+        self, world: World, idx: torch.Tensor, ke_discrete
+    ) -> Tuple[World, torch.Tensor]:
         if world is not self.world:
             self.world = world
 
-        disc_logprob = torch.as_tensor(0.)
-            
+        disc_logprob = torch.as_tensor(0.0)
+
         n = self._disc_target_rvs[idx]
         discrete_kernel = SingleSiteUniformProposer(n)
         world, lp = discrete_kernel.propose(self.world)
@@ -125,10 +126,9 @@ class MixedHMCProposer(BaseProposer):
 
         if ke_discrete + disc_logprob > 0:
             self.world = world
-        
+
         return self.world, disc_logprob
 
-        
     def propose(self, world: World) -> Tuple[World, torch.Tensor]:
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
@@ -137,8 +137,10 @@ class MixedHMCProposer(BaseProposer):
         ke_discrete = dist.Exponential(1).expand((self.num_discretes,)).sample()
         arrival_times = dist.Uniform(0, 1).expand((self.num_discretes,)).sample()
         idx = arrival_times.argmin()
-        
-        self.world, cont_logprob = self.hmc_kernel.propose(self.world)
-        self.world, disc_logprob = self.discrete_update(self.world, idx, ke_discrete[idx])
 
-        return self.world, torch.as_tensor(0.)
+        self.world, cont_logprob = self.hmc_kernel.propose(self.world)
+        self.world, disc_logprob = self.discrete_update(
+            self.world, idx, ke_discrete[idx]
+        )
+
+        return self.world, torch.as_tensor(0.0)
