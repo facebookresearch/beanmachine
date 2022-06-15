@@ -1,0 +1,72 @@
+{
+    "comment" : "everything other than nodes is optional",
+    "nodes" : [
+        {
+            "sequence" : 0,
+            "operator" : "CONSTANT",
+            "type" : "REAL",
+            "value" : 2
+        },
+        {
+            "sequence" : 1,
+            "operator" : "DISTRIBUTION_BETA",
+            "type" : "DISTRIBUTION",
+            "in_nodes" : [ 0, 0 ]
+        },
+        {
+            "sequence" : 2,
+            "operator" : "SAMPLE",
+            "type" : "REAL",
+            "in_nodes" : [ 1 ]
+        },
+        {
+            "sequence" : 3,
+            "operator" : "DISTRIBUTION_BERNOULLI",
+            "type" : "DISTRIBUTION",
+            "in_nodes" : [ 2 ]
+        },
+        {
+            "sequence" : 4,
+            "operator" : "CONSTANT",
+            "type" : "REAL",
+            "value" : 0
+        },
+        {
+            "sequence" : 5,
+            "operator" : "CONSTANT",
+            "type" : "REAL",
+            "value" : 1
+        },
+        {
+            "sequence" : 6,
+            "operator" : "OBSERVE",
+            "type" : "NONE",
+            "in_nodes" : [ 3, 5 ]
+        },
+        {
+            "sequence" : 7,
+            "operator" : "OBSERVE",
+            "type" : "NONE",
+            "in_nodes" : [ 3, 5 ]
+        },
+        {
+            "sequence" : 8,
+            "operator" : "OBSERVE",
+            "type" : "NONE",
+            "in_nodes" : [ 3, 5 ]
+        },
+        {
+            "sequence" : 8,
+            "operator" : "OBSERVE",
+            "type" : "NONE",
+            "in_nodes" : [ 3, 4 ]
+        },
+        {
+            "sequence" : 9,
+            "operator" : "QUERY",
+            "type" : "NONE",
+            "in_nodes" : [ 2 ],
+            "query_index" : 0
+        }
+    ]
+}
