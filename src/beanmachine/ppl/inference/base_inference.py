@@ -177,6 +177,8 @@ class BaseInference(metaclass=ABCMeta):
         if not run_in_parallel:
             chain_results = map(single_chain_infer, range(num_chains))
         else:
+            # pyre-fixme[6]: For 1st param expected `None` but got `Union[str, str,
+            #  str, None]`.
             ctx = mp.get_context(mp_context)
             # We'd like to explicitly set a different seed for each process to avoid
             # duplicating the same RNG state for all chains

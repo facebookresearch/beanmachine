@@ -136,7 +136,12 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         queries = [model.normal_p()]
         observations = {model.normal(): obs}
         expected_mean = (mu / std.pow(2.0) + obs / sigma.pow(2.0)) / (
-            1.0 / sigma.pow(2.0) + 1.0 / std.pow(2.0)
+            # pyre-fixme[58]: `/` is not supported for operand types `float` and
+            #  `Tensor`.
+            1.0 / sigma.pow(2.0)
+            # pyre-fixme[58]: `/` is not supported for operand types `float` and
+            #  `Tensor`.
+            + 1.0 / std.pow(2.0)
         )
         expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
         return (expected_mean, expected_std, queries, observations)
@@ -269,7 +274,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             above_lower = torch.min(std <= upper_bound).item()
             accept_interval = below_upper and above_lower
             message = "(n_eff - 1) * (std/ expected_std) ** 2 = " + str(
-                (n_eff - 1) * (std / expected_std) ** 2
+                (n_eff - 1)
+                # pyre-fixme[58]: `**` is not supported for operand types `Tensor`
+                #  and `int`.
+                * (std / expected_std) ** 2
             )
             message = (
                 " alpha = "

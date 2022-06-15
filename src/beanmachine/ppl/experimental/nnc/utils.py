@@ -24,6 +24,7 @@ warnings.warn(
 )
 
 # allows reductions to be compiled by NNC
+# pyre-fixme[16]: Module `_C` has no attribute `_jit_set_texpr_reductions_enabled`.
 torch._C._jit_set_texpr_reductions_enabled(True)
 
 # override the usage of torch.jit.script, which has a bit of issue handling

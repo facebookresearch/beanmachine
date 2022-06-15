@@ -112,7 +112,6 @@ class RejectionSampling(AbstractMCInference, metaclass=ABCMeta):
                 torch.abs(node_var_sample.float() - node_observation.float()),
                 self.tolerance,
             )
-            # pyre-fixme
             if samples_dont_match.any():
                 self._reject_sample(node_key)
                 return 0

@@ -32,7 +32,6 @@ def zero_grad(node_val: Tensor) -> None:
     """
     Zeros the gradient.
     """
-    # pyre-fixme
     if node_val.is_leaf and hasattr(node_val, "grad") and node_val.grad is not None:
         node_val.grad.zero_()
 
@@ -55,7 +54,6 @@ def compute_first_gradient(
 
     # pyre expects attributes to be defined in constructors or at class
     # top levels and doesn't support attributes that get dynamically added.
-    # pyre-fixme
     elif node_val.is_leaf and node_val.grad is not None:
         node_val.grad.zero_()
 
@@ -79,7 +77,6 @@ def compute_hessian(first_gradient: Tensor, node_val: Tensor) -> Tuple[bool, Ten
     for i in range(size):
         second_gradient = (
             grad(
-                # pyre-fixme
                 first_gradient.index_select(0, tensor([i])),
                 node_val,
                 create_graph=True,
@@ -111,6 +108,7 @@ def soft_abs_inverse(neg_hessian: Tensor, alpha: float = 1e6) -> Tuple[Tensor, T
     :returns: eigen value and eigen vector of the negative hessian inverse
     """
     eig_vals, eig_vecs = torch.linalg.eigh(neg_hessian)
+    # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
     inverse_eig_vals = torch.tanh(alpha * eig_vals) / eig_vals
     return eig_vecs, inverse_eig_vals
 

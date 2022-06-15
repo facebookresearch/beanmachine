@@ -33,6 +33,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             c = torch.reciprocal(target_acc_rate)
         else:
             target_acc_rate = self.target_acc_rate[True]
+            # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
             c = torch.reciprocal(1.0 - target_acc_rate)
 
         new_step_size = self.step_size * torch.exp(

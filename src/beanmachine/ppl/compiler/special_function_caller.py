@@ -438,47 +438,47 @@ class SpecialFunctionCaller:
             #
             torch.Tensor.add: self._torch_add,
             torch.add: self._torch_add,
-            torch.Tensor.bitwise_and: self._torch_bitwise_and,  # pyre-ignore
+            torch.Tensor.bitwise_and: self._torch_bitwise_and,
             torch.bitwise_and: self._torch_bitwise_and,
-            torch.Tensor.bitwise_not: self._torch_bitwise_not,  # pyre-ignore
+            torch.Tensor.bitwise_not: self._torch_bitwise_not,
             torch.bitwise_not: self._torch_bitwise_not,
-            torch.Tensor.bitwise_or: self._torch_bitwise_or,  # pyre-ignore
+            torch.Tensor.bitwise_or: self._torch_bitwise_or,
             torch.bitwise_or: self._torch_bitwise_or,
-            torch.Tensor.bitwise_xor: self._torch_bitwise_xor,  # pyre-ignore
+            torch.Tensor.bitwise_xor: self._torch_bitwise_xor,
             torch.bitwise_xor: self._torch_bitwise_xor,
-            torch.Tensor.bitwise_left_shift: self._torch_bitwise_left_shift,  # pyre-ignore
+            torch.Tensor.bitwise_left_shift: self._torch_bitwise_left_shift,
             torch.bitwise_left_shift: self._torch_bitwise_left_shift,
-            torch.Tensor.bitwise_right_shift: self._torch_bitwise_right_shift,  # pyre-ignore
+            torch.Tensor.bitwise_right_shift: self._torch_bitwise_right_shift,
             torch.bitwise_right_shift: self._torch_bitwise_right_shift,
-            torch.Tensor.cholesky: self._torch_cholesky,  # pyre-ignore
+            torch.Tensor.cholesky: self._torch_cholesky,
             torch.linalg.cholesky: self._torch_cholesky,
             torch.Tensor.div: self._torch_div,
             torch.div: self._torch_div,
-            torch.Tensor.divide: self._torch_div,  # pyre-ignore
+            torch.Tensor.divide: self._torch_div,
             torch.divide: self._torch_div,
             torch.Tensor.eq: self._torch_eq,
             torch.eq: self._torch_eq,
-            torch.Tensor.equal: self._torch_eq,  # pyre-ignore
+            torch.Tensor.equal: self._torch_eq,
             torch.equal: self._torch_eq,
-            torch.Tensor.exp: self._torch_exp,  # pyre-ignore
+            torch.Tensor.exp: self._torch_exp,
             torch.exp: self._torch_exp,
-            torch.Tensor.exp2: self._torch_exp2,  # pyre-ignore
+            torch.Tensor.exp2: self._torch_exp2,
             torch.exp2: self._torch_exp2,
             torch.special.exp2: self._torch_exp2,
-            torch.Tensor.expm1: self._torch_expm1,  # pyre-ignore
+            torch.Tensor.expm1: self._torch_expm1,
             torch.expm1: self._torch_expm1,
             torch.special.expm1: self._torch_expm1,
             torch.Tensor.float: self._torch_float,
             # TODO: float_power
-            torch.Tensor.floor_divide: self._torch_floor_divide,  # pyre-ignore
+            torch.Tensor.floor_divide: self._torch_floor_divide,
             torch.floor_divide: self._torch_floor_divide,
-            torch.Tensor.fmod: self._torch_fmod,  # pyre-ignore
+            torch.Tensor.fmod: self._torch_fmod,
             torch.fmod: self._torch_fmod,
             torch.Tensor.ge: self._torch_ge,
             torch.ge: self._torch_ge,
-            torch.Tensor.greater: self._torch_gt,  # pyre-ignore
+            torch.Tensor.greater: self._torch_gt,
             torch.greater: self._torch_gt,
-            torch.Tensor.greater_equal: self._torch_ge,  # pyre-ignore
+            torch.Tensor.greater_equal: self._torch_ge,
             torch.greater_equal: self._torch_ge,
             torch.Tensor.gt: self._torch_gt,
             torch.gt: self._torch_gt,
@@ -486,22 +486,22 @@ class SpecialFunctionCaller:
             torch.Tensor.item: self._torch_item,
             torch.Tensor.le: self._torch_le,
             torch.le: self._torch_le,
-            torch.Tensor.less: self._torch_lt,  # pyre-ignore
+            torch.Tensor.less: self._torch_lt,
             torch.less: self._torch_lt,
-            torch.Tensor.less_equal: self._torch_le,  # pyre-ignore
+            torch.Tensor.less_equal: self._torch_le,
             torch.less_equal: self._torch_le,
             torch.Tensor.log: self._torch_log,
             torch.log: self._torch_log,
-            torch.Tensor.log10: self._torch_log10,  # pyre-ignore
+            torch.Tensor.log10: self._torch_log10,
             torch.log10: self._torch_log10,
-            torch.Tensor.log1p: self._torch_log1p,  # pyre-ignore
+            torch.Tensor.log1p: self._torch_log1p,
             torch.log1p: self._torch_log1p,
             torch.special.log1p: self._torch_log1p,
-            torch.Tensor.log2: self._torch_log2,  # pyre-ignore
+            torch.Tensor.log2: self._torch_log2,
             torch.log2: self._torch_log2,
             # TODO: logical_and
             # TODO: special.logit
-            torch.Tensor.logical_not: self._torch_logical_not,  # pyre-ignore
+            torch.Tensor.logical_not: self._torch_logical_not,
             torch.logical_not: self._torch_logical_not,
             # TODO: logical_or
             # TODO: logical_xor
@@ -512,23 +512,23 @@ class SpecialFunctionCaller:
             torch.lt: self._torch_lt,
             torch.Tensor.matmul: self._torch_matmul,
             torch.matmul: self._torch_matmul,
-            torch.Tensor.mm: self._torch_mm,  # pyre-ignore
+            torch.Tensor.mm: self._torch_mm,
             torch.mm: self._torch_mm,
             torch.Tensor.mul: self._torch_mul,
             torch.mul: self._torch_mul,
-            torch.Tensor.multiply: self._torch_mul,  # pyre-ignore
+            torch.Tensor.multiply: self._torch_mul,
             torch.multiply: self._torch_mul,
             torch.Tensor.ne: self._torch_ne,
             torch.ne: self._torch_ne,
-            torch.Tensor.not_equal: self._torch_ne,  # pyre-ignore
+            torch.Tensor.not_equal: self._torch_ne,
             torch.not_equal: self._torch_ne,
             torch.Tensor.neg: self._torch_neg,
             torch.neg: self._torch_neg,
-            torch.Tensor.negative: self._torch_neg,  # pyre-ignore
+            torch.Tensor.negative: self._torch_neg,
             torch.negative: self._torch_neg,
             torch.Tensor.pow: self._torch_pow,
             torch.pow: self._torch_pow,
-            torch.Tensor.remainder: self._torch_fmod,  # pyre-ignore
+            torch.Tensor.remainder: self._torch_fmod,
             torch.remainder: self._torch_fmod,
             torch.sigmoid: self._torch_sigmoid,
             torch.Tensor.sigmoid: self._torch_sigmoid,
@@ -537,11 +537,11 @@ class SpecialFunctionCaller:
             torch.sqrt: self._torch_sqrt,
             torch.Tensor.sub: self._torch_sub,
             torch.sub: self._torch_sub,
-            torch.Tensor.subtract: self._torch_sub,  # pyre-ignore
+            torch.Tensor.subtract: self._torch_sub,
             torch.subtract: self._torch_sub,
             torch.Tensor.sum: self._torch_sum,
             torch.sum: self._torch_sum,
-            torch.Tensor.true_divide: self._torch_div,  # pyre-ignore
+            torch.Tensor.true_divide: self._torch_div,
             torch.true_divide: self._torch_div,
         }
         self._special_tensor_instance_function_names = {

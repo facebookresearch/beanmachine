@@ -21,4 +21,5 @@ class GammaNormalModel:
 
     @bm.random_variable
     def normal(self) -> dist.Distribution:
+        # pyre-fixme[58]: `/` is not supported for operand types `int` and `Tensor`.
         return dist.Normal(self.mu_, 1 / torch.sqrt(self.gamma()))

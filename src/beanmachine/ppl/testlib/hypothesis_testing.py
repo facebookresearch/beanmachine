@@ -110,6 +110,7 @@ def variance_equality_hypothesis_test(
     if torch.max(true_std <= 0).item():
         return False
     adjusted_alpha = 1 - (1 - alpha) ** (1.0 / dimensions)
+    # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and `int`.
     test_statistic = degrees_of_freedom * (sample_std / true_std) ** 2
     lower_bound = inverse_chi2_cdf(degrees_of_freedom, adjusted_alpha / 2)
     upper_bound = inverse_chi2_cdf(degrees_of_freedom, 1 - adjusted_alpha / 2)

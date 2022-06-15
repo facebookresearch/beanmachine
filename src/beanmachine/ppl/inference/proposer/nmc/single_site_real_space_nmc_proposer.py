@@ -199,7 +199,11 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         # parameters-of-a-beta-distribution-using-the-mean-and-variance
         alpha = ((1.0 - new_mu) / new_var - (1.0 / new_mu)) * (new_mu**2)
         beta = alpha * (1.0 - new_mu) / new_mu
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `bool`.
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
         alpha = torch.where(alpha <= 0, torch.ones_like(alpha), alpha)
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `bool`.
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
         beta = torch.where(beta <= 0, torch.ones_like(beta), beta)
         return alpha, beta
 
