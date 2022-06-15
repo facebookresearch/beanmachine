@@ -18,6 +18,7 @@ from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.compiler.gen_mini import to_mini
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -294,6 +295,16 @@ class BMGInference:
             label_edges,
             skip_optimizations,
         )
+
+    def _to_mini(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, torch.Tensor],
+        indent=None,
+    ) -> str:
+        """Internal test method for Neal's MiniBMG prototype."""
+        bmg = self._accumulate_graph(queries, observations)._bmg
+        return to_mini(bmg, indent)
 
     def to_graphviz(
         self,
