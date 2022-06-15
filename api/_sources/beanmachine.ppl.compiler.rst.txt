@@ -47,6 +47,7 @@ Submodules
    beanmachine.ppl.compiler.gen_bmg_python
    beanmachine.ppl.compiler.gen_builder
    beanmachine.ppl.compiler.gen_dot
+   beanmachine.ppl.compiler.gen_mini
    beanmachine.ppl.compiler.graph_labels
    beanmachine.ppl.compiler.hint
    beanmachine.ppl.compiler.internal_error

@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.gen\_mini module
+=========================================
+
+.. automodule:: beanmachine.ppl.compiler.gen_mini
+   :members:
+   :undoc-members:
+   :show-inheritance:
