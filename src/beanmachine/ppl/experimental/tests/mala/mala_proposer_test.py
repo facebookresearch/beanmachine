@@ -7,7 +7,7 @@ import beanmachine.ppl as bm
 import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.mala_proposer import MALAProposer
+from beanmachine.ppl.experimental.mala.mala_proposer import MALAProposer
 from beanmachine.ppl.world import World
 
 
