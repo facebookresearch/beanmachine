@@ -891,6 +891,21 @@ class RShiftNode(BinaryOperatorNode):
         BinaryOperatorNode.__init__(self, left, right)
 
 
+# LogAddExpNode represents a call to the binary operator logAddExp in the original
+# code. It is transformed into LogSumExpNode.
+
+
+class LogAddExpNode(BinaryOperatorNode):
+    """This class represents the LogAddExp operation: for values v_1, v_2
+    we compute log(exp(v_1) + exp(v_2))"""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return "LogAddExp({self.left}, {self.right})"
+
+
 class SwitchNode(BMGNode):
 
     """This class represents a point in a program where there are

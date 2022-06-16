@@ -508,6 +508,8 @@ class SpecialFunctionCaller:
             torch.Tensor.logsumexp: self._torch_logsumexp,
             torch.logsumexp: self._torch_logsumexp,
             torch.special.logsumexp: self._torch_logsumexp,
+            torch.Tensor.logaddexp: self._torch_logaddexp,
+            torch.logaddexp: self._torch_logaddexp,
             torch.Tensor.lt: self._torch_lt,
             torch.lt: self._torch_lt,
             torch.Tensor.matmul: self._torch_matmul,
@@ -1020,6 +1022,14 @@ class SpecialFunctionCaller:
         if keepdim is None:
             keepdim = self._make_constant(False)
         return self._bmg.add_logsumexp_torch(input, dim, keepdim)
+
+    def _torch_logaddexp(
+        self,
+        input: BMGNode,
+        other: BMGNode,
+        out: Any = None,
+    ) -> Any:
+        return self._bmg.add_logaddexp(input, other)
 
     def _torch_lt(self, input: BMGNode, other: BMGNode, out: Any = None) -> BMGNode:
         return self._bmg.add_less_than(input, other)

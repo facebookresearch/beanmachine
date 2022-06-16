@@ -947,6 +947,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_logaddexp(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.LogAddExpNode:
+        node = bn.LogAddExpNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_switch(self, *elements: BMGNode) -> bn.SwitchNode:
         # TODO: Verify that the list is well-formed.
         node = bn.SwitchNode(list(elements))
