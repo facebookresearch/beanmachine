@@ -7,11 +7,13 @@ import os
 import platform
 import re
 import sys
+import shutil
 from glob import glob
 
 from pybind11.setup_helpers import build_ext, Pybind11Extension
-from setuptools import find_packages, setup
-
+from setuptools import find_packages, setup, Extension
+from setuptools.command.build_py import build_py
+from distutils.command.build import build as _build
 
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
@@ -124,6 +126,45 @@ elif sys.platform.startswith("darwin"):
         + glob("/usr/local/Cellar/boost/*/include")
     )
 
+class CMakeBuild(build_py):
+
+    def run(self):
+        target_dir = self.build_lib
+        # directory where .so file lives
+        cmake_build_dir = os.getenv("PAIC_MLIR_CMAKE_BUILD_DIR")
+        if not cmake_build_dir:
+            cmake_build_dir = os.path.abspath(
+                os.path.join(target_dir, "..", "cmake_build"))
+        # if you end up storing the pybind module in a subdirectory, you have to update this
+        python_package_dir = cmake_build_dir
+        # TODO: build MLIR from source and add dialects. Check if already built first
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir, ignore_errors=False, onerror=None)
+
+        # copy into build directory
+        print("copying from " + python_package_dir + " into " + target_dir)
+        shutil.copytree(python_package_dir,
+                        target_dir,
+                        symlinks=False)
+
+class CMakeExtension(Extension):
+
+  def __init__(self, name, sourcedir=""):
+    Extension.__init__(self, name, sources=[])
+    self.sourcedir = os.path.abspath(sourcedir)
+
+class CustomBuild(_build):
+
+    def run(self):
+        self.run_command("build_py")
+        self.run_command("build_ext")
+        self.run_command("build_scripts")
+
+class NoopBuildExtension(build_ext):
+
+    def build_extension(self, ext):
+        pass
+
 setup(
     name="beanmachine",
     version=version,
@@ -167,9 +208,14 @@ setup(
             ),
             include_dirs=INCLUDE_DIRS,
             extra_compile_args=CPP_COMPILE_ARGS,
-        )
+        ),
+        CMakeExtension(name="beanmachine.paic_mlir")
     ],
-    cmdclass={"build_ext": build_ext},
+    cmdclass={
+        "build": CustomBuild,
+        "built_ext": NoopBuildExtension,
+        "build_py": CMakeBuild,
+    },
     extras_require={
         "dev": DEV_REQUIRES,
         "test": TEST_REQUIRES,
