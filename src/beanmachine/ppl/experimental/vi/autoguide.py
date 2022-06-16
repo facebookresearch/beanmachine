@@ -67,13 +67,20 @@ class ADVI(AutoGuideVI):
         @bm.param
         def param_loc():
             # TODO: use event shape
-            return torch.rand_like(distrib.sample()) * 4.0 - 2.0
+            return (
+                torch.rand_like(biject_to(distrib.support).inv(distrib.sample())) * 4.0
+                - 2.0
+            )
 
         @bm.param
         def param_scale():
             # TODO: use event shape
-            scale = 0.01 + torch.rand_like(distrib.sample())
-            return scale
+            return (
+                0.01
+                + torch.rand_like(biject_to(distrib.support).inv(distrib.sample()))
+                * 4.0
+                - 2.0
+            )
 
         def f():
             loc = param_loc()
@@ -86,9 +93,7 @@ class ADVI(AutoGuideVI):
                         q, [dist.transforms.SoftplusTransform()]
                     )
                 else:
-                    q = dist.TransformedDistribution(
-                        q, [dist.constraint_registry.biject_to(distrib.support)]
-                    )
+                    q = dist.TransformedDistribution(q, [biject_to(distrib.support)])
             return q
 
         f.__name__ = "guide_" + str(query)
@@ -107,7 +112,10 @@ class MAP(AutoGuideVI):
         @bm.param
         def param_loc():
             # TODO: use event shape
-            return torch.rand_like(biject_to(distrib.support).inv(distrib.sample()))
+            return (
+                torch.rand_like(biject_to(distrib.support).inv(distrib.sample())) * 4.0
+                - 2.0
+            )
 
         def f():
             loc = param_loc()
