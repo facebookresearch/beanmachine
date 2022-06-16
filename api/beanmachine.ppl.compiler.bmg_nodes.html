@@ -1257,6 +1257,24 @@ a model contains calls to log1mexp or math_log1mexp.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.LogAddExpNode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">LogAddExpNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.LogAddExpNode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode</span></code></a></p>
+<p>This class represents the LogAddExp operation: for values v_1, v_2
+we compute log(exp(v_1) + exp(v_2))</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.LogAddExpNode.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.InputList" title="beanmachine.ppl.compiler.bmg_nodes.InputList"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.InputList</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.LogAddExpNode.inputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.LogAddExpNode.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.ppl.utils.item_counter.ItemCounter</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.LogAddExpNode.outputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.LogNode">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">LogNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.LogNode" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode</span></code></a></p>
