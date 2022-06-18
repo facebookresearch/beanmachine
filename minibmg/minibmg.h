@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+#include "beanmachine/minibmg/container.h"
 
 using uint = unsigned int;
 
@@ -83,7 +84,7 @@ enum Type {
   DISTRIBUTION,
 };
 
-class Graph {
+class Graph : Container {
  public:
   const std::vector<const Node*> nodes;
 
@@ -111,7 +112,7 @@ class Graph {
 
    private:
     std::vector<const Node*> nodes;
-    int next_query;
+    int next_query = 0;
   };
 };
 
