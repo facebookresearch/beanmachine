@@ -54,14 +54,9 @@ class ProfileReport:
             s += f"{indent}{key}:({value.calls}) {value.total_time // 1000000} ms\n"
             s += value._to_string(indent + "  ")
             attributed += value.total_time
-        # Commenting the "anded" part out to limit leakage of timing non-determinsim
-        # TODO: There are two shortcomings to the current solution. First, it prints
-        # a somewhat confusing final "unattributed" label that (currently) represents
-        # the total time. Second, even in other positions, it is not ideal to print
-        # only the absolute value of the unattributed time, as the reader is likely
-        # to assume a direction for the mismatch. A better way to do this would be
-        # change the sanitizing printer to fix this.
-        if len(self.children) > 0:  # and self.total_time > 0:
+        if self.parent is None:
+            s += "Total time: " + str(attributed // 1000000) + " ms\n"
+        elif len(self.children) > 0:  # and self.total_time > 0:
             unattributed = self.total_time - attributed
             s += f"{indent}unattributed: {abs(unattributed // 1000000)} ms\n"
         return s

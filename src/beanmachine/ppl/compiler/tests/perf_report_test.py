@@ -157,11 +157,11 @@ bmg_profiler_report: nmc_infer:(1) -- ms
     collect_sample:(1000) -- ms
     unattributed: -- ms
   unattributed: -- ms
-unattributed: -- ms
+Total time: -- ms
 """
         self.assertEqual(tidy(expected).strip(), tidy(observed).strip())
 
-        # Of you can look at each element programmatically:
+        # Or you can look at each element programmatically:
 
         self.assertEqual("Bean Machine Graph performance report", perf_report.title)
         self.assertEqual(3, perf_report.algorithm)
@@ -208,7 +208,6 @@ nmc_infer:(1) -- ms
     collect_sample:(1000) -- ms
     unattributed: -- ms
   unattributed: -- ms
-unattributed: -- ms
+Total time: -- ms
 """
-
         self.assertEqual(tidy(expected).strip(), tidy(observed).strip())
