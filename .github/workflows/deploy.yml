@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        python-version: ['3.7', '3.8', '3.9']  # TODO: Add python 3.10 with next PyTorch version
+        python-version: ['3.7', '3.8', '3.9', '3.10']
         include:
           - python-version: '3.8'  # source distribution only needs to be build once
             os: ubuntu-latest
@@ -87,7 +87,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        cibw_build: ['cp37-*', 'cp38-*', 'cp39-*']
+        cibw_build: ['cp37-*', 'cp38-*', 'cp39-*', 'cp310-*']
 
     steps:
     - name: Checkout
