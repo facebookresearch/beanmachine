@@ -488,12 +488,11 @@ double Graph::log_prob(uint src_idx) {
   return log_prob;
 }
 
-// TODO: this is the one actually used in code (as opposed to full_log_prob used
-// in testing only, so why the _ indicating a private method?)
-double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
+double Graph::full_log_prob() {
+  initialize();
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
-  for (auto node : ordered_supp) {
+  for (auto node : supp) {
     if (node->is_stochastic()) {
       sum_log_prob += node->log_prob();
       if (node->node_type == NodeType::OPERATOR) {
@@ -521,18 +520,6 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
     }
   }
   return sum_log_prob;
-}
-
-/* TODO: used in testing only; it looks like there has not been a need for it in
- * actual code so far; notheless we can leave it here as it is a natural
- * operation */
-double Graph::full_log_prob() {
-  std::set<uint> ordered_support_node_ids = compute_ordered_support_node_ids();
-  std::vector<Node*> ordered_supp;
-  for (uint node_id : ordered_support_node_ids) {
-    ordered_supp.push_back(nodes[node_id].get());
-  }
-  return _full_log_prob(ordered_supp);
 }
 
 // TODO: from now on, we have methods for adding nodes, checking validity,

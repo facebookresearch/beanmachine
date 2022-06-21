@@ -943,7 +943,6 @@ stochastic.
 
   // TODO: Review what members of this class can be made static.
 
-  static double _full_log_prob(std::vector<Node*>& ordered_supp);
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;
