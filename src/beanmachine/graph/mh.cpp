@@ -24,10 +24,7 @@ namespace beanmachine {
 namespace graph {
 
 MH::MH(Graph* graph, uint seed, Stepper* stepper)
-    : unobserved_sto_support_index_by_node_id(graph->nodes.size(), 0),
-      stepper(stepper),
-      graph(graph),
-      gen(seed) {}
+    : stepper(stepper), graph(graph), gen(seed) {}
 
 void MH::infer(uint num_samples, InferConfig infer_config) {
   graph->pd_begin(ProfilerEvent::NMC_INFER);
@@ -62,6 +59,10 @@ void MH::compute_support() {
   for (uint node_id : supp_ids) {
     supp.push_back(node_ptrs[node_id]);
   }
+
+  unobserved_sto_support_index_by_node_id =
+      std::vector<uint>(graph->nodes.size(), 0);
+
   for (Node* node : supp) {
     bool node_is_not_observed =
         graph->observed.find(node->index) == graph->observed.end();
