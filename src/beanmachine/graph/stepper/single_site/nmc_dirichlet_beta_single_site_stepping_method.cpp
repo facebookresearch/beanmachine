@@ -42,6 +42,8 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
     Node* tgt_node) {
   assert(static_cast<uint>(tgt_node->value._matrix.size()) == 2);
 
+  auto graph = mh->graph;
+
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   double x = sto_tgt_node->value._matrix.coeff(0);
 
@@ -59,7 +61,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   Grad1 << 1, -1;
   sto_tgt_node->Grad1 = Grad1;
   sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
+  graph->compute_gradients(graph->get_det_affected_nodes(tgt_node));
 
   // Use gradients to obtain NMC proposal
   // @lint-ignore CLANGTIDY
@@ -72,7 +74,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   double grad1 = 0;
   double grad2 = 0;
 
-  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : graph->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       // X ~ Beta(param_a, param_b)
       grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);

@@ -37,10 +37,12 @@ Y_k = X_k / x_sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
 the attribute value, and X in unconstrainted_value.
 */
 void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
-  mh->graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
+  auto graph = mh->graph;
+
+  graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
 
   const std::vector<Node*>& det_affected_nodes =
-      mh->get_det_affected_nodes(tgt_node);
+      graph->get_det_affected_nodes(tgt_node);
 
   // Cast needed to access fields such as unconstrained_value:
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
@@ -54,7 +56,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     double x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
 
     // save old values
-    mh->save_old_values(det_affected_nodes);
+    graph->save_old_values(det_affected_nodes);
     double old_x_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
     NodeValue old_x_k_value(AtomicType::POS_REAL, old_x_k);
     double old_sto_affected_nodes_log_prob =
@@ -75,7 +77,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
         sto_tgt_node->unconstrained_value._matrix.array() / x_sum;
 
     // propagate new value
-    mh->eval(det_affected_nodes);
+    graph->eval(det_affected_nodes);
     double new_sto_affected_nodes_log_prob =
         compute_sto_affected_nodes_log_prob(tgt_node, param_a_k, new_x_k_value);
 
@@ -93,7 +95,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc);
     if (!accepted) {
       // revert
-      mh->restore_old_values(det_affected_nodes);
+      graph->restore_old_values(det_affected_nodes);
       *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_x_k;
       x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
       sto_tgt_node->value._matrix =
@@ -107,9 +109,9 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     // TODO: identify code that depends on this, let it zero gradients
     // itself, and remove it from here since that's a long-distance,
     // implicit dependence that is hard to watch for.
-    mh->clear_gradients(det_affected_nodes);
+    graph->clear_gradients(det_affected_nodes);
   } // k
-  mh->graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
+  graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
 double
@@ -117,8 +119,9 @@ NMCDirichletGammaSingleSiteSteppingMethod::compute_sto_affected_nodes_log_prob(
     Node* tgt_node,
     double param_a_k,
     NodeValue x_k_value) {
+  auto graph = mh->graph;
   double logweight = 0;
-  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : graph->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       double& x_k = x_k_value._double;
       // X_k ~ Gamma(param_a_k, 1)
@@ -140,7 +143,9 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
     double x_sum,
     NodeValue x_k_value,
     uint k) {
-  mh->graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
+  auto graph = mh->graph;
+
+  graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
 
   // Cast needed to access fields such as unconstrained_value:
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
@@ -158,7 +163,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / x_sum;
 
   // Propagate gradients
-  mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
+  graph->compute_gradients(graph->get_det_affected_nodes(tgt_node));
 
   // We want to compute the gradient of log prob with respect to x_k.
   // The probability is the product of the probabilities of x_k
@@ -175,7 +180,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   // stochastic affected node S_i other than the target node.
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : graph->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       double& x_k = x_k_value._double;
       // X_k ~ Gamma(param_a_k, 1)
@@ -190,7 +195,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   }
   std::unique_ptr<proposer::Proposer> proposal =
       proposer::nmc_proposer(x_k_value, grad1, grad2);
-  mh->graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
+  graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
   return proposal;
 }
 
