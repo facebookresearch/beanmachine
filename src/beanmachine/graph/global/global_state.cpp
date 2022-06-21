@@ -20,7 +20,7 @@ namespace graph {
 
 GlobalState::GlobalState(Graph& g) : graph(g) {
   flat_size = 0;
-  graph.initialize();
+  graph.ensure_evaluation_and_inference_readiness();
 
   // initialize unconstrained value types
   // TODO: rename to initialize_unconstrained_value_types

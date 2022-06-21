@@ -1025,11 +1025,18 @@ struct Graph {
   std::vector<std::vector<Node*>> sto_affected_nodes;
   std::vector<std::vector<Node*>> det_affected_nodes;
 
-  bool initialized = false;
+  bool ready_for_evaluation_and_inference = false;
 
   // Methods
 
-  void initialize();
+  // Ensures graph is ready for evaluation and inference (by building
+  // intermediate internal data structures).
+  // The data structures are built only the first time the method is invoked.
+  // After that, the method is simply ensuring they are built.
+  // Note that this assumes the graph has not changed since the last invocation.
+  // If the graph does change, client code can set field "ready" to false
+  // and then invoke this method.
+  void ensure_evaluation_and_inference_readiness();
 
   void collect_node_ptrs();
 

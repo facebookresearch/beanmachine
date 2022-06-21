@@ -489,7 +489,7 @@ double Graph::log_prob(uint src_idx) {
 }
 
 double Graph::full_log_prob() {
-  initialize();
+  ensure_evaluation_and_inference_readiness();
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
   for (auto node : supp) {
@@ -1225,21 +1225,15 @@ Graph::Graph(const Graph& other) {
   agg_samples = other.agg_samples;
 }
 
-////// Methods brought in from MH class
-////// since they are really graph-specific.
-
-// The initialization phase precomputes the vectors we are going to
-// need during inference, and verifies that the MH algorithm can
-// compute gradients of every node we need to.
-void Graph::initialize() {
-  if (not initialized) {
+void Graph::ensure_evaluation_and_inference_readiness() {
+  if (not ready_for_evaluation_and_inference) {
     pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
     collect_node_ptrs();
     compute_support();
     compute_affected_nodes();
     old_values = std::vector<NodeValue>(nodes.size());
     pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
-    initialized = true;
+    ready_for_evaluation_and_inference = true;
   }
 }
 

@@ -37,7 +37,7 @@ void MH::infer(uint num_samples, InferConfig infer_config) {
 // need during inference, and verifies that the MH algorithm can
 // compute gradients of every node we need to.
 void MH::initialize() {
-  graph->initialize();
+  graph->ensure_evaluation_and_inference_readiness();
   ensure_all_nodes_are_supported();
   compute_initial_values();
 }
