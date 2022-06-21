@@ -58,13 +58,14 @@ TEST(testgraph, support) {
   // observe o4 so support includes c3, c4, o3, d2, o4
   // however, we limit support to operators only: o3 and o4
   g.observe(o4, true);
-  auto supp = g.compute_support();
-  EXPECT_EQ(supp.size(), 2);
-  EXPECT_EQ(*supp.begin(), o3);
-  EXPECT_EQ(*supp.rbegin(), o4);
+  auto ordered_support_node_ids = g.compute_ordered_support_node_ids();
+  EXPECT_EQ(ordered_support_node_ids.size(), 2);
+  EXPECT_EQ(*ordered_support_node_ids.begin(), o3);
+  EXPECT_EQ(*ordered_support_node_ids.rbegin(), o4);
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = g.compute_affected_nodes(o3, supp);
+  std::tie(det_nodes, sto_nodes) =
+      g.compute_affected_nodes(o3, ordered_support_node_ids);
   // o3 -> det: o3, d2, o8 sto: o4
   // limiting to operators: o3 -> det: o3, o8 sto: o4
   // limiting to support: c3 -> det: o3 sto: o4
@@ -91,14 +92,15 @@ TEST(testgraph, support) {
   //   c1, c2, o1, d1, o2, ro2, c3, c4, o3, d2, o4, ro5, o5
   // but we only include operators o1, o2, ro2, o3, o4, ro4, and o5
   g.query(o5);
-  supp = g.compute_support();
-  EXPECT_EQ(supp.size(), 7);
+  ordered_support_node_ids = g.compute_ordered_support_node_ids();
+  EXPECT_EQ(ordered_support_node_ids.size(), 7);
   // o4 -> det: o5, d3 sto: o4, o6
   // limiting to operators: o4 -> det: ro4, o5 sto: o4, o6
   // note: o7 and o8 are not in the descendants of o4
   // because the descendant chain gets cut off at the stochastic node o6
   // limiting to support: o4 -> det: ro4, o5 sto: o4
-  std::tie(det_nodes, sto_nodes) = g.compute_affected_nodes(o4, supp);
+  std::tie(det_nodes, sto_nodes) =
+      g.compute_affected_nodes(o4, ordered_support_node_ids);
   EXPECT_EQ(det_nodes.size(), 2);
   EXPECT_EQ(det_nodes.front(), ro4);
   EXPECT_EQ(det_nodes.back(), o5);
@@ -154,16 +156,19 @@ TEST(testgraph, full_support) {
 
   // begin tests
 
-  // support includes all operators and factors up to observations and queries
-  // doesn't include distributions or constants
-  std::set<uint> support = g.compute_support();
+  // support includes all operators and factors up to observations and
+  // queries doesn't include distributions or constants
+  // TODO: not sure about factors since they are akin to distributions; check
+  // this.
+  std::set<uint> ordered_support_node_ids =
+      g.compute_ordered_support_node_ids();
   std::set<uint> expected_support = {coin, coin_real, coin_plus_five, n2};
-  EXPECT_EQ(support, expected_support);
-  EXPECT_EQ(support.count(n1), 0);
+  EXPECT_EQ(ordered_support_node_ids, expected_support);
+  EXPECT_EQ(ordered_support_node_ids.count(n1), 0);
 
   // full_support includes *all* nodes up to observations and queries
   // includes distributions and constants
-  std::set<uint> full_support = g.compute_full_support();
+  std::set<uint> full_support = g.compute_full_ordered_support_node_ids();
   std::set<uint> expected_full_support = {
       p, bernoulli, coin, coin_real, five, coin_plus_five, one, normal2, n2};
   EXPECT_EQ(full_support, expected_full_support);
@@ -173,7 +178,8 @@ TEST(testgraph, full_support) {
   // computes node and nodes up to stochastic children
   // deterministic nodes only have operator nodes
   // stochastic node includes root node
-  std::tie(det_nodes, sto_nodes) = g.compute_affected_nodes(coin, support);
+  std::tie(det_nodes, sto_nodes) =
+      g.compute_affected_nodes(coin, ordered_support_node_ids);
   std::vector<uint> expected_det_nodes = {coin_real, coin_plus_five};
   std::vector<uint> expected_sto_nodes = {coin, n2};
   EXPECT_EQ(det_nodes, expected_det_nodes);
