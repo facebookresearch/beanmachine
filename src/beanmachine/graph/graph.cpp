@@ -364,14 +364,18 @@ void Graph::eval_and_grad(
 }
 
 void Graph::_test_backgrad(
-    std::set<uint>& supp,
+    std::set<uint>& ordered_support_node_ids,
     std::vector<DoubleMatrix*>& grad1) {
-  for (auto it = supp.begin(); it != supp.end(); ++it) {
+  for (auto it = ordered_support_node_ids.begin();
+       it != ordered_support_node_ids.end();
+       ++it) {
     Node* node = nodes[*it].get();
     node->reset_backgrad();
   }
   grad1.clear();
-  for (auto it = supp.rbegin(); it != supp.rend(); ++it) {
+  for (auto it = ordered_support_node_ids.rbegin();
+       it != ordered_support_node_ids.rend();
+       ++it) {
     Node* node = nodes[*it].get();
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
@@ -389,20 +393,22 @@ void Graph::_test_backgrad(
 }
 
 void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
-  std::set<uint> supp = compute_support();
-  _test_backgrad(supp, grad1);
+  std::set<uint> ordered_support_node_ids = compute_ordered_support_node_ids();
+  _test_backgrad(ordered_support_node_ids, grad1);
 }
 
 void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
   std::mt19937 generator(seed);
-  std::set<uint> supp = compute_support();
-  for (auto it = supp.begin(); it != supp.end(); ++it) {
+  std::set<uint> ordered_support_node_ids = compute_ordered_support_node_ids();
+  for (auto it = ordered_support_node_ids.begin();
+       it != ordered_support_node_ids.end();
+       ++it) {
     Node* node = nodes[*it].get();
     if (!node->is_observed) {
       node->eval(generator);
     }
   }
-  _test_backgrad(supp, grad1);
+  _test_backgrad(ordered_support_node_ids, grad1);
 }
 
 void set_value(Eigen::MatrixXd& variable, double value) {
@@ -427,10 +433,11 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   src_node->grad1 = 1;
   src_node->grad2 = 0;
 
-  auto supp = compute_support();
+  auto ordered_support_node_ids = compute_ordered_support_node_ids();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = compute_affected_nodes(src_idx, supp);
+  std::tie(det_nodes, sto_nodes) =
+      compute_affected_nodes(src_idx, ordered_support_node_ids);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     // passing generator for signature,
@@ -463,10 +470,11 @@ double Graph::log_prob(uint src_idx) {
   if (not src_node->is_stochastic()) {
     throw std::runtime_error("log_prob only supported on stochastic nodes");
   }
-  auto supp = compute_support();
+  auto ordered_support_node_ids = compute_ordered_support_node_ids();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = compute_affected_nodes(src_idx, supp);
+  std::tie(det_nodes, sto_nodes) =
+      compute_affected_nodes(src_idx, ordered_support_node_ids);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
@@ -519,9 +527,9 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
  * actual code so far; notheless we can leave it here as it is a natural
  * operation */
 double Graph::full_log_prob() {
-  std::set<uint> supp = compute_support();
+  std::set<uint> ordered_support_node_ids = compute_ordered_support_node_ids();
   std::vector<Node*> ordered_supp;
-  for (uint node_id : supp) {
+  for (uint node_id : ordered_support_node_ids) {
     ordered_supp.push_back(nodes[node_id].get());
   }
   return _full_log_prob(ordered_supp);
@@ -1240,7 +1248,7 @@ void Graph::initialize() {
   if (not initialized) {
     pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
     collect_node_ptrs();
-    compute_support_FROM_MH_DELETE_WHEN_DONE();
+    compute_support();
     compute_affected_nodes();
     old_values = std::vector<NodeValue>(nodes.size());
     pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
@@ -1254,15 +1262,19 @@ void Graph::collect_node_ptrs() {
   }
 }
 
-void Graph::compute_support_FROM_MH_DELETE_WHEN_DONE() {
-  supp_ids = compute_support();
+void Graph::compute_support() {
+  if (supp.size() != 0)
+    return;
+
+  supp.reserve(nodes.size());
+  supp_ids = compute_ordered_support_node_ids();
   for (uint node_id : supp_ids) {
     supp.push_back(node_ptrs[node_id]);
   }
 
   unobserved_sto_support_index_by_node_id = std::vector<uint>(nodes.size(), 0);
 
-  for (Node* node : supp) {
+  for (auto node : supp) {
     bool node_is_not_observed = observed.find(node->index) == observed.end();
     if (node_is_not_observed) {
       unobserved_supp.push_back(node);

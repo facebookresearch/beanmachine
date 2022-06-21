@@ -17,21 +17,25 @@ namespace graph {
 // needed to determine the value of query and observed variables.
 // In other words, it is the set of queried and observed variables themselves
 // plus their ancestors that are operator and factor nodes.
-std::set<uint> Graph::compute_support() {
-  return _compute_support(true);
+// TODO: not sure about factors since they are akin to distributions; check
+// this.
+std::set<uint> Graph::compute_ordered_support_node_ids() {
+  return compute_ordered_support_node_ids_with_operators_only_choice(true);
 }
 
 // set of queried and observed variables and *all* ancestors
-std::set<uint> Graph::compute_full_support() {
-  return _compute_support(false);
+std::set<uint> Graph::compute_full_ordered_support_node_ids() {
+  return compute_ordered_support_node_ids_with_operators_only_choice(false);
 }
 
-std::set<uint> Graph::_compute_support(bool operator_factor_only) {
+std::set<uint>
+Graph::compute_ordered_support_node_ids_with_operators_only_choice(
+    bool operator_factor_only) {
   // we will do a standard BFS except that we are doing a BFS
   // in the reverse direction of the graph edges
   std::set<uint> visited;
   std::list<uint> queue;
-  std::set<uint> support;
+  std::set<uint> ordered_support_node_ids;
   // initialize BFS queue with all the observed and queried nodes since the
   // parents of these nodes define the support of the graph
   for (uint node_id : observed) {
@@ -52,13 +56,13 @@ std::set<uint> Graph::_compute_support(bool operator_factor_only) {
     if (!operator_factor_only or
         (node->node_type == NodeType::OPERATOR or
          node->node_type == NodeType::FACTOR)) {
-      support.insert(node_id);
+      ordered_support_node_ids.insert(node_id);
     }
     for (const auto& parent : node->in_nodes) {
       queue.push_back(parent->index);
     }
   }
-  return support;
+  return ordered_support_node_ids;
 }
 
 void include_children(const Node* node, std::list<uint>& queue) {
@@ -69,20 +73,22 @@ void include_children(const Node* node, std::list<uint>& queue) {
 
 std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_nodes(
     uint root_id,
-    const std::set<uint>& support) {
-  return _compute_nodes_until_stochastic(root_id, support, true, true);
+    const std::set<uint>& ordered_support_node_ids) {
+  return _compute_nodes_until_stochastic(
+      root_id, ordered_support_node_ids, true, true);
 }
 
 std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_children(
     uint root_id,
-    const std::set<uint>& support) {
-  return _compute_nodes_until_stochastic(root_id, support, false, false);
+    const std::set<uint>& ordered_support_node_ids) {
+  return _compute_nodes_until_stochastic(
+      root_id, ordered_support_node_ids, false, false);
 }
 
 std::tuple<std::vector<uint>, std::vector<uint>>
 Graph::_compute_nodes_until_stochastic(
     uint root_id,
-    const std::set<uint>& support,
+    const std::set<uint>& ordered_support_node_ids,
     bool operator_only,
     bool include_root_node) {
   // check for the validity of root_id since this method is not private
@@ -108,7 +114,8 @@ Graph::_compute_nodes_until_stochastic(
     const Node* node = nodes[node_id].get();
     bool include_children_of_node;
     if (node->is_stochastic()) {
-      if (support.find(node_id) != support.end()) {
+      if (ordered_support_node_ids.find(node_id) !=
+          ordered_support_node_ids.end()) {
         // no need to check if node is operator because
         // all stochastic nodes are operators
         if (include_root_node or (node_id != root_id)) {
@@ -122,7 +129,8 @@ Graph::_compute_nodes_until_stochastic(
       include_children_of_node = (node_id == root_id);
     } else if (
         (!operator_only or node->node_type == NodeType::OPERATOR) and
-        support.find(node_id) != support.end()) {
+        ordered_support_node_ids.find(node_id) !=
+            ordered_support_node_ids.end()) {
       det_desc.push_back(node_id);
       // We always include children of deterministic
       // nodes because the definition of affected nodes

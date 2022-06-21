@@ -15,8 +15,9 @@ void Graph::rejection(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
   std::vector<Node*> ordered_supp;
   if (infer_config.keep_log_prob) {
-    std::set<uint> supp = compute_support();
-    for (uint node_id : supp) {
+    std::set<uint> ordered_support_node_ids =
+        compute_ordered_support_node_ids();
+    for (uint node_id : ordered_support_node_ids) {
       ordered_supp.push_back(nodes[static_cast<uint>(node_id)].get());
     }
   }

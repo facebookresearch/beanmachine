@@ -706,20 +706,21 @@ struct Graph {
     return elbo_vals;
   }
   /*
-  The support of a graph is the set of operator and factor nodes that are
-  needed to determine the value of query and observed variables.
-  In other words, it is the set of queried and observed variables themselves
-  plus their ancestors that are operator and factor nodes.
+  The support of a graph is the set of operator and factor nodes that
+  are needed to determine the value of query and observed variables. In other
+  words, it is the set of queried and observed variables themselves plus their
+  ancestors that are operator and factor nodes.
   */
-  std::set<uint> compute_support();
+  std::set<uint> compute_ordered_support_node_ids();
   /*
-  The full support of a graph includes *all* nodes, including distribution nodes
-  and constant nodes, that are needed to determine the value of query and
-  observed variables
+  The full support of a graph includes *all* nodes, including
+  distribution nodes and constant nodes, that are needed to determine the value
+  of query and observed variables
   */
-  std::set<uint> compute_full_support();
+  std::set<uint> compute_full_ordered_support_node_ids();
 
-  std::set<uint> _compute_support(bool operator_factor_only);
+  std::set<uint> compute_ordered_support_node_ids_with_operators_only_choice(
+      bool operator_factor_only);
 
   /*
   Computes the _affected nodes_ of a root node.
@@ -759,16 +760,16 @@ struct Graph {
 
   :param node_id: the id (index in topological order) of the node for which
   we are computing the descendants
-  :param support: the set of indices of the distribution support.
-  :returns: vector of intervening operator deterministic nodes and vector of
-  stochastic nodes that are operators and immediate stochastic descendants of
-  the current node and in the support (that is to say, we don't return
-  descendants of stochastic descendants). The current node is included in result
-  if it is in support and is stochastic.
+  :param ordered_support_node_ids: the (ordered) set of indices of the
+  distribution support. :returns: vector of intervening operator deterministic
+  nodes and vector of stochastic nodes that are operators and immediate
+  stochastic descendants of the current node and in the support (that is to say,
+  we don't return descendants of stochastic descendants). The current node is
+  included in result if it is in support and is stochastic.
   */
   std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
       uint node_id,
-      const std::set<uint>& support);
+      const std::set<uint>& ordered_support_node_ids);
 
   /*
   This function is almost the same as `compute_affected_nodes` above, with
@@ -782,21 +783,21 @@ struct Graph {
   function only includes its children
   :param node_id: the id (index in topological order) of the node for which we
   are computing the descendants
-  :param support: the set of indices of the distribution support.
-  :returns: vector of all intermediate deterministic nodes and vector of
-  stochastic nodes and immediate stochastic descendants of the current node and
-  in the support (that is to say, we don't return descendants of stochastic
-  descendants). The current node is included in result if it is in support and
-  is stochastic.
+  :param ordered_support_node_ids: the set of indices of the distribution
+support. :returns: vector of all intermediate deterministic nodes and vector of
+stochastic nodes and immediate stochastic descendants of the current node and in
+the support (that is to say, we don't return descendants of stochastic
+descendants). The current node is included in result if it is in support and is
+stochastic.
   */
   std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
       uint node_id,
-      const std::set<uint>& support);
+      const std::set<uint>& ordered_support_node_ids);
 
   std::tuple<std::vector<uint>, std::vector<uint>>
   _compute_nodes_until_stochastic(
       uint node_id,
-      const std::set<uint>& support,
+      const std::set<uint>& ordered_support_node_ids,
       bool affected_only,
       bool include_root_node);
 
@@ -823,10 +824,9 @@ struct Graph {
       double& grad1,
       double& grad2);
   /*
-  Evaluate all nodes in the support and compute their gradients in backward
-  mode. (used for unit tests)
-  :param grad1: Output value of first gradient.
-  :param seed: Random number generator seed.
+  Evaluate all nodes in the support and compute their gradients in
+  backward mode. (used for unit tests) :param grad1: Output value of first
+  gradient. :param seed: Random number generator seed.
   */
   void eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed = 5123412);
 
@@ -839,8 +839,8 @@ struct Graph {
 
   /*
   Evaluate the deterministic descendants of the source node and compute
-  the logprob_gradient of all stochastic descendants in the support including
-  the source node.
+  the logprob_gradient of all stochastic descendants in the support
+  including the source node.
 
   :param src_idx: The index of the node to evaluate the gradients w.r.t., must
                   be a vector valued node.
@@ -850,8 +850,8 @@ struct Graph {
   void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
-  the sum of logprob of all stochastic descendants in the support including
-  the source node.
+  the sum of logprob of all stochastic descendants in the support
+  including the source node.
 
   :param src_idx: source node
   :returns: The sum of log_prob of source node and all stochastic descendants.
@@ -936,8 +936,9 @@ struct Graph {
       uint elbo_samples);
   /*
   Evaluate the full log probability over the support of the graph.
-  :param ordered_supp: node pointers in the support in topological order.
-  :returns: The sum of log_prob of stochastic nodes in the support.
+  :param ordered_supp: node pointers in the support in topological
+  order. :returns: The sum of log_prob of stochastic nodes in the
+  support.
   */
 
   // TODO: Review what members of this class can be made static.
@@ -948,7 +949,9 @@ struct Graph {
   std::vector<std::vector<double>> log_prob_allchains;
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
-  void _test_backgrad(std::set<uint>& supp, std::vector<DoubleMatrix*>& grad1);
+  void _test_backgrad(
+      std::set<uint>& ordered_support_node_ids,
+      std::vector<DoubleMatrix*>& grad1);
 
   ProfilerData profiler_data;
   bool _collect_performance_data = false;
@@ -994,7 +997,7 @@ struct Graph {
   std::set<uint> supp_ids;
   std::vector<Node*> supp;
 
-  // Nodes in supp that are not directly observed. Note that
+  // Nodes in support that are not directly observed. Note that
   // the order of nodes in this vector matters! We must enumerate
   // them in order from lowest node identifier to highest.
   std::vector<Node*> unobserved_supp;
@@ -1002,16 +1005,16 @@ struct Graph {
   // Nodes in unobserved_supp that are stochastic; similarly, order matters.
   std::vector<Node*> unobserved_sto_supp;
 
-  // A vector containing the index of a node in unobserved_sto_supp for each
-  // node_id. Since not all nodes are in unobserved_sto_support, some elements
-  // of this vector should never be accessed.
+  // A vector containing the index of a node in vector unobserved_sto_supp for
+  // each node_id. Since not all nodes are in unobserved_sto_support, some
+  // elements of this vector should never be accessed.
   std::vector<uint> unobserved_sto_support_index_by_node_id;
 
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
   // respectively the vector of
-  // the immediate stochastic descendants of node with index i in the support,
-  // and the vector of the intervening deterministic nodes
+  // the immediate stochastic descendants of node with index i in the
+  // support, and the vector of the intervening deterministic nodes
   // between the i-th node and its immediate stochastic descendants.
   // In other words, these are the cached results of
   // invoking graph::compute_affected_nodes
@@ -1027,7 +1030,7 @@ struct Graph {
 
   void collect_node_ptrs();
 
-  void compute_support_FROM_MH_DELETE_WHEN_DONE();
+  void compute_support();
 
   void ensure_all_nodes_are_supported();
 
