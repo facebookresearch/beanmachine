@@ -39,10 +39,7 @@ std::vector<Stepper*>& SequentialSingleSiteStepper::get_steppers() {
 }
 
 void SequentialSingleSiteStepper::make_steppers() {
-  for (uint i = 0;
-       i < static_cast<uint>(mh->unobserved_stochastic_support().size());
-       ++i) {
-    auto tgt_node = mh->unobserved_stochastic_support()[i];
+  for (auto tgt_node : mh->graph->unobserved_sto_supp) {
     auto single_site_stepping_method =
         find_applicable_single_site_stepping_method(tgt_node);
     steppers.push_back(
