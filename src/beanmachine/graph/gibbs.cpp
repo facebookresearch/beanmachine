@@ -17,6 +17,7 @@
 namespace beanmachine {
 namespace graph {
 
+// TODO: move this inference method out of Graph.
 void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
   std::set<uint> supp = compute_support();

@@ -33,10 +33,15 @@ class Distribution : public graph::Node {
     throw std::runtime_error(
         "internal error: eval() is not implemented for distribution");
   }
-  // tell the compiler that we want the base class log_prob method
-  // as well as the new one in this class
-  using graph::Node::log_prob;
+
   virtual double log_prob(const graph::NodeValue& value) const = 0;
+
+  // The base class declares a method log_prob() that we want to preserve.
+  // However, this class declared log_prob(const NodeValue&) which hides it.
+  // For this reason, we must use the following using directive which
+  // preserves the base class method as available.
+  using graph::Node::log_prob;
+
   virtual void log_prob_iid(
       const graph::NodeValue& /* value */,
       Eigen::MatrixXd& /* log_probs */) const {}

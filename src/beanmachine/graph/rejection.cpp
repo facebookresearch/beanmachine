@@ -10,6 +10,7 @@
 namespace beanmachine {
 namespace graph {
 
+// TODO: move this inference method out of Graph.
 void Graph::rejection(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
   std::vector<Node*> ordered_supp;
