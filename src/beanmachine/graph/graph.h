@@ -1019,6 +1019,8 @@ struct Graph {
   std::vector<std::vector<Node*>> sto_affected_nodes;
   std::vector<std::vector<Node*>> det_affected_nodes;
 
+  bool initialized = false;
+
   // Methods
 
   void initialize();

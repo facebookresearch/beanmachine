@@ -1237,12 +1237,15 @@ Graph::Graph(const Graph& other) {
 // need during inference, and verifies that the MH algorithm can
 // compute gradients of every node we need to.
 void Graph::initialize() {
-  pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
-  collect_node_ptrs();
-  compute_support_FROM_MH_DELETE_WHEN_DONE();
-  compute_affected_nodes();
-  old_values = std::vector<NodeValue>(nodes.size());
-  pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
+  if (not initialized) {
+    pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
+    collect_node_ptrs();
+    compute_support_FROM_MH_DELETE_WHEN_DONE();
+    compute_affected_nodes();
+    old_values = std::vector<NodeValue>(nodes.size());
+    pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
+    initialized = true;
+  }
 }
 
 void Graph::collect_node_ptrs() {
