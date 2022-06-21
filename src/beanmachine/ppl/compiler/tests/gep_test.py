@@ -8,13 +8,16 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.compiler.hint import log1mexp
 from beanmachine.ppl.inference import BMGInference
 
 trials = torch.tensor([29854.0, 2016.0])
 pos = torch.tensor([4.0, 0.0])
 buck_rep = torch.tensor([0.0006, 0.01])
 n_buckets = len(trials)
+
+
+def log1mexp(x):
+    return (1 - x.exp()).log()
 
 
 @bm.random_variable
@@ -60,7 +63,6 @@ def bucket_prob():  # atomic bool
     log_prob += (trials - pos) * torch.log1p(-phi_prev)
     joint_log_prob = log_prob.sum()
     # Convert the joint log prob to a log-odds.
-    # TODO Fix this "hint" hack.
     logit_prob = joint_log_prob - log1mexp(joint_log_prob)
     return dist.Bernoulli(logits=logit_prob)
 

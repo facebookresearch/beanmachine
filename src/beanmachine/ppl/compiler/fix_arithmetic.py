@@ -3,6 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Optional
+
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -73,3 +75,98 @@ def negative_real_multiplication_fixer(
         return new_mult
 
     return _negative_real_multiplication_fixer
+
+
+def _input_of_1m_exp(node: bn.BMGNode) -> Optional[bn.BMGNode]:
+    # Is node ADD(1, NEG(EXP(X))) or ADD(NEG(EXP(X)), 1)?
+    if not isinstance(node, bn.AdditionNode) or len(node.inputs) != 2:
+        return None
+    left = node.inputs[0]
+    right = node.inputs[1]
+    negate = None
+    if bn.is_one(left):
+        negate = right
+    elif bn.is_one(right):
+        negate = left
+    if not isinstance(negate, bn.NegateNode):
+        return None
+    ex = negate.inputs[0]
+    if not isinstance(ex, bn.ExpNode):
+        return None
+    return ex.inputs[0]
+
+
+def log1mexp_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+    # To take the complement of a log prob we need to convert
+    # the log prob back to an ordinary prob, then complement it,
+    # then convert it back to a log prob. In BMG we have a special
+    # node just for this operation.
+
+    def _is_comp_exp(node: bn.BMGNode) -> bool:
+        return isinstance(node, bn.ComplementNode) and isinstance(
+            node.inputs[0], bn.ExpNode
+        )
+
+    def _log1mexp_fixer(node: bn.BMGNode) -> NodeFixerResult:
+        if not isinstance(node, bn.LogNode):
+            return Inapplicable
+
+        comp = node.inputs[0]
+        # There are two situations to consider here.
+        #
+        # Easy case:
+        #
+        # If we've already rewritten the 1-exp(x) into
+        # complement(x), then we already know that x is
+        # a probability. Just generate log1mexp(x).
+        #
+        # Hard case:
+        #
+        # We sometimes get into a situation where you and I know that
+        # a node is a probability, but the type checker does not.
+        # For example, if we have probability p1:
+        #
+        # p2 = 0.5 + p1 / 2
+        #
+        # then p2 is judged to be R+ because the sum of two Ps is not necessarily a P.
+        #
+        # If we then go on to do:
+        #
+        # x = log(p2)
+        #
+        # then x is NOT known to be R-; rather it is known to be R.
+        #
+        # If later on we wish to invert this log prob:
+        #
+        # inv = log(1 - exp(x))
+        #
+        # Then the type system says exp(x) is R+ (when it should be P).
+        # We then say that 1 - R+ is R (should be P) and then log(R) is an
+        # error, when it should be R-.
+        #
+        # If the program has log(1-exp(x) then the developer certainly
+        # believes that x is a negative real. Even if the type system
+        # does not, we should generate a graph as though this were a
+        # negative real.
+        x = None
+        if _is_comp_exp(comp):
+            x = comp.inputs[0].inputs[0]
+        else:
+            x = _input_of_1m_exp(comp)
+            # If x is known to be a positive real, there's nothing
+            # we can do. A later pass will give an error.
+            #
+            # If it is real, then force it to be negative real.
+            if x is not None:
+                if typer.is_pos_real(x):
+                    return Inapplicable
+                if typer.is_real(x):
+                    x = bmg.add_to_negative_real(x)
+        # If x is None then the node does not match log(1-exp(x)).
+        # If x is not None, it still might be untypable. Skip doing
+        # this rewrite until we know that x has a type.
+        if x is None or not typer.is_neg_real(x):
+            return Inapplicable
+        return bmg.add_log1mexp(x)
+
+    return _log1mexp_fixer

@@ -14,7 +14,6 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.compiler.execution_context import ExecutionContext
-from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import memoize
 
 
@@ -897,9 +896,9 @@ class BMGraphBuilder:
     @memoize
     def add_log1mexp(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
-            return self.add_constant(log1mexp(operand.value))
+            return self.add_constant((1 - operand.value.exp()).log())
         if isinstance(operand, ConstantNode):
-            return self.add_constant(math_log1mexp(operand.value))
+            return self.add_constant(math.log(1 - math.exp(operand.value)))
         node = bn.Log1mexpNode(operand)
         self.add_node(node)
         return node

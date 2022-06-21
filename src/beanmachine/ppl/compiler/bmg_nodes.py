@@ -1162,12 +1162,9 @@ class SquareRootNode(UnaryOperatorNode):
         return "SquareRoot(" + str(self.operand) + ")"
 
 
-# TODO: replace "log" with "log1mexp" as needed below and update defs
-
-
 class Log1mexpNode(UnaryOperatorNode):
-    """This represents a log1mexp operation; it is generated when
-    a model contains calls to log1mexp or math_log1mexp."""
+    """This represents a log1mexp operation; it is generated as an
+    optimization when a graph contains x -> exp -> complement -> log"""
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
