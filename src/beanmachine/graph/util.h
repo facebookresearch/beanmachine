@@ -124,5 +124,12 @@ See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 */
 double log1mexp(double x);
 
+template <typename T>
+std::vector<T> make_reserved_vector(size_t n) {
+  std::vector<T> result;
+  result.reserve(n);
+  return result;
+}
+
 } // namespace util
 } // namespace beanmachine

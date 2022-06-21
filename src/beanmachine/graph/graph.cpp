@@ -17,6 +17,7 @@
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/transform/transform.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace graph {
@@ -1227,6 +1228,197 @@ Graph::Graph(const Graph& other) {
   master_graph = other.master_graph;
   agg_type = other.agg_type;
   agg_samples = other.agg_samples;
+}
+
+////// Methods brought in from MH class
+////// since they are really graph-specific.
+
+// The initialization phase precomputes the vectors we are going to
+// need during inference, and verifies that the MH algorithm can
+// compute gradients of every node we need to.
+void Graph::initialize() {
+  pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
+  collect_node_ptrs();
+  compute_support_FROM_MH_DELETE_WHEN_DONE();
+  compute_affected_nodes();
+  old_values = std::vector<NodeValue>(nodes.size());
+  pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
+}
+
+void Graph::collect_node_ptrs() {
+  for (uint node_id = 0; node_id < static_cast<uint>(nodes.size()); node_id++) {
+    node_ptrs.push_back(nodes[node_id].get());
+  }
+}
+
+void Graph::compute_support_FROM_MH_DELETE_WHEN_DONE() {
+  supp_ids = compute_support();
+  for (uint node_id : supp_ids) {
+    supp.push_back(node_ptrs[node_id]);
+  }
+
+  unobserved_sto_support_index_by_node_id = std::vector<uint>(nodes.size(), 0);
+
+  for (Node* node : supp) {
+    bool node_is_not_observed = observed.find(node->index) == observed.end();
+    if (node_is_not_observed) {
+      unobserved_supp.push_back(node);
+      if (node->is_stochastic()) {
+        uint index_of_next_unobserved_sto_supp_node =
+            static_cast<uint>(unobserved_sto_supp.size());
+        unobserved_sto_supp.push_back(node);
+        uint node_id = node->index;
+        assert(unobserved_sto_support_index_by_node_id.size() != 0);
+        unobserved_sto_support_index_by_node_id[node_id] =
+            index_of_next_unobserved_sto_supp_node;
+      }
+    }
+  }
+}
+
+// For every unobserved stochastic node in the graph, we will need to
+// repeatedly know the set of immediate stochastic descendants
+// and intervening deterministic nodes.
+// Because this can be expensive, we compute those sets once and cache them.
+void Graph::compute_affected_nodes() {
+  for (Node* node : unobserved_sto_supp) {
+    auto det_node_ids = util::make_reserved_vector<uint>(nodes.size());
+    auto sto_node_ids = util::make_reserved_vector<uint>(nodes.size());
+    auto det_nodes = util::make_reserved_vector<Node*>(nodes.size());
+    auto sto_nodes = util::make_reserved_vector<Node*>(nodes.size());
+
+    std::tie(det_node_ids, sto_node_ids) =
+        compute_affected_nodes(node->index, supp_ids);
+    for (uint id : det_node_ids) {
+      det_nodes.push_back(node_ptrs[id]);
+    }
+    for (uint id : sto_node_ids) {
+      sto_nodes.push_back(node_ptrs[id]);
+    }
+    det_affected_nodes.push_back(det_nodes);
+    sto_affected_nodes.push_back(sto_nodes);
+    if (_collect_performance_data) {
+      profiler_data.det_supp_count[static_cast<uint>(node->index)] =
+          static_cast<int>(det_nodes.size());
+    }
+  }
+}
+
+const std::vector<Node*>& Graph::get_det_affected_nodes(Node* node) {
+  return det_affected_nodes
+      [unobserved_sto_support_index_by_node_id[node->index]];
+}
+
+const std::vector<Node*>& Graph::get_sto_affected_nodes(Node* node) {
+  return sto_affected_nodes
+      [unobserved_sto_support_index_by_node_id[node->index]];
+}
+
+void Graph::revertibly_set_and_propagate(Node* node, const NodeValue& value) {
+  save_old_value(node);
+  save_old_values(get_det_affected_nodes(node));
+  old_sto_affected_nodes_log_prob =
+      compute_log_prob_of(get_sto_affected_nodes(node));
+  node->value = value;
+  eval(get_det_affected_nodes(node));
+}
+
+void Graph::revert_set_and_propagate(Node* node) {
+  restore_old_value(node);
+  restore_old_values(get_det_affected_nodes(node));
+}
+
+void Graph::save_old_value(const Node* node) {
+  old_values[node->index] = node->value;
+}
+
+void Graph::save_old_values(const std::vector<Node*>& nodes) {
+  pd_begin(ProfilerEvent::NMC_SAVE_OLD);
+  for (Node* node : nodes) {
+    old_values[node->index] = node->value;
+  }
+  pd_finish(ProfilerEvent::NMC_SAVE_OLD);
+}
+
+NodeValue& Graph::get_old_value(const Node* node) {
+  return old_values[node->index];
+}
+
+void Graph::restore_old_value(Node* node) {
+  node->value = old_values[node->index];
+}
+
+void Graph::restore_old_values(const std::vector<Node*>& det_nodes) {
+  pd_begin(ProfilerEvent::NMC_RESTORE_OLD);
+  for (Node* node : det_nodes) {
+    node->value = old_values[node->index];
+  }
+  pd_finish(ProfilerEvent::NMC_RESTORE_OLD);
+}
+
+void Graph::compute_gradients(const std::vector<Node*>& det_nodes) {
+  pd_begin(ProfilerEvent::NMC_COMPUTE_GRADS);
+  for (Node* node : det_nodes) {
+    node->compute_gradients();
+  }
+  pd_finish(ProfilerEvent::NMC_COMPUTE_GRADS);
+}
+
+void Graph::eval(const std::vector<Node*>& det_nodes) {
+  pd_begin(ProfilerEvent::NMC_EVAL);
+  std::mt19937 gen(12131); // seed doesn't matter
+  // because operators are deterministic - TODO: clean it
+  for (Node* node : det_nodes) {
+    node->eval(gen);
+  }
+  pd_finish(ProfilerEvent::NMC_EVAL);
+}
+
+void Graph::clear_gradients(Node* node) {
+  // TODO: eventually we want to have different classes of Node
+  // and have this be a virtual method
+  switch (node->value.type.variable_type) {
+    case VariableType::SCALAR:
+      node->grad1 = 0;
+      node->grad2 = 0;
+      break;
+    case VariableType::BROADCAST_MATRIX:
+    case VariableType::COL_SIMPLEX_MATRIX: {
+      auto rows = node->value._matrix.rows();
+      auto cols = node->value._matrix.cols();
+      node->Grad1 = Eigen::MatrixXd::Zero(rows, cols);
+      node->Grad2 = Eigen::MatrixXd::Zero(rows, cols);
+      break;
+    }
+    default:
+      throw std::runtime_error(
+          "clear_gradients invoked for nodes of an unsupported variable type " +
+          std::to_string(int(node->value.type.variable_type)));
+  }
+}
+
+void Graph::clear_gradients(const std::vector<Node*>& nodes) {
+  pd_begin(ProfilerEvent::NMC_CLEAR_GRADS);
+  for (Node* node : nodes) {
+    clear_gradients(node);
+  }
+  pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
+}
+
+void Graph::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
+  clear_gradients(node);
+  clear_gradients(get_det_affected_nodes(node));
+  clear_gradients(get_sto_affected_nodes(node));
+}
+
+// Computes the log probability with respect to a given
+// set of stochastic nodes.
+double Graph::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
+  double log_prob = 0;
+  for (Node* node : sto_nodes) {
+    log_prob += node->log_prob();
+  }
+  return log_prob;
 }
 
 } // namespace graph
