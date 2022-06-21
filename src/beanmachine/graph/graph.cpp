@@ -480,7 +480,7 @@ double Graph::log_prob(uint src_idx) {
 }
 
 // TODO: this is the one actually used in code (as opposed to full_log_prob used
-// in testing only, so why the _?)
+// in testing only, so why the _ indicating a private method?)
 double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
@@ -498,7 +498,7 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
           // log(f_Y(y)) = log(f_X(x)) + log(|d/dy f^{-1}(y)|)
           //   = node->log_prob() + log_abs_jacobian_determinant()
           // TODO: rename log_abs_jacobian_determinant
-          // to log_abs_jacobian_detesrminant_of_inverse_transform
+          // to log_abs_jacobian_determinant_of_inverse_transform
           //
           // References on Change of Variables in statistics:
           // https://online.stat.psu.edu/stat414/lesson/22/22.2
