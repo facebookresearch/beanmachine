@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <string>
 #include <vector>
 #include "beanmachine/minibmg/container.h"
 
@@ -20,6 +21,10 @@ class OperatorNode;
 class ConstantNode;
 
 enum Operator {
+  // An operator value that indicates no operator.  Used as a flag to
+  // reflect an invalid operator value.
+  NO_OPERATOR,
+
   // A scalar constant, like 1.2.
   // Result: the given constant value (REAL)
   CONSTANT,
@@ -72,17 +77,28 @@ enum Operator {
   QUERY,
 
   // Not a real operator.  Used as a limit when looping through operators.
-  LAST,
+  LAST_OPERATOR,
 };
+
+Operator operator_from_name(std::string name);
+std::string to_string(Operator op);
 
 enum Type {
   // No type.  For example, the result of an observation or query node.
   NONE,
+
   // A scalar real value.
   REAL,
+
   // A distribution of real values.
   DISTRIBUTION,
+
+  // Not a real type.  Used as a limit when looping through types.
+  LAST_TYPE,
 };
+
+Type type_from_name(std::string name);
+std::string to_string(Type type);
 
 class Graph : Container {
  public:
@@ -92,13 +108,13 @@ class Graph : Container {
   // and returns that graph.  Throws an exception if the
   // nodes do not form a valid graph.
   static Graph create(std::vector<const Node*> nodes);
-  static void validate();
   ~Graph();
 
  private:
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
   explicit Graph(std::vector<const Node*> nodes);
+  static void validate(std::vector<const Node*> nodes);
 
  public:
   class Factory {
@@ -118,12 +134,11 @@ class Graph : Container {
 
 class Node {
  public:
-  Node(const uint sequence, const enum Operator op, const Type type)
-      : sequence(sequence), op(op), type(type) {}
+  Node(const uint sequence, const enum Operator op, const Type type);
   const uint sequence;
   const enum Operator op;
-  const Type type;
-  virtual ~Node() {}
+  const enum Type type;
+  virtual ~Node() = 0;
 };
 
 class OperatorNode : public Node {
@@ -132,8 +147,7 @@ class OperatorNode : public Node {
       const std::vector<const Node*>& in_nodes,
       const uint sequence,
       const enum Operator op,
-      const Type type)
-      : Node(sequence, op, type), in_nodes(in_nodes) {}
+      const enum Type type);
   const std::vector<const Node*> in_nodes;
 };
 
@@ -143,21 +157,20 @@ class ConstantNode : public Node {
       const double value,
       const uint sequence,
       const enum Operator op,
-      const Type type)
-      : Node(sequence, op, type), value(value) {}
+      const enum Type type);
   const double value;
 };
 
-class QueryNode : public OperatorNode {
+class QueryNode : public Node {
  public:
   QueryNode(
       const uint query_index,
-      const std::vector<const Node*>& in_nodes,
+      const Node* in_node,
       const uint sequence,
       const enum Operator op,
-      const Type type)
-      : OperatorNode(in_nodes, sequence, op, type), query_index(query_index) {}
+      const enum Type type);
   const uint query_index;
+  const Node* const in_node;
 };
 
 } // namespace beanmachine::minibmg

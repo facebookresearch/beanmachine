@@ -25,11 +25,13 @@ int SomeValue::next_sequence = 0;
 
 // A Property, which associates a value with each container.
 struct MyProperty : public Property<MyProperty, Graph, SomeValue> {
-  SomeValue* create(Graph&) const override {
-    // Code here to compute the value for the graph
-    return new SomeValue();
-  }
+  SomeValue* create(Graph&) const override;
 };
+
+SomeValue* MyProperty::create(Graph&) const {
+  // Code here to compute the value for the graph
+  return new SomeValue();
+}
 
 TEST(testcontainer, idempotence) {
   // reset state modified by the test.

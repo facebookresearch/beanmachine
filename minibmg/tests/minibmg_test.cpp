@@ -37,4 +37,55 @@ TEST(test_minibmg, basic_building) {
   ASSERT_EQ(g.nodes.size(), 9);
 }
 
+TEST(test_minibmg, operator_from_name) {
+  ASSERT_EQ(operator_from_name("CONSTANT"), Operator::CONSTANT);
+  ASSERT_EQ(operator_from_name("ADD"), Operator::ADD);
+  ASSERT_EQ(operator_from_name("MULTIPLY"), Operator::MULTIPLY);
+  ASSERT_EQ(
+      operator_from_name("DISTRIBUTION_NORMAL"), Operator::DISTRIBUTION_NORMAL);
+  ASSERT_EQ(
+      operator_from_name("DISTRIBUTION_BETA"), Operator::DISTRIBUTION_BETA);
+  ASSERT_EQ(
+      operator_from_name("DISTRIBUTION_BERNOULLI"),
+      Operator::DISTRIBUTION_BERNOULLI);
+  ASSERT_EQ(operator_from_name("SAMPLE"), Operator::SAMPLE);
+  ASSERT_EQ(operator_from_name("OBSERVE"), Operator::OBSERVE);
+  ASSERT_EQ(operator_from_name("QUERY"), Operator::QUERY);
+
+  ASSERT_EQ(operator_from_name("GIBBERISH"), Operator::NO_OPERATOR);
+}
+
+TEST(test_minibmg, operator_to_string) {
+  ASSERT_EQ(to_string(Operator::CONSTANT), "CONSTANT");
+  ASSERT_EQ(to_string(Operator::ADD), "ADD");
+  ASSERT_EQ(to_string(Operator::MULTIPLY), "MULTIPLY");
+  ASSERT_EQ(to_string(Operator::DISTRIBUTION_NORMAL), "DISTRIBUTION_NORMAL");
+  ASSERT_EQ(to_string(Operator::DISTRIBUTION_BETA), "DISTRIBUTION_BETA");
+  ASSERT_EQ(
+      to_string(Operator::DISTRIBUTION_BERNOULLI), "DISTRIBUTION_BERNOULLI");
+  ASSERT_EQ(to_string(Operator::SAMPLE), "SAMPLE");
+  ASSERT_EQ(to_string(Operator::OBSERVE), "OBSERVE");
+  ASSERT_EQ(to_string(Operator::QUERY), "QUERY");
+
+  // with runtime checks enabled, the following would crash at the cast.
+  // ASSERT_EQ(to_string((Operator)10000), "NO_OPERATOR");
+}
+
+TEST(test_minibmg, type_from_name) {
+  ASSERT_EQ(type_from_name("NONE"), Type::NONE);
+  ASSERT_EQ(type_from_name("DISTRIBUTION"), Type::DISTRIBUTION);
+  ASSERT_EQ(type_from_name("REAL"), Type::REAL);
+
+  ASSERT_EQ(type_from_name("GIBBERISH"), Type::NONE);
+}
+
+TEST(test_minibmg, type_to_string) {
+  ASSERT_EQ(to_string(Type::NONE), "NONE");
+  ASSERT_EQ(to_string(Type::DISTRIBUTION), "DISTRIBUTION");
+  ASSERT_EQ(to_string(Type::REAL), "REAL");
+
+  // with runtime checks enabled, the following would crash at the cast.
+  // ASSERT_EQ(to_string((Type)10000), "NONE");
+}
+
 } // namespace beanmachine::minibmg
