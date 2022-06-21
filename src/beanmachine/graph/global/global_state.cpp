@@ -20,8 +20,9 @@ namespace graph {
 
 GlobalState::GlobalState(Graph& g) : graph(g) {
   flat_size = 0;
-  std::set<uint> supp = graph.compute_support();
-  for (uint node_id : supp) {
+  std::set<uint> ordered_support_node_ids =
+      graph.compute_ordered_support_node_ids();
+  for (uint node_id : ordered_support_node_ids) {
     ordered_support.push_back(graph.nodes[node_id].get());
   }
 

@@ -25,11 +25,12 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   SubGraph* subgraph = subgraph_ptr.get();
 
   // compute nodes up to and including stochastic children of discrete_sample
-  std::set<uint> supp_ids = compute_full_support();
+  std::set<uint> ordered_support_node_ids =
+      compute_full_ordered_support_node_ids();
   std::vector<uint> det_node_ids;
   std::vector<uint> sto_node_ids;
   std::tie(det_node_ids, sto_node_ids) =
-      compute_children(discrete_sample->index, supp_ids);
+      compute_children(discrete_sample->index, ordered_support_node_ids);
 
   // create MarginalDistribution
   std::unique_ptr<distribution::DummyMarginal>
