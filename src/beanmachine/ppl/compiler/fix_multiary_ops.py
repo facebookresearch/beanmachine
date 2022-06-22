@@ -12,7 +12,6 @@ from beanmachine.ppl.compiler.fix_problem import (
     NodeFixer,
     NodeFixerResult,
 )
-from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 class MultiaryOperatorFixer:
@@ -146,8 +145,7 @@ class MultiaryOperatorFixer:
         return acc
 
 
-# TODO: typer is unused
-def multiary_addition_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> NodeFixer:
+def multiary_addition_fixer(bmg: BMGraphBuilder) -> NodeFixer:
     """This fixer transforms graphs with long chains of binary addition nodes
     into multiary addition. This greatly decreases both the number of nodes
     and the number of edges in the graph, which can lead to performance wins
@@ -155,27 +153,26 @@ def multiary_addition_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> NodeFixer:
 
     maf = MultiaryOperatorFixer(bmg, bn.AdditionNode)
 
-    def fixer(node: bn.BMGNode) -> NodeFixerResult:
+    def multiary_addition_fixer(node: bn.BMGNode) -> NodeFixerResult:
         if not maf._needs_fixing(node):
             return Inapplicable
         acc = maf.accumulate_input_nodes(node)
         return bmg.add_multi_addition(*acc)
 
-    return fixer
+    return multiary_addition_fixer
 
 
-# TODO: typer is unused
-def multiary_multiplication_fixer(bmg: BMGraphBuilder, typer: TyperBase) -> NodeFixer:
+def multiary_multiplication_fixer(bmg: BMGraphBuilder) -> NodeFixer:
     """This fixer transforms graphs with long chains of binary multiplication nodes
     into multiary multiplication. This greatly decreases both the number of nodes
     and the number of edges in the graph, which can lead to performance wins
     during inference."""
     maf = MultiaryOperatorFixer(bmg, bn.MultiplicationNode)
 
-    def fixer(node: bn.BMGNode) -> NodeFixerResult:
+    def multiary_multiplication_fixer(node: bn.BMGNode) -> NodeFixerResult:
         if not maf._needs_fixing(node):
             return Inapplicable
         acc = maf.accumulate_input_nodes(node)
         return bmg.add_multi_multiplication(*acc)
 
-    return fixer
+    return multiary_multiplication_fixer

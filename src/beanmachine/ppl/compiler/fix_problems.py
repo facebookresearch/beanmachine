@@ -11,6 +11,7 @@ from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_additions import addition_fixer, sum_fixer
 from beanmachine.ppl.compiler.fix_arithmetic import (
     log1mexp_fixer,
+    neg_neg_fixer,
     negative_real_multiplication_fixer,
 )
 from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
@@ -56,28 +57,24 @@ default_skip_optimizations: Set[str] = {
     "normal_normal_conjugate_fixer",
 }
 
-_arithmetic_fixer_factories: List[
-    Callable[[BMGraphBuilder, LatticeTyper], NodeFixer]
-] = [
-    addition_fixer,
-    bool_arithmetic_fixer,
-    bool_comparison_fixer,
-    log1mexp_fixer,
-    logsumexp_fixer,
-    multiary_addition_fixer,
-    multiary_multiplication_fixer,
-    negative_real_multiplication_fixer,
-    sum_fixer,
-    trivial_matmul_fixer,
-    unsupported_node_fixer,
-]
-
 
 def arithmetic_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
     typer = LatticeTyper()
     node_fixers = [
-        f(bmg, typer) for f in _arithmetic_fixer_factories if f.__name__ not in skip
+        addition_fixer(bmg, typer),
+        bool_arithmetic_fixer(bmg, typer),
+        bool_comparison_fixer(bmg, typer),
+        log1mexp_fixer(bmg, typer),
+        logsumexp_fixer(bmg),
+        multiary_addition_fixer(bmg),
+        multiary_multiplication_fixer(bmg),
+        neg_neg_fixer(bmg),
+        negative_real_multiplication_fixer(bmg, typer),
+        sum_fixer(bmg, typer),
+        trivial_matmul_fixer(bmg, typer),
+        unsupported_node_fixer(bmg, typer),
     ]
+    node_fixers = [nf for nf in node_fixers if nf.__name__ not in skip]
     node_fixer = node_fixer_first_match(node_fixers)
     arith = ancestors_first_graph_fixer(bmg, typer, node_fixer)
     return fixpoint_graph_fixer(arith)

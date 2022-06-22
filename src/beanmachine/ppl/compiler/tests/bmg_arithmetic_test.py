@@ -3510,11 +3510,8 @@ digraph "graph" {
 
     def test_bmg_neg_of_neg(self) -> None:
         # This test shows that we treat torch.neg the same as the unary negation
-        # operator when generating a graph.
-        #
-        # TODO: This test also shows that we do NOT optimize away negative-of-negative
-        # which we certainly could. Once we implement that optimization, come back
-        # and fix up this test accordingly.
+        # operator when generating a graph.  Note that since this this produces
+        # a neg-of-neg situation, the optimizer then removes both of them.
 
         self.maxDiff = None
         observed = BMGInference().to_dot([neg_of_neg()], {})
@@ -3524,20 +3521,16 @@ digraph "graph" {
   N1[label=1.0];
   N2[label=Normal];
   N3[label=Sample];
-  N4[label="-"];
-  N5[label="-"];
-  N6[label=Normal];
-  N7[label=Sample];
-  N8[label=Query];
+  N4[label=Normal];
+  N5[label=Sample];
+  N6[label=Query];
   N0 -> N2;
   N1 -> N2;
-  N1 -> N6;
+  N1 -> N4;
   N2 -> N3;
   N3 -> N4;
   N4 -> N5;
   N5 -> N6;
-  N6 -> N7;
-  N7 -> N8;
 }
 """
         self.assertEqual(observed.strip(), expected.strip())

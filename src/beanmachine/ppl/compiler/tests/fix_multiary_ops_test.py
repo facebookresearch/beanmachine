@@ -7,7 +7,7 @@ import unittest
 
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference import BMGInference
-from torch.distributions import Bernoulli, Normal
+from torch.distributions import Bernoulli, Beta, Normal
 
 
 @bm.random_variable
@@ -68,6 +68,19 @@ def mult_negs_1():
     prod = lp1 * lp2 * lp3  # Should be R-
     ex = prod.exp()  # Should be P
     return Bernoulli(ex)  # Should be legal
+
+
+@bm.random_variable
+def mult_negs_2():
+    phi = Normal(0.0, 1.0).cdf
+    p1 = phi(norm(1))  # P
+    p2 = phi(norm(2))  # P
+    p3 = phi(norm(3))  # P
+    lp1 = p1.log()  # R-
+    lp2 = p2.log()  # R-
+    lp3 = p3.log()  # R-
+    prod = lp1 * lp2 * lp3  # Should be R-
+    return Beta(-prod, 2.0)  # Should be legal
 
 
 class FixMultiaryOperatorTest(unittest.TestCase):
@@ -266,7 +279,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-    def test_fix_multiply_neg_reals(self) -> None:
+    def test_fix_multiply_neg_reals_1(self) -> None:
         self.maxDiff = None
         observations = {}
         queries = [mult_negs_1()]
@@ -318,5 +331,61 @@ digraph "graph" {
   N18 -> N19;
   N19 -> N20;
 }
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_multiply_neg_reals_2(self) -> None:
+        # Make sure we're not introducing negate
+        # on top of negate.
+        self.maxDiff = None
+        observations = {}
+        queries = [mult_negs_2()]
+
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N00[label=0.0];
+  N01[label=1.0];
+  N02[label=Normal];
+  N03[label=Sample];
+  N04[label=Sample];
+  N05[label=Sample];
+  N06[label=Phi];
+  N07[label=Log];
+  N08[label="-"];
+  N09[label=Phi];
+  N10[label=Log];
+  N11[label="-"];
+  N12[label=Phi];
+  N13[label=Log];
+  N14[label="-"];
+  N15[label="*"];
+  N16[label=2.0];
+  N17[label=Beta];
+  N18[label=Sample];
+  N19[label=Query];
+  N00 -> N02;
+  N01 -> N02;
+  N02 -> N03;
+  N02 -> N04;
+  N02 -> N05;
+  N03 -> N06;
+  N04 -> N09;
+  N05 -> N12;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N15;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N15;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N17;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+}
+
 """
         self.assertEqual(expected.strip(), observed.strip())
