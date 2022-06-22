@@ -93,7 +93,7 @@ void MH::collect_samples(uint num_samples, InferConfig infer_config) {
 void MH::collect_sample(InferConfig infer_config) {
   graph->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
   if (infer_config.keep_log_prob) {
-    graph->collect_log_prob(graph->_full_log_prob(graph->supp)); // TODO: clean
+    graph->collect_log_prob(graph->full_log_prob());
   }
   graph->collect_sample();
   graph->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);

@@ -35,7 +35,6 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
   // x in sto_desc[y] => y in inv_sto[x]
   // this is a temp object which is needed to construct markov_blanket (below)
   std::map<uint, std::set<uint>> inv_sto;
-  std::vector<Node*> ordered_supp;
   for (uint node_id : ordered_support_node_ids) {
     Node* node = nodes[node_id].get();
     bool node_is_not_observed = observed.find(node_id) == observed.end();
@@ -55,9 +54,6 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
         }
         inv_sto[sto].insert(node_id);
       }
-    }
-    if (infer_config.keep_log_prob) {
-      ordered_supp.push_back(node);
     }
   }
   // markov_blanket of a node is the set of other nodes whose conditional
@@ -169,7 +165,7 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
       }
     }
     if (infer_config.keep_log_prob) {
-      collect_log_prob(_full_log_prob(ordered_supp));
+      collect_log_prob(full_log_prob());
     }
     if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
       collect_sample();
