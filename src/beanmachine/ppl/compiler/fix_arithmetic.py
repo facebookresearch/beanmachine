@@ -170,3 +170,19 @@ def log1mexp_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
         return bmg.add_log1mexp(x)
 
     return _log1mexp_fixer
+
+
+def neg_neg_fixer(bmg: BMGraphBuilder) -> NodeFixer:
+    # We can easily end up in a situation where another rewriter causes
+    # the graph to contain X -->  NEG  -->  NEG  which could be replaced
+    # with just X.
+
+    def _neg_neg_fixer(node: bn.BMGNode) -> NodeFixerResult:
+        if not isinstance(node, bn.NegateNode):
+            return Inapplicable
+        neg = node.inputs[0]
+        if not isinstance(neg, bn.NegateNode):
+            return Inapplicable
+        return neg.inputs[0]
+
+    return _neg_neg_fixer

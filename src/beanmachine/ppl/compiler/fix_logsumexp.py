@@ -13,12 +13,12 @@ from beanmachine.ppl.compiler.fix_problem import (
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
-def logsumexp_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
+def logsumexp_fixer(bmg: BMGraphBuilder) -> NodeFixer:
     """This fixer attempts to rewrite log expressions of the form
     log( exp(a) + exp(b) + exp(c) ...) -> logsumexp(a,b,c, ...)
     """
 
-    def fixer(node: bn.BMGNode) -> NodeFixerResult:
+    def logsumexp_fixer(node: bn.BMGNode) -> NodeFixerResult:
         if not isinstance(node, bn.LogNode):
             return Inapplicable
         addition = node.operand
@@ -28,4 +28,4 @@ def logsumexp_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
             return Inapplicable
         return bmg.add_logsumexp(*[i.operand for i in addition.inputs])
 
-    return fixer
+    return logsumexp_fixer
