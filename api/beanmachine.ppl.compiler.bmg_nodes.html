@@ -76,7 +76,6 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_dot.html">beanmachine.ppl.compiler.gen_dot module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_mini.html">beanmachine.ppl.compiler.gen_mini module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.graph_labels.html">beanmachine.ppl.compiler.graph_labels module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.hint.html">beanmachine.ppl.compiler.hint module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.internal_error.html">beanmachine.ppl.compiler.internal_error module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.lattice_typer.html">beanmachine.ppl.compiler.lattice_typer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.patterns.html">beanmachine.ppl.compiler.patterns module</a></li>
@@ -1210,8 +1209,8 @@ the condition is a Boolean.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.Log1mexpNode">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">Log1mexpNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.Log1mexpNode" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode</span></code></a></p>
-<p>This represents a log1mexp operation; it is generated when
-a model contains calls to log1mexp or math_log1mexp.</p>
+<p>This represents a log1mexp operation; it is generated as an
+optimization when a graph contains x -&gt; exp -&gt; complement -&gt; log</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.Log1mexpNode.inputs">
 <span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.InputList" title="beanmachine.ppl.compiler.bmg_nodes.InputList"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.InputList</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.Log1mexpNode.inputs" title="Permalink to this definition"></a></dt>

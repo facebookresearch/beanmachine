@@ -49,7 +49,6 @@ Submodules
    beanmachine.ppl.compiler.gen_dot
    beanmachine.ppl.compiler.gen_mini
    beanmachine.ppl.compiler.graph_labels
-   beanmachine.ppl.compiler.hint
    beanmachine.ppl.compiler.internal_error
    beanmachine.ppl.compiler.lattice_typer
    beanmachine.ppl.compiler.patterns
