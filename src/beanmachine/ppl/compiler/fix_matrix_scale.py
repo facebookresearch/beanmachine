@@ -19,7 +19,7 @@ def matrix_scale_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFixer:
     """This node fixer attempts to rewrite binary multiplications that involve
     a matrix and a scalar into a matrix_scale node."""
 
-    def fixer(n: bn.BMGNode) -> NodeFixerResult:
+    def _matrix_scale_fixer(n: bn.BMGNode) -> NodeFixerResult:
         # A matrix multiplication is fixable (to matrix_scale) if it is
         # a binary multiplication with non-singleton result size
         # and the size of one argument is matrix and the other is scalar
@@ -42,7 +42,7 @@ def matrix_scale_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFixer:
             scalar, matrix = left, right
         return bmg.add_matrix_scale(scalar, matrix)
 
-    return fixer
+    return _matrix_scale_fixer
 
 
 def trivial_matmul_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
@@ -63,3 +63,35 @@ def trivial_matmul_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
         return bmg.add_multiplication(left, right)
 
     return fixer
+
+
+def nested_matrix_scale_fixer(bmg: BMGraphBuilder) -> NodeFixer:
+    # If we have scalar nodes S1 and S2, matrix node M and matrix scale
+    # nodes MS1 and MS2 then we can rewrite:
+    #
+    #       S2   M              S1  S2
+    #        \  /                \ /
+    #    S1   MS2    ==>          *    M
+    #      \  /                    \  /
+    #       MS1                     MS
+    #        |                       |
+    #        X                       X
+    #
+    # We go from having two expensive matrix scales to one expensive matrix
+    # scale and one cheap multiplication of atomic values.
+
+    def _nested_matrix_scale_fixer(node: bn.BMGNode) -> NodeFixerResult:
+        ms1 = node
+        if not isinstance(ms1, bn.MatrixScaleNode):
+            return Inapplicable
+        # Input zero is always the scalar, input 1 is the matrix.
+        s1 = ms1.inputs[0]
+        ms2 = ms1.inputs[1]
+        if not isinstance(ms2, bn.MatrixScaleNode):
+            return Inapplicable
+        s2 = ms2.inputs[0]
+        m = ms2.inputs[1]
+        atomic_mult = bmg.add_multiplication(s1, s2)
+        return bmg.add_matrix_scale(atomic_mult, m)
+
+    return _nested_matrix_scale_fixer

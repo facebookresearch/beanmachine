@@ -21,7 +21,10 @@ from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
 from beanmachine.ppl.compiler.fix_bool_arithmetic import bool_arithmetic_fixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import bool_comparison_fixer
 from beanmachine.ppl.compiler.fix_logsumexp import logsumexp_fixer
-from beanmachine.ppl.compiler.fix_matrix_scale import trivial_matmul_fixer
+from beanmachine.ppl.compiler.fix_matrix_scale import (
+    nested_matrix_scale_fixer,
+    trivial_matmul_fixer,
+)
 from beanmachine.ppl.compiler.fix_multiary_ops import (
     multiary_addition_fixer,
     multiary_multiplication_fixer,
@@ -70,6 +73,7 @@ def arithmetic_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
         multiary_multiplication_fixer(bmg),
         neg_neg_fixer(bmg),
         negative_real_multiplication_fixer(bmg, typer),
+        nested_matrix_scale_fixer(bmg),
         sum_fixer(bmg, typer),
         trivial_matmul_fixer(bmg, typer),
         unsupported_node_fixer(bmg, typer),
