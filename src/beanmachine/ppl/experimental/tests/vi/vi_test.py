@@ -7,6 +7,7 @@ import itertools
 from typing import Optional
 
 import beanmachine.ppl as bm
+import numpy
 import pytest
 import scipy.stats
 import torch
@@ -125,7 +126,6 @@ class BinaryGaussianMixture:
 
 
 class TestAutoGuide:
-    @pytest.mark.skip(reason="MAP currently fails")
     @pytest.mark.parametrize("auto_guide_inference", [ADVI, MAP])
     def test_neals_funnel(self, auto_guide_inference):
         nf = bm.random_variable(NealsFunnel)
@@ -139,17 +139,28 @@ class TestAutoGuide:
             num_steps=100,
         )
 
-        # compare 1D marginals of empirical distributions using 2-sample K-S test
-        nf_samples = NealsFunnel().sample((20,)).squeeze().numpy()
-        vi_samples = (
-            world.get_guide_distribution(nf()).sample((20,)).detach().squeeze().numpy()
-        )
+        if auto_guide_inference == ADVI:
+            # compare 1D marginals of empirical distributions using 2-sample K-S test
+            nf_samples = NealsFunnel().sample((20,)).squeeze().numpy()
+            vi_samples = (
+                world.get_guide_distribution(nf())
+                .sample((20,))
+                .detach()
+                .squeeze()
+                .numpy()
+            )
+            assert (
+                scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue >= 0.05
+            )
+            assert (
+                scipy.stats.ks_2samp(nf_samples[:, 1], vi_samples[:, 1]).pvalue >= 0.05
+            )
+        else:
+            vi_samples = world.get_guide_distribution(nf()).v.detach().squeeze().numpy()
+            map_truth = [0, -4.5]
 
-        assert scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue >= 0.05
+            assert numpy.isclose(map_truth, vi_samples, atol=0.05).all().item()
 
-        assert scipy.stats.ks_2samp(nf_samples[:, 1], vi_samples[:, 1]).pvalue >= 0.05
-
-    @pytest.mark.skip(reason="MAP currently fails")
     @pytest.mark.parametrize("auto_guide_inference", [ADVI, MAP])
     def test_normal_normal(self, auto_guide_inference):
         model = NormalNormal()
@@ -169,8 +180,9 @@ class TestAutoGuide:
         sample_mean = mu_approx.sample((100,)).mean()
         assert sample_mean > 5.0
 
-        sample_var = mu_approx.sample((100,)).var()
-        assert sample_var > 0.1
+        if auto_guide_inference == ADVI:
+            sample_var = mu_approx.sample((100,)).var()
+            assert sample_var > 0.1
 
     @pytest.mark.parametrize("auto_guide_inference", [ADVI, MAP])
     def test_brlr(self, auto_guide_inference):
