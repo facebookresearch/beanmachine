@@ -50,8 +50,6 @@ from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.single_assignment import single_assignment
 
 
-# TODO: Detect unsupported operators
-# TODO: Detect unsupported control flow
 # TODO: Would be helpful if we could track original source code locations.
 
 _top_down = ast_domain.top_down

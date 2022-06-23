@@ -17,7 +17,6 @@ from beanmachine.ppl.compiler.ast_patterns import (
     ast_true,
     attribute,
     binop,
-    constant_tensor_any,
     expr,
     function_def,
     name,
@@ -452,25 +451,6 @@ def toss(i):
         self.assertTrue(ao1(1).is_fail())
         ao2 = AllOf([zero_to_one, one_to_two, three_to_four])
         self.assertTrue(ao2(0).is_fail())
-
-    def test_rules_5(self) -> None:
-        """Tests for rules.py"""
-        self.maxDiff = None
-
-        self.assertTrue(
-            constant_tensor_any(first_expr("torch.tensor(1.0)")).is_success()
-        )
-        self.assertTrue(
-            constant_tensor_any(first_expr("tensor([1.0, 2.0])")).is_success()
-        )
-        self.assertTrue(
-            constant_tensor_any(first_expr("tensor([[1,2],[3,4]])")).is_success()
-        )
-        self.assertTrue(constant_tensor_any(first_expr("torch.tensor(w)")).is_fail())
-        self.assertTrue(constant_tensor_any(first_expr("tensor([y, 2.0])")).is_fail())
-        self.assertTrue(
-            constant_tensor_any(first_expr("tensor([[1,z],[3,4]])")).is_fail()
-        )
 
     def test_rules_6(self) -> None:
         """Tests for rules.py"""
