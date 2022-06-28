@@ -19,12 +19,6 @@ class Variable:
     """
     Primitive used for maintaining metadata of random variables. Usually used
     in conjunction with `World` during inference.
-
-    Attributes:
-      value (torch.Tensor): Sampled value of random variable
-      distribution (torch.distributions.Distribution): Distribution random variable was sampled from
-      parents (set): Set containing the RVIdentifiers of the parents of the random variable
-      children (set): Set containing the RVIdentifiers of the children of the random variable
     """
 
     value: torch.Tensor
