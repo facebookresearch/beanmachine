@@ -23,6 +23,8 @@ INSTALL_REQUIRES = [
     "botorch>=0.5.1",
     "gpytorch>=1.3.0",
     "graphviz>=0.17",
+    "functorch>=0.1.0; platform_system!='Windows'",
+    "netCDF4<=1.5.8; python_version<'3.8'",
     "numpy>=1.18.1",
     "pandas>=0.24.2",
     "plotly>=2.2.1",
@@ -70,7 +72,6 @@ if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "/std:c++20"]
 else:
     CPP_COMPILE_ARGS = ["-std=c++2a", "-Werror"]
-    INSTALL_REQUIRES.append("functorch>=0.1.0")
 
 
 # Check for python version
