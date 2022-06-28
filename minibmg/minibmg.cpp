@@ -7,11 +7,14 @@
 
 #include "beanmachine/minibmg/minibmg.h"
 #include <folly/Format.h>
+#include <folly/json.h>
 #include <cassert>
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+using dynamic = folly::dynamic;
 
 namespace beanmachine::minibmg {
 
@@ -45,9 +48,6 @@ Operator operator_from_name(std::string name) {
 }
 
 std::string to_string(Operator op) {
-  if (op < 0 || op >= Operator::LAST_OPERATOR) {
-    return "NO_OPERATOR";
-  }
   auto found = operator_names.find(op);
   if (found != operator_names.end()) {
     return found->second;
@@ -80,9 +80,6 @@ Type type_from_name(std::string name) {
 }
 
 std::string to_string(Type type) {
-  if (type < 0 || type >= Type::LAST_TYPE) {
-    return "NONE";
-  }
   auto found = type_names.find(type);
   if (found != type_names.end()) {
     return found->second;
@@ -92,7 +89,7 @@ std::string to_string(Type type) {
 }
 
 Node::Node(const uint sequence, const enum Operator op, const Type type)
-    : sequence(sequence), op(op), type(type) {}
+    : sequence{sequence}, op{op}, type{type} {}
 
 Node::~Node() {}
 
@@ -101,7 +98,7 @@ OperatorNode::OperatorNode(
     const uint sequence,
     const enum Operator op,
     const Type type)
-    : Node(sequence, op, type), in_nodes(in_nodes) {
+    : Node{sequence, op, type}, in_nodes{in_nodes} {
   switch (op) {
     case Operator::CONSTANT:
       throw std::invalid_argument("OperatorNode cannot be used for CONSTANT.");
@@ -117,7 +114,7 @@ QueryNode::QueryNode(
     const uint sequence,
     const enum Operator op,
     const Type type)
-    : Node(sequence, op, type), query_index(query_index), in_node(in_node) {
+    : Node{sequence, op, type}, query_index{query_index}, in_node{in_node} {
   switch (op) {
     case Operator::QUERY:
       break;
@@ -133,7 +130,7 @@ ConstantNode::ConstantNode(
     const uint sequence,
     const enum Operator op,
     const Type type)
-    : Node(sequence, op, type), value(value) {
+    : Node{sequence, op, type}, value{value} {
   switch (op) {
     case Operator::CONSTANT:
       break;
@@ -148,7 +145,7 @@ ConstantNode::ConstantNode(
 uint Graph::Factory::add_constant(double value) {
   auto sequence = (uint)nodes.size();
   const auto new_node =
-      new ConstantNode(value, sequence, Operator::CONSTANT, Type::REAL);
+      new ConstantNode{value, sequence, Operator::CONSTANT, Type::REAL};
   nodes.push_back(new_node);
   return sequence;
 }
@@ -174,40 +171,40 @@ enum Type op_type(enum Operator op) {
 
 const std::vector<std::vector<enum Type>> make_expected_parents() {
   std::vector<std::vector<enum Type>> result;
-  std::vector<enum Type> empty = {};
-  result.reserve(Operator::LAST_OPERATOR);
+  std::vector<enum Type> empty{};
+  result.reserve((int)Operator::LAST_OPERATOR);
   for (Operator op = (Operator)0; op < Operator::LAST_OPERATOR;
-       op = (Operator)(op + 1)) {
+       op = (Operator)((int)op + 1)) {
     result.push_back(empty);
   }
-  assert(result.size() == Operator::LAST_OPERATOR);
-  result[Operator::CONSTANT] = {};
-  result[Operator::ADD] = {Type::REAL, Type::REAL};
-  result[Operator::MULTIPLY] = {Type::REAL, Type::REAL};
-  result[Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
-  result[Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
-  result[Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
-  result[Operator::SAMPLE] = {Type::DISTRIBUTION};
-  result[Operator::OBSERVE] = {Type::DISTRIBUTION, Type::REAL};
-  result[Operator::QUERY] = {Type::DISTRIBUTION};
+  assert(result.size() == (int)Operator::LAST_OPERATOR);
+  result[(uint)Operator::CONSTANT] = {};
+  result[(uint)Operator::ADD] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::MULTIPLY] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
+  result[(uint)Operator::SAMPLE] = {Type::DISTRIBUTION};
+  result[(uint)Operator::OBSERVE] = {Type::DISTRIBUTION, Type::REAL};
+  result[(uint)Operator::QUERY] = {Type::DISTRIBUTION};
   return result;
 }
 
 enum Type expected_result_type(enum Operator op) {
   switch (op) {
-    case CONSTANT:
-    case SAMPLE:
-    case ADD:
-    case MULTIPLY:
+    case Operator::CONSTANT:
+    case Operator::SAMPLE:
+    case Operator::ADD:
+    case Operator::MULTIPLY:
       return Type::REAL;
 
-    case DISTRIBUTION_NORMAL:
-    case DISTRIBUTION_BETA:
-    case DISTRIBUTION_BERNOULLI:
+    case Operator::DISTRIBUTION_NORMAL:
+    case Operator::DISTRIBUTION_BETA:
+    case Operator::DISTRIBUTION_BERNOULLI:
       return Type::DISTRIBUTION;
 
-    case OBSERVE:
-    case QUERY:
+    case Operator::OBSERVE:
+    case Operator::QUERY:
       return Type::NONE;
 
     default:
@@ -220,7 +217,7 @@ const std::vector<std::vector<enum Type>> expected_parents =
 
 uint Graph::Factory::add_operator(enum Operator op, std::vector<uint> parents) {
   auto sequence = (uint)nodes.size();
-  auto expected = expected_parents[op];
+  auto expected = expected_parents[(uint)op];
   std::vector<const Node*> in_nodes;
   if (parents.size() != expected.size()) {
     throw std::invalid_argument("Incorrect number of parent nodes.");
@@ -238,7 +235,7 @@ uint Graph::Factory::add_operator(enum Operator op, std::vector<uint> parents) {
   }
 
   auto new_node =
-      new OperatorNode(in_nodes, sequence, op, expected_result_type(op));
+      new OperatorNode{in_nodes, sequence, op, expected_result_type(op)};
   nodes.push_back(new_node);
   return sequence;
 }
@@ -254,14 +251,14 @@ uint Graph::Factory::add_query(uint parent) {
   }
   auto query_id = next_query;
   next_query++;
-  auto new_node = new QueryNode(
-      query_id, parent_node, sequence, Operator::QUERY, Type::NONE);
+  auto new_node = new QueryNode{
+      query_id, parent_node, sequence, Operator::QUERY, Type::NONE};
   nodes.push_back(new_node);
   return query_id;
 }
 
 Graph Graph::Factory::build() {
-  auto graph = Graph(this->nodes);
+  Graph graph{this->nodes};
   this->nodes.clear();
   return graph;
 }
@@ -273,7 +270,7 @@ Graph::Factory::~Factory() {
   nodes.clear();
 }
 
-Graph::Graph(std::vector<const Node*> nodes) : nodes(nodes) {}
+Graph::Graph(std::vector<const Node*> nodes) : nodes{nodes} {}
 
 Graph::~Graph() {
   for (auto node : nodes) {
@@ -283,7 +280,7 @@ Graph::~Graph() {
 
 Graph Graph::create(std::vector<const Node*> nodes) {
   Graph::validate(nodes);
-  return Graph(nodes);
+  return Graph{nodes};
 }
 
 void Graph::validate(std::vector<const Node*> nodes) {
@@ -318,9 +315,9 @@ void Graph::validate(std::vector<const Node*> nodes) {
 
     // Check the predecessor nodes
     switch (node->op) {
-      case CONSTANT:
+      case Operator::CONSTANT:
         break;
-      case QUERY: {
+      case Operator::QUERY: {
         const QueryNode* q = (QueryNode*)node;
         if (q->query_index != next_query) {
           throw std::invalid_argument(fmt::format(
@@ -344,7 +341,8 @@ void Graph::validate(std::vector<const Node*> nodes) {
       // Check other operators.
       default: {
         const OperatorNode* op = (OperatorNode*)node;
-        auto parent_types = expected_parents[node->op];
+        uint ix = (uint)node->op;
+        auto parent_types = expected_parents[ix];
         if (op->in_nodes.size() != parent_types.size()) {
           throw std::invalid_argument(fmt::format(
               "Node {0} should have {1} parents", i, parent_types.size()));
@@ -367,6 +365,143 @@ void Graph::validate(std::vector<const Node*> nodes) {
 
     seen.insert(node);
   }
+}
+
+folly::dynamic graph_to_json(const Graph& g) {
+  dynamic result = dynamic::object;
+  result["comment"] = "created by graph_to_json";
+  dynamic a = dynamic::array;
+
+  for (auto node : g.nodes) {
+    dynamic dyn_node = dynamic::object;
+    dyn_node["sequence"] = node->sequence;
+    dyn_node["operator"] = to_string(node->op);
+    dyn_node["type"] = to_string(node->type);
+    switch (node->op) {
+      case Operator::QUERY: {
+        auto n = (const QueryNode*)node;
+        dyn_node["query_index"] = n->query_index;
+        dyn_node["in_node"] = n->in_node->sequence;
+        break;
+      }
+      case Operator::CONSTANT: {
+        auto n = (const ConstantNode*)node;
+        dyn_node["value"] = n->value;
+        break;
+      }
+      default: {
+        auto n = (const OperatorNode*)node;
+        dynamic in_nodes = dynamic::array;
+        for (auto pred : n->in_nodes) {
+          in_nodes.push_back(pred->sequence);
+        }
+        dyn_node["in_nodes"] = in_nodes;
+        break;
+      }
+    }
+    a.push_back(dyn_node);
+  }
+
+  result["nodes"] = a;
+  return result;
+}
+
+JsonError::JsonError(std::string message) : message(message) {}
+
+Graph json_to_graph(folly::dynamic d) {
+  Graph::Factory gf;
+  std::unordered_map<uint, const Node*> sequence_to_node;
+  std::vector<const Node*> all_nodes;
+
+  auto json_nodes = d["nodes"];
+  if (!json_nodes.isArray()) {
+    throw JsonError("missing \"nodes\" property");
+  }
+  for (auto json_node : json_nodes) {
+    auto sequencev = json_node["sequence"];
+    if (!sequencev.isInt()) {
+      throw JsonError("missing sequence number.");
+    }
+    auto sequence = (uint)sequencev.asInt();
+
+    auto opv = json_node["operator"];
+    if (!opv.isString()) {
+      throw JsonError("missing operator.");
+    }
+    auto op = operator_from_name(opv.asString());
+    if (op == Operator::NO_OPERATOR) {
+      throw JsonError("bad operator " + opv.asString());
+    }
+
+    Type type;
+    auto typev = json_node["type"];
+    if (!typev.isString()) {
+      type = op_type(op);
+    } else {
+      type = type_from_name(typev.asString());
+    }
+
+    const Node* node;
+    switch (op) {
+      case Operator::QUERY: {
+        auto query_indexv = json_node["query_index"];
+        if (!query_indexv.isInt()) {
+          throw JsonError("missing query_index for query.");
+        }
+        auto query_index = query_indexv.asInt();
+
+        auto in_nodev = json_node["in_node"];
+        if (!in_nodev.isInt()) {
+          throw JsonError("missing in_node for query.");
+        }
+        auto in_node_i = in_nodev.asInt();
+        if (sequence_to_node.find(in_node_i) == sequence_to_node.end()) {
+          throw JsonError("bad in_node for query.");
+        }
+        auto in_node = sequence_to_node.find(in_node_i)->second;
+        node = new QueryNode(query_index, in_node, sequence, op, type);
+        break;
+      }
+      case Operator::CONSTANT: {
+        auto valuev = json_node["value"];
+        double value;
+        if (valuev.isInt()) {
+          value = valuev.asInt();
+        } else if (valuev.isDouble()) {
+          value = valuev.asDouble();
+        } else {
+          throw JsonError("bad value for constant.");
+        }
+        node = new ConstantNode(value, sequence, op, type);
+        break;
+      }
+      default: {
+        auto in_nodesv = json_node["in_nodes"];
+        if (!in_nodesv.isArray()) {
+          throw JsonError("missing in_nodes.");
+        }
+        std::vector<const Node*> in_nodes;
+        for (auto in_nodev : in_nodesv) {
+          if (!in_nodev.isInt()) {
+            throw JsonError("missing in_node for query.");
+          }
+          auto in_node_i = in_nodev.asInt();
+          if (sequence_to_node.find(in_node_i) == sequence_to_node.end()) {
+            throw JsonError("bad in_node for query.");
+          }
+          auto in_node = sequence_to_node.find(in_node_i)->second;
+          in_nodes.push_back(in_node);
+        }
+        node = new OperatorNode(in_nodes, sequence, op, type);
+        break;
+      }
+    }
+
+    all_nodes.push_back(node);
+    sequence_to_node[node->sequence] = node;
+  }
+
+  return Graph::create(all_nodes);
 }
 
 } // namespace beanmachine::minibmg

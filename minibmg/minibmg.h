@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <folly/json.h>
 #include <string>
 #include <vector>
 #include "beanmachine/minibmg/container.h"
@@ -20,7 +21,7 @@ class Node;
 class OperatorNode;
 class ConstantNode;
 
-enum Operator {
+enum class Operator {
   // An operator value that indicates no operator.  Used as a flag to
   // reflect an invalid operator value.
   NO_OPERATOR,
@@ -83,7 +84,7 @@ enum Operator {
 Operator operator_from_name(std::string name);
 std::string to_string(Operator op);
 
-enum Type {
+enum class Type {
   // No type.  For example, the result of an observation or query node.
   NONE,
 
@@ -128,9 +129,19 @@ class Graph : Container {
 
    private:
     std::vector<const Node*> nodes;
-    int next_query = 0;
+    uint next_query = 0;
   };
 };
+
+// Exception to throw when json_to_graph fails.
+class JsonError : public std::exception {
+ public:
+  explicit JsonError(std::string message);
+  const std::string message;
+};
+
+folly::dynamic graph_to_json(const Graph& g);
+Graph json_to_graph(folly::dynamic d); // throw (JsonError)
 
 class Node {
  public:
