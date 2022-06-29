@@ -316,6 +316,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_transpose">add_transpose() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_uniform">add_uniform() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_vector_index">add_vector_index() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
@@ -757,6 +759,13 @@
 </li>
       </ul></li>
       <li>
+    beanmachine.ppl.compiler.fix_transpose
+
+      <ul>
+        <li><a href="beanmachine.ppl.compiler.fix_transpose.html#module-beanmachine.ppl.compiler.fix_transpose">module</a>
+</li>
+      </ul></li>
+      <li>
     beanmachine.ppl.compiler.fix_unsupported
 
       <ul>
@@ -966,6 +975,8 @@
         <li><a href="beanmachine.ppl.inference.bmg_inference.html#module-beanmachine.ppl.inference.bmg_inference">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     beanmachine.ppl.inference.compositional_infer
 
@@ -973,8 +984,6 @@
         <li><a href="beanmachine.ppl.inference.compositional_infer.html#module-beanmachine.ppl.inference.compositional_infer">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     beanmachine.ppl.inference.hmc_inference
 
@@ -2088,6 +2097,8 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.fix_problem.html#beanmachine.ppl.compiler.fix_problem.identity_graph_fixer">identity_graph_fixer() (in module beanmachine.ppl.compiler.fix_problem)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.fix_transpose.html#beanmachine.ppl.compiler.fix_transpose.identity_transpose_fixer">identity_transpose_fixer() (in module beanmachine.ppl.compiler.fix_transpose)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.ast_patterns.html#beanmachine.ppl.compiler.ast_patterns.if_exp">if_exp() (in module beanmachine.ppl.compiler.ast_patterns)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.ast_patterns.html#beanmachine.ppl.compiler.ast_patterns.if_statement">if_statement() (in module beanmachine.ppl.compiler.ast_patterns)</a>
@@ -2332,6 +2343,8 @@
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ToRealMatrixNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.ToRealMatrixNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ToRealNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.ToRealNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.TransposeNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.TransposeNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode attribute)</a>
 </li>
@@ -2767,6 +2780,8 @@
         <li><a href="beanmachine.ppl.compiler.fix_problems.html#module-beanmachine.ppl.compiler.fix_problems">beanmachine.ppl.compiler.fix_problems</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.fix_requirements.html#module-beanmachine.ppl.compiler.fix_requirements">beanmachine.ppl.compiler.fix_requirements</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.fix_transpose.html#module-beanmachine.ppl.compiler.fix_transpose">beanmachine.ppl.compiler.fix_transpose</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.fix_unsupported.html#module-beanmachine.ppl.compiler.fix_unsupported">beanmachine.ppl.compiler.fix_unsupported</a>
 </li>
@@ -3249,6 +3264,8 @@
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ToRealMatrixNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.ToRealMatrixNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ToRealNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.ToRealNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.TransposeNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.TransposeNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode attribute)</a>
 </li>
@@ -3976,6 +3993,8 @@
       <li><a href="beanmachine.ppl.compiler.profiler.html#beanmachine.ppl.compiler.profiler.ProfileReport.total_time">total_time (beanmachine.ppl.compiler.profiler.ProfileReport attribute)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.rules.html#beanmachine.ppl.compiler.rules.Trace">Trace (class in beanmachine.ppl.compiler.rules)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.TransposeNode">TransposeNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.fix_matrix_scale.html#beanmachine.ppl.compiler.fix_matrix_scale.trivial_matmul_fixer">trivial_matmul_fixer() (in module beanmachine.ppl.compiler.fix_matrix_scale)</a>
 </li>

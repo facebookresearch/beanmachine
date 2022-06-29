@@ -40,6 +40,7 @@ Submodules
    beanmachine.ppl.compiler.fix_problem
    beanmachine.ppl.compiler.fix_problems
    beanmachine.ppl.compiler.fix_requirements
+   beanmachine.ppl.compiler.fix_transpose
    beanmachine.ppl.compiler.fix_unsupported
    beanmachine.ppl.compiler.fix_vectorized_models
    beanmachine.ppl.compiler.gen_bmg_cpp
