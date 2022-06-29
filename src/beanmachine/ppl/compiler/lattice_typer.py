@@ -140,6 +140,7 @@ _always_matrix_types: Set[type] = {
     bn.ConstantSimplexMatrixNode,
     bn.ToMatrixNode,
     bn.MatrixScaleNode,
+    bn.TransposeNode,
 }
 
 
@@ -173,6 +174,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.ToPositiveRealMatrixNode: self._type_to_pos_real_matrix,
             bn.ToRealMatrixNode: self._type_to_real_matrix,
             bn.VectorIndexNode: self._type_index,
+            bn.TransposeNode: self._type_transpose,
         }
 
     def _type_observation(self, node: bn.Observation) -> bt.BMGLatticeType:
@@ -390,6 +392,14 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         assert isinstance(t, bt.BMGMatrixType)
         assert self.is_matrix(op)
         return bt.PositiveRealMatrix(t.rows, t.columns)
+
+    def _type_transpose(self, node: bn.TransposeNode) -> bt.BMGLatticeType:
+        op = node.operand
+        t = self[op]
+        assert t is not bt.Untypable
+        assert isinstance(t, bt.BMGMatrixType)
+        assert self.is_matrix(op)
+        return bt.RealMatrix(t.columns, t.rows)
 
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> bt.BMGLatticeType:
         # If there is any input node whose type cannot be determined, then *none*

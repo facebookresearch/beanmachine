@@ -147,6 +147,7 @@ _broadcast_the_inputs: Set[type] = {
     bn.ToPositiveRealMatrixNode,
     bn.ToRealMatrixNode,
     bn.UniformNode,
+    bn.TransposeNode,
 }
 
 

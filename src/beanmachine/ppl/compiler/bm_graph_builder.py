@@ -904,6 +904,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_transpose(self, operand: BMGNode) -> bn.TransposeNode:
+        node = bn.TransposeNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_squareroot(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantNode):
             return self.add_constant(torch.sqrt(operand.value))

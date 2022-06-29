@@ -124,6 +124,7 @@ _node_labels = {
     bn.UniformNode: "Uniform",
     bn.UntypedConstantNode: _val,
     bn.VectorIndexNode: "index",
+    bn.TransposeNode: "Transpose",
 }
 
 # These are the labels used when describing a node in an error message.
@@ -223,6 +224,7 @@ _node_error_labels = {
     bn.UniformNode: "uniform",
     bn.UntypedConstantNode: "constant value",
     bn.VectorIndexNode: "index",
+    bn.TransposeNode: "transpose",
 }
 
 
@@ -327,6 +329,7 @@ _edge_labels = {
     bn.ToRealNode: _operand,
     bn.UniformNode: ["low", "high"],
     bn.VectorIndexNode: _left_right,
+    bn.TransposeNode: _operand,
 }
 
 

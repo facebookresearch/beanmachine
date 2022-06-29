@@ -15,7 +15,7 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_nodes import BMGNode
+from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 
 
 _in_place_operator_names = {
@@ -539,6 +539,8 @@ class SpecialFunctionCaller:
             torch.sum: self._torch_sum,
             torch.Tensor.true_divide: self._torch_div,
             torch.true_divide: self._torch_div,
+            torch.transpose: self._torch_transpose,
+            torch.Tensor.transpose: self._torch_transpose,
         }
         self._special_tensor_instance_function_names = {
             f.__name__
@@ -916,6 +918,30 @@ class SpecialFunctionCaller:
     ) -> BMGNode:
         # TODO: What to do with upper?
         return self._bmg.add_cholesky(input)
+
+    def _torch_transpose(
+        self,
+        input: BMGNode,
+        dim0: BMGNode,
+        dim1: BMGNode,
+        upper: Optional[BMGNode] = None,
+        out: Any = None,
+    ) -> BMGNode:
+        constD1 = dim0.value if isinstance(dim0, ConstantNode) else None
+        constD2 = dim1.value if isinstance(dim1, ConstantNode) else None
+
+        def valid_dim_or_none(c):
+            return c is None or isinstance(c, int) and 0 <= c <= 1
+
+        valid_dims = valid_dim_or_none(constD1) and valid_dim_or_none(constD2)
+        matched_dims = constD1 is not None and constD1 == constD2
+
+        if not valid_dims or matched_dims:
+            raise ValueError(
+                f"Unsupported dimension arguments for transpose: {constD1} and {constD2}"
+            )
+        else:
+            return self._bmg.add_transpose(input)
 
     def _torch_div(
         self,
