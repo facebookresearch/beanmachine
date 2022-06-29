@@ -93,6 +93,7 @@ _operator_types = {
     bn.ToPositiveRealNode: OperatorType.TO_POS_REAL,
     bn.ToProbabilityNode: OperatorType.TO_PROBABILITY,
     bn.VectorIndexNode: OperatorType.INDEX,
+    bn.TransposeNode: OperatorType.TRANSPOSE,
 }
 
 _constant_value_types = {

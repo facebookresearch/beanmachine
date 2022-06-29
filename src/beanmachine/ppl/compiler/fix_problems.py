@@ -44,6 +44,7 @@ from beanmachine.ppl.compiler.fix_problem import (
     sequential_graph_fixer,
 )
 from beanmachine.ppl.compiler.fix_requirements import requirements_fixer
+from beanmachine.ppl.compiler.fix_transpose import identity_transpose_fixer
 from beanmachine.ppl.compiler.fix_unsupported import (
     bad_matmul_reporter,
     unsupported_node_fixer,
@@ -77,6 +78,7 @@ def arithmetic_graph_fixer(skip: Set[str], bmg: BMGraphBuilder) -> GraphFixer:
         sum_fixer(bmg, typer),
         trivial_matmul_fixer(bmg, typer),
         unsupported_node_fixer(bmg, typer),
+        identity_transpose_fixer(bmg, typer),
     ]
     node_fixers = [nf for nf in node_fixers if nf.__name__ not in skip]
     node_fixer = node_fixer_first_match(node_fixers)

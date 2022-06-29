@@ -1173,6 +1173,17 @@ class Log1mexpNode(UnaryOperatorNode):
         return "Log1mexp(" + str(self.operand) + ")"
 
 
+class TransposeNode(UnaryOperatorNode):
+    """This represents a transpose operation; it is generated when
+    a model contains calls to transpose or Tensor.transpose"""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Transpose(" + str(self.operand) + ")"
+
+
 # BMG supports three different kinds of negation:
 
 # * The "complement" node with a Boolean operand has the semantics
