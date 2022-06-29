@@ -22,9 +22,16 @@ class Variable:
     """
 
     value: torch.Tensor
+    "Sampled value of random variable"
+
     distribution: dist.Distribution
+    "Distribution random variable was sampled from"
+
     parents: Set[RVIdentifier] = dataclasses.field(default_factory=set)
+    "Set containing the RVIdentifiers of the parents of the random variable"
+
     children: Set[RVIdentifier] = dataclasses.field(default_factory=set)
+    "Set containing the RVIdentifiers of the children of the random variable"
 
     @lazy_property
     def log_prob(self) -> torch.Tensor:
