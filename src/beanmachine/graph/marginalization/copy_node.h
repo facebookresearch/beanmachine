@@ -6,24 +6,27 @@
  */
 
 #pragma once
+#include <string>
 #include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace graph {
 
-class SubGraph : public Graph {
+class CopyNode : public Node {
  public:
-  explicit SubGraph(Graph& g);
-  void add_node_by_id(uint node_id);
-  bool has_node(uint node_id);
-  void link_copy_node(Node* node, Node* copy_node);
-  void move_nodes_from_graph();
+  bool is_stochastic() const override {
+    return false;
+  }
+  bool needs_gradient() const override {
+    return true;
+  }
+  explicit CopyNode(Node* node_to_copy);
+  void eval(std::mt19937& gen) override;
+  double log_prob() const override;
+  virtual ~CopyNode() override {}
 
  private:
-  Graph& graph;
-  std::set<uint> pending_node_ids;
-  std::map<Node*, Node*> copy_map;
+  Node* node_to_copy;
 };
-
 } // namespace graph
 } // namespace beanmachine

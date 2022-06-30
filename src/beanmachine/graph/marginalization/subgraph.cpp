@@ -6,6 +6,9 @@
  */
 
 #include "beanmachine/graph/marginalization/subgraph.h"
+#include <algorithm>
+#include <memory>
+#include "beanmachine/graph/marginalization/copy_node.h"
 
 namespace beanmachine {
 namespace graph {
@@ -21,17 +24,23 @@ bool SubGraph::has_node(uint node_id) {
       pending_node_ids.end();
 }
 
+void SubGraph::link_copy_node(Node* node, Node* copy_node) {
+  copy_map[copy_node] = node;
+}
+
 void SubGraph::move_nodes_from_graph() {
+  // copy nodes of parents have already been added
+  uint copy_nodes_size = nodes.size();
   // indices are from largest to smallest
   for (std::set<uint>::reverse_iterator rit = pending_node_ids.rbegin();
        rit != pending_node_ids.rend();
        rit++) {
     uint index = *rit;
-    nodes.push_back(std::move(graph.nodes[index]));
+    // reorder nodes after copy nodes from smallest index to largest
+    nodes.insert(
+        nodes.begin() + copy_nodes_size, std::move(graph.nodes[index]));
     graph.nodes.erase(graph.nodes.begin() + index);
   }
-  // reorder nodes from smallest index to largest
-  std::reverse(nodes.begin(), nodes.end());
   graph.reindex_nodes();
   reindex_nodes();
 }
