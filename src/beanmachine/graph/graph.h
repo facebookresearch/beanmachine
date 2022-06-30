@@ -376,8 +376,7 @@ enum class NodeType {
   DISTRIBUTION = 2,
   OPERATOR = 3,
   FACTOR = 4,
-  MAX = 5,
-  COPY = 6,
+  MAX = 5
 };
 
 enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };

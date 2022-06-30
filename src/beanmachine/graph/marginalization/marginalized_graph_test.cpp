@@ -12,6 +12,7 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/marginalization/marginalized_graph.h"
 #include "beanmachine/graph/marginalization/subgraph.h"
+#include "beanmachine/graph/operator/operator.h"
 
 using namespace beanmachine;
 using namespace graph;
@@ -128,16 +129,16 @@ TEST(testmarginal, parent_and_child) {
   EXPECT_NEAR(one_node->value._double, 1.0, 1e-4);
   Node* marginalized_node = g.get_node(2);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  Node* copy_n_node = g.get_node(3);
-  EXPECT_EQ(copy_n_node->node_type, NodeType::COPY);
+  Node* sample_n_node = g.get_node(3);
+  EXPECT_EQ(sample_n_node->node_type, NodeType::OPERATOR);
   EXPECT_THROW(g.get_node(4), std::out_of_range);
   // check graph relationships
   EXPECT_EQ(half_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[0], half_node);
   EXPECT_EQ(one_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[1], one_node);
-  EXPECT_EQ(marginalized_node->out_nodes[0], copy_n_node);
-  EXPECT_EQ(copy_n_node->in_nodes[0], marginalized_node);
+  EXPECT_EQ(marginalized_node->out_nodes[0], sample_n_node);
+  EXPECT_EQ(sample_n_node->in_nodes[0], marginalized_node);
 
   // check subgraph nodes
   distribution::DummyMarginal* marginalized_distribution =
@@ -145,10 +146,10 @@ TEST(testmarginal, parent_and_child) {
   SubGraph* subgraph = marginalized_distribution->subgraph_ptr.get();
   Node* copy_half_node = subgraph->get_node(0);
   EXPECT_NEAR(copy_half_node->value._double, 0.5, 1e-4);
-  EXPECT_EQ(copy_half_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_half_node->node_type, NodeType::CONSTANT);
   Node* copy_one_node = subgraph->get_node(1);
   EXPECT_NEAR(copy_one_node->value._double, 1.0, 1e-4);
-  EXPECT_EQ(copy_one_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_one_node->node_type, NodeType::CONSTANT);
   Node* bernoulli_node = subgraph->get_node(2);
   EXPECT_EQ(bernoulli_node->node_type, NodeType::DISTRIBUTION);
   Node* coin_node = subgraph->get_node(3);
@@ -265,10 +266,10 @@ TEST(testmarginals, parent_and_children) {
   EXPECT_NEAR(five_node->value._double, 5.0, 1e-4);
   Node* marginalized_node = g.get_node(4);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  Node* copy_n1_node = g.get_node(5);
-  EXPECT_EQ(copy_n1_node->node_type, NodeType::COPY);
-  Node* copy_n2_node = g.get_node(6);
-  EXPECT_EQ(copy_n2_node->node_type, NodeType::COPY);
+  Node* sample_n1_node = g.get_node(5);
+  EXPECT_EQ(sample_n1_node->node_type, NodeType::OPERATOR);
+  Node* sample_n2_node = g.get_node(6);
+  EXPECT_EQ(sample_n2_node->node_type, NodeType::OPERATOR);
   EXPECT_THROW(g.get_node(7), std::out_of_range);
   // check graph relationships
   EXPECT_EQ(binomial_n_node->out_nodes[0], marginalized_node);
@@ -279,10 +280,10 @@ TEST(testmarginals, parent_and_children) {
   EXPECT_EQ(marginalized_node->in_nodes[2], one_node);
   EXPECT_EQ(five_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[3], five_node);
-  EXPECT_EQ(marginalized_node->out_nodes[0], copy_n1_node);
-  EXPECT_EQ(copy_n1_node->in_nodes[0], marginalized_node);
-  EXPECT_EQ(marginalized_node->out_nodes[1], copy_n2_node);
-  EXPECT_EQ(copy_n2_node->in_nodes[0], marginalized_node);
+  EXPECT_EQ(marginalized_node->out_nodes[0], sample_n1_node);
+  EXPECT_EQ(sample_n1_node->in_nodes[0], marginalized_node);
+  EXPECT_EQ(marginalized_node->out_nodes[1], sample_n2_node);
+  EXPECT_EQ(sample_n2_node->in_nodes[0], marginalized_node);
 
   // check subgraph nodes
   distribution::DummyMarginal* marginalized_distribution =
@@ -290,16 +291,16 @@ TEST(testmarginals, parent_and_children) {
   SubGraph* subgraph = marginalized_distribution->subgraph_ptr.get();
   Node* copy_binomial_n_node = subgraph->get_node(0);
   EXPECT_EQ(copy_binomial_n_node->value._natural, 10);
-  EXPECT_EQ(copy_binomial_n_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_binomial_n_node->node_type, NodeType::CONSTANT);
   Node* copy_p_node = subgraph->get_node(1);
   EXPECT_NEAR(copy_p_node->value._double, 0.3, 1e-4);
-  EXPECT_EQ(copy_p_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_p_node->node_type, NodeType::CONSTANT);
   Node* copy_one_node = subgraph->get_node(2);
   EXPECT_NEAR(copy_one_node->value._double, 1.0, 1e-4);
-  EXPECT_EQ(copy_one_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_one_node->node_type, NodeType::CONSTANT);
   Node* copy_five_node = subgraph->get_node(3);
   EXPECT_NEAR(copy_five_node->value._double, 5.0, 1e-4);
-  EXPECT_EQ(copy_five_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_five_node->node_type, NodeType::CONSTANT);
   Node* binomial_node = subgraph->get_node(4);
   EXPECT_EQ(binomial_node->node_type, NodeType::DISTRIBUTION);
   Node* binomial_sample_node = subgraph->get_node(5);
@@ -406,8 +407,8 @@ TEST(testmarginal, parent_and_long_child) {
   EXPECT_NEAR(one_node->value._double, 1.0, 1e-4);
   Node* marginalized_node = g.get_node(2);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  Node* copy_n_node = g.get_node(3);
-  EXPECT_EQ(copy_n_node->node_type, NodeType::COPY);
+  Node* sample_n_node = g.get_node(3);
+  EXPECT_EQ(sample_n_node->node_type, NodeType::OPERATOR);
   Node* normal_2_node = g.get_node(4);
   EXPECT_EQ(normal_2_node->node_type, NodeType::DISTRIBUTION);
   Node* n2_node = g.get_node(5);
@@ -418,10 +419,10 @@ TEST(testmarginal, parent_and_long_child) {
   EXPECT_EQ(marginalized_node->in_nodes[0], half_node);
   EXPECT_EQ(one_node->out_nodes[1], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[1], one_node);
-  EXPECT_EQ(marginalized_node->out_nodes[0], copy_n_node);
-  EXPECT_EQ(copy_n_node->in_nodes[0], marginalized_node);
-  EXPECT_EQ(copy_n_node->out_nodes[0], normal_2_node);
-  EXPECT_EQ(normal_2_node->in_nodes[0], copy_n_node);
+  EXPECT_EQ(marginalized_node->out_nodes[0], sample_n_node);
+  EXPECT_EQ(sample_n_node->in_nodes[0], marginalized_node);
+  EXPECT_EQ(sample_n_node->out_nodes[0], normal_2_node);
+  EXPECT_EQ(normal_2_node->in_nodes[0], sample_n_node);
   EXPECT_EQ(one_node->out_nodes[0], normal_2_node);
   EXPECT_EQ(normal_2_node->in_nodes[1], one_node);
   EXPECT_EQ(normal_2_node->out_nodes[0], n2_node);
@@ -433,10 +434,10 @@ TEST(testmarginal, parent_and_long_child) {
   SubGraph* subgraph = marginalized_distribution->subgraph_ptr.get();
   Node* copy_half_node = subgraph->get_node(0);
   EXPECT_NEAR(copy_half_node->value._double, 0.5, 1e-4);
-  EXPECT_EQ(copy_half_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_half_node->node_type, NodeType::CONSTANT);
   Node* copy_one_node = subgraph->get_node(1);
   EXPECT_NEAR(copy_one_node->value._double, 1.0, 1e-4);
-  EXPECT_EQ(copy_one_node->node_type, NodeType::COPY);
+  EXPECT_EQ(copy_one_node->node_type, NodeType::CONSTANT);
   Node* bernoulli_node = subgraph->get_node(2);
   EXPECT_EQ(bernoulli_node->node_type, NodeType::DISTRIBUTION);
   Node* coin_node = subgraph->get_node(3);
@@ -459,6 +460,119 @@ TEST(testmarginal, parent_and_long_child) {
   EXPECT_EQ(normal_node->in_nodes[0], coin_real_node);
   EXPECT_EQ(copy_one_node->out_nodes[0], normal_node);
   EXPECT_EQ(normal_node->in_nodes[1], copy_one_node);
+  EXPECT_EQ(normal_node->out_nodes[0], n_node);
+  EXPECT_EQ(n_node->in_nodes[0], normal_node);
+}
+
+TEST(testmarginal, upstream_from_parents) {
+  /*
+  Original graph:
+  digraph G {
+    "0: half" -> "1: bernoulli"
+    "1: bernoulli" -> "2: coin\nmarginalize"
+    "2: coin\nmarginalize" -> "3: coin_real"
+    "3: coin_real" -> "7: normal"
+    "4: one" -> "6: multiply"
+    "5: two" -> "6: multiply"
+    "6: multiply" -> "7: normal"
+    "7: normal" -> "8: n\nquery"
+  }
+
+  Marginalized graph:
+  digraph G {
+    subgraph cluster_0 {
+        "0: half" -> "4: marginalized_distribution"
+        "1: one" -> "3: multiply"
+        "2: two" -> "3: multiply"
+        "3: multiply" -> "4: marginalized_distribution"
+        "4: marginalized_distribution" -> "5: COPY n"
+        label = "graph";
+    }
+
+    subgraph cluster_1 {
+        label = "subgraph";
+        "0: COPY half" -> "2: bernoulli"
+        "1: COPY multiply" -> "5: normal"
+        "2: bernoulli" -> "3: coin"
+        "3: coin" -> "4: coin_real"
+        "4: coin_real" -> "5: normal"
+        "5: normal" -> "6: n"
+    }
+  }
+  */
+  Graph g;
+  uint half = g.add_constant_probability(0.5);
+  uint bernoulli = g.add_distribution(
+      DistributionType::BERNOULLI, AtomicType::BOOLEAN, {half});
+  uint coin = g.add_operator(OperatorType::SAMPLE, {bernoulli});
+  uint coin_real = g.add_operator(OperatorType::TO_REAL, {coin});
+  uint one = g.add_constant_pos_real(1.0);
+  uint two = g.add_constant_pos_real(2.0);
+  uint multiply = g.add_operator(OperatorType::MULTIPLY, {one, two});
+  uint normal = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {coin_real, multiply});
+  uint n = g.add_operator(OperatorType::SAMPLE, {normal});
+  g.query(n);
+
+  marginalize_graph(g, coin);
+
+  // check graph nodes
+  Node* half_node = g.get_node(0);
+  EXPECT_NEAR(half_node->value._double, 0.5, 1e-4);
+  Node* one_node = g.get_node(1);
+  EXPECT_NEAR(one_node->value._double, 1.0, 1e-4);
+  Node* two_node = g.get_node(2);
+  EXPECT_NEAR(two_node->value._double, 2.0, 1e-4);
+  Node* multiply_node = g.get_node(3);
+  EXPECT_EQ(multiply_node->node_type, NodeType::OPERATOR);
+  Node* marginalized_node = g.get_node(4);
+  EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
+  Node* sample_n_node = g.get_node(5);
+  EXPECT_EQ(sample_n_node->node_type, NodeType::OPERATOR);
+  EXPECT_THROW(g.get_node(6), std::out_of_range);
+  // check graph relationships
+  EXPECT_EQ(half_node->out_nodes[0], marginalized_node);
+  EXPECT_EQ(marginalized_node->in_nodes[0], half_node);
+  EXPECT_EQ(one_node->out_nodes[0], multiply_node);
+  EXPECT_EQ(multiply_node->in_nodes[0], one_node);
+  EXPECT_EQ(two_node->out_nodes[0], multiply_node);
+  EXPECT_EQ(multiply_node->in_nodes[1], two_node);
+  EXPECT_EQ(multiply_node->out_nodes[0], marginalized_node);
+  EXPECT_EQ(marginalized_node->in_nodes[1], multiply_node);
+  EXPECT_EQ(marginalized_node->out_nodes[0], sample_n_node);
+  EXPECT_EQ(sample_n_node->in_nodes[0], marginalized_node);
+
+  // check subgraph nodes
+  distribution::DummyMarginal* marginalized_distribution =
+      dynamic_cast<distribution::DummyMarginal*>(marginalized_node);
+  SubGraph* subgraph = marginalized_distribution->subgraph_ptr.get();
+  Node* copy_half_node = subgraph->get_node(0);
+  EXPECT_NEAR(copy_half_node->value._double, 0.5, 1e-4);
+  EXPECT_EQ(copy_half_node->node_type, NodeType::CONSTANT);
+  Node* copy_multiply_node = subgraph->get_node(1);
+  EXPECT_EQ(copy_multiply_node->node_type, NodeType::CONSTANT);
+  Node* bernoulli_node = subgraph->get_node(2);
+  EXPECT_EQ(bernoulli_node->node_type, NodeType::DISTRIBUTION);
+  Node* coin_node = subgraph->get_node(3);
+  EXPECT_EQ(coin_node->node_type, NodeType::OPERATOR);
+  Node* coin_real_node = subgraph->get_node(4);
+  EXPECT_EQ(coin_real_node->node_type, NodeType::OPERATOR);
+  Node* normal_node = subgraph->get_node(5);
+  EXPECT_EQ(normal_node->node_type, NodeType::DISTRIBUTION);
+  Node* n_node = subgraph->get_node(6);
+  EXPECT_EQ(n_node->node_type, NodeType::OPERATOR);
+  EXPECT_THROW(subgraph->get_node(7), std::out_of_range);
+  // check subgraph relationships
+  EXPECT_EQ(copy_half_node->out_nodes[0], bernoulli_node);
+  EXPECT_EQ(bernoulli_node->in_nodes[0], copy_half_node);
+  EXPECT_EQ(bernoulli_node->out_nodes[0], coin_node);
+  EXPECT_EQ(coin_node->in_nodes[0], bernoulli_node);
+  EXPECT_EQ(coin_node->out_nodes[0], coin_real_node);
+  EXPECT_EQ(coin_real_node->in_nodes[0], coin_node);
+  EXPECT_EQ(coin_real_node->out_nodes[0], normal_node);
+  EXPECT_EQ(normal_node->in_nodes[0], coin_real_node);
+  EXPECT_EQ(copy_multiply_node->out_nodes[0], normal_node);
+  EXPECT_EQ(normal_node->in_nodes[1], copy_multiply_node);
   EXPECT_EQ(normal_node->out_nodes[0], n_node);
   EXPECT_EQ(n_node->in_nodes[0], normal_node);
 }
