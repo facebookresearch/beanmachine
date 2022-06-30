@@ -45,15 +45,14 @@ TEST(testmarginal, only_discrete) {
   uint bernoulli_sample = g.add_operator(OperatorType::SAMPLE, {bernoulli});
   g.query(bernoulli_sample);
 
-  MarginalizedGraph mgraph = MarginalizedGraph(g);
-  mgraph.marginalize(2);
+  marginalize_graph(g, 2);
 
   // check graph nodes
-  Node* half_node = mgraph.get_node(0);
+  Node* half_node = g.get_node(0);
   EXPECT_NEAR(half_node->value._double, 0.5, 1e-4);
-  Node* marginalized_node = mgraph.get_node(1);
+  Node* marginalized_node = g.get_node(1);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  EXPECT_THROW(mgraph.get_node(2), std::out_of_range);
+  EXPECT_THROW(g.get_node(2), std::out_of_range);
   // check graph relationships
   EXPECT_EQ(half_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[0], half_node);
@@ -120,19 +119,18 @@ TEST(testmarginal, parent_and_child) {
   uint n = g.add_operator(OperatorType::SAMPLE, {normal});
   g.query(n);
 
-  MarginalizedGraph mgraph = MarginalizedGraph(g);
-  mgraph.marginalize(coin);
+  marginalize_graph(g, coin);
 
   // check graph nodes
-  Node* half_node = mgraph.get_node(0);
+  Node* half_node = g.get_node(0);
   EXPECT_NEAR(half_node->value._double, 0.5, 1e-4);
-  Node* one_node = mgraph.get_node(1);
+  Node* one_node = g.get_node(1);
   EXPECT_NEAR(one_node->value._double, 1.0, 1e-4);
-  Node* marginalized_node = mgraph.get_node(2);
+  Node* marginalized_node = g.get_node(2);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  Node* copy_n_node = mgraph.get_node(3);
+  Node* copy_n_node = g.get_node(3);
   EXPECT_EQ(copy_n_node->node_type, NodeType::COPY);
-  EXPECT_THROW(mgraph.get_node(4), std::out_of_range);
+  EXPECT_THROW(g.get_node(4), std::out_of_range);
   // check graph relationships
   EXPECT_EQ(half_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[0], half_node);
@@ -254,25 +252,24 @@ TEST(testmarginals, parent_and_children) {
   uint n2 = g.add_operator(OperatorType::SAMPLE, {normal_2});
   g.query(n2);
 
-  MarginalizedGraph mgraph = MarginalizedGraph(g);
-  mgraph.marginalize(binomial_sample);
+  marginalize_graph(g, binomial_sample);
 
   // check graph nodes
-  Node* binomial_n_node = mgraph.get_node(0);
+  Node* binomial_n_node = g.get_node(0);
   EXPECT_EQ(binomial_n_node->value._natural, 10);
-  Node* p_node = mgraph.get_node(1);
+  Node* p_node = g.get_node(1);
   EXPECT_NEAR(p_node->value._double, 0.3, 1e-4);
-  Node* one_node = mgraph.get_node(2);
+  Node* one_node = g.get_node(2);
   EXPECT_NEAR(one_node->value._double, 1.0, 1e-4);
-  Node* five_node = mgraph.get_node(3);
+  Node* five_node = g.get_node(3);
   EXPECT_NEAR(five_node->value._double, 5.0, 1e-4);
-  Node* marginalized_node = mgraph.get_node(4);
+  Node* marginalized_node = g.get_node(4);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  Node* copy_n1_node = mgraph.get_node(5);
+  Node* copy_n1_node = g.get_node(5);
   EXPECT_EQ(copy_n1_node->node_type, NodeType::COPY);
-  Node* copy_n2_node = mgraph.get_node(6);
+  Node* copy_n2_node = g.get_node(6);
   EXPECT_EQ(copy_n2_node->node_type, NodeType::COPY);
-  EXPECT_THROW(mgraph.get_node(7), std::out_of_range);
+  EXPECT_THROW(g.get_node(7), std::out_of_range);
   // check graph relationships
   EXPECT_EQ(binomial_n_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[0], binomial_n_node);
@@ -400,23 +397,22 @@ TEST(testmarginal, parent_and_long_child) {
   uint n2 = g.add_operator(OperatorType::SAMPLE, {normal_2});
   g.query(n2);
 
-  MarginalizedGraph mgraph = MarginalizedGraph(g);
-  mgraph.marginalize(coin);
+  marginalize_graph(g, coin);
 
   // check graph nodes
-  Node* half_node = mgraph.get_node(0);
+  Node* half_node = g.get_node(0);
   EXPECT_NEAR(half_node->value._double, 0.5, 1e-4);
-  Node* one_node = mgraph.get_node(1);
+  Node* one_node = g.get_node(1);
   EXPECT_NEAR(one_node->value._double, 1.0, 1e-4);
-  Node* marginalized_node = mgraph.get_node(2);
+  Node* marginalized_node = g.get_node(2);
   EXPECT_EQ(marginalized_node->node_type, NodeType::DISTRIBUTION);
-  Node* copy_n_node = mgraph.get_node(3);
+  Node* copy_n_node = g.get_node(3);
   EXPECT_EQ(copy_n_node->node_type, NodeType::COPY);
-  Node* normal_2_node = mgraph.get_node(4);
+  Node* normal_2_node = g.get_node(4);
   EXPECT_EQ(normal_2_node->node_type, NodeType::DISTRIBUTION);
-  Node* n2_node = mgraph.get_node(5);
+  Node* n2_node = g.get_node(5);
   EXPECT_EQ(n2_node->node_type, NodeType::OPERATOR);
-  EXPECT_THROW(mgraph.get_node(6), std::out_of_range);
+  EXPECT_THROW(g.get_node(6), std::out_of_range);
   // check graph relationships
   EXPECT_EQ(half_node->out_nodes[0], marginalized_node);
   EXPECT_EQ(marginalized_node->in_nodes[0], half_node);
