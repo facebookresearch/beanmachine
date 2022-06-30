@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <memory>
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/marginalization/subgraph.h"
 
