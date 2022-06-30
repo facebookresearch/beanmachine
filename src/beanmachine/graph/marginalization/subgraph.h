@@ -17,7 +17,7 @@ class SubGraph : public Graph {
   void add_node_by_id(uint node_id);
   bool has_node(uint node_id);
   void link_copy_node(Node* node, Node* copy_node);
-  void move_nodes_from_graph();
+  void move_nodes_from_graph(uint insertion_index = 0, uint insertion_size = 0);
 
  private:
   Graph& graph;

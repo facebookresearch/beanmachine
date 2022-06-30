@@ -26,6 +26,9 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   std::unique_ptr<SubGraph> subgraph_ptr = std::make_unique<SubGraph>(*this);
   SubGraph* subgraph = subgraph_ptr.get();
 
+  // list of all additional nodes ptrs to add to `nodes` of current graph
+  std::vector<std::unique_ptr<Node>> marginal_distribution_and_copy_chidren;
+
   // compute nodes up to and including stochastic children of discrete_sample
   std::set<uint> ordered_support_node_ids =
       compute_full_ordered_support_node_ids();
@@ -34,7 +37,7 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   std::tie(det_node_ids, sto_node_ids) =
       compute_children(discrete_sample->index, ordered_support_node_ids);
 
-  // create MarginalDistribution
+  // create MarginalizedDistribution
   std::unique_ptr<distribution::DummyMarginal>
       marginal_distribution_node_pointer =
           std::make_unique<distribution::DummyMarginal>(
@@ -42,7 +45,8 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   marginal_distribution_node_pointer.get()->sample_type = AtomicType::REAL;
   distribution::DummyMarginal* marginal_distribution =
       marginal_distribution_node_pointer.get();
-  nodes.push_back(std::move(marginal_distribution_node_pointer));
+  marginal_distribution_and_copy_chidren.push_back(
+      std::move(marginal_distribution_node_pointer));
 
   // add nodes to subgraph
   // add discrete distribution and samples
@@ -97,11 +101,19 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
     marginal_distribution->out_nodes.push_back(copy_node.get());
     copy_node.get()->in_nodes.push_back(marginal_distribution);
     // add copy node to marginalized_graph
-    nodes.push_back(std::move(copy_node));
+    marginal_distribution_and_copy_chidren.push_back(std::move(copy_node));
   }
 
-  // create "COPY" of parent nodes inside subgraph
+  // insert marginal_distribution and children right after its parent nodes
+  // to keep graph ordering invariant (index of parents <= index of node)
+  // the index should be right after the largest parent index
+  uint marginal_distribution_index = 0;
   for (Node* parent : marginal_distribution->in_nodes) {
+    // ordering invariant
+    if (parent->index >= marginal_distribution_index) {
+      marginal_distribution_index = parent->index + 1;
+    }
+    // create "COPY" of parent nodes inside subgraph
     std::unique_ptr<CopyNode> copy_node = std::make_unique<CopyNode>(parent);
     subgraph->link_copy_node(parent, copy_node.get());
     // only move children that are in subgraph to copy_node
@@ -112,7 +124,16 @@ void MarginalizedGraph::marginalize(uint discrete_sample_node_id) {
   }
 
   // move nodes to subgraph and finalize
-  subgraph->move_nodes_from_graph();
+
+  // insert additional nodes at "marginalized_node_index"
+  for (uint i = 0; i < marginal_distribution_and_copy_chidren.size(); i++) {
+    nodes.insert(
+        std::next(nodes.begin(), marginal_distribution_index + i),
+        std::move(marginal_distribution_and_copy_chidren[i]));
+  }
+  subgraph->move_nodes_from_graph(
+      marginal_distribution_index,
+      marginal_distribution_and_copy_chidren.size());
 }
 
 void MarginalizedGraph::connect_parent_to_marginal_distribution(
