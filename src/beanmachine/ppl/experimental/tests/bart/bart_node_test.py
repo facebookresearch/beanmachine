@@ -85,6 +85,7 @@ def loose_leaf(all_pass_composite_rule):
 def test_growable_dims(leaf_node, loose_leaf, X):
     assert leaf_node.get_num_growable_dims(X) == 0  # only one row of X passes the test
     assert loose_leaf.get_num_growable_dims(X) == X.shape[-1]  # everything passes
+    assert len(loose_leaf.get_growable_dims(X)) == loose_leaf.get_num_growable_dims(X)
 
 
 def test_is_grow(leaf_node, loose_leaf, X):
@@ -120,3 +121,14 @@ def test_prune_node(leaf_node, composite_rule):
     assert isinstance(SplitNode.prune_node(split_node), LeafNode)
     with pytest.raises(PruneError):
         SplitNode.prune_node(grandfather_node)
+
+    def test_partition_of_split(loose_leaf, X):
+        grow_val = X[0, 0]
+        growable_vals = loose_leaf.get_growable_vals(X=X, grow_dim=0)
+
+        assert torch.isclose(
+            torch.tensor(
+                [loose_leaf.get_partition_of_split(X=X, grow_dim=0, grow_val=grow_val)]
+            ),
+            torch.mean(growable_vals.eq(grow_val.item()), dtype=torch.float),
+        )

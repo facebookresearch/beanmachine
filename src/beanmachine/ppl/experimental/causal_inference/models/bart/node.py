@@ -136,7 +136,6 @@ class LeafNode(BaseNode):
         X_conditioned = self.data_in_node(X)
         if len(X_conditioned) == 0:
             return []
-
         return [
             dim
             for dim in range(X_conditioned.shape[-1])
@@ -175,7 +174,7 @@ class LeafNode(BaseNode):
         """
 
         growable_vals = self.get_growable_vals(X, grow_dim)
-        return torch.mean(growable_vals.eq(2), dtype=torch.float).item()
+        return torch.mean(growable_vals.eq(grow_val), dtype=torch.float).item()
 
     @staticmethod
     def grow_node(
