@@ -40,6 +40,23 @@ class HmcProposer : public GlobalProposer {
   double compute_kinetic_energy(Eigen::VectorXd momentum);
   Eigen::VectorXd compute_potential_gradient(GlobalState& state);
   Eigen::VectorXd initialize_momentum(Eigen::VectorXd theta, std::mt19937& gen);
+  void find_reasonable_step_size(
+      GlobalState& state,
+      std::mt19937& gen,
+      Eigen::VectorXd position);
+  double compute_new_step_acceptance_probability(
+      GlobalState& state,
+      Eigen::VectorXd position,
+      Eigen::VectorXd momentum);
+  double compute_hamiltonian(
+      GlobalState& state,
+      Eigen::VectorXd theta,
+      Eigen::VectorXd r);
+  std::vector<Eigen::VectorXd> leapfrog(
+      GlobalState& state,
+      Eigen::VectorXd theta,
+      Eigen::VectorXd r,
+      double v);
 };
 
 } // namespace graph

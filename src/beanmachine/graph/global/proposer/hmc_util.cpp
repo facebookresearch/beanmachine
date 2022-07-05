@@ -52,7 +52,7 @@ void DiagonalCovarianceComputer::initialize(int size) {
 }
 
 void DiagonalCovarianceComputer::reset() {
-  initialize(M2.rows());
+  initialize(static_cast<int>(M2.rows()));
 }
 
 void DiagonalCovarianceComputer::update(Eigen::VectorXd sample) {
