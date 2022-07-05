@@ -30,6 +30,7 @@ class NutsProposer : public HmcProposer {
     Eigen::VectorXd position_right;
     Eigen::VectorXd momentum_right;
     Eigen::VectorXd position_new;
+    Eigen::VectorXd momentum_sum;
     double valid_nodes;
     bool no_turn;
     double acceptance_sum;
@@ -73,10 +74,9 @@ class NutsProposer : public HmcProposer {
       Eigen::VectorXd theta,
       Eigen::VectorXd r);
   bool compute_no_turn(
-      Eigen::VectorXd position_left,
       Eigen::VectorXd momentum_left,
-      Eigen::VectorXd position_right,
-      Eigen::VectorXd momentum_right);
+      Eigen::VectorXd momentum_right,
+      Eigen::VectorXd momentum_sum);
 };
 
 } // namespace graph
