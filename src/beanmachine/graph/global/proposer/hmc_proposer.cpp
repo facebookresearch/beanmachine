@@ -45,7 +45,7 @@ void HmcProposer::warmup(
     int iteration,
     int num_warmup_samples) {
   if (iteration < num_warmup_samples) {
-    step_size = step_size_adapter.update_step_size(acceptance_prob);
+    step_size = step_size_adapter.update_step_size(iteration, acceptance_prob);
   } else {
     step_size = step_size_adapter.finalize_step_size();
   }

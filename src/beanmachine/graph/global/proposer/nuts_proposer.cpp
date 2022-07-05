@@ -31,7 +31,8 @@ void NutsProposer::warmup(
     double /*acceptance_prob*/,
     int iteration,
     int num_warmup_samples) {
-  step_size = step_size_adapter.update_step_size(warmup_acceptance_prob);
+  step_size =
+      step_size_adapter.update_step_size(iteration, warmup_acceptance_prob);
   if (iteration == num_warmup_samples) {
     step_size = step_size_adapter.finalize_step_size();
   }
