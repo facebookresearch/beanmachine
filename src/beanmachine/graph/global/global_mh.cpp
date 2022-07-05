@@ -48,7 +48,7 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
 
     if (i < num_warmup_samples) {
       double acceptance_prob = std::min(std::exp(acceptance_log_prob), 1.0);
-      proposer->warmup(acceptance_prob, i + 1, num_warmup_samples);
+      proposer->warmup(state, gen, acceptance_prob, i + 1, num_warmup_samples);
       if (save_warmup) {
         graph.collect_sample();
       }

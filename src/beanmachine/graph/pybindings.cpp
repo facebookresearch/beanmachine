@@ -378,7 +378,7 @@ PYBIND11_MODULE(graph, module) {
           "performance report");
 
   py::class_<NUTS>(module, "NUTS")
-      .def(py::init<Graph&>())
+      .def(py::init<Graph&, bool>())
       .def(
           "infer",
           &NUTS::infer,
@@ -390,7 +390,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("init_type") = InitType::RANDOM);
 
   py::class_<HMC>(module, "HMC")
-      .def(py::init<Graph&, double, double>())
+      .def(py::init<Graph&, double, double, bool>())
       .def(
           "infer",
           &HMC::infer,

@@ -10,8 +10,10 @@
 namespace beanmachine {
 namespace graph {
 
-NutsProposer::NutsProposer(double optimal_acceptance_prob)
-    : HmcProposer(0.0, 1.0, optimal_acceptance_prob) {
+NutsProposer::NutsProposer(
+    bool adapt_mass_matrix,
+    double optimal_acceptance_prob)
+    : HmcProposer(0.0, 1.0, adapt_mass_matrix, optimal_acceptance_prob) {
   step_size = 1.0;
   delta_max = 1000;
   max_tree_depth = 10;
@@ -20,19 +22,46 @@ NutsProposer::NutsProposer(double optimal_acceptance_prob)
 void NutsProposer::initialize(
     GlobalState& state,
     std::mt19937& gen,
-    int /*num_warmup_samples*/) {
+    int num_warmup_samples) {
   Eigen::VectorXd position;
   state.get_flattened_unconstrained_values(position);
+
+  int size = position.size();
+  mass_inv = Eigen::MatrixXd::Identity(size, size);
+  mass_matrix_diagonal = Eigen::ArrayXd::Ones(size);
+  if (adapt_mass_matrix) {
+    mass_matrix_adapter.initialize(num_warmup_samples, size);
+  }
+
+  step_size = 1.0;
   find_reasonable_step_size(state, gen, position);
   step_size_adapter.initialize(step_size);
 }
 
 void NutsProposer::warmup(
+    GlobalState& state,
+    std::mt19937& gen,
     double /*acceptance_prob*/,
     int iteration,
     int num_warmup_samples) {
   step_size =
       step_size_adapter.update_step_size(iteration, warmup_acceptance_prob);
+
+  if (adapt_mass_matrix) {
+    Eigen::VectorXd sample;
+    state.get_flattened_unconstrained_values(sample);
+    mass_matrix_adapter.update_mass_matrix(iteration, sample);
+    bool window_end = mass_matrix_adapter.is_end_window(iteration);
+
+    if (window_end) {
+      mass_matrix_diagonal = mass_inv.diagonal().array().sqrt().inverse();
+      Eigen::VectorXd position;
+      state.get_flattened_unconstrained_values(position);
+      find_reasonable_step_size(state, gen, position);
+      step_size_adapter.initialize(step_size);
+    }
+  }
+
   if (iteration == num_warmup_samples) {
     step_size = step_size_adapter.finalize_step_size();
   }
@@ -121,8 +150,12 @@ bool NutsProposer::compute_no_turn(
     Eigen::VectorXd momentum_left,
     Eigen::VectorXd momentum_right,
     Eigen::VectorXd momentum_sum) {
-  return (momentum_right.dot(momentum_sum) >= 0.0) and
-      (momentum_left.dot(momentum_sum) >= 0.0);
+  Eigen::VectorXd transformed_right =
+      mass_inv.diagonal().array() * momentum_right.array();
+  Eigen::VectorXd transformed_left =
+      mass_inv.diagonal().array() * momentum_left.array();
+  return (transformed_right.dot(momentum_sum) >= 0.0) and
+      (transformed_left.dot(momentum_sum) >= 0.0);
 }
 
 NutsProposer::Tree NutsProposer::build_tree_base_case(

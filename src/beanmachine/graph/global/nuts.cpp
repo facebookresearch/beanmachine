@@ -12,8 +12,8 @@
 namespace beanmachine {
 namespace graph {
 
-NUTS::NUTS(Graph& g) : GlobalMH(g), graph(g) {
-  proposer = std::make_unique<NutsProposer>(NutsProposer());
+NUTS::NUTS(Graph& g, bool adapt_mass_matrix) : GlobalMH(g), graph(g) {
+  proposer = std::make_unique<NutsProposer>(NutsProposer(adapt_mass_matrix));
 }
 
 void NUTS::prepare_graph() {
