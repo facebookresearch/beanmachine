@@ -43,4 +43,4 @@ jobs:
       run: pip list
 
     - name: Run nightly tests
-      run: pytest -o python_files="*_nightly.py" --durations=0
+      run: pytest -o python_files="*_nightly.py"
