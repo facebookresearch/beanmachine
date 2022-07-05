@@ -23,7 +23,7 @@ INSTALL_REQUIRES = [
     "botorch>=0.5.1",
     "gpytorch>=1.3.0",
     "graphviz>=0.17",
-    "functorch>=0.1.0; platform_system!='Windows'",
+    "functorch>=0.2.0",
     "netCDF4<=1.5.8; python_version<'3.8'",
     "numpy>=1.18.1",
     "pandas>=0.24.2",

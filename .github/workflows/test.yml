@@ -40,6 +40,10 @@ jobs:
         conda install -c conda-forge -y boost-cpp eigen=3.4.0
         python -m pip install --upgrade pip
 
+    - name: Install CPU PyTorch (only for Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+
     - name: Install Bean Machine in editable mode
       run: pip install -v -e .[dev]
 
@@ -47,4 +51,4 @@ jobs:
       run: pip list
 
     - name: Run unit tests with pytest
-      run: pytest --cov=. --cov-report term-missing
+      run: pytest .
