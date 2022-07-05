@@ -134,65 +134,6 @@
 <dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.compiler.typer_base.html#beanmachine.ppl.compiler.typer_base.TyperBase" title="beanmachine.ppl.compiler.typer_base.TyperBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.typer_base.TyperBase</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.utils.set_of_tensors.SetOfTensors</span></code>]</p>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.support.tensor">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.support.</span></span><span class="sig-name descname"><span class="pre">tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.support.tensor" title="Permalink to this definition"></a></dt>
-<dd><p>Constructs a tensor with no autograd history (also known as a “leaf tensor”, see <span class="xref std std-doc">/notes/autograd</span>) by copying <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code>.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>When working with tensors prefer using <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.Tensor.clone()</span></code>,
-<code class="xref py py-func docutils literal notranslate"><span class="pre">torch.Tensor.detach()</span></code>, and <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.Tensor.requires_grad_()</span></code> for
-readability. Letting <cite>t</cite> be a tensor, <code class="docutils literal notranslate"><span class="pre">torch.tensor(t)</span></code> is equivalent to
-<code class="docutils literal notranslate"><span class="pre">t.clone().detach()</span></code>, and <code class="docutils literal notranslate"><span class="pre">torch.tensor(t,</span> <span class="pre">requires_grad=True)</span></code>
-is equivalent to <code class="docutils literal notranslate"><span class="pre">t.clone().detach().requires_grad_(True)</span></code>.</p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.as_tensor()</span></code> preserves autograd history and avoids copies where possible.
-<code class="xref py py-func docutils literal notranslate"><span class="pre">torch.from_numpy()</span></code> creates a tensor that shares storage with a NumPy array.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>array_like</em>) – Initial data for the tensor. Can be a list, tuple,
-NumPy <code class="docutils literal notranslate"><span class="pre">ndarray</span></code>, scalar, and other types.</p>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>dtype</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.dtype</span></code>, optional) – the desired data type of returned tensor.
-Default: if <code class="docutils literal notranslate"><span class="pre">None</span></code>, infers data type from <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code>.</p></li>
-<li><p><strong>device</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.device</span></code>, optional) – the device of the constructed tensor. If None and data is a tensor
-then the device of data is used. If None and data is not a tensor then
-the result tensor is constructed on the CPU.</p></li>
-<li><p><strong>requires_grad</strong> (<em>bool</em><em>, </em><em>optional</em>) – If autograd should record operations on the
-returned tensor. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
-<li><p><strong>pin_memory</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set, returned tensor would be allocated in
-the pinned memory. Works only for CPU tensors. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.2</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.9</span><span class="p">,</span> <span class="mf">5.2</span><span class="p">]])</span>
-<span class="go">tensor([[ 0.1000,  1.2000],</span>
-<span class="go">        [ 2.2000,  3.1000],</span>
-<span class="go">        [ 4.9000,  5.2000]])</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># Type inference on data</span>
-<span class="go">tensor([ 0,  1])</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">0.11111</span><span class="p">,</span> <span class="mf">0.222222</span><span class="p">,</span> <span class="mf">0.3333333</span><span class="p">]],</span>
-<span class="gp">... </span>             <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
-<span class="gp">... </span>             <span class="n">device</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda:0&#39;</span><span class="p">))</span>  <span class="c1"># creates a double tensor on a CUDA device</span>
-<span class="go">tensor([[ 0.1111,  0.2222,  0.3333]], dtype=torch.float64, device=&#39;cuda:0&#39;)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">3.14159</span><span class="p">)</span>  <span class="c1"># Create a zero-dimensional (scalar) tensor</span>
-<span class="go">tensor(3.1416)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([])</span>  <span class="c1"># Create an empty tensor (of size (0,))</span>
-<span class="go">tensor([])</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 
 
