@@ -18,26 +18,31 @@ TEST(testglobal, global_nuts_normal_normal) {
   int num_samples = 10000;
   int num_warmup_samples = 5000;
   bool adapt_mass_matrix = false;
+  bool multinomial_sampling = false;
   Graph g;
   auto expected_moments = build_normal_normal_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix);
+  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
   test_conjugate_model_moments(
       mh, expected_moments, num_samples, num_warmup_samples);
 }
 
 TEST(testglobal, global_nuts_gamma_gamma) {
+  int num_samples = 10000;
+  int num_warmup = 5000;
   bool adapt_mass_matrix = false;
+  bool multinomial_sampling = false;
   Graph g;
   auto expected_moments = build_gamma_gamma_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix);
-  test_conjugate_model_moments(mh, expected_moments);
+  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
+  test_conjugate_model_moments(mh, expected_moments, num_samples, num_warmup);
 }
 
 TEST(testglobal, global_nuts_gamma_normal) {
   bool adapt_mass_matrix = false;
+  bool multinomial_sampling = false;
   Graph g;
   auto expected_moments = build_gamma_normal_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix);
+  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -47,16 +52,18 @@ TEST(testglobal, global_nuts_beta_binomial) {
 
 TEST(testglobal, global_nuts_half_cauchy) {
   bool adapt_mass_matrix = false;
+  bool multinomial_sampling = false;
   Graph g;
   build_half_cauchy_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix);
+  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
   test_half_cauchy_model(mh);
 }
 
 TEST(testglobal, global_nuts_mixed) {
   bool adapt_mass_matrix = false;
+  bool multinomial_sampling = false;
   Graph g;
   auto expected_moments = build_mixed_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix);
+  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
   test_conjugate_model_moments(mh, expected_moments);
 }

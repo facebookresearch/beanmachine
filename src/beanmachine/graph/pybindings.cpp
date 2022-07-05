@@ -378,7 +378,7 @@ PYBIND11_MODULE(graph, module) {
           "performance report");
 
   py::class_<NUTS>(module, "NUTS")
-      .def(py::init<Graph&, bool>())
+      .def(py::init<Graph&, bool, bool>())
       .def(
           "infer",
           &NUTS::infer,

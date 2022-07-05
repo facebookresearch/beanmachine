@@ -14,6 +14,7 @@ class NutsProposer : public HmcProposer {
  public:
   explicit NutsProposer(
       bool adapt_mass_matrix = true,
+      bool multinomial_sampling = true,
       double optimal_acceptance_prob = 0.8);
   void initialize(GlobalState& state, std::mt19937& gen, int num_warmup_samples)
       override;
@@ -33,11 +34,12 @@ class NutsProposer : public HmcProposer {
     Eigen::VectorXd momentum_right;
     Eigen::VectorXd position_new;
     Eigen::VectorXd momentum_sum;
-    double valid_nodes;
+    double log_weight;
     bool no_turn;
     double acceptance_sum;
     double total_nodes;
   };
+  bool multinomial_sampling;
   double warmup_acceptance_prob;
   double delta_max;
   double max_tree_depth;
