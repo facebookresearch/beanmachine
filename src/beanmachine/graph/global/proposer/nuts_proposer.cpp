@@ -117,13 +117,11 @@ double NutsProposer::compute_hamiltonian(
 }
 
 bool NutsProposer::compute_no_turn(
-    Eigen::VectorXd position_left,
     Eigen::VectorXd momentum_left,
-    Eigen::VectorXd position_right,
-    Eigen::VectorXd momentum_right) {
-  return (
-      ((position_right - position_left).dot(momentum_left) >= 0.0) and
-      ((position_right - position_left).dot(momentum_right) >= 0.0));
+    Eigen::VectorXd momentum_right,
+    Eigen::VectorXd momentum_sum) {
+  return (momentum_right.dot(momentum_sum) >= 0.0) and
+      (momentum_left.dot(momentum_sum) >= 0.0);
 }
 
 NutsProposer::Tree NutsProposer::build_tree_base_case(
@@ -144,6 +142,7 @@ NutsProposer::Tree NutsProposer::build_tree_base_case(
   tree.momentum_left = momentum_new;
   tree.position_right = tree.position_new;
   tree.momentum_right = momentum_new;
+  tree.momentum_sum = momentum_new;
   tree.total_nodes = 1.0;
 
   double hamiltonian_new =
@@ -239,12 +238,11 @@ NutsProposer::Tree NutsProposer::build_tree(
 
       tree.acceptance_sum = subtree1.acceptance_sum + subtree2.acceptance_sum;
       tree.total_nodes = subtree1.total_nodes + subtree2.total_nodes;
-      tree.no_turn = subtree2.no_turn and
+      tree.momentum_sum = subtree1.momentum_sum + subtree2.momentum_sum;
+      tree.no_turn =
+          subtree2.no_turn and
           compute_no_turn(
-                         tree.position_left,
-                         tree.momentum_left,
-                         tree.position_right,
-                         tree.momentum_right);
+              tree.momentum_left, tree.momentum_right, tree.momentum_sum);
       tree.valid_nodes = subtree1.valid_nodes + subtree2.valid_nodes;
 
       return tree;
@@ -268,6 +266,7 @@ double NutsProposer::propose(GlobalState& state, std::mt19937& gen) {
   Eigen::VectorXd position_right = position;
   Eigen::VectorXd momentum_left = momentum_init;
   Eigen::VectorXd momentum_right = momentum_init;
+  Eigen::VectorXd momentum_sum = momentum_init;
 
   double valid_nodes = 1;
   double acceptance_sum = 0.0;
@@ -309,8 +308,8 @@ double NutsProposer::propose(GlobalState& state, std::mt19937& gen) {
       momentum_right = tree.momentum_right;
     }
 
-    acceptance_sum = tree.acceptance_sum;
-    total_nodes = tree.total_nodes;
+    acceptance_sum += tree.acceptance_sum;
+    total_nodes += tree.total_nodes;
     if (!tree.no_turn) {
       break;
     }
@@ -322,8 +321,9 @@ double NutsProposer::propose(GlobalState& state, std::mt19937& gen) {
     }
     valid_nodes += tree.valid_nodes;
 
-    bool no_turn = compute_no_turn(
-        position_left, momentum_left, position_right, momentum_right);
+    momentum_sum += tree.momentum_sum;
+    bool no_turn = tree.no_turn and
+        compute_no_turn(momentum_left, momentum_right, momentum_sum);
     if (!no_turn) {
       break;
     }

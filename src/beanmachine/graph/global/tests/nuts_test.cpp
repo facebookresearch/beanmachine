@@ -177,8 +177,8 @@ TEST(testglobal, global_nuts_mixed) {
   uint seed = 17;
   NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples =
-      mh.infer(2000, seed, 2000, false);
-  EXPECT_EQ(samples.size(), 2000);
+      mh.infer(5000, seed, 5000, false);
+  EXPECT_EQ(samples.size(), 5000);
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
@@ -227,7 +227,7 @@ TEST(testglobal, global_nuts_halfnormal) {
 
   uint seed = 31;
   NUTS mh = NUTS(g);
-  std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed, 2000);
+  std::vector<std::vector<NodeValue>> samples = mh.infer(5000, seed, 5000);
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
