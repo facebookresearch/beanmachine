@@ -212,6 +212,26 @@ NutsProposer::Tree NutsProposer::build_tree(
           compute_no_turn(
               tree.momentum_left, tree.momentum_right, tree.momentum_sum);
 
+      Tree left_tree;
+      Tree right_tree;
+      if (direction > 0) {
+        left_tree = subtree1;
+        right_tree = subtree2;
+      } else {
+        left_tree = subtree2;
+        right_tree = subtree1;
+      }
+      tree.no_turn = tree.no_turn and
+          compute_no_turn(
+                         left_tree.momentum_left,
+                         right_tree.momentum_left,
+                         left_tree.momentum_sum + right_tree.momentum_left);
+      tree.no_turn = tree.no_turn and
+          compute_no_turn(
+                         right_tree.momentum_right,
+                         left_tree.momentum_right,
+                         right_tree.momentum_sum + left_tree.momentum_right);
+
       return tree;
     }
   }
@@ -308,6 +328,17 @@ double NutsProposer::propose(GlobalState& state, std::mt19937& gen) {
                        left_tree.momentum_left,
                        right_tree.momentum_right,
                        left_tree.momentum_sum + right_tree.momentum_sum);
+    // check condition of left tree and leftmost node of right tree
+    no_turn &= compute_no_turn(
+        left_tree.momentum_left,
+        right_tree.momentum_left,
+        left_tree.momentum_sum + right_tree.momentum_left);
+    // check condition of right tree and rightmost node of left tree
+    no_turn &= compute_no_turn(
+        right_tree.momentum_right,
+        left_tree.momentum_right,
+        right_tree.momentum_sum + left_tree.momentum_right);
+
     current_tree.momentum_sum += new_tree.momentum_sum;
     if (!no_turn) {
       break;
