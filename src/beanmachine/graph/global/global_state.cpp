@@ -215,7 +215,7 @@ void GlobalState::update_log_prob() {
 }
 
 void GlobalState::update_backgrad() {
-  graph.update_backgrad(graph.supp);
+  graph.eval_and_update_backgrad(graph.supp);
 }
 
 } // namespace graph

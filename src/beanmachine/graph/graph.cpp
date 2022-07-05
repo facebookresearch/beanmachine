@@ -303,10 +303,17 @@ std::string Graph::to_string() const {
   return os.str();
 }
 
-void Graph::update_backgrad(std::vector<Node*>& ordered_supp) {
+void Graph::eval_and_update_backgrad(std::vector<Node*>& ordered_supp) {
+  // generator doesn't matter for det nodes
+  // TODO: add default generator
+  std::mt19937 generator(12131);
   for (auto node : ordered_supp) {
     node->reset_backgrad();
+    if (!node->is_stochastic()) {
+      node->eval(generator);
+    }
   }
+
   for (auto it = ordered_supp.rbegin(); it != ordered_supp.rend(); ++it) {
     Node* node = *it;
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {

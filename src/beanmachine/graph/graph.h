@@ -806,7 +806,7 @@ struct Graph {
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
 
-  void update_backgrad(std::vector<Node*>& ordered_supp);
+  void eval_and_update_backgrad(std::vector<Node*>& ordered_supp);
   /*
   Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
