@@ -27,5 +27,14 @@ std::vector<double> build_gamma_normal_model(Graph& g);
 
 std::vector<double> build_beta_binomial_model(Graph& g);
 
+std::vector<double> build_mixed_model(Graph& g);
+
+void build_half_cauchy_model(Graph& g);
+void test_half_cauchy_model(
+    GlobalMH& mh,
+    int num_samples = 5000,
+    int num_warmup_samples = 2000,
+    double delta = 0.02,
+    int seed = 17);
 } // namespace graph
 } // namespace beanmachine

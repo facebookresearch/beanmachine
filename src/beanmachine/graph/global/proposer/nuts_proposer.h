@@ -12,12 +12,14 @@ namespace graph {
 
 class NutsProposer : public HmcProposer {
  public:
-  explicit NutsProposer(double optimal_acceptance_prob = 0.6);
-  void initialize(
+  explicit NutsProposer(
+      bool adapt_mass_matrix = true,
+      double optimal_acceptance_prob = 0.8);
+  void initialize(GlobalState& state, std::mt19937& gen, int num_warmup_samples)
+      override;
+  void warmup(
       GlobalState& state,
       std::mt19937& gen,
-      int /* num_warmup_samples */) override;
-  void warmup(
       double /* acceptance_log_prob */,
       int iteration,
       int num_warmup_samples) override;
@@ -36,7 +38,6 @@ class NutsProposer : public HmcProposer {
     double acceptance_sum;
     double total_nodes;
   };
-  double step_size;
   double warmup_acceptance_prob;
   double delta_max;
   double max_tree_depth;

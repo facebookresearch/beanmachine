@@ -390,5 +390,77 @@ void test_conjugate_model_moments(
   }
 }
 
+void build_half_cauchy_model(Graph& g) {
+  /*
+  p1 ~ HalfCauchy(1)
+  expected median of p1 is 1.0
+  */
+  uint one = g.add_constant_pos_real(1.0);
+
+  uint sigma_prior = g.add_distribution(
+      DistributionType::HALF_CAUCHY, AtomicType::POS_REAL, {one});
+  uint sigma_sample = g.add_operator(OperatorType::SAMPLE, {sigma_prior});
+  g.query(sigma_sample);
+}
+
+void test_half_cauchy_model(
+    GlobalMH& mh,
+    int num_samples,
+    int num_warmup_samples,
+    double delta,
+    int seed) {
+  std::vector<std::vector<NodeValue>> samples =
+      mh.infer(num_samples, seed, num_warmup_samples);
+  EXPECT_EQ(samples.size(), num_samples);
+  double expected_median = 1.0;
+  double above_expected_median = 0;
+  for (int i = 0; i < samples.size(); i++) {
+    if (samples[i][0]._double > expected_median) {
+      above_expected_median++;
+    }
+  }
+  // check that ~50% of the samples are greater than the median
+  EXPECT_NEAR(above_expected_median / num_samples, 0.5, delta);
+  // TODO: add checks for additional quantiles
+}
+
+std::vector<double> build_mixed_model(Graph& g) {
+  /*
+  Test multiple queries and global inference
+  p1 ~ Gamma(2, 2)
+  p2 ~ Gamma(1.5, p1)
+  p2 observed as 2
+  posterior is Gamma(3.5, 4)
+
+  p3 ~ Normal(0, 1)
+  p4 ~ Normal(p1, 1)
+  p5 ~ Normal(p1, 1)
+  p4 observed as 0.5
+  p5 observed as 1.5
+  posterior is Normal(0.66.., 0.5)
+  */
+  std::vector<double> expected_moments;
+
+  double alpha_0 = 2.0;
+  double beta_0 = 2.0;
+  double alpha = 1.5;
+  Eigen::VectorXd xs(1);
+  xs << 2;
+  add_gamma_gamma_conjugate_(g, alpha_0, beta_0, alpha, xs);
+  expected_moments.push_back(
+      compute_gamma_gamma_moments_(alpha_0, beta_0, alpha, xs));
+
+  double mu_0 = 0.0;
+  double sigma_0 = 1.0;
+  double sigma = 1.0;
+  Eigen::VectorXd x_observed(2);
+  x_observed << 0.5, 1.5;
+  add_normal_normal_conjugate_(g, mu_0, sigma_0, sigma, x_observed);
+  expected_moments.push_back(
+      compute_normal_normal_moments_(mu_0, sigma_0, sigma, x_observed));
+
+  return expected_moments;
+}
+
 } // namespace graph
 } // namespace beanmachine

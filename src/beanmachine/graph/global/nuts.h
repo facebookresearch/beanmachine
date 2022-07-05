@@ -21,7 +21,7 @@ Reference:
 */
 class NUTS : public GlobalMH {
  public:
-  explicit NUTS(Graph& g);
+  explicit NUTS(Graph& g, bool adapt_mass_matrix = true);
   /*
   NUTS by default transforms all unobserved random variables in the
   constrained space to the unconstrained space, similar to Stan in
