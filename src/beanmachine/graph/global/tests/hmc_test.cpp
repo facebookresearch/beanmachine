@@ -16,16 +16,19 @@ using namespace graph;
 
 TEST(testglobal, global_hmc_normal_normal) {
   Graph g;
-  build_normal_normal_model(g);
-  HMC mh = HMC(g, 1.0, 1.0);
-  test_normal_normal_model(mh);
+  auto expected_moments = build_normal_normal_model(g);
+  HMC mh = HMC(g, 1.0, 0.5);
+  int num_samples = 10000;
+  int num_warmup_samples = 5000;
+  test_conjugate_model_moments(
+      mh, expected_moments, num_samples, num_warmup_samples);
 }
 
 TEST(testglobal, global_hmc_gamma_gamma) {
   Graph g;
-  build_gamma_gamma_model(g);
+  auto expected_moments = build_gamma_gamma_model(g);
   HMC mh = HMC(g, 1.0, 0.5);
-  test_gamma_gamma_model(mh);
+  test_conjugate_model_moments(mh, expected_moments);
 }
 
 TEST(testglobal, global_hmc_half_cauchy) {
