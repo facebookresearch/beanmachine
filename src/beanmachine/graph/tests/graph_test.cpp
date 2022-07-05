@@ -452,3 +452,39 @@ TEST(testgraph, infer_runtime_error) {
       g.infer(num_samples, graph::InferenceType::NMC, seed, 2),
       std::runtime_error);
 }
+
+TEST(testgraph, eval_and_update_backgrad) {
+  /*
+  PyTorch verification
+  normal_dist = dist.Normal(0.0, 5.0)
+  x = tensor(2.0, requires_grad=True)
+  normal1_dist = dist.Normal(x * x, 10.0)
+  y = tensor(100.0)
+  log_prob = normal_dist.log_prob(x) + normal1_dist.log_prob(y)
+  torch.autograd.grad(log_prob, x)
+  */
+  graph::Graph g;
+  auto mean0 = g.add_constant(0.0);
+  auto sigma0 = g.add_constant_pos_real(5.0);
+  auto dist0 = g.add_distribution(
+      graph::DistributionType::NORMAL,
+      graph::AtomicType::REAL,
+      std::vector<uint>{mean0, sigma0});
+  auto x =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{dist0});
+  auto x_sq =
+      g.add_operator(graph::OperatorType::MULTIPLY, std::vector<uint>{x, x});
+  auto sigma1 = g.add_constant_pos_real(10.0);
+  auto dist1 = g.add_distribution(
+      graph::DistributionType::NORMAL,
+      graph::AtomicType::REAL,
+      std::vector<uint>{x_sq, sigma1});
+  auto y =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{dist1});
+  g.observe(y, 100.0);
+  g.query(x_sq);
+  g.ensure_evaluation_and_inference_readiness();
+  g.nodes[x]->value._double = 2.0;
+  g.eval_and_update_backgrad(g.supp);
+  EXPECT_NEAR(g.nodes[x]->back_grad1, 3.76, 1e-5);
+}

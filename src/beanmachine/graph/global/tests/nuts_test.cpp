@@ -200,7 +200,7 @@ TEST(testglobal, global_nuts_halfnormal) {
   a ~ Normal(1, 1)
   b ~ HalfNormal(2)
   c ~ Normal(a + b, 1)
-  posterior mean should be centered around 1.69
+  posterior mean should be centered around 1.65
   as verified by Stan and Python BM
   */
   Graph g;
@@ -234,5 +234,5 @@ TEST(testglobal, global_nuts_halfnormal) {
     mean += samples[i][0]._double;
   }
   mean /= samples.size();
-  EXPECT_NEAR(mean, 1.69, 0.04);
+  EXPECT_NEAR(mean, 1.65, 0.04);
 }
