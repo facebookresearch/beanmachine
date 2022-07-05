@@ -174,7 +174,9 @@ class LeafNode(BaseNode):
         """
 
         growable_vals = self.get_growable_vals(X, grow_dim)
-        return torch.mean(growable_vals.eq(grow_val), dtype=torch.float).item()
+        return torch.mean(
+            (growable_vals == grow_val).to(torch.float), dtype=torch.float
+        ).item()
 
     @staticmethod
     def grow_node(

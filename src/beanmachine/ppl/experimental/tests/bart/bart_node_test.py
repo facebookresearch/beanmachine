@@ -122,13 +122,16 @@ def test_prune_node(leaf_node, composite_rule):
     with pytest.raises(PruneError):
         SplitNode.prune_node(grandfather_node)
 
-    def test_partition_of_split(loose_leaf, X):
-        grow_val = X[0, 0]
-        growable_vals = loose_leaf.get_growable_vals(X=X, grow_dim=0)
 
-        assert torch.isclose(
-            torch.tensor(
-                [loose_leaf.get_partition_of_split(X=X, grow_dim=0, grow_val=grow_val)]
-            ),
-            torch.mean(growable_vals.eq(grow_val.item()), dtype=torch.float),
-        )
+def test_partition_of_split(loose_leaf, X):
+    grow_val = X[0, 0]
+    growable_vals = loose_leaf.get_growable_vals(X=X, grow_dim=0)
+
+    assert torch.isclose(
+        torch.tensor(
+            [loose_leaf.get_partition_of_split(X=X, grow_dim=0, grow_val=grow_val)]
+        ),
+        torch.mean(
+            (growable_vals == grow_val.item()).to(torch.float), dtype=torch.float
+        ),
+    )
