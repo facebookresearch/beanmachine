@@ -100,7 +100,6 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
   std::unique_ptr<SubGraph> subgraph_ptr = std::make_unique<SubGraph>(graph);
 
   // compute nodes up to and including stochastic children of discrete_sample
-  std::set<uint> supp_ids = graph.compute_full_ordered_support_node_ids();
   std::vector<uint> det_node_ids;
   std::vector<uint> sto_node_ids;
   std::tie(det_node_ids, sto_node_ids) =
