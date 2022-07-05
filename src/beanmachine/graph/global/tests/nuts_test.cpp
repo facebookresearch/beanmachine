@@ -15,11 +15,14 @@ using namespace beanmachine;
 using namespace graph;
 
 TEST(testglobal, global_nuts_normal_normal) {
+  int num_samples = 10000;
+  int num_warmup_samples = 5000;
   bool adapt_mass_matrix = false;
   Graph g;
   auto expected_moments = build_normal_normal_model(g);
   NUTS mh = NUTS(g, adapt_mass_matrix);
-  test_conjugate_model_moments(mh, expected_moments);
+  test_conjugate_model_moments(
+      mh, expected_moments, num_samples, num_warmup_samples);
 }
 
 TEST(testglobal, global_nuts_gamma_gamma) {
@@ -43,13 +46,11 @@ TEST(testglobal, global_nuts_beta_binomial) {
 }
 
 TEST(testglobal, global_nuts_half_cauchy) {
-  int num_samples = 5000;
-  int num_warmup_samples = 1000;
   bool adapt_mass_matrix = false;
   Graph g;
   build_half_cauchy_model(g);
   NUTS mh = NUTS(g, adapt_mass_matrix);
-  test_half_cauchy_model(mh, num_samples, num_warmup_samples);
+  test_half_cauchy_model(mh);
 }
 
 TEST(testglobal, global_nuts_mixed) {

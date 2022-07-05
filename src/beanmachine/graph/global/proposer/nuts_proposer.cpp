@@ -14,7 +14,7 @@ NutsProposer::NutsProposer(
     bool adapt_mass_matrix,
     double optimal_acceptance_prob)
     : HmcProposer(0.0, 1.0, adapt_mass_matrix, optimal_acceptance_prob) {
-  step_size = 1.0;
+  step_size = 1.0; // will be updated in `find_reasonable_step_size`
   delta_max = 1000;
   max_tree_depth = 10;
 }
@@ -26,16 +26,15 @@ void NutsProposer::initialize(
   Eigen::VectorXd position;
   state.get_flattened_unconstrained_values(position);
 
-  int size = position.size();
+  int size = static_cast<int>(position.size());
   mass_inv = Eigen::MatrixXd::Identity(size, size);
   mass_matrix_diagonal = Eigen::ArrayXd::Ones(size);
   if (adapt_mass_matrix) {
     mass_matrix_adapter.initialize(num_warmup_samples, size);
   }
 
-  step_size = 1.0;
-  find_reasonable_step_size(state, gen, position);
   step_size_adapter.initialize(step_size);
+  find_reasonable_step_size(state, gen, position);
 }
 
 void NutsProposer::warmup(
@@ -65,85 +64,6 @@ void NutsProposer::warmup(
   if (iteration == num_warmup_samples) {
     step_size = step_size_adapter.finalize_step_size();
   }
-}
-
-std::vector<Eigen::VectorXd> NutsProposer::leapfrog(
-    GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum,
-    double direction) {
-  // momentum half-step
-  state.set_flattened_unconstrained_values(position);
-  Eigen::VectorXd grad_U = compute_potential_gradient(state);
-  momentum = momentum - direction * step_size * grad_U / 2;
-  // position full-step
-  position = position + direction * step_size * momentum;
-  // momentum half-step
-  state.set_flattened_unconstrained_values(position);
-  grad_U = compute_potential_gradient(state);
-  momentum = momentum - direction * step_size * grad_U / 2;
-
-  return {position, momentum};
-}
-
-// Follows Algorithm 4 of NUTS paper
-void NutsProposer::find_reasonable_step_size(
-    GlobalState& state,
-    std::mt19937& gen,
-    Eigen::VectorXd position) {
-  step_size = 1.0;
-  Eigen::VectorXd momentum = initialize_momentum(position, gen);
-  double acceptance_log_prob =
-      compute_new_step_acceptance_probability(state, position, momentum);
-  int a = 1;
-  if (std::isnan(acceptance_log_prob) or acceptance_log_prob < std::log(0.5)) {
-    a = -1;
-  }
-  const double LOG_2 = std::log(2.0);
-  for (int i = 0; i < 100; i++) {
-    double prev_step_size = step_size;
-    step_size = std::pow(2, a) * step_size;
-    acceptance_log_prob =
-        compute_new_step_acceptance_probability(state, position, momentum);
-
-    // don't increase step_size if acceptance is NaN
-    if (std::isnan(acceptance_log_prob) and a > 1) {
-      step_size = prev_step_size;
-      break;
-    }
-
-    if (a * acceptance_log_prob <= -(LOG_2 * a)) {
-      break;
-    }
-  }
-}
-
-double NutsProposer::compute_new_step_acceptance_probability(
-    GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum) {
-  double current_H = compute_hamiltonian(state, position, momentum);
-
-  double direction = 1.0;
-  std::vector<Eigen::VectorXd> leapfrog_result =
-      leapfrog(state, position, momentum, direction);
-  Eigen::VectorXd position_new = leapfrog_result[0];
-  Eigen::VectorXd momentum_new = leapfrog_result[1];
-
-  double proposed_H = compute_hamiltonian(state, position_new, momentum_new);
-
-  return current_H - proposed_H;
-}
-
-double NutsProposer::compute_hamiltonian(
-    GlobalState& state,
-    Eigen::VectorXd position,
-    Eigen::VectorXd momentum) {
-  double K = compute_kinetic_energy(momentum);
-  state.set_flattened_unconstrained_values(position);
-  state.update_log_prob();
-  double U = -state.get_log_prob();
-  return K + U;
 }
 
 bool NutsProposer::compute_no_turn(

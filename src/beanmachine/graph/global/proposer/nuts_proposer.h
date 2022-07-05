@@ -41,19 +41,6 @@ class NutsProposer : public HmcProposer {
   double warmup_acceptance_prob;
   double delta_max;
   double max_tree_depth;
-  void find_reasonable_step_size(
-      GlobalState& state,
-      std::mt19937& gen,
-      Eigen::VectorXd position);
-  double compute_new_step_acceptance_probability(
-      GlobalState& state,
-      Eigen::VectorXd position,
-      Eigen::VectorXd momentum);
-  std::vector<Eigen::VectorXd> leapfrog(
-      GlobalState& state,
-      Eigen::VectorXd theta,
-      Eigen::VectorXd r,
-      double v);
   Tree build_tree_base_case(
       GlobalState& state,
       Eigen::VectorXd position,
@@ -70,10 +57,6 @@ class NutsProposer : public HmcProposer {
       double direction,
       int tree_depth,
       double hamiltonian_init);
-  double compute_hamiltonian(
-      GlobalState& state,
-      Eigen::VectorXd theta,
-      Eigen::VectorXd r);
   bool compute_no_turn(
       Eigen::VectorXd momentum_left,
       Eigen::VectorXd momentum_right,
