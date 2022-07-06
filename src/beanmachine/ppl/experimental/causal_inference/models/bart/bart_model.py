@@ -219,7 +219,7 @@ class BART:
                 self.X
             )
         self._update_sigma(self.y - self._predict_step())
-        return self.all_trees, self.sigma
+        return self.all_trees, self.sigma.val
 
     def _update_leaf_mean(self, tree: Tree, partial_residual: torch.Tensor):
         """
