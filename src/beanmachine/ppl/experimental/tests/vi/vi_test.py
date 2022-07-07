@@ -12,7 +12,6 @@ import pytest
 import scipy.stats
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.distributions.flat import Flat
 from beanmachine.ppl.experimental.vi import ADVI, MAP, VariationalInfer
 from beanmachine.ppl.experimental.vi.gradient_estimator import (
     monte_carlo_approximate_sf,
@@ -247,6 +246,10 @@ class TestAutoGuide:
 
 
 class TestStochasticVariationalInfer:
+    @pytest.fixture(autouse=True)
+    def set_seed(self):
+        bm.seed(41)
+
     def test_normal_normal_guide(self):
         model = NormalNormal()
 
@@ -468,21 +471,15 @@ class TestStochasticVariationalInfer:
         )
         assert accuracy.float().item() > 0.80
 
-    @pytest.mark.skip(reason="TODO: debug this test")
     def test_logistic_regression(self):
-        n, d = 1000, 10
+        n, d = 5_000, 2
+        X = torch.randn(n, d)
         W = torch.randn(d)
-        X = torch.randn((n, d))
-        Y = torch.bernoulli(torch.sigmoid(X @ W))
-
-        @bm.random_variable
-        def x():
-            return Flat(shape=X.shape)
 
         @bm.random_variable
         def y():
             return dist.Independent(
-                dist.Bernoulli(probs=Y.clone().detach().float()),
+                dist.Bernoulli(probs=torch.sigmoid(X @ W)),
                 1,
             )
 
@@ -493,21 +490,20 @@ class TestStochasticVariationalInfer:
         @bm.random_variable
         def q_y():
             weights = w()
-            data = x()
+            data = X
             p = torch.sigmoid(data @ weights)
             return dist.Independent(
-                dist.Bernoulli(p),
+                dist.Bernoulli(probs=p),
                 1,
             )
 
         world = VariationalInfer(
             queries_to_guides={y(): q_y()},
-            observations={
-                x(): X.float(),
-            },
-            optimizer=lambda params: torch.optim.Adam(params, lr=1e-2),
+            observations={},
+            optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
         ).infer(
-            num_steps=1000,
+            num_steps=5000,
+            num_samples=1,
             # NOTE: since y/q_y are discrete and not reparameterizable, we must
             # use the score function estimator
             mc_approx=monte_carlo_approximate_sf,
