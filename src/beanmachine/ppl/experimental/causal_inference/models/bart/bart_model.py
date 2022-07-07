@@ -64,7 +64,7 @@ class BART:
 
         self.num_trees = num_trees
         self.num_samples = None
-        self.all_trees = []
+        self._all_trees = []
         self.all_tree_predictions = None
         self.k = k
         self.leaf_mean = LeafMean(
@@ -117,7 +117,7 @@ class BART:
         for iter_id in range(num_burn + num_samples):
             print(f"Sampling iteration {iter_id}")
             trees, sigma = self._step()
-            self.all_trees = trees
+            self._all_trees = trees
             if iter_id >= num_burn:
                 self.samples["trees"].append(trees)
                 self.samples["sigmas"].append(sigma)
@@ -182,7 +182,7 @@ class BART:
         num_dims = X.shape[-1]
         num_points = X.shape[0]
         for _ in range(self.num_trees):
-            self.all_trees.append(
+            self._all_trees.append(
                 Tree(
                     nodes=[
                         LeafNode(
@@ -204,7 +204,7 @@ class BART:
         if self.X is None or self.y is None:
             raise NotInitializedError("No training data")
 
-        new_trees = [deepcopy(tree) for tree in self.all_trees]
+        new_trees = [deepcopy(tree) for tree in self._all_trees]
         for tree_id in range(len(new_trees)):
             current_predictions = self._predict_step(trees=new_trees)
             last_iter_tree_prediction = self.all_tree_predictions[:, tree_id]
@@ -219,7 +219,7 @@ class BART:
                 leaf_mean_prior_scale=self.leaf_mean_prior_scale,
             )
             self._update_leaf_mean(new_trees[tree_id], partial_residual)
-            self.all_tree_predictions[:, tree_id] = self.all_trees[tree_id].predict(
+            self.all_tree_predictions[:, tree_id] = self._all_trees[tree_id].predict(
                 self.X
             )
         self._update_sigma(self.y - self._predict_step())
@@ -278,12 +278,12 @@ class BART:
             prediction: Prediction of shape (num_samples, 1).
         """
 
-        if self.X is None or self.all_trees is None:
+        if self.X is None or self._all_trees is None:
             raise NotInitializedError("Model not trained")
         if X is None:
             X = self.X
         if trees is None:
-            trees = self.all_trees
+            trees = self._all_trees
 
         prediction = torch.zeros((len(X), 1), dtype=torch.float)
         for single_tree in trees:
