@@ -52,7 +52,12 @@ module.exports = {
           position: 'left',
         },
         {
-          href: 'pathname:///api/index.html',
+          href: fbContent({
+            internal:
+              'https://www.internalfb.com/intern/wiki/Bean_Machine/api',
+            external:
+              'pathname:///api/index.html',
+          }),
           label: 'API',
           position: 'left',
         },
