@@ -25,6 +25,7 @@ from beanmachine.ppl.experimental.causal_inference.models.bart.split_rule import
 from beanmachine.ppl.experimental.causal_inference.models.bart.tree import Tree
 from torch.distributions.gamma import Gamma
 from torch.distributions.normal import Normal
+from tqdm.auto import trange
 
 
 class BART:
@@ -114,8 +115,7 @@ class BART:
         self.samples = {"trees": [], "sigmas": []}
         self._init_trees(X)
 
-        for iter_id in range(num_burn + num_samples):
-            print(f"Sampling iteration {iter_id}")
+        for iter_id in trange(num_burn + num_samples):
             trees, sigma = self._step()
             self._all_trees = trees
             if iter_id >= num_burn:
