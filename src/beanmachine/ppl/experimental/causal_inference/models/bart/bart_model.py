@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import math
+
+from copy import deepcopy
 from typing import List, Optional, Tuple
 
 import torch
@@ -115,6 +117,7 @@ class BART:
         for iter_id in range(num_burn + num_samples):
             print(f"Sampling iteration {iter_id}")
             trees, sigma = self._step()
+            self.all_trees = trees
             if iter_id >= num_burn:
                 self.samples["trees"].append(trees)
                 self.samples["sigmas"].append(sigma)
@@ -201,12 +204,13 @@ class BART:
         if self.X is None or self.y is None:
             raise NotInitializedError("No training data")
 
-        for tree_id in range(len(self.all_trees)):
-            partial_residual = (
-                self.y - self._predict_step() + self.all_tree_predictions[:, tree_id]
-            )
-            self.all_trees[tree_id] = self.tree_sampler.propose(
-                tree=self.all_trees[tree_id],
+        new_trees = [deepcopy(tree) for tree in self.all_trees]
+        for tree_id in range(len(new_trees)):
+            current_predictions = self._predict_step(trees=new_trees)
+            last_iter_tree_prediction = self.all_tree_predictions[:, tree_id]
+            partial_residual = self.y - current_predictions + last_iter_tree_prediction
+            new_trees[tree_id] = self.tree_sampler.propose(
+                tree=new_trees[tree_id],
                 X=self.X,
                 partial_residual=partial_residual,
                 alpha=self.alpha,
@@ -214,12 +218,12 @@ class BART:
                 sigma_val=self.sigma.val,
                 leaf_mean_prior_scale=self.leaf_mean_prior_scale,
             )
-            self._update_leaf_mean(self.all_trees[tree_id], partial_residual)
+            self._update_leaf_mean(new_trees[tree_id], partial_residual)
             self.all_tree_predictions[:, tree_id] = self.all_trees[tree_id].predict(
                 self.X
             )
         self._update_sigma(self.y - self._predict_step())
-        return self.all_trees, self.sigma.val
+        return new_trees, self.sigma.val
 
     def _update_leaf_mean(self, tree: Tree, partial_residual: torch.Tensor):
         """
