@@ -22,23 +22,39 @@ std::unordered_map<Operator, std::string> operator_names;
 std::unordered_map<std::string, Operator> string_to_operator;
 
 bool _c0 = [] {
-  auto add = [](Operator op, std::string name) {
+  auto add = [](Operator op, const std::string& name) {
     operator_names[op] = name;
     string_to_operator[name] = op;
   };
+  add(Operator::NO_OPERATOR, "NO_OPERATOR");
   add(Operator::CONSTANT, "CONSTANT");
+  add(Operator::VARIABLE, "VARIABLE");
   add(Operator::ADD, "ADD");
+  add(Operator::SUBTRACT, "SUBTRACT");
+  add(Operator::NEGATE, "NEGATE");
   add(Operator::MULTIPLY, "MULTIPLY");
+  add(Operator::DIVIDE, "DIVIDE");
+  add(Operator::POW, "POW");
+  add(Operator::EXP, "EXP");
+  add(Operator::LOG, "LOG");
+  add(Operator::ATAN, "ATAN");
   add(Operator::DISTRIBUTION_NORMAL, "DISTRIBUTION_NORMAL");
   add(Operator::DISTRIBUTION_BETA, "DISTRIBUTION_BETA");
   add(Operator::DISTRIBUTION_BERNOULLI, "DISTRIBUTION_BERNOULLI");
   add(Operator::SAMPLE, "SAMPLE");
   add(Operator::OBSERVE, "OBSERVE");
   add(Operator::QUERY, "QUERY");
+
+  // check that we have set the name for every operator.
+  for (Operator op = Operator::NO_OPERATOR; op < Operator::LAST_OPERATOR;
+       op = (Operator)((int)op + 1)) {
+    assert(operator_names.contains(op));
+  }
+
   return true;
 }();
 
-Operator operator_from_name(std::string name) {
+Operator operator_from_name(const std::string& name) {
   auto found = string_to_operator.find(name);
   if (found != string_to_operator.end()) {
     return found->second;
@@ -60,17 +76,16 @@ std::unordered_map<Type, std::string> type_names;
 std::unordered_map<std::string, Type> string_to_type;
 
 bool _c1 = [] {
-  auto add = [](Type type, std::string name) {
+  auto add = [](Type type, const std::string& name) {
     type_names[type] = name;
     string_to_type[name] = type;
   };
   add(Type::REAL, "REAL");
   add(Type::DISTRIBUTION, "DISTRIBUTION");
-  add(Type::NONE, "NONE");
   return true;
 }();
 
-Type type_from_name(std::string name) {
+Type type_from_name(const std::string& name) {
   auto found = string_to_type.find(name);
   if (found != string_to_type.end()) {
     return found->second;
@@ -101,9 +116,10 @@ OperatorNode::OperatorNode(
     : Node{sequence, op, type}, in_nodes{in_nodes} {
   switch (op) {
     case Operator::CONSTANT:
-      throw std::invalid_argument("OperatorNode cannot be used for CONSTANT.");
     case Operator::QUERY:
-      throw std::invalid_argument("OperatorNode cannot be used for QUERY.");
+    case Operator::VARIABLE:
+      throw std::invalid_argument(
+          "OperatorNode cannot be used for " + to_string(op) + ".");
     default:;
   }
 }
@@ -111,41 +127,20 @@ OperatorNode::OperatorNode(
 QueryNode::QueryNode(
     const uint query_index,
     const Node* in_node,
-    const uint sequence,
-    const enum Operator op,
-    const Type type)
-    : Node{sequence, op, type}, query_index{query_index}, in_node{in_node} {
-  switch (op) {
-    case Operator::QUERY:
-      break;
-    case Operator::CONSTANT:
-      throw std::invalid_argument("QueryNode cannot be used for CONSTANT.");
-    default:
-      throw std::invalid_argument("QueryNode cannot be used for an operator.");
-  }
-}
+    const uint sequence)
+    : Node{sequence, Operator::QUERY, Type::NONE},
+      query_index{query_index},
+      in_node{in_node} {}
 
-ConstantNode::ConstantNode(
-    const double value,
-    const uint sequence,
-    const enum Operator op,
-    const Type type)
-    : Node{sequence, op, type}, value{value} {
-  switch (op) {
-    case Operator::CONSTANT:
-      break;
-    case Operator::QUERY:
-      throw std::invalid_argument("ConstantNode cannot be used for QUERY.");
-    default:
-      throw std::invalid_argument(
-          "ConstantNode cannot be used for an operator.");
-  }
-}
+ConstantNode::ConstantNode(const double value, const uint sequence)
+    : Node{sequence, Operator::CONSTANT, Type::REAL}, value{value} {}
+
+VariableNode::VariableNode(const std::string& name, const uint sequence)
+    : Node{sequence, Operator::VARIABLE, Type::REAL}, name{name} {}
 
 uint Graph::Factory::add_constant(double value) {
   auto sequence = (uint)nodes.size();
-  const auto new_node =
-      new ConstantNode{value, sequence, Operator::CONSTANT, Type::REAL};
+  const auto new_node = new ConstantNode{value, sequence};
   nodes.push_back(new_node);
   return sequence;
 }
@@ -153,9 +148,17 @@ uint Graph::Factory::add_constant(double value) {
 enum Type op_type(enum Operator op) {
   switch (op) {
     case Operator::CONSTANT:
-    case Operator::SAMPLE:
+    case Operator::VARIABLE:
     case Operator::ADD:
+    case Operator::SUBTRACT:
+    case Operator::NEGATE:
     case Operator::MULTIPLY:
+    case Operator::DIVIDE:
+    case Operator::POW:
+    case Operator::EXP:
+    case Operator::LOG:
+    case Operator::ATAN:
+    case Operator::SAMPLE:
       return Type::REAL;
     case Operator::DISTRIBUTION_NORMAL:
     case Operator::DISTRIBUTION_BETA:
@@ -179,8 +182,16 @@ const std::vector<std::vector<enum Type>> make_expected_parents() {
   }
   assert(result.size() == (int)Operator::LAST_OPERATOR);
   result[(uint)Operator::CONSTANT] = {};
+  result[(uint)Operator::VARIABLE] = {};
   result[(uint)Operator::ADD] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::SUBTRACT] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::NEGATE] = {Type::REAL};
   result[(uint)Operator::MULTIPLY] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::DIVIDE] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::POW] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::EXP] = {Type::REAL};
+  result[(uint)Operator::LOG] = {Type::REAL};
+  result[(uint)Operator::ATAN] = {Type::REAL};
   result[(uint)Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
   result[(uint)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
   result[(uint)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
@@ -251,8 +262,7 @@ uint Graph::Factory::add_query(uint parent) {
   }
   auto query_id = next_query;
   next_query++;
-  auto new_node = new QueryNode{
-      query_id, parent_node, sequence, Operator::QUERY, Type::NONE};
+  auto new_node = new QueryNode{query_id, parent_node, sequence};
   nodes.push_back(new_node);
   return query_id;
 }
@@ -406,7 +416,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   return result;
 }
 
-JsonError::JsonError(std::string message) : message(message) {}
+JsonError::JsonError(const std::string& message) : message(message) {}
 
 Graph json_to_graph(folly::dynamic d) {
   Graph::Factory gf;
@@ -459,7 +469,10 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("bad in_node for query.");
         }
         auto in_node = sequence_to_node.find(in_node_i)->second;
-        node = new QueryNode(query_index, in_node, sequence, op, type);
+        if (type != Type::NONE) {
+          throw JsonError("bad type for query.");
+        }
+        node = new QueryNode(query_index, in_node, sequence);
         break;
       }
       case Operator::CONSTANT: {
@@ -472,7 +485,24 @@ Graph json_to_graph(folly::dynamic d) {
         } else {
           throw JsonError("bad value for constant.");
         }
-        node = new ConstantNode(value, sequence, op, type);
+        if (type != Type::REAL) {
+          throw JsonError("bad type for query.");
+        }
+        node = new ConstantNode(value, sequence);
+        break;
+      }
+      case Operator::VARIABLE: {
+        auto namev = json_node["name"];
+        std::string name = "";
+        if (namev.isString()) {
+          name = namev.asString();
+        } else {
+          throw JsonError("bad value for name.");
+        }
+        if (type != Type::REAL) {
+          throw JsonError("bad type for query.");
+        }
+        node = new VariableNode(name, sequence);
         break;
       }
       default: {

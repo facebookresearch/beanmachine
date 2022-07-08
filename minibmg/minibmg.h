@@ -30,13 +30,44 @@ enum class Operator {
   // Result: the given constant value (REAL)
   CONSTANT,
 
+  // A scalar variable.  Used for symbolid auto-differentiation (AD).
+  VARIABLE,
+
   // Add two scalars.
   // Result: the sum (REAL)
   ADD,
 
+  // Subtract one scalar from another.
+  // Result: the difference (REAL)
+  SUBTRACT,
+
+  // Negate a scalar.
+  // Result: the negated value (REAL)
+  NEGATE,
+
   // Multiply two scalars.
   // Result: the product (REAL)
   MULTIPLY,
+
+  // Divide one scalar by another.
+  // Result: the quotient (REAL)
+  DIVIDE,
+
+  // Raise on scalar to the power of another.
+  // Result: REAL
+  POW,
+
+  // Raise e to the power of the given scalar.
+  // Result: REAL
+  EXP,
+
+  // The natural logarithm of the given scalar.
+  // Result: REAL
+  LOG,
+
+  // The arctangent (functional inverse of the tangent) of a scalar.
+  // Result: REAL
+  ATAN,
 
   // A normal distribution.
   // Parameters:
@@ -81,7 +112,7 @@ enum class Operator {
   LAST_OPERATOR,
 };
 
-Operator operator_from_name(std::string name);
+Operator operator_from_name(const std::string& name);
 std::string to_string(Operator op);
 
 enum class Type {
@@ -98,7 +129,7 @@ enum class Type {
   LAST_TYPE,
 };
 
-Type type_from_name(std::string name);
+Type type_from_name(const std::string& name);
 std::string to_string(Type type);
 
 class Graph : Container {
@@ -136,7 +167,7 @@ class Graph : Container {
 // Exception to throw when json_to_graph fails.
 class JsonError : public std::exception {
  public:
-  explicit JsonError(std::string message);
+  explicit JsonError(const std::string& message);
   const std::string message;
 };
 
@@ -164,22 +195,19 @@ class OperatorNode : public Node {
 
 class ConstantNode : public Node {
  public:
-  ConstantNode(
-      const double value,
-      const uint sequence,
-      const enum Operator op,
-      const enum Type type);
+  ConstantNode(const double value, const uint sequence);
   const double value;
+};
+
+class VariableNode : public Node {
+ public:
+  VariableNode(const std::string& name, const uint sequence);
+  const std::string name;
 };
 
 class QueryNode : public Node {
  public:
-  QueryNode(
-      const uint query_index,
-      const Node* in_node,
-      const uint sequence,
-      const enum Operator op,
-      const enum Type type);
+  QueryNode(const uint query_index, const Node* in_node, const uint sequence);
   const uint query_index;
   const Node* const in_node;
 };
