@@ -7,6 +7,7 @@
 
 #include "beanmachine/graph/operator/linalgop.h"
 #include <beanmachine/graph/graph.h>
+#include <stdexcept>
 #include "beanmachine/graph/graph.h"
 
 /*
@@ -412,7 +413,11 @@ Cholesky::Cholesky(const std::vector<graph::Node*>& in_nodes)
 
 void Cholesky::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  value._matrix = in_nodes[0]->value._matrix.llt().matrixL();
+  Eigen::LLT<Eigen::MatrixXd> llt_matrix = in_nodes[0]->value._matrix.llt();
+  value._matrix = llt_matrix.matrixL();
+  if (llt_matrix.info() == Eigen::NumericalIssue) {
+    throw std::runtime_error("CHOLESKY requires a positive definite matrix");
+  }
 }
 
 MatrixExp::MatrixExp(const std::vector<graph::Node*>& in_nodes)
