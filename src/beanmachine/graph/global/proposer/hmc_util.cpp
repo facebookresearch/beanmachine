@@ -15,6 +15,7 @@ StepSizeAdapter::StepSizeAdapter(double optimal_acceptance_prob) {
 }
 
 void StepSizeAdapter::initialize(double step_size) {
+  iteration = 0;
   gamma = 0.05;
   t = 10.0;
   kappa = 0.75;
@@ -23,9 +24,8 @@ void StepSizeAdapter::initialize(double step_size) {
   closeness = 0.0;
 }
 
-double StepSizeAdapter::update_step_size(
-    int iteration,
-    double acceptance_prob) {
+double StepSizeAdapter::update_step_size(double acceptance_prob) {
+  iteration++;
   double iter = (double)iteration;
 
   double closeness_frac = 1.0 / (iter + t);

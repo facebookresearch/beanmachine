@@ -63,7 +63,7 @@ void HmcProposer::warmup(
     double acceptance_prob,
     int iteration,
     int num_warmup_samples) {
-  step_size = step_size_adapter.update_step_size(iteration, acceptance_prob);
+  step_size = step_size_adapter.update_step_size(acceptance_prob);
 
   if (adapt_mass_matrix) {
     Eigen::VectorXd sample;

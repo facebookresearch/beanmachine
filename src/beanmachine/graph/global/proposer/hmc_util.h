@@ -14,10 +14,11 @@ class StepSizeAdapter {
  public:
   explicit StepSizeAdapter(double optimal_acceptance_prob);
   void initialize(double step_size);
-  double update_step_size(int iteration, double acceptance_prob);
+  double update_step_size(double acceptance_prob);
   double finalize_step_size();
 
  private:
+  int iteration;
   double gamma;
   double t;
   double kappa;

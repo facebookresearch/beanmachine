@@ -26,14 +26,11 @@ TEST(testglobal, global_hmc_mass_matrix_normal_normal) {
 }
 
 TEST(testglobal, global_hmc_mass_matrix_gamma_gamma) {
-  int num_samples = 10000;
-  int num_warmup_samples = 5000;
   bool adapt_mass_matrix = true;
   Graph g;
   auto expected_moments = build_gamma_gamma_model(g);
   HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
-  test_conjugate_model_moments(
-      mh, expected_moments, num_samples, num_warmup_samples);
+  test_conjugate_model_moments(mh, expected_moments);
 }
 
 TEST(testglobal, global_hmc_mass_matrix_beta_binomial) {
