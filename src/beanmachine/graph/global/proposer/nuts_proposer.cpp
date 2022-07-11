@@ -46,8 +46,7 @@ void NutsProposer::warmup(
     double /*acceptance_prob*/,
     int iteration,
     int num_warmup_samples) {
-  step_size =
-      step_size_adapter.update_step_size(iteration, warmup_acceptance_prob);
+  step_size = step_size_adapter.update_step_size(warmup_acceptance_prob);
 
   if (adapt_mass_matrix) {
     Eigen::VectorXd sample;
@@ -56,6 +55,7 @@ void NutsProposer::warmup(
     bool window_end = mass_matrix_adapter.is_end_window(iteration);
 
     if (window_end) {
+      mass_matrix_adapter.get_mass_matrix_and_reset(iteration, mass_inv);
       mass_matrix_diagonal = mass_inv.diagonal().array().sqrt().inverse();
       Eigen::VectorXd position;
       state.get_flattened_unconstrained_values(position);
