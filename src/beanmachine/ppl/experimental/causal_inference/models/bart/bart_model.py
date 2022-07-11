@@ -301,13 +301,28 @@ class BART:
             prediction: Prediction corresponding to averaf of all samples of shape (num_samples, 1).
         """
 
-        prediction = torch.zeros((len(X), 1), dtype=torch.float)
+        prediction = torch.mean(
+            self.get_posterior_predictive_samples(X), dim=-1, dtype=torch.float
+        )
+        return prediction.reshape(-1, 1)
+
+    def get_posterior_predictive_samples(self, X: torch.Tensor) -> torch.Tensor:
+        """
+        Returns samples from the posterior predictive distribution P(y|X).
+
+        Args:
+            X: Covariate matrix to predict on of shape (num_observations, input_dimensions).
+
+        Returns:
+            posterior_predictive_samples: Samples from the predictive distribution P(y|X) of shape (num_observations, num_samples).
+        """
+        posterior_predictive_samples = []
         for sample_id in range(self.num_samples):
-            unscaled_prediction = self._predict_step(
-                X=X, trees=self.samples["trees"][sample_id]
-            )
-            prediction += self._inverse_scale(unscaled_prediction)
-        return prediction / self.num_samples
+            single_prediction_sample = self._inverse_scale(
+                self._predict_step(X=X, trees=self.samples["trees"][sample_id])
+            )  # ( torch.Size(num_observations, 1) )
+            posterior_predictive_samples.append(single_prediction_sample)
+        return torch.concat(posterior_predictive_samples, dim=-1)
 
     @property
     def leaf_mean_prior_scale(self):
