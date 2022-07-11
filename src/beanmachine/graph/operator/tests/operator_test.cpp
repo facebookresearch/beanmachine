@@ -1733,14 +1733,26 @@ TEST(testoperator, cholesky) {
       g.add_operator(OperatorType::CHOLESKY, {constant_non_square}),
       std::invalid_argument);
 
+  // throw runtime error if not positive definite
+  Eigen::MatrixXd not_positive_definite(2, 2);
+  not_positive_definite << 1.0, 2.0, 3.0, 4.0;
+  auto not_positive_definite_matrix =
+      g.add_constant_real_matrix(not_positive_definite);
+  auto lower =
+      g.add_operator(OperatorType::CHOLESKY, {not_positive_definite_matrix});
+  g.query(lower);
+  EXPECT_THROW(g.infer(2, InferenceType::REJECTION)[0][0], std::runtime_error);
+
+  Graph g1;
   Eigen::MatrixXd positive_definite(3, 3);
-  positive_definite << 4.0, 12, -16, 12, 37, -43, -16, -43, 98;
-  auto positive_definite_matrix = g.add_constant_real_matrix(positive_definite);
-  auto l = g.add_operator(OperatorType::CHOLESKY, {positive_definite_matrix});
-  g.query(l);
-  auto l_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  positive_definite << 10, 5, 2, 5, 3, 2, 2, 2, 3;
+  auto positive_definite_matrix =
+      g1.add_constant_real_matrix(positive_definite);
+  auto l = g1.add_operator(OperatorType::CHOLESKY, {positive_definite_matrix});
+  g1.query(l);
+  auto l_infer = g1.infer(2, InferenceType::REJECTION)[0][0];
   Eigen::MatrixXd l_expected(3, 3);
-  l_expected << 2.0, 0, 0, 6, 1, 0, -8, 5, 3;
+  l_expected << 3.1623, 0, 0, 1.5811, 0.7071, 0, 0.6325, 1.4142, 0.7746;
   for (uint i = 0; i < l_infer.type.rows; i++) {
     for (uint j = 0; j < l_infer.type.cols; j++) {
       EXPECT_NEAR(l_expected(i, j), l_infer._matrix(i, j), 1e-4);
