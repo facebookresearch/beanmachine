@@ -17,7 +17,7 @@ from beanmachine.ppl.experimental.vi.gradient_estimator import (
     monte_carlo_approximate_sf,
 )
 from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
-from beanmachine.ppl.world import init_from_prior
+from beanmachine.ppl.world import init_from_prior, RVDict
 from torch import optim
 from torch.distributions import constraints
 from torch.distributions.utils import _standard_normal
@@ -100,8 +100,17 @@ class BayesianRobustLinearRegression:
 
 
 class NormalNormal:
-    def __init__(self, device: Optional[torch.device] = cpu_device):
+    def __init__(
+        self,
+        mean_0: float = 0.0,
+        variance_0: float = 1.0,
+        variance_x: float = 1.0,
+        device: Optional[torch.device] = cpu_device,
+    ):
         self.device = device
+        self.mean_0 = mean_0
+        self.variance_0 = variance_0
+        self.variance_x = variance_x
 
     @bm.random_variable
     def mu(self):
@@ -112,6 +121,29 @@ class NormalNormal:
     @bm.random_variable
     def x(self, i):
         return dist.Normal(self.mu(), torch.ones(1).to(self.device))
+
+    def conjugate_posterior(self, observations: RVDict) -> torch.dist:
+        # Normal-Normal conjugate prior formula (https://en.wikipedia.org/wiki/Conjugate_prior#When_likelihood_function_is_a_continuous_distribution)
+        expected_variance = 1 / (
+            (1 / self.variance_0) + (sum(observations.values()) / self.variance_x)
+        )
+        expected_std = numpy.sqrt(expected_variance)
+        expected_mean = expected_variance * (
+            (self.mean_0 / self.variance_0)
+            + (sum(observations.values()) / self.variance_x)
+        )
+        return dist.Normal(expected_mean, expected_std)
+
+
+class LogScaleNormal:
+    @bm.param
+    def phi(self):
+        return torch.zeros(2)  # mean, log std
+
+    @bm.random_variable
+    def q_mu(self):
+        params = self.phi()
+        return dist.Normal(params[0], params[1].exp())
 
 
 class BinaryGaussianMixture:
@@ -251,28 +283,20 @@ class TestStochasticVariationalInfer:
         bm.seed(41)
 
     def test_normal_normal_guide(self):
-        model = NormalNormal()
-
-        @bm.param
-        def phi():
-            return torch.zeros(2)  # mean, log std
-
-        @bm.random_variable
-        def q_mu():
-            params = phi()
-            return dist.Normal(params[0], params[1].exp())
+        normal_normal_model = NormalNormal()
+        log_scale_normal_model = LogScaleNormal()
 
         world = VariationalInfer(
-            queries_to_guides={model.mu(): q_mu()},
+            queries_to_guides={normal_normal_model.mu(): log_scale_normal_model.q_mu()},
             observations={
-                model.x(1): torch.tensor(9.0),
-                model.x(2): torch.tensor(10.0),
+                normal_normal_model.x(1): torch.tensor(9.0),
+                normal_normal_model.x(2): torch.tensor(10.0),
             },
             optimizer=lambda params: torch.optim.Adam(params, lr=1e0),
         ).infer(
             num_steps=100,
         )
-        mu_approx = world.get_variable(q_mu()).distribution
+        mu_approx = world.get_variable(log_scale_normal_model.q_mu()).distribution
 
         sample_mean = mu_approx.sample((100, 1)).mean()
         assert sample_mean > 5.0
@@ -285,29 +309,21 @@ class TestStochasticVariationalInfer:
     )
     def test_normal_normal_guide_step_gpu(self):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = NormalNormal(device=device)
-
-        @bm.param
-        def phi():
-            return torch.zeros(2).to(device)  # mean, log std
-
-        @bm.random_variable
-        def q_mu():
-            params = phi()
-            return dist.Normal(params[0], params[1].exp())
+        normal_normal_model = NormalNormal(device=device)
+        log_scale_normal_model = LogScaleNormal()
 
         world = VariationalInfer(
-            queries_to_guides={model.mu(): q_mu()},
+            queries_to_guides={normal_normal_model.mu(): log_scale_normal_model.q_mu()},
             observations={
-                model.x(1): torch.tensor(9.0),
-                model.x(2): torch.tensor(10.0),
+                normal_normal_model.x(1): torch.tensor(9.0),
+                normal_normal_model.x(2): torch.tensor(10.0),
             },
             optimizer=lambda params: torch.optim.Adam(params, lr=1e0),
             device=device,
         ).infer(
             num_steps=100,
         )
-        mu_approx = world.get_variable(q_mu()).distribution
+        mu_approx = world.get_variable(log_scale_normal_model.q_mu()).distribution
 
         sample_mean = mu_approx.sample((100, 1)).mean()
         assert sample_mean > 5.0
@@ -316,29 +332,21 @@ class TestStochasticVariationalInfer:
         assert sample_var > 0.1
 
     def test_normal_normal_guide_step(self):
-        model = NormalNormal()
-
-        @bm.param
-        def phi():
-            return torch.zeros(2)  # mean, log std
-
-        @bm.random_variable
-        def q_mu():
-            params = phi()
-            return dist.Normal(params[0], params[1].exp())
+        normal_normal_model = NormalNormal()
+        log_scale_normal_model = LogScaleNormal()
 
         # 100 steps, each 1 iteration
         world = VariationalInfer(
             queries_to_guides={
-                model.mu(): q_mu(),
+                normal_normal_model.mu(): log_scale_normal_model.q_mu(),
             },
             observations={
-                model.x(1): torch.tensor(9.0),
-                model.x(2): torch.tensor(10.0),
+                normal_normal_model.x(1): torch.tensor(9.0),
+                normal_normal_model.x(2): torch.tensor(10.0),
             },
             optimizer=lambda params: torch.optim.Adam(params, lr=1e0),
         ).infer(num_steps=100)
-        mu_approx = world.get_variable(q_mu()).distribution
+        mu_approx = world.get_variable(log_scale_normal_model.q_mu()).distribution
 
         sample_mean = mu_approx.sample((100, 1)).mean()
         assert sample_mean > 5.0
@@ -510,3 +518,66 @@ class TestStochasticVariationalInfer:
         )
         l2_error = (world.get_param(w()) - W).norm()
         assert l2_error < 0.5
+
+    def test_subsample(self):
+        # mu ~ N(0, 10) and x | mu ~ N(mu, 1)
+        num_total = 3
+        normal_normal_model = NormalNormal(mean_0=1, variance_0=100, variance_x=1)
+        log_scale_normal_model = LogScaleNormal()
+
+        total_observations = {
+            normal_normal_model.x(i): torch.tensor(1.0) for i in range(num_total)
+        }
+
+        expected_mean = normal_normal_model.conjugate_posterior(total_observations).mean
+        expected_stddev = normal_normal_model.conjugate_posterior(
+            total_observations
+        ).stddev
+
+        for num_samples in range(1, num_total):
+            world = VariationalInfer(
+                queries_to_guides={
+                    normal_normal_model.mu(): log_scale_normal_model.q_mu(),
+                },
+                observations={
+                    normal_normal_model.x(i): torch.tensor(1.0)
+                    for i in range(num_samples)
+                },
+                optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
+            ).infer(
+                num_steps=50, subsample_factor=num_samples / num_total, num_samples=100
+            )
+            mu_approx = world.get_guide_distribution(normal_normal_model.mu())
+            assert (mu_approx.mean - expected_mean).norm() < 0.05
+            assert (mu_approx.stddev - expected_stddev).norm() < 0.05
+
+    def test_subsample_fail(self):
+        # mu ~ N(0, 10) and x | mu ~ N(mu, 1)
+        num_total = 3
+        normal_normal_model = NormalNormal(mean_0=1, variance_0=100, variance_x=1)
+        log_scale_normal_model = LogScaleNormal()
+
+        total_observations = {
+            normal_normal_model.x(i): torch.tensor(1.0) for i in range(num_total)
+        }
+
+        expected_mean = normal_normal_model.conjugate_posterior(total_observations).mean
+        expected_stddev = normal_normal_model.conjugate_posterior(
+            total_observations
+        ).stddev
+
+        for num_samples in range(1, num_total):
+            world = VariationalInfer(
+                queries_to_guides={
+                    normal_normal_model.mu(): log_scale_normal_model.q_mu(),
+                },
+                observations={
+                    normal_normal_model.x(i): torch.tensor(1.0)
+                    for i in range(num_samples)
+                },
+                optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
+            ).infer(num_steps=50, subsample_factor=1.0, num_samples=100)
+            mu_approx = world.get_guide_distribution(normal_normal_model.mu())
+            assert (mu_approx.mean - expected_mean).norm() > 0.05 or (
+                mu_approx.stddev - expected_stddev
+            ).norm() > 0.05

@@ -26,6 +26,7 @@ def monte_carlo_approximate_reparam(
     discrepancy_fn: DiscrepancyFn,
     params: Mapping[RVIdentifier, torch.Tensor],
     queries_to_guides: Mapping[RVIdentifier, RVIdentifier],
+    subsample_factor: float = 1.0,
     device: torch.device = _CPU_DEVICE,
 ) -> torch.Tensor:
     """The pathwise derivative / reparameterization trick
@@ -52,7 +53,14 @@ def monte_carlo_approximate_reparam(
         )
 
         # form log density ratio logu = logp - logq
-        logu = world.log_prob() - variational_world.log_prob(queries_to_guides.values())
+        # We want to avoid using world.latent_nodes/world.observations.
+        # The preceding World.initialize_world puts everything into observations, which results in latent_nodes being empty.
+        # That results in everything being scaled by the scaling factor (we don't want that)
+        logu = (
+            world.log_prob(queries_to_guides.keys())
+            + (1.0 / subsample_factor) * world.log_prob(observations.keys())
+            - variational_world.log_prob(queries_to_guides.values())
+        )
 
         loss += discrepancy_fn(logu)  # reparameterized estimator
     return loss / num_samples
@@ -64,6 +72,7 @@ def monte_carlo_approximate_sf(
     discrepancy_fn: DiscrepancyFn,
     params: Mapping[RVIdentifier, torch.Tensor],
     queries_to_guides: Mapping[RVIdentifier, RVIdentifier],
+    subsample_factor: float = 1,
     device: torch.device = _CPU_DEVICE,
 ) -> torch.Tensor:
     """The score function / log derivative trick surrogate loss
@@ -90,8 +99,15 @@ def monte_carlo_approximate_sf(
         )
 
         # form log density ratio logu = logp - logq
+        # We want to avoid using world.latent_nodes/world.observations.
+        # The preceding World.initialize_world puts everything into observations, which results in latent_nodes being empty.
+        # That results in everything being scaled by the scaling factor (we don't want that)
         logq = variational_world.log_prob(queries_to_guides.values())
-        logu = world.log_prob() - logq
+        logu = (
+            world.log_prob(queries_to_guides.keys())
+            + (1.0 / subsample_factor) * world.log_prob(observations.keys())
+            - logq
+        )
 
         # score function estimator surrogate loss
         loss += discrepancy_fn(logu).detach().clone() * logq + discrepancy_fn(logu)
