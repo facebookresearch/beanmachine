@@ -22,7 +22,9 @@ class SingleSiteMetropolisAdapatedLangevinAlgorithmConjugateTest(
 
     def test_gamma_gamma_conjugate_run(self):
         mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.05)
-        self.gamma_gamma_conjugate_run(mala, num_samples=500, num_adaptive_samples=500)
+        self.gamma_gamma_conjugate_run(
+            mala, num_samples=1000, num_adaptive_samples=1000
+        )
 
     def test_gamma_normal_conjugate_run(self):
         mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.05)
