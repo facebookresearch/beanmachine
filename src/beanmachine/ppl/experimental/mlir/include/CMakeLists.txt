@@ -1,0 +1,15 @@
+set(LLVM_TARGET_DEFINITIONS ShapeInferenceInterface.td)
+mlir_tablegen(ShapeInferenceOpInterfaces.h.inc -gen-op-interface-decls)
+mlir_tablegen(ShapeInferenceOpInterfaces.cpp.inc -gen-op-interface-defs)
+add_custom_target(shape_infer DEPENDS ShapeInferenceOpInterfaces.h.inc ShapeInferenceOpInterfaces.cpp.inc)
+
+set(LLVM_TARGET_DEFINITIONS ops.td)
+mlir_tablegen(ops.h.inc -gen-op-decls)
+mlir_tablegen(ops.cpp.inc -gen-op-defs)
+mlir_tablegen(dialect.h.inc -gen-dialect-decls)
+mlir_tablegen(dialect.cpp.inc -gen-dialect-defs)
+add_custom_target(demo_dialect DEPENDS ops.h.inc ops.cpp.inc dialect.h.inc dialect.cpp.inc)
+
+set(LLVM_TARGET_DEFINITIONS ToyCombine.td)
+mlir_tablegen(ToyCombine.inc -gen-rewriters)
+add_custom_target(toy_combine DEPENDS ToyCombine.inc)
