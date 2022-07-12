@@ -1,12 +1,12 @@
 import inspect
 import ast
-import typing
 
 from paic_mlir import MLIRBuilder
 
-from to_paic_ast import paic_ast_generator
-from utils import _unindent
-from typing import Callable, Dict
+from beanmachine.ppl.compiler.paic.mlir.test_paic_mlir.to_paic_ast import paic_ast_generator
+from beanmachine.ppl.compiler.paic.mlir.test_paic_mlir.utils import _unindent
+from typing import Callable
+from beanmachine.ppl.compiler.paic.mlir.test_paic_mlir.utils import _get_globals
 
 mb = MLIRBuilder()
 
@@ -20,10 +20,10 @@ def to_metal(callable:Callable):
         funcdef = module.body[0]
         # TODO: collect ASTs of query methods
         to_paic = paic_ast_generator()
-        python_function = to_paic.python_ast_to_paic_ast(funcdef)
+        globals = _get_globals(callable)
+        python_function = to_paic.python_ast_to_paic_ast(funcdef, globals)
         # TODO: pass the paic ast to the import function instead
         arg = float(args[0])
         result = mb.to_metal(python_function, arg)
-        print(result)
         return result
     return wrapper

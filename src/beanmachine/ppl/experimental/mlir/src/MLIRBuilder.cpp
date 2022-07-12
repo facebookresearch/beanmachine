@@ -17,6 +17,7 @@
 #include "mlir/Transforms/Passes.h"
 #include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVMPass.h"
 #include "mlir/Conversion/ArithmeticToLLVM/ArithmeticToLLVM.h"
+#include "mlir/Conversion/MathToLLVM/MathToLLVM.h"
 
 #include "mlir/IR/AsmState.h"
 #include "mlir/IR/Attributes.h"
@@ -187,6 +188,8 @@ namespace {
                 }
 
                 return builder.create<mlir::arith::MulFOp>(location, operands[0], operands[1]);
+            } else if (callee == "math.pow") {
+                return builder.create<mlir::math::PowFOp>(location, operands[0], operands[1]);
             }
 
             // Otherwise this is a call to a user-defined function. Calls to
@@ -195,20 +198,18 @@ namespace {
             // arguments: FuncOp callee, ValueRange operands = {}
             if (mlir::func::FuncOp functionOp = functionSymbolTable.lookup(callee)){
                 auto call = builder.create<mlir::func::CallOp>(location, functionOp, operands);
-                throw 0;
                 // TODO: discover correct abstraction for values
-             //   return call;
+                emitError(location, "User defined functions not supported yet");
+                return nullptr;
             } else {
-                emitError(location, "MLIR codegen encountered an error: toy.transpose "
-                                    "does not accept multiple arguments");
+                emitError(location, "Unreconized function :" + callee);
                 return nullptr;
             }
-
         }
 
         mlir::Value mlirGen(paic_mlir::ConstNode<float>* expr) {
-            auto type = getType(expr->getType());
-            return builder.create<mlir::arith::ConstantFloatOp>(loc(expr->loc()), llvm::APFloat(expr->getValue()), mlir::FloatType());
+            //auto type = getType(expr->getType());
+            return builder.create<mlir::arith::ConstantFloatOp>(loc(expr->loc()), llvm::APFloat(expr->getValue()), builder.getF32Type());
         }
 
         mlir::Value mlirGen(paic_mlir::Expression* expr) {
@@ -339,6 +340,7 @@ pybind11::float_ paic_mlir::MLIRBuilder::to_metal(std::shared_ptr<paic_mlir::Pyt
     // todo: add passes and run module
     mlir::PassManager pm(context);
     pm.addPass(mlir::createConvertFuncToLLVMPass());
+    pm.addPass(mlir::createConvertMathToLLVMPass());
     pm.addPass(mlir::arith::createConvertArithmeticToLLVMPass());
     auto result = pm.run(mlir_module);
 
