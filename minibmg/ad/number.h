@@ -15,7 +15,7 @@ namespace beanmachine::minibmg {
 // a Number.  A type T satisfies the concept Number<T> if it supports
 // all of the following operations.
 template <typename T>
-concept Number = requires(T a, T b) {
+concept Number = requires(T a, T b, T c, T d, int n) {
   // there should be a conversion from double to T.
   std::convertible_to<double, T>;
   // it should support the arithmetic oeprators.
@@ -29,7 +29,12 @@ concept Number = requires(T a, T b) {
   { a.exp() } -> std::convertible_to<T>;
   { a.log() } -> std::convertible_to<T>;
   { a.atan() } -> std::convertible_to<T>;
-  // There should be a conservative (meaning it can sometime return false when
+  { a.lgamma() } -> std::convertible_to<T>;
+  { a.polygamma(n) } -> std::convertible_to<T>;
+  // conditional for equality, less-than.
+  { a.if_equal(b, c, d) } -> std::convertible_to<T>;
+  { a.if_less(b, c, d) } -> std::convertible_to<T>;
+  // There should be a conservative (meaning it may return false even when
   // a number satisfies the test) way to sometimes know if a value is exactly
   // zero or one.
   { a.is_definitely_zero() } -> std::same_as<bool>;

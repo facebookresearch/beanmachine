@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <cmath>
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/ad/tests/test_utils.h"
@@ -108,27 +109,64 @@ TEST(num2_test, pow1) {
   Dual a{1.1, 2.2};
   Dual b(3.3, 4.4);
   Dual pow = a.pow(b);
-  EXPECT_CLOSE(1.3696066657894779, pow.primal.as_double());
-  EXPECT_CLOSE(9.6137688075519812, pow.derivative1.as_double());
+  double expected_primal = std::pow(a.as_double(), b.as_double());
+  // a^b = exp(b log a)
+  // d/dx a^b
+  // = d/dx exp(b log a)
+  // = exp(b log a) * d/dx (b log a)
+  // = pow(a, b) * (b d/dx (log a) + d/dx (b) log a)
+  // = pow(a, b) * (b a' / a + b' log a)
+  double expected_grad1 = expected_primal *
+      (b.as_double() * a.derivative1.as_double() / a.as_double() +
+       b.derivative1.as_double() * std::log(a.as_double()));
+  EXPECT_CLOSE(expected_primal, pow.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, pow.derivative1.as_double());
 }
 
 TEST(num2_test, exp) {
   Dual a{1.1, 2.2};
   Dual value = a.exp();
-  EXPECT_CLOSE(3.0041660239464334, value.primal.as_double());
-  EXPECT_CLOSE(6.6091652526821543, value.derivative1.as_double());
+  double expected_primal = std::exp(a.as_double());
+  double expected_grad1 = a.derivative1.as_double() * expected_primal;
+  EXPECT_CLOSE(expected_primal, value.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
 }
 
 TEST(num2_test, log) {
   Dual a{1.1, 2.3};
   Dual value = a.log();
-  EXPECT_CLOSE(0.095310179804324935, value.primal.as_double());
-  EXPECT_CLOSE(2.0909090909090904, value.derivative1.as_double());
+  double expected_primal = std::log(a.as_double());
+  double expected_grad1 = a.derivative1.as_double() / a.as_double();
+  EXPECT_CLOSE(expected_primal, value.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
 }
 
 TEST(num2_test, atan) {
   Dual a{1.1, 2.2};
   Dual value = a.atan();
-  EXPECT_CLOSE(0.83298126667443173, value.primal.as_double());
-  EXPECT_CLOSE(0.99547511312217207, value.derivative1.as_double());
+  double expected_primal = std::atan(a.as_double());
+  double expected_grad1 = a.derivative1.as_double() /
+      (1 + a.primal.as_double() * a.primal.as_double());
+  EXPECT_CLOSE(expected_primal, value.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+}
+
+TEST(num2_test, lgamma) {
+  Dual a{1.1, 2.2};
+  Dual value = a.lgamma();
+  double expected_primal = std::lgamma(a.as_double());
+  double expected_grad1 =
+      a.derivative1.as_double() * boost::math::polygamma(0, a.as_double());
+  EXPECT_CLOSE(expected_primal, value.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+}
+
+TEST(num2_test, polygamma) {
+  Dual a{1.1, 2.2};
+  Dual value = a.polygamma(2);
+  double expected_primal = boost::math::polygamma(2, a.as_double());
+  double expected_grad1 =
+      a.derivative1.as_double() * boost::math::polygamma(3, a.as_double());
+  EXPECT_CLOSE(expected_primal, value.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
 }

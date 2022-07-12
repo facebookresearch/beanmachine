@@ -69,6 +69,25 @@ enum class Operator {
   // Result: REAL
   ATAN,
 
+  // The lgamma function
+  // Result: REAL
+  LGAMMA,
+
+  // The polygamma(x, n) function.  polygamma(x, 0) is also known as digamma(x)
+  // Note the order of parameters.
+  // Result: REAL
+  POLYGAMMA,
+
+  // If the first argument is equal to the second, yields the third, else the
+  // fourth.
+  // Result: REAL
+  IF_EQUAL,
+
+  // If the first argument is less than the second, yields the third, else the
+  // fourth.
+  // Result: REAL
+  IF_LESS,
+
   // A normal distribution.
   // Parameters:
   // - mean (REAL)
@@ -114,6 +133,7 @@ enum class Operator {
 
 Operator operator_from_name(const std::string& name);
 std::string to_string(Operator op);
+uint arity(Operator op);
 
 enum class Type {
   // No type.  For example, the result of an observation or query node.

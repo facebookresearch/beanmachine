@@ -10,8 +10,7 @@
 #include "beanmachine/minibmg/minibmg.h"
 
 using namespace ::testing;
-
-namespace beanmachine::minibmg {
+using namespace beanmachine::minibmg;
 
 TEST(test_minibmg, basic_building) {
   Graph::Factory gf;
@@ -87,5 +86,3 @@ TEST(test_minibmg, type_to_string) {
   // with runtime checks enabled, the following would crash at the cast.
   // ASSERT_EQ(to_string((Type)10000), "NONE");
 }
-
-} // namespace beanmachine::minibmg

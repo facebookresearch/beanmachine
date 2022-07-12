@@ -23,6 +23,11 @@ std::unordered_map<std::string, Operator> string_to_operator;
 
 bool _c0 = [] {
   auto add = [](Operator op, const std::string& name) {
+    if (operator_names.contains(op)) {
+      throw std::logic_error(fmt::format(
+          "beanmachine::minibmg::operator_names duplicate operator name for {0}",
+          op));
+    }
     operator_names[op] = name;
     string_to_operator[name] = op;
   };
@@ -38,6 +43,10 @@ bool _c0 = [] {
   add(Operator::EXP, "EXP");
   add(Operator::LOG, "LOG");
   add(Operator::ATAN, "ATAN");
+  add(Operator::LGAMMA, "LGAMMA");
+  add(Operator::POLYGAMMA, "POLYGAMMA");
+  add(Operator::IF_EQUAL, "IF_EQUAL");
+  add(Operator::IF_LESS, "IF_LESS");
   add(Operator::DISTRIBUTION_NORMAL, "DISTRIBUTION_NORMAL");
   add(Operator::DISTRIBUTION_BETA, "DISTRIBUTION_BETA");
   add(Operator::DISTRIBUTION_BERNOULLI, "DISTRIBUTION_BERNOULLI");
@@ -48,7 +57,11 @@ bool _c0 = [] {
   // check that we have set the name for every operator.
   for (Operator op = Operator::NO_OPERATOR; op < Operator::LAST_OPERATOR;
        op = (Operator)((int)op + 1)) {
-    assert(operator_names.contains(op));
+    if (!operator_names.contains(op)) {
+      throw std::logic_error(fmt::format(
+          "beanmachine::minibmg::operator_names missing operator name for {0}",
+          op));
+    }
   }
 
   return true;
@@ -158,6 +171,10 @@ enum Type op_type(enum Operator op) {
     case Operator::EXP:
     case Operator::LOG:
     case Operator::ATAN:
+    case Operator::LGAMMA:
+    case Operator::POLYGAMMA:
+    case Operator::IF_EQUAL:
+    case Operator::IF_LESS:
     case Operator::SAMPLE:
       return Type::REAL;
     case Operator::DISTRIBUTION_NORMAL:
@@ -192,6 +209,12 @@ const std::vector<std::vector<enum Type>> make_expected_parents() {
   result[(uint)Operator::EXP] = {Type::REAL};
   result[(uint)Operator::LOG] = {Type::REAL};
   result[(uint)Operator::ATAN] = {Type::REAL};
+  result[(uint)Operator::LGAMMA] = {Type::REAL};
+  result[(uint)Operator::POLYGAMMA] = {Type::REAL, Type::REAL};
+  result[(uint)Operator::IF_EQUAL] = {
+      Type::REAL, Type::REAL, Type::REAL, Type::REAL};
+  result[(uint)Operator::IF_LESS] = {
+      Type::REAL, Type::REAL, Type::REAL, Type::REAL};
   result[(uint)Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
   result[(uint)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
   result[(uint)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
@@ -206,7 +229,17 @@ enum Type expected_result_type(enum Operator op) {
     case Operator::CONSTANT:
     case Operator::SAMPLE:
     case Operator::ADD:
+    case Operator::SUBTRACT:
     case Operator::MULTIPLY:
+    case Operator::DIVIDE:
+    case Operator::POW:
+    case Operator::EXP:
+    case Operator::LOG:
+    case Operator::ATAN:
+    case Operator::LGAMMA:
+    case Operator::POLYGAMMA:
+    case Operator::IF_EQUAL:
+    case Operator::IF_LESS:
       return Type::REAL;
 
     case Operator::DISTRIBUTION_NORMAL:
@@ -225,6 +258,10 @@ enum Type expected_result_type(enum Operator op) {
 
 const std::vector<std::vector<enum Type>> expected_parents =
     make_expected_parents();
+
+uint arity(Operator op) {
+  return expected_parents[(uint)op].size();
+}
 
 uint Graph::Factory::add_operator(enum Operator op, std::vector<uint> parents) {
   auto sequence = (uint)nodes.size();

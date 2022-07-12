@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <boost/math/special_functions/polygamma.hpp>
 #include <cmath>
 #include "beanmachine/minibmg/ad/number.h"
 
@@ -49,6 +50,25 @@ class Real {
   }
   inline Real atan() const {
     return std::atan(this->value);
+  }
+  inline Real lgamma() const {
+    return std::lgamma(this->value);
+  }
+  inline Real polygamma(const Real& other) const {
+    // Note the order of operands here.
+    return boost::math::polygamma(other.value, this->value);
+  }
+  inline Real if_equal(
+      const Real& comparand,
+      const Real& when_equal,
+      const Real& when_not_equal) const {
+    return (this->value == comparand.value) ? when_equal : when_not_equal;
+  }
+  inline Real if_less(
+      const Real& comparand,
+      const Real& when_less,
+      const Real& when_not_less) const {
+    return (this->value < comparand.value) ? when_less : when_not_less;
   }
   inline bool is_definitely_zero() const {
     return this->value == 0;
