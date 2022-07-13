@@ -316,7 +316,12 @@ class GrowPruneTreeProposer(TreeProposer):
             X: Covariate matrix / training data.
 
         """
-        num_growable_leaves_in_pruned_tree = tree.num_growable_leaf_nodes(X) - 1
+        num_growable_leaves_in_pruned_tree = (
+            tree.num_growable_leaf_nodes(X)
+            - mutation.old_node.left_child.is_growable(X=X)
+            - mutation.old_node.right_child.is_growable(X=X)
+            + mutation.new_node.is_growable(X=X)
+        )
 
         if num_growable_leaves_in_pruned_tree == 0:
             return -float("inf")  # impossible prune
@@ -324,7 +329,6 @@ class GrowPruneTreeProposer(TreeProposer):
         log_p_old_to_new_tree = math.log(self.prune_probability) - math.log(
             tree.num_prunable_split_nodes()
         )
-
         log_probability_selecting_leaf_to_grow = -math.log(
             num_growable_leaves_in_pruned_tree
         )
