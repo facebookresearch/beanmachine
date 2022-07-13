@@ -106,8 +106,8 @@ class BART:
         """Fit the training data and learn the parameters of the model.
 
         Args:
-            X: Training data / covariate matrix of shape (num_samples, input_dimensions).
-            y: Response vector of shape (num_samples, 1).
+            X: Training data / covariate matrix of shape (num_observations, input_dimensions).
+            y: Response vector of shape (num_observations, 1).
         """
         self.num_samples = num_samples
         self._load_data(X, y)
@@ -133,8 +133,8 @@ class BART:
 
 
         Args:
-            X: Training data / covariate matrix of shape (num_samples, input_dimensions).
-            y: Response vector of shape (num_samples, 1).
+            X: Training data / covariate matrix of shape (num_observations, input_dimensions).
+            y: Response vector of shape (num_observations, 1).
 
         """
         if not isinstance(X, torch.Tensor) or not isinstance(y, torch.Tensor):
@@ -177,7 +177,7 @@ class BART:
         Initialize the trees of the model.
 
         Args:
-            X: Training data / covariate matrix of shape (num_samples, input_dimensions).
+            X: Training data / covariate matrix of shape (num_observations, input_dimensions).
         """
         num_dims = X.shape[-1]
         num_points = X.shape[0]
@@ -235,7 +235,7 @@ class BART:
 
         Args:
             tree: Tree whos leaf is being updated.
-            partial_residual: Current residual of the model excluding this tree of shape (num_samples, 1).
+            partial_residual: Current residual of the model excluding this tree of shape (num_observations, 1).
 
         """
         if self.X is None:
@@ -258,7 +258,7 @@ class BART:
             [1] Andrew Gelman et al. "Bayesian Data Analysis", 3rd ed.
 
         Args:
-            partial_residual: Current residual of the model excluding this tree of shape (num_samples, 1).
+            partial_residual: Current residual of the model excluding this tree of shape (num_observations, 1).
 
         """
         self.sigma.sample(self.X, full_residual)
@@ -296,10 +296,10 @@ class BART:
         Perform a prediction using all the samples collected in the model.
 
         Args:
-            X: Covariate matrix to predict on of shape (num_samples, input_dimensions).
+            X: Covariate matrix to predict on of shape (num_observations, input_dimensions).
 
         Returns:
-            prediction: Prediction corresponding to averaf of all samples of shape (num_samples, 1).
+            prediction: Prediction corresponding to averaf of all samples of shape (num_observations, 1).
         """
 
         prediction = torch.mean(
@@ -370,8 +370,8 @@ class NoiseStandardDeviation:
             This sets the value of the `val` attribute to the drawn sample.
 
         Args:
-            X: Covariate matrix / training data shape (num_samples, input_dimensions).
-            residual: The current residual of the model shape (num_samples, 1).
+            X: Covariate matrix / training data shape (num_observations, input_dimensions).
+            residual: The current residual of the model shape (num_observations, 1).
         """
         self.val = self._get_sample(X, residual)
         return self.val
@@ -381,8 +381,8 @@ class NoiseStandardDeviation:
         Draw a sample from the posterior.
 
         Args:
-            X: Covariate matrix / training data of shape (num_samples, input_dimensions).
-            residual: The current residual of the model of shape (num_samples, 1).
+            X: Covariate matrix / training data of shape (num_observations, input_dimensions).
+            residual: The current residual of the model of shape (num_observations, 1).
 
         """
         posterior_concentration = self.prior_concentration + (len(X) / 2.0)
