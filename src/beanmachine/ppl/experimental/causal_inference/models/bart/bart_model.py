@@ -205,9 +205,11 @@ class BART:
             raise NotInitializedError("No training data")
 
         new_trees = [deepcopy(tree) for tree in self._all_trees]
+        all_tree_predictions = deepcopy(self.all_tree_predictions)
         for tree_id in range(len(new_trees)):
-            current_predictions = self._predict_step(trees=new_trees)
-            last_iter_tree_prediction = self.all_tree_predictions[:, tree_id]
+            # all_tree_predictions.shape -> (num_observations, num_trees, 1)
+            current_predictions = torch.sum(all_tree_predictions, dim=1)
+            last_iter_tree_prediction = all_tree_predictions[:, tree_id]
             partial_residual = self.y - current_predictions + last_iter_tree_prediction
             new_trees[tree_id] = self.tree_sampler.propose(
                 tree=new_trees[tree_id],
@@ -219,9 +221,8 @@ class BART:
                 leaf_mean_prior_scale=self.leaf_mean_prior_scale,
             )
             self._update_leaf_mean(new_trees[tree_id], partial_residual)
-            self.all_tree_predictions[:, tree_id] = self._all_trees[tree_id].predict(
-                self.X
-            )
+            all_tree_predictions[:, tree_id] = new_trees[tree_id].predict(self.X)
+        self.all_tree_predictions = all_tree_predictions
         self._update_sigma(self.y - self._predict_step())
         return new_trees, self.sigma.val
 
