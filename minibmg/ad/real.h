@@ -18,28 +18,31 @@ namespace beanmachine::minibmg {
  * a double that implements the Number concept.
  */
 class Real {
+ private:
+  double value;
+
  public:
-  const double value;
   inline double as_double() const {
     return value;
   }
-  /* implicit */ Real(double value) : value{value} {}
-  inline Real operator+(const Real& other) const {
+  /* implicit */ inline Real(double value) : value{value} {}
+  inline Real& operator=(const Real&) = default;
+  inline Real operator+(Real other) const {
     return this->value + other.value;
   }
-  inline Real operator-(const Real& other) const {
+  inline Real operator-(Real other) const {
     return this->value - other.value;
   }
   inline Real operator-() const {
     return -this->value;
   }
-  inline Real operator*(const Real& other) const {
+  inline Real operator*(Real other) const {
     return this->value * other.value;
   }
-  inline Real operator/(const Real& other) const {
+  inline Real operator/(Real other) const {
     return this->value / other.value;
   }
-  inline Real pow(const Real& other) const {
+  inline Real pow(Real other) const {
     return std::pow(this->value, other.value);
   }
   inline Real exp() const {
@@ -54,20 +57,16 @@ class Real {
   inline Real lgamma() const {
     return std::lgamma(this->value);
   }
-  inline Real polygamma(const Real& other) const {
+  inline Real polygamma(Real other) const {
     // Note the order of operands here.
     return boost::math::polygamma(other.value, this->value);
   }
-  inline Real if_equal(
-      const Real& comparand,
-      const Real& when_equal,
-      const Real& when_not_equal) const {
+  inline Real if_equal(Real comparand, Real when_equal, Real when_not_equal)
+      const {
     return (this->value == comparand.value) ? when_equal : when_not_equal;
   }
-  inline Real if_less(
-      const Real& comparand,
-      const Real& when_less,
-      const Real& when_not_less) const {
+  inline Real if_less(Real comparand, Real when_less, Real when_not_less)
+      const {
     return (this->value < comparand.value) ? when_less : when_not_less;
   }
   inline bool is_definitely_zero() const {
