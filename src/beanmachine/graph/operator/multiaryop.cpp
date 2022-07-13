@@ -262,15 +262,12 @@ LogProb::LogProb(const std::vector<graph::Node*>& in_nodes)
         "operator LOG_PROB requires a distribution for its first parent");
   }
   auto dist = (Distribution*)in_nodes[0];
-  auto value = in_nodes[1];
-  if (value->node_type == graph::NodeType::DISTRIBUTION) {
-    throw std::invalid_argument(
-        "operator LOG_PROB requires a value for its second parent");
-  }
-  if (dist->sample_type != value->value.type) {
+  auto input_value = in_nodes[1];
+  if (dist->sample_type != input_value->value.type) {
     throw std::invalid_argument(
         "operator LOG_PROB requires the value to be of the type produced by the distribution");
   }
+  value = graph::NodeValue(graph::AtomicType::REAL);
 }
 
 void LogProb::eval(std::mt19937&) {

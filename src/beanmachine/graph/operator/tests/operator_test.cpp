@@ -1827,6 +1827,7 @@ TEST(testoperator, log_prob) {
   // test at 2
   auto log_prob2 = g.add_operator(
       OperatorType::LOG_PROB, {distribution, g.add_constant(2.0)});
+  EXPECT_EQ(g.get_node(log_prob2)->value.type, graph::AtomicType::REAL);
   g.get_node(log_prob2)->eval(gen);
   // log[PDF[NormalDistribution[2, 3], 2]] ~ -2.01755082187
   EXPECT_NEAR(g.get_node(log_prob2)->value._double, -2.01755082187, epsilon);
