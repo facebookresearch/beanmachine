@@ -125,6 +125,7 @@ _broadcast_the_inputs: Set[type] = {
     bn.Log10Node,
     bn.Log1pNode,
     bn.Log2Node,
+    bn.LogProbNode,
     bn.LogSumExpNode,
     bn.LogAddExpNode,
     bn.Log1mexpNode,

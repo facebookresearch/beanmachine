@@ -74,6 +74,7 @@ _operator_types = {
     bn.IfThenElseNode: OperatorType.IF_THEN_ELSE,
     bn.Log1mexpNode: OperatorType.LOG1MEXP,
     bn.LogNode: OperatorType.LOG,
+    bn.LogProbNode: OperatorType.LOG_PROB,
     bn.LogisticNode: OperatorType.LOGISTIC,
     bn.LogSumExpNode: OperatorType.LOGSUMEXP,
     bn.LogSumExpVectorNode: OperatorType.LOGSUMEXP_VECTOR,
