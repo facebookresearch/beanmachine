@@ -70,6 +70,7 @@ class VariationalInfer:
         step_callback: Optional[
             Callable[[torch.Tensor, VariationalInfer], None]
         ] = None,
+        subsample_factor: float = 1,
     ) -> VariationalWorld:
         """
         Perform variatonal inference.
@@ -80,13 +81,17 @@ class VariationalInfer:
             discrepancy_fn: discrepancy function f, use ``kl_reverse`` to minimize negative ELBO
             mc_approx: Monte-Carlo gradient estimator to use
             step_callback: callback function invoked each optimizer step
+            subsample_factor: subsampling factor used for subsampling, helps scale the observations to avoid overshrinking towards the prior
 
         Returns:
             VariationalWorld: A world with variational guide distributions
             initialized with optimized parameters
         """
+        assert subsample_factor > 0 and subsample_factor <= 1
         for _ in tqdm(range(num_steps)):
-            loss, _ = self.step(num_samples, discrepancy_fn, mc_approx)
+            loss, _ = self.step(
+                num_samples, discrepancy_fn, mc_approx, subsample_factor
+            )
             if step_callback:
                 step_callback(loss, self)
 
@@ -103,6 +108,7 @@ class VariationalInfer:
         num_samples: int = 1,
         discrepancy_fn=kl_reverse,
         mc_approx=monte_carlo_approximate_reparam,  # TODO: support both reparam and SF in same guide
+        subsample_factor: float = 1,
     ) -> Tuple[torch.Tensor, VariationalInfer]:
         """
         Perform one step of variatonal inference.
@@ -111,6 +117,7 @@ class VariationalInfer:
             num_samples: number of samples per Monte-Carlo gradient estimate of E[f(logp - logq)]
             discrepancy_fn: discrepancy function f, use ``kl_reverse`` to minimize negative ELBO
             mc_approx: Monte-Carlo gradient estimator to use
+            subsample_factor: subsampling factor used for subsampling, helps scale the observations to avoid overshrinking towards the prior
 
         Returns:
             Tuple[torch.Tensor, VariationalInfer]: the loss value (before the
@@ -123,6 +130,7 @@ class VariationalInfer:
             discrepancy_fn,
             self.params,
             self.queries_to_guides,
+            subsample_factor=subsample_factor,
         )
         if not torch.isnan(loss) and not torch.isinf(loss):
             loss.backward()
