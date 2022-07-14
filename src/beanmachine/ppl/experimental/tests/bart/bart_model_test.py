@@ -58,3 +58,19 @@ def test_prediction_with_intervals(X, y, bart):
     assert torch.all(torch.min(pred_samples, dim=1)[0] <= lower_bounds)
     assert torch.all(torch.median(pred_samples, axis=1)[0] <= upper_bounds)
     assert torch.all(torch.median(pred_samples, axis=1)[0] >= lower_bounds)
+
+
+@pytest.fixture
+def X_test():
+    return torch.Tensor([[3.1, 2.5]])
+
+
+@pytest.fixture
+def y_test(X_test):
+    return X_test[:, 0] + X_test[:, 1]
+
+
+def test_predict(X_test, y_test, bart):
+    y_pred = bart.predict(X_test)
+    assert len(X_test) == len(y_pred)
+    assert len(y_test) == len(y_pred)

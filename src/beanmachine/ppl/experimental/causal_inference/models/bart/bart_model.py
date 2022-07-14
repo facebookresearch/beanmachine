@@ -288,7 +288,7 @@ class BART:
 
         prediction = torch.zeros((len(X), 1), dtype=torch.float)
         for single_tree in trees:
-            prediction += single_tree.predict(self.X)
+            prediction += single_tree.predict(X)
         return prediction
 
     def predict(self, X: torch.Tensor) -> torch.Tensor:
