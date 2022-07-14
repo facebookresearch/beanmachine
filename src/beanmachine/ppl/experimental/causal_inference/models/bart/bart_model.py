@@ -299,13 +299,64 @@ class BART:
             X: Covariate matrix to predict on of shape (num_observations, input_dimensions).
 
         Returns:
-            prediction: Prediction corresponding to averaf of all samples of shape (num_observations, 1).
+            prediction: Prediction corresponding to average of all samples of shape (num_observations, 1).
         """
 
         prediction = torch.mean(
             self.get_posterior_predictive_samples(X), dim=-1, dtype=torch.float
         )
         return prediction.reshape(-1, 1)
+
+    def predict_with_intervals(
+        self, X: torch.Tensor, coverage: float = 0.95
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Returns the prediction along with lower and upper bounds for the interval defined by the given coverage.
+
+        Note:
+            Where possible, the interval is centered around the median of the predictive posterior samples.
+
+        Args:
+            X: Covariate matrix to predict on of shape (num_samples, input_dimensions).
+            coverage: Interval coverage required.
+
+        Returns:
+            prediction: Prediction corresponding to average of all samples of shape (num_samples, 1).
+            lower_bound: Lower bound of the interval defined by the coverage.
+            upper_bound: Upper bound of the interval defined by the coverage.
+
+        """
+        interval_len = self._get_interval_len(coverage=coverage)
+        if interval_len >= self.num_samples:
+            raise ValueError("Not enough samples for desired coverage")
+        prediction_samples = self.get_posterior_predictive_samples(X)
+        sorted_prediction_samples, _ = torch.sort(prediction_samples, dim=-1)
+        median_dim = self.num_samples // 2
+        lower_bound = max(median_dim - (interval_len // 2), 0)
+        upper_bound = lower_bound + interval_len
+        if upper_bound >= self.num_samples:
+            interval_shift = upper_bound - self.num_samples + 1
+            lower_bound -= interval_shift
+            upper_bound -= interval_shift
+        return (
+            prediction_samples,
+            sorted_prediction_samples[:, lower_bound],
+            sorted_prediction_samples[:, upper_bound],
+        )
+
+    def _get_interval_len(self, coverage: float) -> int:
+        """
+        Get the length of the interval with desired coverage using the formula :
+            coverage >= interval_length / (num_samples)
+
+        Args:
+            coverage: Interval coverage required.
+
+        Returns:
+            Coverage length.
+
+        """
+        return math.ceil(coverage * (self.num_samples + 1))
 
     def get_posterior_predictive_samples(self, X: torch.Tensor) -> torch.Tensor:
         """
