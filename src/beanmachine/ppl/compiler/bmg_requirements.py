@@ -91,6 +91,7 @@ class EdgeRequirements:
             bn.ExpNode: self._requirements_exp_neg,
             bn.IfThenElseNode: self._requirements_if,
             bn.LogNode: self._requirements_log,
+            bn.LogProbNode: self._requirements_log_prob,
             bn.LogSumExpNode: self._requirements_logsumexp,
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
             # TODO: bn.MatrixMultiplyNode: self._requirements_matrix_multiply,
@@ -358,6 +359,12 @@ class EdgeRequirements:
         if ot == bt.Probability:
             return [bt.Probability]
         return [bt.PositiveReal]
+
+    def _requirements_log_prob(self, node: bn.LogProbNode) -> List[bt.Requirement]:
+        # TODO: Left parent must be a distribution.
+        # Right parent must be the same type as a sample
+        # from the left.
+        return [bt.any_requirement, self.typer[node.left]]
 
     def _requirements_logsumexp(self, node: bn.LogSumExpNode) -> List[bt.Requirement]:
         s = bt.supremum(*[self.typer[i] for i in node.inputs])

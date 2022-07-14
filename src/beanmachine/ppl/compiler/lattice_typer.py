@@ -92,6 +92,9 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     bn.ExpProductFactorNode: bt.Real,
     # Operators
     bn.LogisticNode: bt.Probability,
+    # Note, log_prob returns the log of a positive real, not the
+    # log of a probability, so it is real, not negative real.
+    bn.LogProbNode: bt.Real,
     bn.LogSumExpNode: bt.Real,
     bn.LogSumExpVectorNode: bt.Real,
     bn.Log1mexpNode: bt.NegativeReal,

@@ -906,6 +906,16 @@ class LogAddExpNode(BinaryOperatorNode):
         return "LogAddExp({self.left}, {self.right})"
 
 
+class LogProbNode(BinaryOperatorNode):
+    """This class represents the log_prob operator on a distribution"""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return "LogProb({self.left}, {self.right})"
+
+
 class SwitchNode(BMGNode):
 
     """This class represents a point in a program where there are

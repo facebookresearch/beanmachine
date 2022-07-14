@@ -66,6 +66,7 @@ PYBIND11_MODULE(graph, module) {
       .value("ADD", OperatorType::ADD)
       .value("PHI", OperatorType::PHI)
       .value("LOGISTIC", OperatorType::LOGISTIC)
+      .value("LOG_PROB", OperatorType::LOG_PROB)
       .value("LOG1PEXP", OperatorType::LOG1PEXP)
       .value("LOG1MEXP", OperatorType::LOG1MEXP)
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)

@@ -648,7 +648,7 @@ class BMGRuntime:
             # the lifted program, that graph node is almost certainly a tensor
             # in the original program; assume that it is, and see if this is
             # a function on a tensor that we know how to accumulate into the graph.
-            return self._special_function_caller.bind_tensor_instance_function(
+            return self._special_function_caller.bind_torch_instance_function(
                 operand, name
             )
 
