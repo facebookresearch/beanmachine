@@ -339,7 +339,7 @@ class BART:
             lower_bound -= interval_shift
             upper_bound -= interval_shift
         return (
-            prediction_samples,
+            torch.mean(prediction_samples, dim=-1, dtype=torch.float).reshape(-1, 1),
             sorted_prediction_samples[:, lower_bound],
             sorted_prediction_samples[:, upper_bound],
         )

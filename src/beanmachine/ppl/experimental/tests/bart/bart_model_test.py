@@ -49,7 +49,7 @@ def test_prediction_with_intervals(X, y, bart):
     with pytest.raises(ValueError):
         _ = bart.predict_with_intervals(X, coverage=coverage)
     low_coverage = 0.2
-    _, lower_bounds, upper_bounds = bart.predict_with_intervals(
+    y_pred, lower_bounds, upper_bounds = bart.predict_with_intervals(
         X, coverage=low_coverage
     )
     pred_samples = bart.get_posterior_predictive_samples(X)
@@ -58,6 +58,7 @@ def test_prediction_with_intervals(X, y, bart):
     assert torch.all(torch.min(pred_samples, dim=1)[0] <= lower_bounds)
     assert torch.all(torch.median(pred_samples, axis=1)[0] <= upper_bounds)
     assert torch.all(torch.median(pred_samples, axis=1)[0] >= lower_bounds)
+    assert torch.all(y_pred == bart.predict(X))
 
 
 @pytest.fixture
