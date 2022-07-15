@@ -65,8 +65,8 @@ class BART:
 
         self.num_trees = num_trees
         self.num_samples = None
-        self._all_trees = []
         self.all_tree_predictions = None
+        self._all_trees = None
         self.k = k
         self.leaf_mean = LeafMean(
             prior_loc=0.0, prior_scale=0.5 / (self.k * math.sqrt(self.num_trees))
@@ -179,6 +179,7 @@ class BART:
         Args:
             X: Training data / covariate matrix of shape (num_observations, input_dimensions).
         """
+        self._all_trees = []
         num_dims = X.shape[-1]
         num_points = X.shape[0]
         for _ in range(self.num_trees):
