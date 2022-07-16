@@ -197,8 +197,7 @@ class CMakeBuild(build_py):
             paic2_cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
         if cxx_compiler:
             paic2_cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
-        subprocess.check_call(["cmake", paic2_src] +
-                              paic2_cmake_args, cwd=paic2_build_dir)
+        subprocess.check_call(["cmake", paic2_src] + paic2_cmake_args, cwd=paic2_build_dir)
         subprocess.check_call(["cmake",
                                "--build", "."],
                               cwd=paic2_build_dir)
