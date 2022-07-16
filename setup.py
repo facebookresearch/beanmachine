@@ -2,9 +2,6 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
-import distutils.command.build_py
-import distutils.extension
 import subprocess
 import os
 import platform
@@ -12,13 +9,11 @@ import re
 import sys
 from glob import glob
 import shutil
-from typing import Union, Any
 
 from pybind11.setup_helpers import build_ext, Pybind11Extension
 from setuptools import find_packages, setup, Extension
 from setuptools.command.build_py import build_py
 from distutils.command.build import build as _build
-
 
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
@@ -58,28 +53,27 @@ TUTORIALS_REQUIRES = [
     "torchvision",
 ]
 DEV_REQUIRES = (
-    TEST_REQUIRES
-    + TUTORIALS_REQUIRES
-    + [
-        "flake8==4.0.1",
-        "flake8-bugbear",
-        "libcst==0.4.1",
-        "nbval",
-        "sphinx==4.2.0",
-        "sphinx-autodoc-typehints",
-        "sphinx_rtd_theme",
-        "toml>=0.10.2",
-        # `black` is included in `INSTALL_REQUIRES` above.
-        "ufmt==1.3.2",
-        "usort==1.0.2",
-    ]
+        TEST_REQUIRES
+        + TUTORIALS_REQUIRES
+        + [
+            "flake8==4.0.1",
+            "flake8-bugbear",
+            "libcst==0.4.1",
+            "nbval",
+            "sphinx==4.2.0",
+            "sphinx-autodoc-typehints",
+            "sphinx_rtd_theme",
+            "toml>=0.10.2",
+            # `black` is included in `INSTALL_REQUIRES` above.
+            "ufmt==1.3.2",
+            "usort==1.0.2",
+        ]
 )
 
 if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "/std:c++20"]
 else:
     CPP_COMPILE_ARGS = ["-std=c++2a", "-Werror"]
-
 
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
@@ -93,7 +87,6 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
         required_major=REQUIRED_MAJOR,
     )
     sys.exit(error)
-
 
 # get version string from module
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -150,13 +143,13 @@ class NoopBuildExtension(build_ext):
 
 class CMakeExtension(Extension):
 
-  def __init__(self, name, sourcedir=""):
-    Extension.__init__(self, name, sources=[])
-    self.sourcedir = os.path.abspath(sourcedir)
+    def __init__(self, name, sourcedir=""):
+        Extension.__init__(self, name, sources=[])
+        self.sourcedir = os.path.abspath(sourcedir)
 
 
 class CMakeBuild(build_py):
-    def build_llvm(self, cmake_build_dir:str):
+    def build_llvm(self, cmake_build_dir: str):
         if not os.path.isdir(cmake_build_dir):
             c_compiler = os.getenv("C_COMPILER")
             cxx_compiler = os.getenv("CXX_COMPILER")
@@ -165,11 +158,11 @@ class CMakeBuild(build_py):
             src_dir = os.path.abspath(os.path.dirname(__file__))
             llvm_dir = os.path.join(src_dir, "externals", "llvm-project", "llvm")
             cmake_args = [
-                f"-DCMAKE_BUILD_TYPE=Release",
-                f"-DLLVM_TARGETS_TO_BUILD=Native",
-                f"-DLLVM_ENABLE_PROJECTS=mlir;llvm",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DLLVM_TARGETS_TO_BUILD=Native",
+                "-DLLVM_ENABLE_PROJECTS=mlir;llvm",
                 f"-B {cmake_build_dir}",
-                f"-G Ninja"
+                "-G Ninja"
             ]
             if platform == "darwin":
                 cpp_include_path = os.getenv("CPLUS_INCLUDE_PATH")
@@ -184,26 +177,21 @@ class CMakeBuild(build_py):
             if cxx_compiler:
                 cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
 
-
-            subprocess.check_call(["cmake", llvm_dir] +
-                                  cmake_args, cwd=cmake_build_dir)
-            subprocess.check_call(["cmake",
-                                   "--build",  ".",
-                                   "--target", "check-mlir"],
-                                  cwd=cmake_build_dir)
+            subprocess.check_call(["cmake", llvm_dir] + cmake_args, cwd=cmake_build_dir)
+            subprocess.check_call(["cmake", "--build", ".", "--target", "check-mlir"], cwd=cmake_build_dir)
         else:
             print("skipping LLVM build")
 
-    def build_paic2(self, paic2_src:str, paic2_build_dir:str, cmake_module_path:str):
+    def build_paic2(self, paic2_src: str, paic2_build_dir: str, cmake_module_path: str):
         c_compiler = os.getenv("C_COMPILER")
         cxx_compiler = os.getenv("CXX_COMPILER")
         os.makedirs(paic2_build_dir, exist_ok=True)
         paic2_cmake_args = [
-            f"-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_BUILD_TYPE=Release",
             f"-DCMAKE_MODULE_PATH={cmake_module_path}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-B {paic2_build_dir}",
-            f"-G Ninja"
+            "-G Ninja"
         ]
         if c_compiler:
             paic2_cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
@@ -218,7 +206,6 @@ class CMakeBuild(build_py):
     def run(self):
         src_dir = os.path.abspath(os.path.dirname(__file__))
         print("starting cmake build...")
-        destination = os.path.join(src_dir, "src")
 
         # build llvm
         cmake_build_dir = os.path.join(src_dir, "build")
