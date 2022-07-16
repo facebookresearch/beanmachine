@@ -26,12 +26,6 @@ include(AddMLIRPython)
 include(HandleLLVMOptions)
 include(MLIRDetectPythonEnv)
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-message(STATUS "Found python include dirs: ${Python3_INCLUDE_DIRS}")
-message(STATUS "Found python libraries: ${Python3_LIBRARIES}")
-mlir_configure_python_dev_packages()
-mlir_detect_pybind11_install()
-
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 include_directories(${pybind11_INCLUDE_DIRS})

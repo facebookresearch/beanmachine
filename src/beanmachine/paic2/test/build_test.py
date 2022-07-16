@@ -2,6 +2,7 @@ import paic2
 import inspect
 import ast
 import typing
+import unittest
 
 
 def foo():
@@ -17,6 +18,11 @@ def compile_to_mlir(py_func: typing.Callable):
     location = paic2.Location(py_func_ast.lineno, py_func_ast.col_offset)
     function = paic2.PythonFunction(location, str(py_func_ast.name))
     mb.print_func_name(function)
+
+
+class BuildTest(unittest.TestCase):
+    def test_paic2_is_imported(self) -> None:
+        compile_to_mlir(foo)
 
 
 if __name__ == "__main__":
