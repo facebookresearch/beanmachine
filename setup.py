@@ -201,7 +201,6 @@ class CMakeBuild(build_py):
         paic2_cmake_args = [
             f"-DCMAKE_BUILD_TYPE=Release",
             f"-DCMAKE_MODULE_PATH={cmake_module_path}",
-            f"-DPython3_EXECUTABLE={sys.executable}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-B {paic2_build_dir}",
             f"-G Ninja"
