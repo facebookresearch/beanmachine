@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.22)
 project(PAIC2 LANGUAGES CXX C)
 
 set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
-set(PYTHON_EXECUTABLE /usr/local/Caskroom/miniconda/base/envs/bean-machine-9/bin/python)
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard to conform to")
 
 find_package(MLIR REQUIRED CONFIG)
