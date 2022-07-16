@@ -156,16 +156,14 @@ class CMakeExtension(Extension):
 
 
 class CMakeBuild(build_py):
-    def __init__(self):
-        self.src_dir = os.path.abspath(os.path.dirname(__file__))
-        self.c_compiler = os.getenv("C_COMPILER")
-        self.cxx_compiler = os.getenv("CXX_COMPILER")
-
     def build_llvm(self, cmake_build_dir:str):
         if not os.path.isdir(cmake_build_dir):
+            c_compiler = os.getenv("C_COMPILER")
+            cxx_compiler = os.getenv("CXX_COMPILER")
             print("building LLVM...")
             os.makedirs(cmake_build_dir, exist_ok=True)
-            llvm_dir = os.path.join(self.src_dir, "externals", "llvm-project", "llvm")
+            src_dir = os.path.abspath(os.path.dirname(__file__))
+            llvm_dir = os.path.join(src_dir, "externals", "llvm-project", "llvm")
             cmake_args = [
                 f"-DCMAKE_BUILD_TYPE=Release",
                 f"-DLLVM_TARGETS_TO_BUILD=Native",
@@ -181,10 +179,10 @@ class CMakeBuild(build_py):
                                               "'/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/bin/clang' is a valid path to a c compiler"
                                               " and `/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/include/c++/v1:/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include`"
                                               " is a valid path for CPLUS_INCLUDE_PATH")
-            if self.c_compiler:
-                cmake_args.append(f"-DCMAKE_C_COMPILER={self.c_compiler}")
-            if self.cxx_compiler:
-                cmake_args.append(f"-DCMAKE_CXX_COMPILER={self.cxx_compiler}")
+            if c_compiler:
+                cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
+            if cxx_compiler:
+                cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
 
 
             subprocess.check_call(["cmake", llvm_dir] +
@@ -197,18 +195,21 @@ class CMakeBuild(build_py):
             print("skipping LLVM build")
 
     def build_paic2(self, paic2_src:str, paic2_build_dir:str, cmake_module_path:str):
+        c_compiler = os.getenv("C_COMPILER")
+        cxx_compiler = os.getenv("CXX_COMPILER")
         os.makedirs(paic2_build_dir, exist_ok=True)
         paic2_cmake_args = [
             f"-DCMAKE_BUILD_TYPE=Release",
             f"-DCMAKE_MODULE_PATH={cmake_module_path}",
             f"-DPython3_EXECUTABLE={sys.executable}",
+            f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-B {paic2_build_dir}",
             f"-G Ninja"
         ]
-        if self.c_compiler:
-            paic2_cmake_args.append(f"-DCMAKE_C_COMPILER={self.c_compiler}")
-        if self.cxx_compiler:
-            paic2_cmake_args.append(f"-DCMAKE_CXX_COMPILER={self.cxx_compiler}")
+        if c_compiler:
+            paic2_cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
+        if cxx_compiler:
+            paic2_cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
         subprocess.check_call(["cmake", paic2_src] +
                               paic2_cmake_args, cwd=paic2_build_dir)
         subprocess.check_call(["cmake",
@@ -216,18 +217,17 @@ class CMakeBuild(build_py):
                               cwd=paic2_build_dir)
 
     def run(self):
-        # if the MLIR and LLVM DIRs are not found, then build MLIR
-        target_dir = self.build_lib
+        src_dir = os.path.abspath(os.path.dirname(__file__))
         print("starting cmake build...")
-        destination = os.path.join(self.src_dir, "src")
+        destination = os.path.join(src_dir, "src")
 
         # build llvm
-        cmake_build_dir = os.path.join(self.src_dir, "build")
+        cmake_build_dir = os.path.join(src_dir, "build")
         self.build_llvm(cmake_build_dir)
 
         # build PAIC2
-        paic2_dir = os.path.join(self.src_dir, "src", "beanmachine", "paic2")
-        paic2_build_dir = os.path.join(self.paic2_dir, "build")
+        paic2_dir = os.path.join(src_dir, "src", "beanmachine", "paic2")
+        paic2_build_dir = os.path.join(paic2_dir, "build")
         self.build_paic2(paic2_dir, paic2_build_dir, f"{cmake_build_dir}")
 
         # copy paic2 modules into src
