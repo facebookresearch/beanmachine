@@ -230,12 +230,13 @@ class CMakeBuild(build_py):
         self.build_paic2(paic2_dir, paic2_build_dir, f"{cmake_build_dir}")
 
         # copy paic2 modules into src
+        target_dir = self.build_lib
         regex = re.compile('(.*so$)')
         for root, dirs, files in os.walk(paic2_build_dir):
             for file in files:
                 print(file.__str__())
                 if regex.match(file):
-                    dest = os.path.join(destination, os.path.basename(file))
+                    dest = os.path.join(target_dir, os.path.basename(file))
                     print("copying " + file.__str__() + " into " + dest.__str__())
                     full_path = os.path.join(paic2_build_dir, file)
                     shutil.copyfile(full_path, dest)
