@@ -54,14 +54,14 @@ jobs:
       with:
         key: ${{ github.job }}-${{ matrix.os }}-${{ steps.get-submodule-hash.outputs.hash }}
 
-    - name: Build and Test llvm with cmake
-      uses: lukka/run-cmake@v3
-      with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-        cmakeListsTxtPath: '${{ github.workspace }}/externals/llvm-project/llvm/CMakeLists.txt'
-        cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_PROJECTS=mlir;llvm -G Ninja  -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache'
-        buildWithCMake: true
-        buildDirectory: '${{ github.workspace }}/build'
+    - name: build llvm
+      run: |
+        cd $GITHUB_WORKSPACE
+        mkdir build
+        cd build
+        cmake $GITHUB_WORKSPACE/externals/llvm-project/llvm -GNinja \
+          -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_PROJECTS=mlir;llvm -G Ninja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LINKER=lld
+        ninja check-mlir
 
     - name: Build Paic2
       uses: lukka/run-cmake@v3
