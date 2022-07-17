@@ -69,17 +69,14 @@ jobs:
         cmake $GITHUB_WORKSPACE/externals/llvm-project/llvm -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_PROJECTS="mlir;llvm" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build . --target check-mlir
 
-    - name: Build Paic2
-      uses: lukka/run-cmake@v3
-      with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-        cmakeListsTxtPath: '${{ github.workspace }}/src/beanmachine/paic2/CMakeLists.txt'
-        cmakeAppendedArgs: '-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -S ${{ github.workspace }}/src/beanmachine/paic2 -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=${{ github.workspace }}/build -DPYTHON_EXECUTABLE=$(which python)'
-        buildWithCMake: true
-        buildDirectory: '${{ github.workspace }}/src/beanmachine/paic2/build'
-
-    - name: Copy paic2 to build directory
-      run: cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
+    - name: build paic2
+      run: |
+        cd $GITHUB_WORKSPACE/src/beanmachine/paic2
+        mkdir build
+        cd build
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python)
+        cmake --build . 
+        cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
 
     - name: Install Bean Machine in editable mode
       run: pip install -v -e .[dev]
