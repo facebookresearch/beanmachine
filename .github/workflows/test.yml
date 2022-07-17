@@ -1,4 +1,4 @@
-name: Tests
+name: Tests2
 
 on:
   push:
@@ -26,6 +26,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        submodules: 'true'
 
     - name: Set up Miniconda with Python ${{ matrix.python-version }}
       uses: conda-incubator/setup-miniconda@v2
@@ -43,6 +45,35 @@ jobs:
     - name: Install CPU PyTorch (only for Linux)
       if: matrix.os == 'ubuntu-latest'
       run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+
+    - name: Install Ninja
+      uses: llvm/actions/install-ninja@55d844821959226fab4911f96f37071c1d4c3268
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ github.job }}-${{ matrix.os }}-${{ steps.get-submodule-hash.outputs.hash }}
+
+    - name: Build and Test llvm with cmake
+      uses: lukka/run-cmake@v3
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/externals/llvm-project/llvm/CMakeLists.txt'
+        cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_PROJECTS=mlir;llvm -G Ninja  -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache'
+        buildWithCMake: true
+        buildDirectory: '${{ github.workspace }}/build'
+
+    - name: Build Paic2
+      uses: lukka/run-cmake@v3
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/src/beanmachine/paic2/CMakeLists.txt'
+        cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=${{ github.workspace }}/build -DPYTHON_EXECUTABLE=$(which python)'
+        buildWithCMake: true
+        buildDirectory: '${{ github.workspace }}/src/beanmachine/paic2/build'
+
+    - name: Copy paic2 to build directory
+      run: cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
 
     - name: Install Bean Machine in editable mode
       run: pip install -v -e .[dev]
