@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        os: ["ubuntu-latest"]
+        python-version: ['3.9']
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
@@ -66,8 +66,7 @@ jobs:
         cd $GITHUB_WORKSPACE
         mkdir build
         cd build
-        cmake $GITHUB_WORKSPACE/externals/llvm-project/llvm -GNinja \
-          -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_PROJECTS=mlir;llvm -G Ninja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LINKER=lld
+        cmake $GITHUB_WORKSPACE/externals/llvm-project/llvm -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_PROJECTS="mlir;llvm" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build . --target check-mlir
 
     - name: Build Paic2
