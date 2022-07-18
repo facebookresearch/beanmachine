@@ -53,21 +53,21 @@ TUTORIALS_REQUIRES = [
     "torchvision",
 ]
 DEV_REQUIRES = (
-        TEST_REQUIRES
-        + TUTORIALS_REQUIRES
-        + [
-            "flake8==4.0.1",
-            "flake8-bugbear",
-            "libcst==0.4.1",
-            "nbval",
-            "sphinx==4.2.0",
-            "sphinx-autodoc-typehints",
-            "sphinx_rtd_theme",
-            "toml>=0.10.2",
-            # `black` is included in `INSTALL_REQUIRES` above.
-            "ufmt==1.3.2",
-            "usort==1.0.2",
-        ]
+    TEST_REQUIRES
+    + TUTORIALS_REQUIRES
+    + [
+        "flake8==4.0.1",
+        "flake8-bugbear",
+        "libcst==0.4.1",
+        "nbval",
+        "sphinx==4.2.0",
+        "sphinx-autodoc-typehints",
+        "sphinx_rtd_theme",
+        "toml>=0.10.2",
+        # `black` is included in `INSTALL_REQUIRES` above.
+        "ufmt==1.3.2",
+        "usort==1.0.2",
+    ]
 )
 
 if platform.system() == "Windows":
@@ -128,7 +128,6 @@ elif sys.platform.startswith("darwin"):
 
 # From torch.mlir: "Build phase discovery is unreliable. Just tell it what phases to run."
 class CustomBuild(_build):
-
     def run(self):
         self.run_command("build_py")
         self.run_command("build_ext")
@@ -136,13 +135,11 @@ class CustomBuild(_build):
 
 
 class NoopBuildExtension(build_ext):
-
     def build_extension(self, ext):
         pass
 
 
 class CMakeExtension(Extension):
-
     def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
@@ -162,23 +159,27 @@ class CMakeBuild(build_py):
                 "-DLLVM_TARGETS_TO_BUILD=Native",
                 "-DLLVM_ENABLE_PROJECTS=mlir;llvm",
                 f"-B {cmake_build_dir}",
-                "-G Ninja"
+                "-G Ninja",
             ]
             if platform == "darwin":
                 cpp_include_path = os.getenv("CPLUS_INCLUDE_PATH")
                 if not self.c_compiler or not self.cxx_compiler or not cpp_include_path:
-                    raise NotImplementedError("If you are running on a mac, please set the environment variables:"
-                                              " C_COMPILER, CXX_COMPILER, CPLUS_INCLUDE_PATH. For example,"
-                                              "'/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/bin/clang' is a valid path to a c compiler"
-                                              " and `/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/include/c++/v1:/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include`"
-                                              " is a valid path for CPLUS_INCLUDE_PATH")
+                    raise NotImplementedError(
+                        "If you are running on a mac, please set the environment variables:"
+                        " C_COMPILER, CXX_COMPILER, CPLUS_INCLUDE_PATH. For example,"
+                        "'/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/bin/clang' is a valid path to a c compiler"
+                        " and `/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/include/c++/v1:/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include`"
+                        " is a valid path for CPLUS_INCLUDE_PATH"
+                    )
             if c_compiler:
                 cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
             if cxx_compiler:
                 cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
 
             subprocess.check_call(["cmake", llvm_dir] + cmake_args, cwd=cmake_build_dir)
-            subprocess.check_call(["cmake", "--build", ".", "--target", "check-mlir"], cwd=cmake_build_dir)
+            subprocess.check_call(
+                ["cmake", "--build", ".", "--target", "check-mlir"], cwd=cmake_build_dir
+            )
         else:
             print("skipping LLVM build")
 
@@ -191,16 +192,16 @@ class CMakeBuild(build_py):
             f"-DCMAKE_MODULE_PATH={cmake_module_path}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-B {paic2_build_dir}",
-            "-G Ninja"
+            "-G Ninja",
         ]
         if c_compiler:
             paic2_cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
         if cxx_compiler:
             paic2_cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
-        subprocess.check_call(["cmake", paic2_src] + paic2_cmake_args, cwd=paic2_build_dir)
-        subprocess.check_call(["cmake",
-                               "--build", "."],
-                              cwd=paic2_build_dir)
+        subprocess.check_call(
+            ["cmake", paic2_src] + paic2_cmake_args, cwd=paic2_build_dir
+        )
+        subprocess.check_call(["cmake", "--build", "."], cwd=paic2_build_dir)
 
     def run(self):
         src_dir = os.path.abspath(os.path.dirname(__file__))
@@ -217,7 +218,7 @@ class CMakeBuild(build_py):
 
         # copy paic2 modules into src
         target_dir = self.build_lib
-        regex = re.compile('(.*so$)')
+        regex = re.compile("(.*so$)")
         for root, dirs, files in os.walk(paic2_build_dir):
             for file in files:
                 print(file.__str__())
@@ -272,13 +273,9 @@ setup(
             include_dirs=INCLUDE_DIRS,
             extra_compile_args=CPP_COMPILE_ARGS,
         ),
-        CMakeExtension(name="paic2")
+        CMakeExtension(name="paic2"),
     ],
-    cmdclass={
-        "build": CustomBuild,
-        "build_py": CMakeBuild,
-        "build_ext": build_ext
-    },
+    cmdclass={"build": CustomBuild, "build_py": CMakeBuild, "build_ext": build_ext},
     extras_require={
         "dev": DEV_REQUIRES,
         "test": TEST_REQUIRES,
