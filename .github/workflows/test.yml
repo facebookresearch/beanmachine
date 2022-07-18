@@ -83,7 +83,7 @@ jobs:
         cd $GITHUB_WORKSPACE/src/beanmachine/paic2
         mkdir build
         cd build
-        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -DBM_ROOT=$GITHUB_WORKSPACE
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -DBM_ROOT=$GITHUB_WORKSPACE -DMLIR_DIR=$GITHUB_WORKSPACE/build/lib/cmake/mlir -DLLVM_DIR=$GITHUB_WORKSPACE/build/lib/cmake/llvm
         cmake --build . 
         cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
 
