@@ -71,10 +71,11 @@ jobs:
 
     - name: build pybind
       run: |
-        cd $GITHUB_WORKSPACE/externals/pybind11
+        $(which python) -m pip install pytest
+        cd $GITHUB_WORKSPACE/src/beanmachine/paic2/externals/pybind11
         mkdir build
         cd build
-        cmake $GITHUB_WORKSPACE/externals/pybind11 -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=$(which python)
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2/externals/pybind11 -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=$(which python)
         cmake --build . 
 
     - name: build paic2
@@ -82,7 +83,7 @@ jobs:
         cd $GITHUB_WORKSPACE/src/beanmachine/paic2
         mkdir build
         cd build
-        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -Dpybind_DIR=$GITHUB_WORKSPACE/externals/pybind11/build
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -DBM_ROOT=$GITHUB_WORKSPACE
         cmake --build . 
         cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
 

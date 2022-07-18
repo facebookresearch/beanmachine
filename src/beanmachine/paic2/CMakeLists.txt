@@ -5,11 +5,11 @@ set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard to conform to")
 
 find_package(MLIR REQUIRED CONFIG)
-find_package(pybind11 REQUIRED CONFIG)
 
+# pybind11
+add_subdirectory(${BM_ROOT}/src/beanmachine/paic2/externals/pybind11)
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-message(STATUS "Using pybind11.cmake in: ${pybind11_DIR}")
 
 set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/bin)
 set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/lib)
@@ -38,9 +38,7 @@ add_llvm_library(PAIC2_LIB src/MLIRBuilder.cpp src/PaicAST.cpp)
 target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
 target_compile_options (PAIC2_LIB PUBLIC -frtti)
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
-message(STATUS "dialect_libs: ${dialect_libs}")
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
-message(STATUS "conversion_libs: ${conversion_libs}")
 set(LIBS ${dialect_libs} ${conversion_libs})
 target_link_libraries(PAIC2_LIB PRIVATE ${LIBS})
 
