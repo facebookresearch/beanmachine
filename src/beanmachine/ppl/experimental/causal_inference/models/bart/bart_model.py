@@ -96,6 +96,13 @@ class BART:
         else:
             NotImplementedError("tree_sampler not implemented")
 
+        if isinstance(self.tree_sampler, GrowPruneTreeProposer):
+            self._step = self._grow_prune_step
+        else:
+            NotImplementedError(
+                "step function not defined"
+            )  # this should never be raised
+
     def fit(
         self,
         X: torch.Tensor,
@@ -200,8 +207,13 @@ class BART:
             (num_points, self.num_trees, 1), dtype=torch.float
         )
 
-    def _step(self) -> Tuple[List, float]:
-        """Take a single MCMC step"""
+    def _grow_prune_step(self) -> Tuple[List, float]:
+        """Take a single MCMC step using the GrowPrune approach of the original BART [1].
+
+        Reference:
+            [1] Hugh A. Chipman, Edward I. George, Robert E. McCulloch (2010). "BART: Bayesian additive regression trees"
+        https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full
+        """
         if self.X is None or self.y is None:
             raise NotInitializedError("No training data")
 
