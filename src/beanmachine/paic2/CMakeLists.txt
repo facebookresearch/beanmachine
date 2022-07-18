@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(PAIC2 LANGUAGES CXX C)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard to conform to")
 
