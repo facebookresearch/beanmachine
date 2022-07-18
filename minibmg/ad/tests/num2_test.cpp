@@ -56,53 +56,53 @@ TEST(num2_test, add1) {
   Dual a{1.1, 2.2};
   Dual b(3.3, 4.4);
   Dual sum = a + b;
-  EXPECT_CLOSE(4.4, sum.primal.as_double());
-  EXPECT_CLOSE(6.6, sum.derivative1.as_double());
+  EXPECT_CLOSE(4.4, sum.primal().as_double());
+  EXPECT_CLOSE(6.6, sum.derivative1().as_double());
 }
 
 TEST(num2_test, add2) {
   Dual a{1.1, 2.2};
   Dual sum = a + 4;
-  EXPECT_CLOSE(5.1, sum.primal.as_double());
-  EXPECT_CLOSE(2.2, sum.derivative1.as_double());
+  EXPECT_CLOSE(5.1, sum.primal().as_double());
+  EXPECT_CLOSE(2.2, sum.derivative1().as_double());
 }
 
 TEST(num2_test, sub1) {
   Dual a{1.1, 2.2};
   Dual b(3.3, 4.4);
   Dual diff = b - a;
-  EXPECT_CLOSE(2.2, diff.primal.as_double());
-  EXPECT_CLOSE(2.2, diff.derivative1.as_double());
+  EXPECT_CLOSE(2.2, diff.primal().as_double());
+  EXPECT_CLOSE(2.2, diff.derivative1().as_double());
 }
 
 TEST(num2_test, sub2) {
   Dual a{1.1, 2.2};
   Dual diff = a - 1;
-  EXPECT_CLOSE(0.1, diff.primal.as_double());
-  EXPECT_CLOSE(2.2, diff.derivative1.as_double());
+  EXPECT_CLOSE(0.1, diff.primal().as_double());
+  EXPECT_CLOSE(2.2, diff.derivative1().as_double());
 }
 
 TEST(num2_test, negate) {
   Dual a{1.1, 2.2};
   Dual neg = -a;
-  EXPECT_CLOSE(-1.1, neg.primal.as_double());
-  EXPECT_CLOSE(-2.2, neg.derivative1.as_double());
+  EXPECT_CLOSE(-1.1, neg.primal().as_double());
+  EXPECT_CLOSE(-2.2, neg.derivative1().as_double());
 }
 
 TEST(num2_test, mul1) {
   Dual a{1.1, 2.2};
   Dual b(3.3, 4.4);
   Dual prod = a * b;
-  EXPECT_CLOSE(1.1 * 3.3, prod.primal.as_double());
-  EXPECT_CLOSE(1.1 * 4.4 + 2.2 * 3.3, prod.derivative1.as_double());
+  EXPECT_CLOSE(1.1 * 3.3, prod.primal().as_double());
+  EXPECT_CLOSE(1.1 * 4.4 + 2.2 * 3.3, prod.derivative1().as_double());
 }
 
 TEST(num2_test, div1) {
   Dual a{1.1, 2.2};
   Dual b(3.3, 4.4);
   Dual prod = a / b;
-  EXPECT_CLOSE(1.0 / 3, prod.primal.as_double());
-  EXPECT_CLOSE(2.0 / 9, prod.derivative1.as_double());
+  EXPECT_CLOSE(1.0 / 3, prod.primal().as_double());
+  EXPECT_CLOSE(2.0 / 9, prod.derivative1().as_double());
 }
 
 TEST(num2_test, pow1) {
@@ -117,38 +117,38 @@ TEST(num2_test, pow1) {
   // = pow(a, b) * (b d/dx (log a) + d/dx (b) log a)
   // = pow(a, b) * (b a' / a + b' log a)
   double expected_grad1 = expected_primal *
-      (b.as_double() * a.derivative1.as_double() / a.as_double() +
-       b.derivative1.as_double() * std::log(a.as_double()));
-  EXPECT_CLOSE(expected_primal, pow.primal.as_double());
-  EXPECT_CLOSE(expected_grad1, pow.derivative1.as_double());
+      (b.as_double() * a.derivative1().as_double() / a.as_double() +
+       b.derivative1().as_double() * std::log(a.as_double()));
+  EXPECT_CLOSE(expected_primal, pow.primal().as_double());
+  EXPECT_CLOSE(expected_grad1, pow.derivative1().as_double());
 }
 
 TEST(num2_test, exp) {
   Dual a{1.1, 2.2};
   Dual value = a.exp();
   double expected_primal = std::exp(a.as_double());
-  double expected_grad1 = a.derivative1.as_double() * expected_primal;
-  EXPECT_CLOSE(expected_primal, value.primal.as_double());
-  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+  double expected_grad1 = a.derivative1().as_double() * expected_primal;
+  EXPECT_CLOSE(expected_primal, value.primal().as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1().as_double());
 }
 
 TEST(num2_test, log) {
   Dual a{1.1, 2.3};
   Dual value = a.log();
   double expected_primal = std::log(a.as_double());
-  double expected_grad1 = a.derivative1.as_double() / a.as_double();
-  EXPECT_CLOSE(expected_primal, value.primal.as_double());
-  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+  double expected_grad1 = a.derivative1().as_double() / a.as_double();
+  EXPECT_CLOSE(expected_primal, value.primal().as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1().as_double());
 }
 
 TEST(num2_test, atan) {
   Dual a{1.1, 2.2};
   Dual value = a.atan();
   double expected_primal = std::atan(a.as_double());
-  double expected_grad1 = a.derivative1.as_double() /
-      (1 + a.primal.as_double() * a.primal.as_double());
-  EXPECT_CLOSE(expected_primal, value.primal.as_double());
-  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+  double expected_grad1 = a.derivative1().as_double() /
+      (1 + a.primal().as_double() * a.primal().as_double());
+  EXPECT_CLOSE(expected_primal, value.primal().as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1().as_double());
 }
 
 TEST(num2_test, lgamma) {
@@ -156,9 +156,9 @@ TEST(num2_test, lgamma) {
   Dual value = a.lgamma();
   double expected_primal = std::lgamma(a.as_double());
   double expected_grad1 =
-      a.derivative1.as_double() * boost::math::polygamma(0, a.as_double());
-  EXPECT_CLOSE(expected_primal, value.primal.as_double());
-  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+      a.derivative1().as_double() * boost::math::polygamma(0, a.as_double());
+  EXPECT_CLOSE(expected_primal, value.primal().as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1().as_double());
 }
 
 TEST(num2_test, polygamma) {
@@ -166,7 +166,7 @@ TEST(num2_test, polygamma) {
   Dual value = a.polygamma(2);
   double expected_primal = boost::math::polygamma(2, a.as_double());
   double expected_grad1 =
-      a.derivative1.as_double() * boost::math::polygamma(3, a.as_double());
-  EXPECT_CLOSE(expected_primal, value.primal.as_double());
-  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+      a.derivative1().as_double() * boost::math::polygamma(3, a.as_double());
+  EXPECT_CLOSE(expected_primal, value.primal().as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1().as_double());
 }

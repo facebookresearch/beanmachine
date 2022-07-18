@@ -148,8 +148,13 @@ QueryNode::QueryNode(
 ConstantNode::ConstantNode(const double value, const uint sequence)
     : Node{sequence, Operator::CONSTANT, Type::REAL}, value{value} {}
 
-VariableNode::VariableNode(const std::string& name, const uint sequence)
-    : Node{sequence, Operator::VARIABLE, Type::REAL}, name{name} {}
+VariableNode::VariableNode(
+    const std::string& name,
+    const uint variable_index,
+    const uint sequence)
+    : Node{sequence, Operator::VARIABLE, Type::REAL},
+      name{name},
+      variable_index{variable_index} {}
 
 uint Graph::Factory::add_constant(double value) {
   auto sequence = (uint)nodes.size();
@@ -302,6 +307,15 @@ uint Graph::Factory::add_query(uint parent) {
   auto new_node = new QueryNode{query_id, parent_node, sequence};
   nodes.push_back(new_node);
   return query_id;
+}
+
+uint Graph::Factory::add_variable(
+    const std::string& name,
+    const uint variable_index) {
+  auto sequence = (uint)nodes.size();
+  auto new_node = new VariableNode{name, variable_index, sequence};
+  nodes.push_back(new_node);
+  return sequence;
 }
 
 Graph Graph::Factory::build() {
@@ -495,7 +509,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (!query_indexv.isInt()) {
           throw JsonError("missing query_index for query.");
         }
-        auto query_index = query_indexv.asInt();
+        auto query_index = (uint)query_indexv.asInt();
 
         auto in_nodev = json_node["in_node"];
         if (!in_nodev.isInt()) {
@@ -509,7 +523,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (type != Type::NONE) {
           throw JsonError("bad type for query.");
         }
-        node = new QueryNode(query_index, in_node, sequence);
+        node = new QueryNode{query_index, in_node, sequence};
         break;
       }
       case Operator::CONSTANT: {
@@ -525,7 +539,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (type != Type::REAL) {
           throw JsonError("bad type for query.");
         }
-        node = new ConstantNode(value, sequence);
+        node = new ConstantNode{value, sequence};
         break;
       }
       case Operator::VARIABLE: {
@@ -534,12 +548,17 @@ Graph json_to_graph(folly::dynamic d) {
         if (namev.isString()) {
           name = namev.asString();
         } else {
-          throw JsonError("bad value for name.");
+          throw JsonError("bad name for variable.");
         }
         if (type != Type::REAL) {
-          throw JsonError("bad type for query.");
+          throw JsonError("bad type for variable.");
         }
-        node = new VariableNode(name, sequence);
+        auto variable_indexv = json_node["variable_index"];
+        if (!variable_indexv.isInt()) {
+          throw JsonError("bad variable_index for variable.");
+        }
+        auto variable_index = (uint)variable_indexv.asInt();
+        node = new VariableNode{name, variable_index, sequence};
         break;
       }
       default: {
@@ -559,7 +578,7 @@ Graph json_to_graph(folly::dynamic d) {
           auto in_node = sequence_to_node.find(in_node_i)->second;
           in_nodes.push_back(in_node);
         }
-        node = new OperatorNode(in_nodes, sequence, op, type);
+        node = new OperatorNode{in_nodes, sequence, op, type};
         break;
       }
     }

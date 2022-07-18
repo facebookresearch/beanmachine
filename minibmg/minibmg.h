@@ -174,6 +174,7 @@ class Graph : Container {
     uint add_constant(double value);
     uint add_operator(enum Operator op, std::vector<uint> parents);
     uint add_query(uint parent); // returns query id
+    uint add_variable(const std::string& name, const uint variable_index);
     const Node* get_node(uint node_id);
     Graph build();
     ~Factory();
@@ -221,8 +222,12 @@ class ConstantNode : public Node {
 
 class VariableNode : public Node {
  public:
-  VariableNode(const std::string& name, const uint sequence);
+  VariableNode(
+      const std::string& name,
+      const uint variable_index,
+      const uint sequence);
   const std::string name;
+  const uint variable_index;
 };
 
 class QueryNode : public Node {

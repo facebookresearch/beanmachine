@@ -10,7 +10,7 @@
 
 using namespace std;
 
-bool is_close(double a, double b) {
+bool is_close(double a, double b, double eps) {
   if (isnan(a) != isnan(b))
     return false;
   if (isnan(a) && isnan(b))

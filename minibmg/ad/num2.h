@@ -24,11 +24,17 @@ namespace beanmachine::minibmg {
 template <class Underlying>
 requires Number<Underlying>
 class Num2 {
+ private:
+  Underlying m_primal, m_derivative1;
+
  public:
-  const Underlying primal, derivative1;
   /* implicit */ Num2(double primal);
   /* implicit */ Num2(Underlying primal);
   Num2(Underlying primal, Underlying derivative1);
+  Num2(const Num2<Underlying>& other);
+  Num2<Underlying>& operator=(const Num2<Underlying>& other);
+  Underlying primal() const;
+  Underlying derivative1() const;
   double as_double() const;
   Num2<Underlying> operator+(const Num2<Underlying>& other) const;
   Num2<Underlying> operator-(const Num2<Underlying>& other) const;
@@ -40,7 +46,7 @@ class Num2 {
   Num2<Underlying> log() const;
   Num2<Underlying> atan() const;
   Num2<Underlying> lgamma() const;
-  Num2<Underlying> polygamma(int n) const;
+  Num2<Underlying> polygamma(double n) const;
   Num2<Underlying> if_equal(
       const Num2<Underlying>& comparand,
       const Num2<Underlying>& when_equal,
@@ -55,59 +61,87 @@ class Num2 {
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(double primal)
-    : primal(primal), derivative1(0.0) {}
+    : m_primal(primal), m_derivative1(0.0) {}
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(Underlying primal)
-    : primal(primal), derivative1(0.0) {}
+    : m_primal(primal), m_derivative1(0.0) {}
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(
     Underlying primal,
     Underlying derivative1)
-    : primal(primal), derivative1(derivative1) {}
+    : m_primal(primal), m_derivative1(derivative1) {}
+
+template <class Underlying>
+requires Number<Underlying> Num2<Underlying>::Num2(
+    const Num2<Underlying>& other)
+    : m_primal(other.m_primal), m_derivative1(other.m_derivative1) {}
+
+template <class Underlying>
+requires Number<Underlying> Num2<Underlying>
+&Num2<Underlying>::operator=(const Num2<Underlying>& other) {
+  this->m_primal = other.m_primal;
+  this->m_derivative1 = other.m_derivative1;
+  return *this;
+}
+
+template <class Underlying>
+requires Number<Underlying> Underlying Num2<Underlying>::primal()
+const {
+  return m_primal;
+}
+
+template <class Underlying>
+requires Number<Underlying> Underlying Num2<Underlying>::derivative1()
+const {
+  return m_derivative1;
+}
 
 template <class Underlying>
 requires Number<Underlying>
 double Num2<Underlying>::as_double() const {
-  return primal.as_double();
+  return m_primal.as_double();
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator+(
     const Num2<Underlying>& other) const {
   return Num2<Underlying>{
-      this->primal + other.primal, this->derivative1 + other.derivative1};
+      this->m_primal + other.m_primal,
+      this->m_derivative1 + other.m_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator-(
     const Num2<Underlying>& other) const {
   return Num2<Underlying>{
-      this->primal - other.primal, this->derivative1 - other.derivative1};
+      this->m_primal - other.m_primal,
+      this->m_derivative1 - other.m_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator-()
     const {
-  return Num2<Underlying>{-this->primal, -this->derivative1};
+  return Num2<Underlying>{-this->m_primal, -this->m_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator*(
     const Num2<Underlying>& other) const {
   return Num2<Underlying>{
-      this->primal * other.primal,
-      this->primal * other.derivative1 + this->derivative1 * other.primal};
+      this->m_primal * other.m_primal,
+      this->m_primal * other.m_derivative1 +
+          this->m_derivative1 * other.m_primal};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator/(
     const Num2<Underlying>& other) const {
-  Underlying t0 = other.primal * other.primal;
-  Underlying new_primal = this->primal / other.primal;
-  Underlying new_derivative1 = ((other.primal * this->derivative1) -
-                                (this->primal * other.derivative1)) /
+  Underlying t0 = other.m_primal * other.m_primal;
+  Underlying new_primal = this->m_primal / other.m_primal;
+  Underlying new_derivative1 = ((other.m_primal * this->m_derivative1) -
+                                (this->m_primal * other.m_derivative1)) /
       t0;
   return Num2<Underlying>{new_primal, new_derivative1};
 }
@@ -116,54 +150,58 @@ template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::pow(
     const Num2<Underlying>& other)
 const {
-  Underlying new_primal = this->primal.pow(other.primal);
-  Underlying new_derivative1 = new_primal *
-      ((other.primal * this->derivative1 / this->primal) +
-       (this->primal.log() * other.derivative1));
+  Underlying new_primal = this->m_primal.pow(other.m_primal);
+  Underlying new_derivative1 = other.m_derivative1.is_definitely_zero()
+      ? new_primal * other.m_primal * this->m_derivative1 / this->m_primal
+      : new_primal *
+          ((other.m_primal * this->m_derivative1 / this->m_primal) +
+           (this->m_primal.log() * other.m_derivative1));
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::exp()
 const {
-  Underlying t6 = this->primal.exp();
+  Underlying t6 = this->m_primal.exp();
   Underlying new_primal = t6;
-  Underlying new_derivative1 = t6 * this->derivative1;
-  return Num2{new_primal, new_derivative1};
+  Underlying new_derivative1 = t6 * this->m_derivative1;
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::log()
 const {
-  Underlying new_primal = this->primal.log();
-  Underlying new_derivative1 = this->derivative1 / this->primal;
-  return Num2{new_primal, new_derivative1};
+  Underlying new_primal = this->m_primal.log();
+  Underlying new_derivative1 = this->m_derivative1 / this->m_primal;
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::atan()
 const {
-  Underlying new_primal = this->primal.atan();
+  Underlying new_primal = this->m_primal.atan();
   Underlying new_derivative1 =
-      this->derivative1 / (this->primal * this->primal + 1.0f);
-  return Num2{new_primal, new_derivative1};
+      this->m_derivative1 / (this->m_primal * this->m_primal + 1.0f);
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::lgamma()
 const {
-  Underlying new_primal = this->primal.lgamma();
-  Underlying new_derivative1 = this->derivative1 * this->primal.polygamma(0);
-  return Num2{new_primal, new_derivative1};
+  Underlying new_primal = this->m_primal.lgamma();
+  Underlying new_derivative1 =
+      this->m_derivative1 * this->m_primal.polygamma(0);
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::polygamma(int n)
+requires Number<Underlying> Num2<Underlying> Num2<Underlying>::polygamma(
+    double n)
 const {
-  Underlying new_primal = this->primal.polygamma(n);
+  Underlying new_primal = this->m_primal.polygamma(n);
   Underlying new_derivative1 =
-      this->derivative1 * this->primal.polygamma(n + 1);
-  return Num2{new_primal, new_derivative1};
+      this->m_derivative1 * this->m_primal.polygamma(n + 1);
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
@@ -172,12 +210,15 @@ requires Number<Underlying> Num2<Underlying> Num2<Underlying>::if_equal(
     const Num2<Underlying>& when_equal,
     const Num2<Underlying>& when_not_equal)
 const {
-  // Note: we discard and ignore this->derivative1 and comparand->derivative1
-  Underlying new_primal = this->primal.if_equal(
-      comparand.primal, when_equal.primal, when_not_equal.primal);
-  Underlying new_derivative1 = this->primal.if_equal(
-      comparand.primal, when_equal.derivative1, when_not_equal.derivative1);
-  return Num2{new_primal, new_derivative1};
+  // Note: we discard and ignore this->m_derivative1 and
+  // comparand->m_derivative1
+  Underlying new_primal = this->m_primal.if_equal(
+      comparand.m_primal, when_equal.m_primal, when_not_equal.m_primal);
+  Underlying new_derivative1 = this->m_primal.if_equal(
+      comparand.m_primal,
+      when_equal.m_derivative1,
+      when_not_equal.m_derivative1);
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
@@ -186,26 +227,27 @@ requires Number<Underlying> Num2<Underlying> Num2<Underlying>::if_less(
     const Num2<Underlying>& when_less,
     const Num2<Underlying>& when_not_less)
 const {
-  // Note: we discard and ignore this->derivative1 and comparand->derivative1
-  Underlying new_primal = this->primal.if_less(
-      comparand.primal, when_less.primal, when_not_less.primal);
-  Underlying new_derivative1 = this->primal.if_less(
-      comparand.primal, when_less.derivative1, when_not_less.derivative1);
-  return Num2{new_primal, new_derivative1};
+  // Note: we discard and ignore this->m_derivative1 and
+  // comparand->m_derivative1
+  Underlying new_primal = this->m_primal.if_less(
+      comparand.m_primal, when_less.m_primal, when_not_less.m_primal);
+  Underlying new_derivative1 = this->m_primal.if_less(
+      comparand.m_primal, when_less.m_derivative1, when_not_less.m_derivative1);
+  return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying>
 bool Num2<Underlying>::is_definitely_zero() const {
-  return this->primal.is_definitely_zero() &&
-      this->derivative1.is_definitely_zero();
+  return this->m_primal.is_definitely_zero() &&
+      this->m_derivative1.is_definitely_zero();
 }
 
 template <class Underlying>
 requires Number<Underlying>
 bool Num2<Underlying>::is_definitely_one() const {
-  return this->primal.is_definitely_one() &&
-      this->derivative1.is_definitely_zero();
+  return this->m_primal.is_definitely_one() &&
+      this->m_derivative1.is_definitely_zero();
 }
 
 static_assert(Number<Num2<Real>>);

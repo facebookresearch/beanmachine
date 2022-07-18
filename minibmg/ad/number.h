@@ -15,7 +15,7 @@ namespace beanmachine::minibmg {
 // a Number.  A type T satisfies the concept Number<T> if it supports
 // all of the following operations.
 template <typename T>
-concept Number = requires(T a, T b, T c, T d, int n) {
+concept Number = requires(T a, T b, T c, T d, double n) {
   // there should be a conversion from double to T.
   std::convertible_to<double, T>;
   // it should support the arithmetic oeprators.

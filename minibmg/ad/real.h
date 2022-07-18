@@ -11,6 +11,10 @@
 #include <cmath>
 #include "beanmachine/minibmg/ad/number.h"
 
+// Set this to the keyword "inline" in production use.
+// Set it to nothing to make debugging simpler.
+#define INLINE inline
+
 namespace beanmachine::minibmg {
 
 /*
@@ -22,57 +26,57 @@ class Real {
   double value;
 
  public:
-  inline double as_double() const {
+  INLINE double as_double() const {
     return value;
   }
   /* implicit */ inline Real(double value) : value{value} {}
-  inline Real& operator=(const Real&) = default;
-  inline Real operator+(Real other) const {
+  INLINE Real& operator=(const Real&) = default;
+  INLINE Real operator+(Real other) const {
     return this->value + other.value;
   }
-  inline Real operator-(Real other) const {
+  INLINE Real operator-(Real other) const {
     return this->value - other.value;
   }
-  inline Real operator-() const {
+  INLINE Real operator-() const {
     return -this->value;
   }
-  inline Real operator*(Real other) const {
+  INLINE Real operator*(Real other) const {
     return this->value * other.value;
   }
-  inline Real operator/(Real other) const {
+  INLINE Real operator/(Real other) const {
     return this->value / other.value;
   }
-  inline Real pow(Real other) const {
+  INLINE Real pow(Real other) const {
     return std::pow(this->value, other.value);
   }
-  inline Real exp() const {
+  INLINE Real exp() const {
     return std::exp(this->value);
   }
-  inline Real log() const {
+  INLINE Real log() const {
     return std::log(this->value);
   }
-  inline Real atan() const {
+  INLINE Real atan() const {
     return std::atan(this->value);
   }
-  inline Real lgamma() const {
+  INLINE Real lgamma() const {
     return std::lgamma(this->value);
   }
-  inline Real polygamma(Real other) const {
+  INLINE Real polygamma(Real other) const {
     // Note the order of operands here.
     return boost::math::polygamma(other.value, this->value);
   }
-  inline Real if_equal(Real comparand, Real when_equal, Real when_not_equal)
-      const {
+  INLINE Real
+  if_equal(Real comparand, Real when_equal, Real when_not_equal) const {
     return (this->value == comparand.value) ? when_equal : when_not_equal;
   }
-  inline Real if_less(Real comparand, Real when_less, Real when_not_less)
-      const {
+  INLINE Real
+  if_less(Real comparand, Real when_less, Real when_not_less) const {
     return (this->value < comparand.value) ? when_less : when_not_less;
   }
-  inline bool is_definitely_zero() const {
+  INLINE bool is_definitely_zero() const {
     return this->value == 0;
   }
-  inline bool is_definitely_one() const {
+  INLINE bool is_definitely_one() const {
     return this->value == 1;
   }
 };

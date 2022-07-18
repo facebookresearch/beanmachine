@@ -27,11 +27,11 @@ using DualDual = Num2<Dual>;
 TEST(num3_test, division_denominator) {
   double k1 = 3.0;
   double k2 = 7.0;
-  Triune x{k1, 1, 0};
-  Triune y = k2 / x;
-  EXPECT_CLOSE(k2 / k1, y.primal.as_double());
-  EXPECT_CLOSE(-(k2 / (k1 * k1)), y.derivative1.as_double());
-  EXPECT_CLOSE(2 * k2 / (k1 * k1 * k1), y.derivative2.as_double());
+  const Triune x{k1, 1, 0};
+  const Triune& y = k2 / x;
+  EXPECT_CLOSE(k2 / k1, y.primal().as_double());
+  EXPECT_CLOSE(-(k2 / (k1 * k1)), y.derivative1().as_double());
+  EXPECT_CLOSE(2 * k2 / (k1 * k1 * k1), y.derivative2().as_double());
 }
 
 template <class N>
@@ -95,24 +95,25 @@ TEST(num3_test, compare_to_num2) {
     double k5 = unif(g);
     double k6 = unif(g);
 
-    Triune t1 = Triune{k1, k2, k3};
-    DualDual d1 = DualDual{Dual{k1, k2}, Dual{k2, k3}};
-    Triune t2 = Triune{k4, k5, k6};
-    DualDual d2 = DualDual{Dual{k4, k5}, Dual{k5, k6}};
+    const Triune& t1 = Triune{k1, k2, k3};
+    const DualDual& d1 = DualDual{Dual{k1, k2}, Dual{k2, k3}};
+    const Triune& t2 = Triune{k4, k5, k6};
+    const DualDual& d2 = DualDual{Dual{k4, k5}, Dual{k5, k6}};
 
     for (int i = 0, n = f1s.size(); i < n; i++) {
-      auto f1 = f1s[i];
-      auto f2 = f2s[i];
+      const auto& f1 = f1s[i];
+      const auto& f2 = f2s[i];
 
-      auto t3 = f1(t1, t2);
-      auto d3 = f2(d1, d2);
+      const auto& t3 = f1(t1, t2);
+      const auto& d3 = f2(d1, d2);
 
       EXPECT_CLOSE(t3.as_double(), d3.as_double());
-      EXPECT_CLOSE(t3.derivative1.as_double(), d3.derivative1.as_double());
+      EXPECT_CLOSE(t3.derivative1().as_double(), d3.derivative1().as_double());
       EXPECT_CLOSE(
-          t3.derivative1.as_double(), d3.primal.derivative1.as_double());
+          t3.derivative1().as_double(), d3.primal().derivative1().as_double());
       EXPECT_CLOSE(
-          t3.derivative2.as_double(), d3.derivative1.derivative1.as_double());
+          t3.derivative2().as_double(),
+          d3.derivative1().derivative1().as_double());
     }
   }
 }
