@@ -21,9 +21,7 @@ list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 include(TableGen)
 include(AddLLVM)
 include(AddMLIR)
-include(AddMLIRPython)
 include(HandleLLVMOptions)
-include(MLIRDetectPythonEnv)
 
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
@@ -39,6 +37,8 @@ target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
 target_compile_options (PAIC2_LIB PUBLIC -frtti)
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
+message(STATUS "dialect_libs: ${dialect_libs}")
+message(STATUS "conversion_libs: ${conversion_libs}")
 set(LIBS ${dialect_libs} ${conversion_libs})
 target_link_libraries(PAIC2_LIB PRIVATE ${LIBS})
 
@@ -54,19 +54,16 @@ target_link_libraries(PAIC2_LIB
         MLIRIR
         MLIRDialect
         MLIRLLVMCommonConversion
-        MLIRLLVMIR
+        MLIRLLVMDialect
+        MLIRLLVMIRTransforms
         MLIRLLVMToLLVMIRTranslation
-        MLIRMemRef
+        MLIRMemRefDialect
         MLIRParser
         MLIRPass
         MLIRSideEffectInterfaces
         MLIRSupport
         MLIRTargetLLVMIRExport
         MLIRTransforms
-        MLIRPythonSources
-        MLIRPythonExtension.Core
-        MLIRPythonExtension.AllPassesRegistration
-        MLIRPythonExtension.ExecutionEngine
         )
 
 # pybind module
