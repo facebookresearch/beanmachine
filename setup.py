@@ -221,7 +221,6 @@ class CMakeBuild(build_py):
         regex = re.compile("(.*so$)")
         for root, dirs, files in os.walk(paic2_build_dir):
             for file in files:
-                print(file.__str__())
                 if regex.match(file):
                     dest = os.path.join(target_dir, os.path.basename(file))
                     print("copying " + file.__str__() + " into " + dest.__str__())

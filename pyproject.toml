@@ -4,7 +4,7 @@ requires = ["setuptools", "wheel", "pybind11>=2.6.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py --ignore=src/beanmachine/paic2/externals"
+addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py --ignore=src/beanmachine/paic2/externals --ignore=externals"
 filterwarnings = [
     # By default, all warnings are treated as errors
     "error",
