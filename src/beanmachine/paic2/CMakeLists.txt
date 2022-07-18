@@ -38,8 +38,6 @@ target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
 target_compile_options (PAIC2_LIB PUBLIC -frtti)
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
-message(STATUS "dialect_libs: ${dialect_libs}")
-message(STATUS "conversion_libs: ${conversion_libs}")
 set(LIBS ${dialect_libs} ${conversion_libs})
 target_link_libraries(PAIC2_LIB PRIVATE ${LIBS})
 
