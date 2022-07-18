@@ -184,6 +184,10 @@ class CMakeBuild(build_py):
             print("skipping LLVM build")
 
     def build_paic2(self, paic2_src: str, paic2_build_dir: str, cmake_module_path: str):
+        if os.path.isdir(paic2_build_dir):
+            print("Skipping paic2 build")
+            return
+
         c_compiler = os.getenv("C_COMPILER")
         cxx_compiler = os.getenv("CXX_COMPILER")
         os.makedirs(paic2_build_dir, exist_ok=True)
@@ -274,7 +278,7 @@ setup(
         ),
         CMakeExtension(name="paic2"),
     ],
-    cmdclass={"build": CustomBuild, "build_py": CMakeBuild, "build_ext": build_ext},
+    cmdclass={"build": CustomBuild, "build_py": CMakeBuild, "build_ext": NoopBuildExtension},
     extras_require={
         "dev": DEV_REQUIRES,
         "test": TEST_REQUIRES,
