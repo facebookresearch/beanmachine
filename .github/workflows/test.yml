@@ -91,7 +91,11 @@ jobs:
       run: pip install -v -e .[dev]
 
     - name: Print out package info to help with debug
-      run: pip list
+      run: |
+        pip list
+        cd src
+        ls -a
+        cd ..
 
     - name: Run unit tests with pytest
       run: pytest .
