@@ -75,7 +75,7 @@ jobs:
         cd $GITHUB_WORKSPACE/src/beanmachine/paic2/externals/pybind11
         mkdir build
         cd build
-        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2/externals/pybind11 -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=$(which python)
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2/externals/pybind11 -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build . 
 
     - name: build paic2
