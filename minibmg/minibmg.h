@@ -153,14 +153,29 @@ Type type_from_name(const std::string& name);
 std::string to_string(Type type);
 
 class Graph : Container {
- public:
+ private:
   const std::vector<const Node*> nodes;
 
+ public:
   // valudates that the list of nodes forms a valid graph,
   // and returns that graph.  Throws an exception if the
   // nodes do not form a valid graph.
   static Graph create(std::vector<const Node*> nodes);
   ~Graph();
+
+  // Implement the iterator pattern so clients can iterate over the nodes.
+  inline auto begin() const {
+    return nodes.begin();
+  }
+  inline auto end() const {
+    return nodes.end();
+  }
+  inline const Node* operator[](int index) const {
+    return nodes[index];
+  }
+  inline int size() const {
+    return nodes.size();
+  }
 
  private:
   // A private constructor that forms a graph without validation.
@@ -175,7 +190,9 @@ class Graph : Container {
     uint add_operator(enum Operator op, std::vector<uint> parents);
     uint add_query(uint parent); // returns query id
     uint add_variable(const std::string& name, const uint variable_index);
-    const Node* get_node(uint node_id);
+    inline const Node* operator[](uint node_id) const {
+      return nodes[node_id];
+    }
     Graph build();
     ~Factory();
 

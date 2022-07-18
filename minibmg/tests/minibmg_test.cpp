@@ -33,7 +33,7 @@ TEST(test_minibmg, basic_building) {
   auto query = gf.add_query(beta);
   ASSERT_EQ(query, 0); // we get the query number back from add_query
   Graph g = gf.build();
-  ASSERT_EQ(g.nodes.size(), 9);
+  ASSERT_EQ(g.size(), 9);
 }
 
 TEST(test_minibmg, operator_from_name) {

@@ -74,9 +74,9 @@ void eval_graph(
     std::function<T(const std::string& name, const uint sequence)>
         read_variable,
     std::vector<T>& data) {
-  int n = graph.nodes.size();
+  int n = graph.size();
   for (int i = 0; i < n; i++) {
-    const Node* node = graph.nodes[i];
+    const Node* node = graph[i];
     if (node->sequence != i) {
       throw EvalError(
           fmt::format("node at index {0} is numbered {1}", i, node->sequence));

@@ -433,7 +433,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   result["comment"] = "created by graph_to_json";
   dynamic a = dynamic::array;
 
-  for (auto node : g.nodes) {
+  for (auto node : g) {
     dynamic dyn_node = dynamic::object;
     dyn_node["sequence"] = node->sequence;
     dyn_node["operator"] = to_string(node->op);
