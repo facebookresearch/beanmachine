@@ -2,18 +2,18 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-import subprocess
 import os
 import platform
 import re
-import sys
-from glob import glob
 import shutil
+import subprocess
+import sys
+from distutils.command.build import build as _build
+from glob import glob
 
 from pybind11.setup_helpers import build_ext, Pybind11Extension
-from setuptools import find_packages, setup, Extension
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_py import build_py
-from distutils.command.build import build as _build
 
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7

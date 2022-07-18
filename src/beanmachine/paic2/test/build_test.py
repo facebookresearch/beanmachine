@@ -1,8 +1,9 @@
-import paic2
-import inspect
 import ast
+import inspect
 import typing
 import unittest
+
+import paic2
 
 
 def foo():
