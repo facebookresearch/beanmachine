@@ -275,10 +275,9 @@ setup(
             ),
             include_dirs=INCLUDE_DIRS,
             extra_compile_args=CPP_COMPILE_ARGS,
-        ),
-        CMakeExtension(name="paic2"),
+        )
     ],
-    cmdclass={"build": CustomBuild, "build_py": CMakeBuild, "build_ext": NoopBuildExtension},
+    cmdclass={"build_ext": build_ext},
     extras_require={
         "dev": DEV_REQUIRES,
         "test": TEST_REQUIRES,
