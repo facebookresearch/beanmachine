@@ -36,9 +36,8 @@ concept Number = requires(T a, T b, T c, T d, double n) {
   { a.if_less(b, c, d) } -> std::convertible_to<T>;
   // There should be a conservative (meaning it may return false even when
   // a number satisfies the test) way to sometimes know if a value is exactly
-  // zero or one.
-  { a.is_definitely_zero() } -> std::same_as<bool>;
-  { a.is_definitely_one() } -> std::same_as<bool>;
+  // a constant.
+  { a.is_constant(n) } -> std::same_as<bool>;
 };
 
 // Support binary operators with double on the left.

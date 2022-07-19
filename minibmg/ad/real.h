@@ -73,11 +73,13 @@ class Real {
   if_less(Real comparand, Real when_less, Real when_not_less) const {
     return (this->value < comparand.value) ? when_less : when_not_less;
   }
-  INLINE bool is_definitely_zero() const {
-    return this->value == 0;
+  INLINE bool is_constant(double& value) const {
+    value = this->value;
+    return true;
   }
-  INLINE bool is_definitely_one() const {
-    return this->value == 1;
+  INLINE bool is_constant(const double& value) const {
+    double v = 0;
+    return is_constant(v) && v == value;
   }
 };
 

@@ -18,38 +18,38 @@ using Dual = Num2<Real>;
 
 TEST(num2_test, convert) {
   Dual d0{0};
-  EXPECT_TRUE(d0.is_definitely_zero());
-  EXPECT_FALSE(d0.is_definitely_one());
+  EXPECT_TRUE(d0.is_constant(0));
+  EXPECT_FALSE(d0.is_constant(1));
   Dual d1(1);
-  EXPECT_FALSE(d1.is_definitely_zero());
-  EXPECT_TRUE(d1.is_definitely_one());
+  EXPECT_FALSE(d1.is_constant(0));
+  EXPECT_TRUE(d1.is_constant(1));
   Dual d2(2);
-  EXPECT_FALSE(d2.is_definitely_zero());
-  EXPECT_FALSE(d2.is_definitely_one());
+  EXPECT_FALSE(d2.is_constant(1));
+  EXPECT_FALSE(d2.is_constant(1));
 }
 
 TEST(num2_test, grad1) {
   Dual d0{0, 1};
-  EXPECT_FALSE(d0.is_definitely_zero());
-  EXPECT_FALSE(d0.is_definitely_one());
+  EXPECT_FALSE(d0.is_constant(0));
+  EXPECT_FALSE(d0.is_constant(1));
   Dual d1(1, 1);
-  EXPECT_FALSE(d1.is_definitely_zero());
-  EXPECT_FALSE(d1.is_definitely_one());
+  EXPECT_FALSE(d1.is_constant(0));
+  EXPECT_FALSE(d1.is_constant(1));
   Dual d2(2, 1);
-  EXPECT_FALSE(d2.is_definitely_zero());
-  EXPECT_FALSE(d2.is_definitely_one());
+  EXPECT_FALSE(d2.is_constant(0));
+  EXPECT_FALSE(d2.is_constant(1));
 }
 
 TEST(num2_test, grad2) {
   Dual d0{0, 0};
-  EXPECT_TRUE(d0.is_definitely_zero());
-  EXPECT_FALSE(d0.is_definitely_one());
+  EXPECT_TRUE(d0.is_constant(0));
+  EXPECT_FALSE(d0.is_constant(1));
   Dual d1(1, 0);
-  EXPECT_FALSE(d1.is_definitely_zero());
-  EXPECT_TRUE(d1.is_definitely_one());
+  EXPECT_FALSE(d1.is_constant(0));
+  EXPECT_TRUE(d1.is_constant(1));
   Dual d2(2, 0);
-  EXPECT_FALSE(d2.is_definitely_zero());
-  EXPECT_FALSE(d2.is_definitely_one());
+  EXPECT_FALSE(d2.is_constant(0));
+  EXPECT_FALSE(d2.is_constant(1));
 }
 
 TEST(num2_test, add1) {

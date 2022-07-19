@@ -60,8 +60,8 @@ TEST(real_test, computations) {
 }
 
 TEST(real_test, definite) {
-  EXPECT_TRUE(Real(0).is_definitely_zero());
-  EXPECT_FALSE(Real(0.001).is_definitely_zero());
-  EXPECT_TRUE(Real(1).is_definitely_one());
-  EXPECT_FALSE(Real(1.001).is_definitely_one());
+  EXPECT_TRUE(Real(0).is_constant(0));
+  EXPECT_FALSE(Real(0.001).is_constant(0));
+  EXPECT_TRUE(Real(1).is_constant(1));
+  EXPECT_FALSE(Real(1.001).is_constant(1));
 }

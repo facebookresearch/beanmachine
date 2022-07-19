@@ -55,8 +55,8 @@ class Num2 {
       const Num2<Underlying>& comparand,
       const Num2<Underlying>& when_less,
       const Num2<Underlying>& when_not_less) const;
-  bool is_definitely_zero() const;
-  bool is_definitely_one() const;
+  bool is_constant(double& value) const;
+  bool is_constant(const double& value) const;
 };
 
 template <class Underlying>
@@ -138,11 +138,15 @@ requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator*(
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator/(
     const Num2<Underlying>& other) const {
-  Underlying t0 = other.m_primal * other.m_primal;
+  // a / b
   Underlying new_primal = this->m_primal / other.m_primal;
-  Underlying new_derivative1 = ((other.m_primal * this->m_derivative1) -
-                                (this->m_primal * other.m_derivative1)) /
-      t0;
+
+  // Using https://www.wolframalpha.com/
+  // D[a(x) / b(x), x] -> (b[x] a'[x] - a[x] b'[x])/b[x]^2
+  auto other2 = other.m_primal * other.m_primal;
+  Underlying new_derivative1 = (other.m_primal * this->m_derivative1 -
+                                this->m_primal * other.m_derivative1) /
+      other2;
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
@@ -150,21 +154,47 @@ template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::pow(
     const Num2<Underlying>& other)
 const {
-  Underlying new_primal = this->m_primal.pow(other.m_primal);
-  Underlying new_derivative1 = other.m_derivative1.is_definitely_zero()
-      ? new_primal * other.m_primal * this->m_derivative1 / this->m_primal
-      : new_primal *
-          ((other.m_primal * this->m_derivative1 / this->m_primal) +
-           (this->m_primal.log() * other.m_derivative1));
+  double power;
+  // shortcut some cases.
+  if (other.is_constant(power)) {
+    if (power == 0)
+      return 1;
+    if (power == 1)
+      return *this;
+    if (power == 2)
+      return (*this) * (*this);
+    if (power == -1)
+      return 1 / (*this);
+  }
+
+  const Underlying new_primal = this->m_primal.pow(other.m_primal);
+
+  // From https://www.wolframalpha.com/
+  // D[a(x) ^ (b(x)), x] ->
+  //          a[x]^(-1 + b[x]) (b[x] a'[x] + a[x] Log[a[x]] b'[x])
+  //        = a[x]^b[x] (b[x] a'[x] / a[x] + Log[a[x]] b'[x])
+
+  // We avoid using the log (e.g. of a negative number) when not needed.
+  // t0 = Log[a[x]] b'[x]
+  const Underlying t0 = other.m_derivative1.is_constant(0)
+      ? 0
+      : this->m_primal.log() * other.m_derivative1;
+
+  // b[x] * a'[x] / a[x] + Log[a[x]] b'[x]
+  const Underlying x0 =
+      other.m_primal * this->m_derivative1 / this->m_primal + t0;
+
+  // a[x]^b[x] (b[x] a'[x] / a[x] + Log[a[x]] b'[x])
+  Underlying new_derivative1 = new_primal * x0;
+
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying> Num2<Underlying>::exp()
 const {
-  Underlying t6 = this->m_primal.exp();
-  Underlying new_primal = t6;
-  Underlying new_derivative1 = t6 * this->m_derivative1;
+  Underlying new_primal = this->m_primal.exp();
+  Underlying new_derivative1 = new_primal * this->m_derivative1;
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
@@ -238,16 +268,16 @@ const {
 
 template <class Underlying>
 requires Number<Underlying>
-bool Num2<Underlying>::is_definitely_zero() const {
-  return this->m_primal.is_definitely_zero() &&
-      this->m_derivative1.is_definitely_zero();
+bool Num2<Underlying>::is_constant(double& value) const {
+  return this->m_derivative1.is_constant(0) &&
+      this->m_primal.is_constant(value);
 }
 
 template <class Underlying>
 requires Number<Underlying>
-bool Num2<Underlying>::is_definitely_one() const {
-  return this->m_primal.is_definitely_one() &&
-      this->m_derivative1.is_definitely_zero();
+bool Num2<Underlying>::is_constant(const double& value) const {
+  return this->m_derivative1.is_constant(0) &&
+      this->m_primal.is_constant(value);
 }
 
 static_assert(Number<Num2<Real>>);
