@@ -8,7 +8,7 @@ on:
 
 env:
   PYTHONUNBUFFERED: 1
-  PYTEST_ADDOPTS: "--color=yes -v -m \"not paic2\""
+  PYTEST_ADDOPTS: "--color=yes -v --ignore=$GITHUB_WORKSPACE/src/beanmachine/paic2"
 
 jobs:
   conda-install:
