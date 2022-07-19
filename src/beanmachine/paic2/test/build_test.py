@@ -2,8 +2,9 @@ import ast
 import inspect
 import typing
 import unittest
-import pytest
+
 import paic2
+import pytest
 
 
 def foo():

@@ -27,3 +27,8 @@ filterwarnings = [
 
 [tool.usort]
 first_party_detection=false
+
+[tool.ufmt]
+excludes = [
+    "src/beanmachine/paic2/externals/",
+]
