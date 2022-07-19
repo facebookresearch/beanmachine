@@ -1,0 +1,6 @@
+[submodule "externals/llvm-project"]
+	path = externals/llvm-project
+	url = https://github.com/llvm/llvm-project.git
+[submodule "src/beanmachine/paic2/externals/pybind11"]
+	path = src/beanmachine/paic2/externals/pybind11
+	url = https://github.com/pybind/pybind11.git
