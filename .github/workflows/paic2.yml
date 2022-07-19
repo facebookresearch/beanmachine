@@ -83,3 +83,25 @@ jobs:
         cd build
         cmake $GITHUB_WORKSPACE/src/beanmachine/paic2/externals/pybind11 -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=$(which python) -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cmake --build . 
+
+    - name: build paic2
+      run: |
+        cd $GITHUB_WORKSPACE/src/beanmachine/paic2
+        mkdir build
+        cd build
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -DBM_ROOT=$GITHUB_WORKSPACE -DMLIR_DIR=$GITHUB_WORKSPACE/build/lib/cmake/mlir -DLLVM_DIR=$GITHUB_WORKSPACE/build/lib/cmake/llvm
+        cmake --build . 
+        cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
+
+    - name: Install Bean Machine in editable mode
+      run: pip install -v -e .[dev]
+
+    - name: Print out package info to help with debug
+      run: |
+        pip list
+        cd src
+        ls -a
+        cd ..
+
+    - name: Run unit tests with pytest
+      run: pytest src/beanmachine/paic2/test

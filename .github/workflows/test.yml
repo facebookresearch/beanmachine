@@ -51,4 +51,4 @@ jobs:
       run: pip list
 
     - name: Run unit tests with pytest
-      run: pytest .
+      run: pytest . -v -m "not paic2"
