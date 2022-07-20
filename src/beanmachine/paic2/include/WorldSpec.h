@@ -10,9 +10,9 @@ namespace paic2 {
 
     // The compiler knows that the world has certain members and the layout of those members, it just doesn't know what those
     // members are called. This is the configuration for the world fields.
-    class WorldClassSpec {
+    class WorldSpec {
     public:
-        WorldClassSpec(){}
+        WorldSpec(){}
         void set_print_name(std::string name){ _print_name = name; }
         void set_world_name(std::string name) { _world_name = name; }
         std::string print_name()const{return _print_name;}

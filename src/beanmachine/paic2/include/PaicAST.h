@@ -37,10 +37,36 @@ namespace paic2 {
 
     class Type {
     public:
-        Type(llvm::StringRef name):_name(name){}
-        llvm::StringRef getName() const { return _name; }
+        Type(){}
+        virtual ~Type() = default;
+    };
+
+    enum PrimitiveCode {
+        Void,
+        Float
+    };
+
+    class PrimitiveType : public Type {
+    public:
+        PrimitiveType(PrimitiveCode code):_code(code){}
+
     private:
-        std::string _name;
+        PrimitiveCode _code;
+    };
+
+    class WorldType : public Type {
+    public:
+        WorldType(PrimitiveCode element_type, int length):_nodeType(element_type){
+            if(length < 0){
+                _length = 0;
+            } else {
+                _length = length;
+            }
+        }
+        ~WorldType() = default;
+    private:
+        unsigned int _length;
+        PrimitiveCode _nodeType;
     };
 
     class Node {
@@ -138,7 +164,7 @@ namespace paic2 {
     template<typename T>
     class ConstNode : public Expression {
     public:
-        ConstNode(Location location, std::string type_name, T value): Expression(location, Constant, Type(type_name)), _value(value){}
+        ConstNode(Location location, Type tpe, T value): Expression(std::move(location), Constant, std::move(tpe)), _value(value){}
         T getValue() { return _value; }
     private:
         T _value;
@@ -146,7 +172,7 @@ namespace paic2 {
 
     class FloatConstNode : public ConstNode<float> {
     public:
-        FloatConstNode(Location location, float value): ConstNode<float>(location, "float", Constant){}
+        FloatConstNode(Location location, float value): ConstNode<float>(location, PrimitiveType(Float), value){}
     };
 
     class ReturnNode : public Node {
@@ -158,21 +184,27 @@ namespace paic2 {
         std::shared_ptr<Expression> _value;
     };
 
-    class PythonFunction {
+    class PythonFunction : public Node {
     public:
-        PythonFunction(Location location, const std::string &name):_name(name), _location(std::move(location)) {}
-        virtual ~PythonFunction() = default;
-        const Location &loc() { return _location; }
+        PythonFunction(Location location, const std::string &name, Type retType,
+                       std::vector<std::shared_ptr<ParamNode>> args,
+                       std::shared_ptr<BlockNode> body):Node(std::move(location), Function), _retType(std::move(retType)), _body(body),_args(args), _name(name) {}
         std::string getName() const { return _name; }
+        llvm::ArrayRef<std::shared_ptr<ParamNode>> getArgs() { return _args; }
+        std::shared_ptr<BlockNode> getBody() { return _body; }
+        const Type &getType() { return _retType; }
     private:
-        Location _location;
         std::string _name;
+        std::vector<std::shared_ptr<ParamNode>> _args;
+        std::shared_ptr<BlockNode> _body;
+        Type _retType;
     };
 
     class PythonModule {
     public:
-        static void bind(pybind11::module &m);
-        PythonModule(std::vector<std::shared_ptr<PythonFunction>> functions):_functions(functions){}
+        PythonModule(std::vector<std::shared_ptr<PythonFunction>> functions):_functions(functions){
+            std::cout << "";
+        }
         virtual ~PythonModule() = default;
         llvm::ArrayRef<std::shared_ptr<PythonFunction>> getFunctions() { return _functions; }
     private:

@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 #include "mlir-c/IR.h"
 #include "PaicAST.h"
+#include "WorldSpec.h"
 
 namespace paic2 {
 
@@ -16,8 +17,7 @@ namespace paic2 {
         static void bind(pybind11::module &m);
         MLIRBuilder(pybind11::object contextObj);
         void print_func_name(std::shared_ptr<paic2::PythonFunction> function);
-        void create_inference_functions(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldClassSpec const& worldClassSpec);
-
+        void infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec);
     };
 }
 

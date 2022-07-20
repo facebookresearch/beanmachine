@@ -8,5 +8,5 @@
 PYBIND11_MODULE(paic2, m) {
     m.doc() = "PAIC2 module";
     paic2::MLIRBuilder::bind(m);
-    paic2::PythonModule::bind(m);
+    paic2::Node::bind(m);
 }

@@ -90,7 +90,8 @@ private:
 void paic2::MLIRBuilder::bind(py::module &m) {
     py::class_<MLIRBuilder>(m, "MLIRBuilder")
             .def(py::init<py::object>(), py::arg("context") = py::none())
-            .def("print_func_name", &MLIRBuilder::print_func_name);
+            .def("print_func_name", &MLIRBuilder::print_func_name)
+            .def("infer", &MLIRBuilder::infer);
 }
 
 paic2::MLIRBuilder::MLIRBuilder(pybind11::object contextObj) {}
@@ -103,4 +104,8 @@ void paic2::MLIRBuilder::print_func_name(std::shared_ptr<paic2::PythonFunction> 
     auto py_module = std::make_shared<paic2::PythonModule>(funcs);
     mlir::ModuleOp module = MLIRGenImpl(*context).generate_op(py_module);
     module.dump();
+}
+
+void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec) {
+
 }
