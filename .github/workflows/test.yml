@@ -68,4 +68,7 @@ jobs:
         PYTEST_ADDOPTS: '--color=yes -v --ignore-glob=test_build.py'
       run: |
         pwd
+        ls
         pytest '${{ github.workspace }}\src\ppl'
+        pytest 'src\ppl'
+        pytest 'src/ppl'
