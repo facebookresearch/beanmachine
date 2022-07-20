@@ -51,7 +51,9 @@ jobs:
         pip list
         ls
         cd src
+        cd beanmachine
         ls -a
+        cd ..
         cd ..
 
     - name: Run unit tests with pytest LINUX MACOS
@@ -64,4 +66,4 @@ jobs:
       if: matrix.os == 'windows-latest'
       env:
         PYTEST_ADDOPTS: '--color=yes -v --ignore=${{ github.workspace }}\src\beanmachine\paic2'
-      run: pytest .
+      run: pytest $GITHUB_WORKSPACE/src/ppl $GITHUB_WORKSPACE/src/applications
