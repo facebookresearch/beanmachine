@@ -9,6 +9,7 @@ import torch
 from beanmachine.ppl.experimental.causal_inference.models.bart.bart_model import (
     BART,
     NoiseStandardDeviation,
+    XBART,
 )
 
 
@@ -73,5 +74,16 @@ def y_test(X_test):
 
 def test_predict(X_test, y_test, bart):
     y_pred = bart.predict(X_test)
+    assert len(X_test) == len(y_pred)
+    assert len(y_test) == len(y_pred)
+
+
+@pytest.fixture
+def xbart(X, y):
+    return XBART(num_trees=1).fit(X=X, y=y, num_burn=1, num_samples=40)
+
+
+def test_predict_xbart(X_test, y_test, xbart):
+    y_pred = xbart.predict(X_test)
     assert len(X_test) == len(y_pred)
     assert len(y_test) == len(y_pred)
