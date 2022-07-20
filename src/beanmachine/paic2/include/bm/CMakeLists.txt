@@ -1,0 +1,6 @@
+set(LLVM_TARGET_DEFINITIONS bm_ops.td)
+mlir_tablegen(bm_ops.h.inc -gen-op-decls)
+mlir_tablegen(bm_ops.cpp.inc -gen-op-defs)
+mlir_tablegen(bm_dialect.h.inc -gen-dialect-decls)
+mlir_tablegen(bm_dialect.cpp.inc -gen-dialect-defs)
+add_custom_target(bm_dialect DEPENDS bm_ops.h.inc bm_ops.cpp.inc bm_dialect.h.inc bm_dialect.cpp.inc)

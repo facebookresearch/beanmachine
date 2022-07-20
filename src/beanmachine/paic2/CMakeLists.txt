@@ -33,7 +33,8 @@ link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 
 # library
-add_llvm_library(PAIC2_LIB src/MLIRBuilder.cpp src/PaicAST.cpp)
+add_llvm_library(PAIC2_LIB src/MLIRBuilder.cpp src/PaicAST.cpp src/bm/dialect.cpp src/bm/LowerToLLVM.cpp src/bm/LowerToFunc.cpp)
+add_dependencies(PAIC2_LIB bm_dialect)
 target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
 target_compile_options (PAIC2_LIB PUBLIC -frtti)
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)

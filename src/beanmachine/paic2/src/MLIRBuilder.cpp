@@ -88,10 +88,17 @@ private:
 };
 
 void paic2::MLIRBuilder::bind(py::module &m) {
+    py::class_<paic2::WorldSpec>(m, "WorldSpec")
+            .def(py::init())
+            .def("set_print_name", &WorldSpec::set_print_name)
+            .def("set_world_size", &WorldSpec::set_world_size)
+            .def("set_world_name", &WorldSpec::set_world_name);
+
     py::class_<MLIRBuilder>(m, "MLIRBuilder")
             .def(py::init<py::object>(), py::arg("context") = py::none())
             .def("print_func_name", &MLIRBuilder::print_func_name)
-            .def("infer", &MLIRBuilder::infer);
+            .def("infer", &MLIRBuilder::infer)
+            .def("evaluate", &MLIRBuilder::evaluate);
 }
 
 paic2::MLIRBuilder::MLIRBuilder(pybind11::object contextObj) {}
@@ -108,4 +115,8 @@ void paic2::MLIRBuilder::print_func_name(std::shared_ptr<paic2::PythonFunction> 
 
 void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec) {
 
+}
+
+pybind11::float_ paic2::MLIRBuilder::evaluate(std::shared_ptr<paic2::PythonFunction> function, pybind11::float_ input) {
+    return pybind11::float_(0.0f);
 }
