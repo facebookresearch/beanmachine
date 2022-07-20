@@ -48,11 +48,11 @@ jobs:
 
     - name: Print out package info to help with debug
       run: |
-      pip list
-      ls
-      cd src
-      ls -a
-      cd ..
+        pip list
+        ls
+        cd src
+        ls -a
+        cd ..
 
     - name: Run unit tests with pytest LINUX MACOS
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
