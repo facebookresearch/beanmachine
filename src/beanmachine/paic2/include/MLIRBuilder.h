@@ -16,6 +16,8 @@ namespace paic2 {
         static void bind(pybind11::module &m);
         MLIRBuilder(pybind11::object contextObj);
         void print_func_name(std::shared_ptr<paic2::PythonFunction> function);
+        void create_inference_functions(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldClassSpec const& worldClassSpec);
+
     };
 }
 
