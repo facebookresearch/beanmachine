@@ -65,5 +65,5 @@ jobs:
     - name: Run unit tests with pytest WINDOWS
       if: matrix.os == 'windows-latest'
       env:
-        PYTEST_ADDOPTS: '--color=yes -v --ignore-glob=paic2/*.py'
+        PYTEST_ADDOPTS: '--color=yes -v --ignore-glob=test_build.py'
       run: pytest .
