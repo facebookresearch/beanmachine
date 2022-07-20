@@ -66,4 +66,12 @@ jobs:
       if: matrix.os == 'windows-latest'
       env:
         PYTEST_ADDOPTS: '--color=yes -v --ignore=${{ github.workspace }}\src\beanmachine\paic2'
-      run: pytest ${{ github.workspace }}\src\ppl ${{ github.workspace }}\src\applications
+      run: |
+        cd src
+        cd ppl
+        pytest .
+        cd ..
+        cd applications
+        pytest .
+        cd ..
+        cd ..
