@@ -66,4 +66,6 @@ jobs:
       if: matrix.os == 'windows-latest'
       env:
         PYTEST_ADDOPTS: '--color=yes -v --ignore-glob=test_build.py'
-      run: pytest .
+      run: |
+        pwd
+        pytest '${{ github.workspace }}\src\ppl'
