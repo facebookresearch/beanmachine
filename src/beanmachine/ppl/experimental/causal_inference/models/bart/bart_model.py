@@ -414,7 +414,7 @@ class XBART(BART):
             it defaults to 0 and is adaptively set as a function of the trianing data in the ```fit()``` method.
         alpha: Parameter used in the tree depth prior, Eq. 7 of [2].
         beta: Parameter used in the tree depth prior, Eq. 7 of [2].
-        tao: Prior variance of the leaf-specific mean paramete used in the u_i_j prior, section 2.2 of [1].
+        tau: Prior variance of the leaf-specific mean paramete used in the u_i_j prior, section 2.2 of [1].
         noise_sd_concentration: Concentration parameter (alpha) for the inverse gamma distribution prior of p(sigma).
         noise_sd_rate: Rate parameter (beta) for the inverse gamma distribution prior of p(sigma).
         tree_sampler: The tree sampling method used.
@@ -428,7 +428,7 @@ class XBART(BART):
         num_trees: int = 0,
         alpha: float = 0.95,
         beta: float = 2.0,
-        tao: Optional[float] = None,
+        tau: Optional[float] = None,
         noise_sd_concentration: float = 3.0,
         noise_sd_rate: float = 1.0,
         tree_sampler: Optional[GrowPruneTreeProposer] = None,
@@ -436,7 +436,7 @@ class XBART(BART):
         num_cuts: Optional[int] = None,
     ):
         self.num_cuts = num_cuts
-        self.tao = tao
+        self.tau = tau
 
         super().__init__(
             num_trees=num_trees,
@@ -467,10 +467,10 @@ class XBART(BART):
         if not self.num_trees > 0:
             self._adaptively_init_num_trees()
 
-        if self.tao is None:
-            self._adaptively_init_tao()
-        self.tao = cast(float, self.tao)
-        self.leaf_mean = LeafMean(prior_loc=0.0, prior_scale=math.sqrt(self.tao))
+        if self.tau is None:
+            self._adaptively_init_tau()
+        self.tau = cast(float, self.tau)
+        self.leaf_mean = LeafMean(prior_loc=0.0, prior_scale=math.sqrt(self.tau))
         if self.num_cuts is None:
             self._adaptively_init_num_cuts()
         self.samples = {"trees": [], "sigmas": []}
@@ -494,8 +494,8 @@ class XBART(BART):
         n = len(self.X)
         self.num_trees = int(math.pow(math.log(n), math.log(math.log(n))) / 4)
 
-    def _adaptively_init_tao(self):
-        """Implements the default for tao from section 3.1 of [1].
+    def _adaptively_init_tau(self):
+        """Implements the default for tau from section 3.1 of [1].
 
         Reference:
             [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
@@ -503,7 +503,7 @@ class XBART(BART):
         """
         if not self.num_trees > 0:
             raise NotInitializedError("num_trees not set")
-        self.tao = (3 / 10) * (torch.var(self.y).item() / self.num_trees)
+        self.tau = (3 / 10) * (torch.var(self.y).item() / self.num_trees)
 
     def _adaptively_init_num_cuts(self):
         """Implements the default for number of cuts, C from section 3.3 of [1].
