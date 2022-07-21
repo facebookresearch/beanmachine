@@ -25,10 +25,10 @@ int SomeValue::next_sequence = 0;
 
 // A Property, which associates a value with each container.
 struct MyProperty : public Property<MyProperty, Graph, SomeValue> {
-  SomeValue* create(Graph&) const override;
+  SomeValue* create(const Graph&) const override;
 };
 
-SomeValue* MyProperty::create(Graph&) const {
+SomeValue* MyProperty::create(const Graph&) const {
   // Code here to compute the value for the graph
   return new SomeValue();
 }
@@ -59,21 +59,21 @@ TEST(testcontainer, idempotence) {
 
 class Value1 : public SomeValue {};
 struct Property1 : public Property<Property1, Graph, Value1> {
-  Value1* create(Graph& g) const override;
+  Value1* create(const Graph& g) const override;
 };
 
 class Value2 : public SomeValue {};
 struct Property2 : public Property<Property2, Graph, Value2> {
-  Value2* create(Graph& g) const override;
+  Value2* create(const Graph& g) const override;
 };
 
-Value1* Property1::create(Graph& g) const {
+Value1* Property1::create(const Graph& g) const {
   // value1 needs value2
   (void)Property2::get(g);
   return new Value1();
 }
 
-Value2* Property2::create(Graph&) const {
+Value2* Property2::create(const Graph&) const {
   // value2 does not need value1
   return new Value2();
 }

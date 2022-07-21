@@ -68,7 +68,7 @@ class _BaseProperty {
 template <class DerivedPropertyType, class ContainerType, class ValueType>
 class Property : public _BaseProperty {
  public:
-  static ValueType* get(ContainerType& container);
+  static ValueType* get(const ContainerType& container);
   void _delete_value(void* valuep) const override {
     auto vp = (ValueType*)valuep;
     delete vp;
@@ -76,7 +76,7 @@ class Property : public _BaseProperty {
 
   virtual ~Property() override {}
 
-  virtual ValueType* create(ContainerType& container) const = 0;
+  virtual ValueType* create(const ContainerType& container) const = 0;
 
  protected:
   constexpr Property() {
@@ -87,13 +87,13 @@ class Property : public _BaseProperty {
         "DerivedPropertyType (first) type parameter of Property<*,,> must be the class that uses this as a base class");
     static_assert(
         std::is_base_of<Container, ContainerType>::value,
-        "ContainerType (third) type parameter of Property<,,*> must derive from Container");
+        "ContainerType (second) type parameter of Property<,,*> must derive from Container");
   }
 };
 
 template <class DerivedPropertyType, class ContainerType, class ValueType>
 ValueType* Property<DerivedPropertyType, ContainerType, ValueType>::get(
-    ContainerType& container) {
+    const ContainerType& container) {
   // We enforce the singleton pattern by creating a single instance of the
   // property here. That simplifies the usage pattern, becuse the client merely
   // needs to declare a property, and then can use it to fetch values from a
@@ -106,7 +106,13 @@ ValueType* Property<DerivedPropertyType, ContainerType, ValueType>::get(
     return (ValueType*)found->second;
   }
   auto result = property->create(container);
-  map[property] = result;
+  // We cast away const to make the map mutable.  The API is still immutable, as
+  // it is not possible for a client to observe a state transition (e.g. a
+  // different state at two different times). That is because the client always
+  // (only) sees the value in its constructed state.
+  auto& mutable_map =
+      *const_cast<std::unordered_map<const _BaseProperty*, void*>*>(&map);
+  mutable_map[property] = result;
   return result;
 }
 

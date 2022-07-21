@@ -152,10 +152,7 @@ enum class Type {
 Type type_from_name(const std::string& name);
 std::string to_string(Type type);
 
-class Graph : Container {
- private:
-  const std::vector<const Node*> nodes;
-
+class Graph : public Container {
  public:
   // valudates that the list of nodes forms a valid graph,
   // and returns that graph.  Throws an exception if the
@@ -176,8 +173,13 @@ class Graph : Container {
   inline int size() const {
     return nodes.size();
   }
+  inline const Node* operator[](uint node_id) const {
+    return nodes[node_id];
+  }
 
  private:
+  const std::vector<const Node*> nodes;
+
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
   explicit Graph(std::vector<const Node*> nodes);
@@ -187,9 +189,14 @@ class Graph : Container {
   class Factory {
    public:
     uint add_constant(double value);
+
     uint add_operator(enum Operator op, std::vector<uint> parents);
-    uint add_query(uint parent); // returns query id
+
+    // returns the index of the query in the samples
+    uint add_query(uint parent);
+
     uint add_variable(const std::string& name, const uint variable_index);
+
     inline const Node* operator[](uint node_id) const {
       return nodes[node_id];
     }
