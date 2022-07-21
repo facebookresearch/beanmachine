@@ -475,3 +475,54 @@ digraph "graph" {
         log_probs = g.get_log_prob()
         self.assertEqual(len(log_probs), 2)
         self.assertEqual(len(log_probs[0]), 10)
+
+    def test_graph_stats(self):
+        g = graph.Graph()
+        c1 = g.add_constant_natural(10)
+        c2 = g.add_constant_probability(0.55)
+        d1 = g.add_distribution(
+            graph.DistributionType.BINOMIAL, graph.AtomicType.NATURAL, [c1, c2]
+        )
+        g.add_operator(graph.OperatorType.SAMPLE, [d1])
+        stats = g.collect_statistics()
+        expected = """
+Graph Statistics Report
+#######################
+Number of nodes: 4
+Number of edges: 3
+Graph density: 0.25
+
+Node statistics:
+################
+CONSTANT: 2
+DISTRIBUTION: 1
+OPERATOR: 1
+
+Operator node statistics:
+#########################
+SAMPLE: 1
+
+Distribution node statistics:
+#############################
+BINOMIAL: 1
+
+Constant node statistics:
+#########################
+PROBABILITY and SCALAR: 1
+NATURAL and SCALAR: 1
+
+Some graph properties:
+######################
+Number of root nodes: 2
+Number of terminal nodes: 1
+Maximum number of incoming edges into a node: 2
+Maximum number of outgoing edges from a node: 1
+Distribution of incoming edges:
+\tNodes with 0 edges: 2
+\tNodes with 1 edges: 1
+\tNodes with 2 edges: 1
+Distribution of outgoing edges:
+\tNodes with 0 edges: 1
+\tNodes with 1 edges: 3
+"""
+        self.assertEqual(stats.strip(), expected.strip())
