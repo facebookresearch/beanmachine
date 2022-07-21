@@ -13,12 +13,14 @@
 #include <memory>
 #include <random>
 #include <set>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <variant>
 #include <vector>
 #include "beanmachine/graph/double_matrix.h"
 #include "beanmachine/graph/profiler.h"
+#include "beanmachine/graph/third-party/nameof.h"
 
 #define NATURAL_TYPE unsigned long long int
 #ifdef _MSC_VER
@@ -36,15 +38,15 @@ namespace graph {
 const double PRECISION = 1e-10; // minimum precision of values
 
 enum class VariableType {
-  UNKNOWN = 0,
-  SCALAR = 1,
+  UNKNOWN, // For error catching
+  SCALAR,
   BROADCAST_MATRIX,
   COL_SIMPLEX_MATRIX,
 };
 
 enum class AtomicType {
-  UNKNOWN = 0,
-  BOOLEAN = 1,
+  UNKNOWN, // This is for error catching
+  BOOLEAN,
   PROBABILITY,
   REAL,
   POS_REAL, // Real numbers greater than *or* equal to zero
@@ -301,8 +303,8 @@ class NodeValue {
 };
 
 enum class OperatorType {
-  UNKNOWN = 0,
-  SAMPLE = 1, // This is the ~ operator in models
+  UNKNOWN,
+  SAMPLE, // This is the ~ operator in models
   IID_SAMPLE,
   TO_REAL,
   TO_POS_REAL,
@@ -342,7 +344,7 @@ enum class OperatorType {
 };
 
 enum class DistributionType {
-  UNKNOWN = 0,
+  UNKNOWN,
   TABULAR,
   BERNOULLI,
   BERNOULLI_NOISY_OR,
@@ -366,22 +368,31 @@ enum class DistributionType {
 };
 
 enum class FactorType {
-  UNKNOWN = 0,
-  EXP_PRODUCT = 1,
+  UNKNOWN,
+  EXP_PRODUCT,
 };
 
 enum class NodeType {
-  UNKNOWN = 0,
-  CONSTANT = 1,
-  DISTRIBUTION = 2,
-  OPERATOR = 3,
-  FACTOR = 4,
-  MAX = 5
+  UNKNOWN,
+  CONSTANT,
+  DISTRIBUTION,
+  OPERATOR,
+  FACTOR,
+  MAX,
 };
 
-enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
+enum class InferenceType {
+  UNKNOWN,
+  REJECTION,
+  GIBBS,
+  NMC,
+};
 
-enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
+enum class AggregationType {
+  UNKNOWN,
+  NONE,
+  MEAN,
+};
 
 struct InferConfig {
   bool keep_log_prob;
@@ -1094,6 +1105,64 @@ struct Graph {
   void clear_gradients_of_node_and_its_affected_nodes(Node* node);
 
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
+
+  // Graph statistics
+ public:
+  std::string collect_statistics();
+
+ private:
+  class Statistics {
+   public:
+    explicit Statistics(Graph& g);
+    std::string to_string();
+
+   private:
+    // types
+    using Counts_t = std::vector<uint>;
+    using String_t = std::string;
+    using Stream_t = std::ostringstream;
+
+    // state
+    uint num_edges;
+    uint num_nodes;
+    uint max_in;
+    uint max_out;
+    String_t graph_density;
+    uint num_root_nodes;
+    uint num_terminal_nodes;
+
+    std::vector<Counts_t> const_counts; // atomic type & var type
+    Counts_t dist_counts;
+    Counts_t fact_counts;
+    Counts_t node_type_counts;
+    Counts_t oper_counts;
+    Counts_t in_edge_histogram;
+    Counts_t out_edge_histogram;
+
+    // statistics gathering methods
+    void initialize_scalars();
+    void initialize_count_vectors();
+    void compute_statistics(Graph& g);
+    void compute_node_statistics(NodeType node_type, Node* node);
+    String_t compute_density();
+
+    // Report generation methods
+    Stream_t report;
+
+    void gen_graph_stats_report();
+    void gen_node_stats_report();
+    void gen_graph_properties_report();
+    void gen_edge_stats_report(String_t e_type, Counts_t counts);
+    template <class T>
+    void gen_detailed_stats(String_t title, Counts_t counts);
+
+    void emit_tab();
+    void emit(String_t label, String_t value);
+    void emit(String_t label, uint value);
+    void emit(String_t title);
+    void emit(String_t title, char banner);
+    void emit();
+  };
 };
 
 } // namespace graph
