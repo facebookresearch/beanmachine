@@ -35,10 +35,18 @@ namespace paic2 {
         GetVal
     };
 
+    enum TypeKind {
+        Primitive,
+        World
+    };
+
     class Type {
     public:
-        Type(){}
+        Type(TypeKind kind):_kind(kind){}
+        const TypeKind getKind() const {return _kind;}
         virtual ~Type() = default;
+    private:
+        TypeKind _kind;
     };
 
     enum PrimitiveCode {
@@ -48,15 +56,16 @@ namespace paic2 {
 
     class PrimitiveType : public Type {
     public:
-        PrimitiveType(PrimitiveCode code):_code(code){}
-
+        PrimitiveType(PrimitiveCode code):Type(Primitive),_code(code){}
+        PrimitiveCode code()const{return _code;}
+        static bool classof(const Type*c) { return c->getKind() == Primitive; }
     private:
         PrimitiveCode _code;
     };
 
     class WorldType : public Type {
     public:
-        WorldType(PrimitiveCode element_type, int length):_nodeType(element_type){
+        WorldType(PrimitiveCode element_type, int length):Type(World), _nodeType(element_type){
             if(length < 0){
                 _length = 0;
             } else {
@@ -64,6 +73,9 @@ namespace paic2 {
             }
         }
         ~WorldType() = default;
+        PrimitiveCode nodeType()const{return _nodeType;}
+        unsigned int length()const{return _length;}
+        static bool classof(const Type*c) { return c->getKind() == World; }
     private:
         unsigned int _length;
         PrimitiveCode _nodeType;
@@ -83,31 +95,31 @@ namespace paic2 {
 
     class DeclareValNode : public Node {
     public:
-        DeclareValNode(Location loc, llvm::StringRef name, NodeKind kind, Type type):Node(std::move(loc), kind), _name(name),_type(std::move(type)){}
+        DeclareValNode(Location loc, llvm::StringRef name, NodeKind kind, std::shared_ptr<Type> type):Node(std::move(loc), kind), _name(name),_type(std::move(type)){}
         std::string getPyName() { return _name; }
         llvm::StringRef getName() const { return _name; }
-        const Type &getType() { return _type; }
+        std::shared_ptr<Type> &getType() { return _type; }
     private:
         std::string _name;
-        Type _type;
+        std::shared_ptr<Type> _type;
     };
 
     class ParamNode : public DeclareValNode {
     public:
-        ParamNode(Location loc, llvm::StringRef name, Type type): DeclareValNode(std::move(loc), name, Parameter, std::move(type)){}
+        ParamNode(Location loc, llvm::StringRef name, std::shared_ptr<Type> type): DeclareValNode(std::move(loc), name, Parameter, std::move(type)){}
     };
 
     class Expression : public Node {
     public:
-        Expression(Location loc,NodeKind kind, Type type):Node(std::move(loc), kind),_type(std::move(type)){}
-        const Type &getType() { return _type; }
+        Expression(Location loc,NodeKind kind, std::shared_ptr<Type> type):Node(std::move(loc), kind),_type(std::move(type)){}
+        std::shared_ptr<Type> getType() { return _type; }
     private:
-        Type _type;
+        std::shared_ptr<Type> _type;
     };
 
     class VarNode : public DeclareValNode {
     public:
-        VarNode(Location loc, llvm::StringRef name, Type type,
+        VarNode(Location loc, llvm::StringRef name, std::shared_ptr<Type> type,
                 std::shared_ptr<Expression> initVal): DeclareValNode(std::move(loc), name, Variable, std::move(type)),_rhs(std::move(initVal)){}
         std::shared_ptr<Expression> getInitVal() { return _rhs; }
         static bool classof(const Node*c) { return c->getKind() == paic2::NodeKind::Variable; }
@@ -117,7 +129,7 @@ namespace paic2 {
 
     class GetValNode : public Expression {
     public:
-        GetValNode(Location loc, llvm::StringRef name, Type type)
+        GetValNode(Location loc, llvm::StringRef name, std::shared_ptr<Type> type)
                 : Expression(std::move(loc), NodeKind::GetVal, std::move(type)), _name(name) {}
 
         std::string getPyName() { return _name; }
@@ -131,14 +143,14 @@ namespace paic2 {
         CallNode(Location loc,
                  const std::string &callee,
                  std::vector<std::shared_ptr<Expression>> args,
-                 Type type)
+                 std::shared_ptr<Type> type)
                 : Expression(std::move(loc), NodeKind::Call, std::move(type)), _function(callee),
                   args(args), _receiver(nullptr) {}
         CallNode(Location loc,
                  const std::string &callee,
                  std::vector<std::shared_ptr<Expression>> args,
                  std::shared_ptr<Expression> receiver,
-                 Type type)
+                 std::shared_ptr<Type> type)
                 : Expression(std::move(loc), NodeKind::Call, std::move(type)), _function(callee),
                   args(args), _receiver(receiver) {}
 
@@ -164,7 +176,7 @@ namespace paic2 {
     template<typename T>
     class ConstNode : public Expression {
     public:
-        ConstNode(Location location, Type tpe, T value): Expression(std::move(location), Constant, std::move(tpe)), _value(value){}
+        ConstNode(Location location, std::shared_ptr<Type> type, T value): Expression(std::move(location), Constant, std::move(type)), _value(value){}
         T getValue() { return _value; }
     private:
         T _value;
@@ -172,7 +184,7 @@ namespace paic2 {
 
     class FloatConstNode : public ConstNode<float> {
     public:
-        FloatConstNode(Location location, float value): ConstNode<float>(location, PrimitiveType(Float), value){}
+        FloatConstNode(Location location, float value): ConstNode<float>(location, std::make_shared<PrimitiveType>(Float), value){}
     };
 
     class ReturnNode : public Node {
@@ -186,24 +198,23 @@ namespace paic2 {
 
     class PythonFunction : public Node {
     public:
-        PythonFunction(Location location, const std::string &name, Type retType,
+        PythonFunction(Location location, const std::string &name, std::shared_ptr<Type> type,
                        std::vector<std::shared_ptr<ParamNode>> args,
-                       std::shared_ptr<BlockNode> body):Node(std::move(location), Function), _retType(std::move(retType)), _body(body),_args(args), _name(name) {}
+                       std::shared_ptr<BlockNode> body):Node(std::move(location), Function), _type(std::move(type)), _body(body),_args(args), _name(name) {}
         std::string getName() const { return _name; }
         llvm::ArrayRef<std::shared_ptr<ParamNode>> getArgs() { return _args; }
         std::shared_ptr<BlockNode> getBody() { return _body; }
-        const Type &getType() { return _retType; }
+        std::shared_ptr<Type> getType() { return _type; }
     private:
         std::string _name;
         std::vector<std::shared_ptr<ParamNode>> _args;
         std::shared_ptr<BlockNode> _body;
-        Type _retType;
+        std::shared_ptr<Type> _type;
     };
 
     class PythonModule {
     public:
         PythonModule(std::vector<std::shared_ptr<PythonFunction>> functions):_functions(functions){
-            std::cout << "";
         }
         virtual ~PythonModule() = default;
         llvm::ArrayRef<std::shared_ptr<PythonFunction>> getFunctions() { return _functions; }

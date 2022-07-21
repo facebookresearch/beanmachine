@@ -23,10 +23,11 @@ struct ReturnOpLowering : public OpRewritePattern<bm::ReturnOp> {
     using OpRewritePattern<bm::ReturnOp>::OpRewritePattern;
 
     LogicalResult matchAndRewrite(bm::ReturnOp op, PatternRewriter &rewriter) const final {
-        // During this lowering, we expect that all function calls have been
-        // inlined.
-        if (op.hasOperand())
-            return failure();
+        if (op.hasOperand()) {
+            rewriter.create<func::ReturnOp>(op->getLoc(), op->getResultTypes(), op->getOperands());
+            rewriter.eraseOp(op);
+            return success();
+        }
 
         // We lower "toy.return" directly to "func.return".
         rewriter.replaceOpWithNewOp<func::ReturnOp>(op);
@@ -56,18 +57,6 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
     using OpConversionPattern<bm::FuncOp>::OpConversionPattern;
 
     LogicalResult matchAndRewrite(bm::FuncOp op, OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const final {
-        bool accepts_world_type = op.getFunctionType().getInput(0).getTypeID() == bm::WorldType().getTypeID();
-        // we do not yet map return types
-        if (op.getFunctionType().getNumResults() > 0 || !accepts_world_type || op.getFunctionType().getNumResults() > 1) {
-            return rewriter.notifyMatchFailure(op, [](Diagnostic &diag) {
-                diag << "expected a bm function to accept only a world and return nothing";
-            });
-        }
-        // TODO: iterate through parameters and update the type of the block arguments that are of type World
-        // currently we expect a bm function to accept a world and we expect a world to be just
-        // be a wrapper around a 1D Tensor. So let's map that to an unranked MemRef type
-        mlir::Attribute memSpace = mlir::IntegerAttr::get(mlir::IntegerType::get(rewriter.getContext(), 32), 7);
-        //mlir::ShapedType unrankedTensorType = mlir::UnrankedMemRefType::get(rewriter.getF32Type(), memSpace);
         mlir::ShapedType rankedTensorType = mlir::MemRefType::get({5}, rewriter.getF64Type());
         llvm::SmallVector<mlir::Type> types;
         for(mlir::Type type_input : op.getFunctionType().getInputs()){
@@ -77,7 +66,8 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
                 types.push_back(type_input);
             }
         }
-        // TODO: needs to be recursive
+
+        // TODO: needs to be recursive. Also use TypeConverter?
         for(auto arg_ptr = op.front().args_begin(); arg_ptr != op.front().args_end(); arg_ptr++){
             mlir::BlockArgument blockArgument = *arg_ptr;
             if(blockArgument.getType().dyn_cast_or_null<bm::WorldType>() != nullptr){
@@ -85,28 +75,14 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
             }
         }
         mlir::TypeRange typeRange(types);
-        // TODO: handle return value
-        mlir::FunctionType new_function_type = rewriter.getFunctionType(typeRange, {});
+        mlir::FunctionType new_function_type = rewriter.getFunctionType(typeRange, op.getFunctionType().getResults());
 
         // Create a new function with an updated signature.
         auto newFuncOp = rewriter.create<mlir::func::FuncOp>(op.getLoc(), op.getName().str(), new_function_type);
         newFuncOp->setAttrs(op->getAttrs());
         newFuncOp.setType(new_function_type);
         rewriter.inlineRegionBefore(op.getBody(), newFuncOp.getBody(),newFuncOp.end());
-
-
-        // TODO: use the type converter
-        /*
-        TypeConverter typeConverter;
-        llvm::SmallVector<Type> sv;
-        sv.push_back(unrankedTensorType);
-        typeConverter.convertTypes(bm::WorldType::get({unrankedTensorType}), sv);
-        rewriter.convertRegionTypes(op.getCallableRegion(), typeConverter);
-        op.dump();
-         */
-
         rewriter.eraseOp(op);
-
         return success();
     }
 };

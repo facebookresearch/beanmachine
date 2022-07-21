@@ -17,7 +17,10 @@ PYBIND11_MAKE_OPAQUE(FunctionList);
 
 void paic2::Node::bind(pybind11::module &m) {
     py::class_<Location>(m, "Location").def(py::init<int,int>());
-    py::class_<Type, std::shared_ptr<Type>>(m, "Type").def(py::init());
+    py::enum_<TypeKind>(m, "TypeKind")
+            .value("Primitive", paic2::TypeKind::Primitive)
+            .value("World", paic2::TypeKind::World).export_values();
+    py::class_<Type, std::shared_ptr<Type>>(m, "Type").def(py::init<TypeKind>());
 
     py::enum_<PrimitiveCode>(m, "PrimitiveCode")
             .value("Void", paic2::PrimitiveCode::Void)
@@ -38,30 +41,30 @@ void paic2::Node::bind(pybind11::module &m) {
             .def("loc", &Node::loc);
 
     py::class_<Expression, std::shared_ptr<Expression>, Node>(m, "Expression")
-            .def(py::init<Location,NodeKind,Type>()).def("type", &paic2::Expression::getType);
+            .def(py::init<Location,NodeKind,std::shared_ptr<Type>>()).def("type", &paic2::Expression::getType);
 
     py::class_<FloatConstNode, std::shared_ptr<FloatConstNode>, Expression>(m, "FloatNode")
             .def(py::init<Location, float>());
 
     py::class_<DeclareValNode, std::shared_ptr<DeclareValNode>, Node>(m, "DeclareValNode")
-            .def(py::init<Location,std::string, NodeKind, Type>())
+            .def(py::init<Location,std::string, NodeKind, std::shared_ptr<Type>>())
             .def("type", &paic2::DeclareValNode::getType)
             .def("name", &paic2::DeclareValNode::getPyName);
 
     py::class_<ParamNode, std::shared_ptr<ParamNode>, DeclareValNode>(m, "ParamNode")
-            .def(py::init<Location,std::string, Type>())
+            .def(py::init<Location,std::string, std::shared_ptr<Type>>())
             .def("name", &paic2::DeclareValNode::getPyName)
             .def("type", &paic2::DeclareValNode::getType);
 
     py::class_<CallNode, std::shared_ptr<CallNode>, Expression>(m, "CallNode")
-            .def(py::init<Location, const std::string &,std::vector<std::shared_ptr<Expression>>,std::shared_ptr<Expression>,Type>())
-            .def(py::init<Location, const std::string &,std::vector<std::shared_ptr<Expression>>,Type>());
+            .def(py::init<Location, const std::string &,std::vector<std::shared_ptr<Expression>>,std::shared_ptr<Expression>,std::shared_ptr<Type>>())
+            .def(py::init<Location, const std::string &,std::vector<std::shared_ptr<Expression>>,std::shared_ptr<Type>>());
 
     py::class_<VarNode, std::shared_ptr<VarNode>, DeclareValNode>(m, "VarNode")
-            .def(py::init<Location, std::string, Type,std::shared_ptr<Expression>>());
+            .def(py::init<Location, std::string, std::shared_ptr<Type>,std::shared_ptr<Expression>>());
 
     py::class_<GetValNode, std::shared_ptr<GetValNode>, Expression>(m, "GetValNode")
-            .def(py::init<Location, std::string, Type>());
+            .def(py::init<Location, std::string, std::shared_ptr<Type>>());
 
     py::class_<BlockNode, std::shared_ptr<BlockNode>, Node>(m, "BlockNode")
             .def(py::init<Location, NodeList>());
@@ -70,7 +73,7 @@ void paic2::Node::bind(pybind11::module &m) {
             .def(py::init<Location, std::shared_ptr<Expression>>());
 
     py::class_<PythonFunction, std::shared_ptr<PythonFunction>, Node>(m, "PythonFunction")
-            .def(py::init<Location, const std::string &, Type,ParamList,std::shared_ptr<BlockNode>>());
+            .def(py::init<Location, const std::string &, std::shared_ptr<Type>,ParamList,std::shared_ptr<BlockNode>>());
 
     py::class_<PythonModule, std::shared_ptr<PythonModule>>(m, "PythonModule").def(py::init<FunctionList>());
 }
