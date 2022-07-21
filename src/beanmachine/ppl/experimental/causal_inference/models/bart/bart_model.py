@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 
 from copy import deepcopy
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
 import torch
 from beanmachine.ppl.experimental.causal_inference.models.bart.exceptions import (
@@ -394,6 +394,124 @@ class BART:
         if self.leaf_mean is None:
             raise NotInitializedError("LeafMean prior not set.")
         return self.leaf_mean.prior_scale
+
+
+class XBART(BART):
+    """Implementes XBART [1] which is a faster implementation of Bayesian Additive Regression Trees (BART) are Bayesian sum of trees models [2].
+    Default parameters are taken from [1].
+
+    Reference:
+        [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
+        https://arxiv.org/abs/1810.02215
+
+        [2] Hugh A. Chipman, Edward I. George, Robert E. McCulloch (2010). "BART: Bayesian additive regression trees"
+        https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full
+
+    Args:
+        num_trees: Number of trees. If this is not set in the constructor explicitly,
+            it defaults to 0 and is adaptively set as a function of the trianing data in the ```fit()``` method.
+        alpha: Parameter used in the tree depth prior, Eq. 7 of [2].
+        beta: Parameter used in the tree depth prior, Eq. 7 of [2].
+        tao: Prior variance of the leaf-specific mean paramete used in the u_i_j prior, section 2.2 of [1].
+        noise_sd_concentration: Concentration parameter (alpha) for the inverse gamma distribution prior of p(sigma).
+        noise_sd_rate: Rate parameter (beta) for the inverse gamma distribution prior of p(sigma).
+        tree_sampler: The tree sampling method used.
+        random_state: Random state used to seed.
+        num_cuts: The maximum number of cuts per dimension.
+
+    """
+
+    def __init__(
+        self,
+        num_trees: int = 0,
+        alpha: float = 0.95,
+        beta: float = 2.0,
+        tao: Optional[float] = None,
+        noise_sd_concentration: float = 3.0,
+        noise_sd_rate: float = 1.0,
+        tree_sampler: Optional[GrowPruneTreeProposer] = None,
+        random_state: Optional[int] = None,
+        num_cuts: Optional[int] = None,
+    ):
+        self.num_cuts = num_cuts
+        self.tao = tao
+
+        super().__init__(
+            num_trees=num_trees,
+            alpha=0.95,
+            beta=1.25,
+            noise_sd_concentration=3.0,
+            noise_sd_rate=1.0,
+            tree_sampler=None,
+            random_state=None,
+        )
+
+    def fit(
+        self,
+        X: torch.Tensor,
+        y: torch.Tensor,
+        num_samples: int = 25,
+        num_burn: int = 15,
+    ) -> XBART:
+        """Fit the training data and learn the parameters of the model.
+
+        Args:
+            X: Training data / covariate matrix of shape (num_observations, input_dimensions).
+            y: Response vector of shape (num_observations, 1).
+        """
+        self.num_samples = num_samples
+        self._load_data(X, y)
+
+        if not self.num_trees > 0:
+            self._adaptively_init_num_trees()
+
+        if self.tao is None:
+            self._adaptively_init_tao()
+        self.tao = cast(float, self.tao)
+        self.leaf_mean = LeafMean(prior_loc=0.0, prior_scale=math.sqrt(self.tao))
+        if self.num_cuts is None:
+            self._adaptively_init_num_cuts()
+        self.samples = {"trees": [], "sigmas": []}
+        self._init_trees(X)
+
+        for iter_id in trange(num_burn + num_samples):
+            trees, sigma = self._step()
+            self._all_trees = trees
+            if iter_id >= num_burn:
+                self.samples["trees"].append(trees)
+                self.samples["sigmas"].append(sigma)
+        return self
+
+    def _adaptively_init_num_trees(self):
+        """Implements the default for number of trees from section 3.1 of [1].
+
+        Reference:
+            [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
+        https://arxiv.org/abs/1810.02215
+        """
+        n = len(self.X)
+        self.num_trees = int(math.pow(math.log(n), math.log(math.log(n))) / 4)
+
+    def _adaptively_init_tao(self):
+        """Implements the default for tao from section 3.1 of [1].
+
+        Reference:
+            [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
+        https://arxiv.org/abs/1810.02215
+        """
+        if not self.num_trees > 0:
+            raise NotInitializedError("num_trees not set")
+        self.tao = (3 / 10) * (torch.var(self.y).item() / self.num_trees)
+
+    def _adaptively_init_num_cuts(self):
+        """Implements the default for number of cuts, C from section 3.3 of [1].
+
+        Reference:
+            [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
+        https://arxiv.org/abs/1810.02215
+        """
+        n = len(self.X)
+        self.num_cuts = max(int(math.sqrt(n)), 100)
 
 
 class NoiseStandardDeviation:
