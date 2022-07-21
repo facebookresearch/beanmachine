@@ -69,4 +69,4 @@ jobs:
       run: |
         pwd
         ls
-        pytest src\\ppl
+        pytest src/ppl
