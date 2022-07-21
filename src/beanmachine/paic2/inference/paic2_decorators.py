@@ -25,13 +25,19 @@ def import_inference(entry_callable: typing.Callable):
         source = "".join(lines)
         module = ast.parse(source)
         funcdef = module.body[0]
-        to_paic = paic2_ast_generator()
+        to_paic = paic2_ast_generator(world_size)
         globals = get_globals(callable)
         python_function = to_paic.python_ast_to_paic_ast(funcdef, globals)
 
+
+        # initialize world
+        init_nodes = paic2.Tensor()
+        for i in range(0, world_size):
+            init_nodes.push_back(float(i))
+
         # lower and execute inference
         mb = paic2.MLIRBuilder()
-        mb.infer(python_function, world_metadata)
+        mb.infer(python_function, world_metadata, init_nodes)
     return wrapper
 
 

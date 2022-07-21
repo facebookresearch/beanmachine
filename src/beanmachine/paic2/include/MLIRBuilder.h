@@ -9,6 +9,7 @@
 #include "mlir-c/IR.h"
 #include "PaicAST.h"
 #include "WorldSpec.h"
+#include <vector>
 
 namespace paic2 {
 
@@ -18,7 +19,7 @@ namespace paic2 {
         MLIRBuilder(pybind11::object contextObj);
         MLIRBuilder(){}
         void print_func_name(std::shared_ptr<paic2::PythonFunction> function);
-        void infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec);
+        void infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec, std::shared_ptr<std::vector<float>> init_nodes);
         pybind11::float_ evaluate(std::shared_ptr<paic2::PythonFunction> function, pybind11::float_ input);
     };
 }

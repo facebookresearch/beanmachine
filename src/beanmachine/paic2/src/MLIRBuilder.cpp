@@ -24,8 +24,11 @@
 #include "llvm/MC/TargetRegistry.h"
 
 #include "bm/BMDialect.h"
+#include "pybind_utils.h"
+#include <pybind11/stl_bind.h>
 
-#include <vector>
+using Tensor = std::vector<float, std::allocator<float>>;
+PYBIND11_MAKE_OPAQUE(Tensor);
 
 using llvm::ArrayRef;
 using llvm::cast;
@@ -47,8 +50,8 @@ namespace mlir {
 
 class MLIRGenImpl {
 public:
-    MLIRGenImpl(mlir::MLIRContext &context) : builder(&context){}
-
+    MLIRGenImpl(mlir::MLIRContext &context, paic2::WorldSpec const& spec) : builder(&context), _world_spec(spec){}
+    MLIRGenImpl(mlir::MLIRContext &context) : builder(&context) {}
     mlir::ModuleOp generate_op(std::shared_ptr<paic2::PythonModule> pythonModule) {
         // We create an empty MLIR module and codegen functions one at a time and
         // add them to the module.
@@ -70,6 +73,7 @@ public:
 private:
     mlir::ModuleOp theModule;
     mlir::OpBuilder builder;
+    paic2::WorldSpec _world_spec;
     llvm::ScopedHashTable<llvm::StringRef, mlir::Value> symbolTable;
 
     mlir::Location loc(const paic2::Location &loc) {
@@ -93,13 +97,12 @@ private:
     mlir::Type getType(std::shared_ptr<paic2::Type> type) {
         if(auto *var = dyn_cast<paic2::PrimitiveType>(type.get())){
             return typeForCode(var->code());
-        }
-
-        if(auto *var = dyn_cast<paic2::WorldType>(type.get())){
+        } else if (auto *var = dyn_cast<paic2::WorldType>(type.get())) {
             std::vector<mlir::Type> members;
             mlir::Type elementType = typeForCode(var->nodeType());
             ArrayRef<int64_t> shape(var->length());
             auto dataType = mlir::RankedTensorType::get(shape, elementType);
+            members.push_back(dataType);
             mlir::Type structType = mlir::bm::WorldType::get(members);
             return structType;
         }
@@ -178,7 +181,7 @@ private:
         if(call->getReceiver().get() != nullptr){
             receiver = mlirGen(call->getReceiver().get());
         }
-        if(strcmp(callee.data(), "print") == 0){
+        if(strcmp(callee.data(), _world_spec.print_name().data()) == 0){
             // we add an operator here so that all the operations relevant to printing are kept
             // inside a single operation until we are ready to lower to llvm ir
             if(receiver != nullptr && receiver.getType().isa<mlir::bm::WorldType>()){
@@ -190,10 +193,6 @@ private:
         } else {
             throw std::invalid_argument("only world print operations are supported");
         }
-    }
-
-    mlir::Value mlirGen(paic2::FloatConstNode* expr) {
-        return builder.create<mlir::arith::ConstantFloatOp>(loc(expr->loc()), llvm::APFloat(expr->getValue()), builder.getF32Type());
     }
 
     mlir::Value mlirGen(paic2::Expression* expr) {
@@ -274,7 +273,7 @@ private:
 
         mlir::FunctionType funcType;
         auto returnType = getType(pythonFunction->getType());
-        if(returnType == nullptr){
+        if(returnType == nullptr || returnType.getTypeID() == builder.getNoneType().getTypeID()){
             funcType = builder.getFunctionType(inputs, {});
         } else {
             funcType = builder.getFunctionType(inputs, returnType);
@@ -336,6 +335,7 @@ void paic2::MLIRBuilder::bind(py::module &m) {
             .def("print_func_name", &MLIRBuilder::print_func_name)
             .def("infer", &MLIRBuilder::infer)
             .def("evaluate", &MLIRBuilder::evaluate);
+    bind_vector<float>(m, "Tensor", true);
 }
 
 paic2::MLIRBuilder::MLIRBuilder(pybind11::object contextObj) {}
@@ -354,8 +354,19 @@ void paic2::MLIRBuilder::print_func_name(std::shared_ptr<paic2::PythonFunction> 
     module.dump();
 }
 
-void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec) {
-
+void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec, std::shared_ptr<std::vector<float>> init_nodes) {
+    std::string function_name = function->getName().data();
+    std::vector<std::shared_ptr<PythonFunction>> functions{ function };
+    std::shared_ptr<PythonModule> py_module = std::make_shared<PythonModule>(functions);
+    ::mlir::MLIRContext *context = new ::mlir::MLIRContext();
+    context->loadDialect<mlir::func::FuncDialect>();
+    context->loadDialect<mlir::bm::BMDialect>();
+    context->loadDialect<mlir::math::MathDialect>();
+    context->loadDialect<mlir::arith::ArithmeticDialect>();
+    context->loadDialect<mlir::memref::MemRefDialect>();
+    MLIRGenImpl generator(*context, worldClassSpec);
+    mlir::ModuleOp mlir_module = generator.generate_op(py_module);
+    mlir_module->dump();
 }
 
 pybind11::float_ paic2::MLIRBuilder::evaluate(std::shared_ptr<paic2::PythonFunction> function, pybind11::float_ input) {

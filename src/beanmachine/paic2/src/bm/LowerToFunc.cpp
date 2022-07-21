@@ -57,10 +57,11 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
     using OpConversionPattern<bm::FuncOp>::OpConversionPattern;
 
     LogicalResult matchAndRewrite(bm::FuncOp op, OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const final {
-        mlir::ShapedType rankedTensorType = mlir::MemRefType::get({5}, rewriter.getF64Type());
         llvm::SmallVector<mlir::Type> types;
         for(mlir::Type type_input : op.getFunctionType().getInputs()){
-            if(type_input.dyn_cast_or_null<bm::WorldType>() != nullptr){
+            auto world_ptr = type_input.dyn_cast_or_null<bm::WorldType>();
+            if(world_ptr != nullptr){
+                mlir::ShapedType rankedTensorType = world_ptr.getElementTypes().front();
                 types.push_back(rankedTensorType);
             } else {
                 types.push_back(type_input);
@@ -70,7 +71,9 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
         // TODO: needs to be recursive. Also use TypeConverter?
         for(auto arg_ptr = op.front().args_begin(); arg_ptr != op.front().args_end(); arg_ptr++){
             mlir::BlockArgument blockArgument = *arg_ptr;
-            if(blockArgument.getType().dyn_cast_or_null<bm::WorldType>() != nullptr){
+            auto world_ptr = blockArgument.getType().dyn_cast_or_null<bm::WorldType>();
+            if(world_ptr != nullptr) {
+                mlir::ShapedType rankedTensorType = world_ptr.getElementTypes().front();
                 blockArgument.setType(rankedTensorType);
             }
         }

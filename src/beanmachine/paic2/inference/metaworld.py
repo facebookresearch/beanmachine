@@ -1,4 +1,11 @@
-import abc
+import torch
+from abc import ABCMeta, abstractmethod
+from typing import (
+    Dict,
+    Iterable
+)
+from beanmachine.ppl import RVIdentifier
+from beanmachine.ppl.world import World
 
 class MetaWorld(metaclass=ABCMeta):
     @abstractmethod
@@ -7,7 +14,7 @@ class MetaWorld(metaclass=ABCMeta):
 
 class RealWorld(MetaWorld):
     def __init__(self, queries: Iterable[RVIdentifier], observations: Dict[RVIdentifier, torch.Tensor]):
-        self.python_world = beanmachine.ppl.world.World.initialize_world(queries, observations)
+        self.python_world = World.initialize_world(queries, observations)
 
     def print(self):
         print(str(self.python_world))

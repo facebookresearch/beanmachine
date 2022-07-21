@@ -1,6 +1,6 @@
 import torch
 
-from beanmachine.ppl.compiler.paic.mlir.test_paic_mlir.infer.meta_world import MetaWorld, RealWorld
+from beanmachine.paic2.inference.metaworld import MetaWorld, RealWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict
 from typing import List, Callable
@@ -38,11 +38,12 @@ def test_create_type():
     for i in range(0, 20):
         observations[model.bar(i)] = bar_parent.sample(torch.Size((1, 1)))
 
-    inf: Callable[[MetaWorld], None] = fake_inference
+    # calling entry point of fake inference is logically equivalent to calling fake_inference with a world we created
+    # with the same init function. Currently we just allow the init to default to random
     entry_point_of_fake_inference(queries=[model.foo()],
-                                                      observations=observations,
-                                                      world_creator=lambda q,o:RealWorld(q,o),
-                                                      inference=fake_inference)
+                                  observations=observations,
+                                  world_creator=lambda q,o:RealWorld(q,o),
+                                  inference=fake_inference)
 
 
     # TODO: assert that the samples are as expected
