@@ -581,5 +581,11 @@ void LogProb::backward() {
   dist->backward_param(value->value, adjunct);
 }
 
+void MatrixSum::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  grad1 = in_nodes[0]->Grad1.sum();
+  grad2 = in_nodes[0]->Grad2.sum();
+}
+
 } // namespace oper
 } // namespace beanmachine

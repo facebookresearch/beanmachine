@@ -89,7 +89,8 @@ PYBIND11_MODULE(graph, module) {
       .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL)
       .value("CHOICE", OperatorType::CHOICE)
       .value("CHOLESKY", OperatorType::CHOLESKY)
-      .value("MATRIX_EXP", OperatorType::MATRIX_EXP);
+      .value("MATRIX_EXP", OperatorType::MATRIX_EXP)
+      .value("MATRIX_SUM", OperatorType::MATRIX_SUM);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)
