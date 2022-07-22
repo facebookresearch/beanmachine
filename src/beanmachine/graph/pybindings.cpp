@@ -376,7 +376,11 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "performance_report",
           &Graph::performance_report,
-          "performance report");
+          "performance report")
+      .def(
+          "collect_statistics",
+          &Graph::collect_statistics,
+          "collect statistics");
 
   py::class_<NUTS>(module, "NUTS")
       .def(py::init<Graph&, bool, bool>())
