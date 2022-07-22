@@ -77,10 +77,10 @@ void Graph::Statistics::initialize_count_vectors() {
 // statistics gathering methods
 
 void Graph::Statistics::compute_statistics(Graph& g) {
-  num_nodes = g.nodes.size();
+  num_nodes = uint(g.nodes.size());
   for (auto const& node : g.nodes) {
-    uint parents = (node.get())->in_nodes.size();
-    uint children = (node.get())->out_nodes.size();
+    uint parents = uint((node.get())->in_nodes.size());
+    uint children = uint((node.get())->out_nodes.size());
     parents == 0 ? num_root_nodes++ : 0;
     if (parents > max_in) {
       in_edge_histogram.resize((max_in = parents) + 1, 0);
