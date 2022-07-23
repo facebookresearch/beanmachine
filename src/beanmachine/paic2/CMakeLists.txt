@@ -34,10 +34,11 @@ include_directories(${pybind11_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
-message(STATUS "linking directories in ${LLVM_BUILD_LIBRARY_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
 
 # library
+get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 add_mlir_library(PAIC2_LIB
         src/MLIRBuilder.cpp
         src/PaicAST.cpp
@@ -50,8 +51,25 @@ add_mlir_library(PAIC2_LIB
 
         LINK_COMPONENTS
         Core
+        CodeGen
+        AsmPrinter
+        Analysis
+        IRReader
+#        OrcTargetProcess
+#        OrcShared
+#        TransformUtils
+#        X86AsmParser
+#        X86CodeGen
+        Support
+        nativecodegen
+        OrcJIT
+        Target
+        JITLink
+        ExecutionEngine
 
         LINK_LIBS PUBLIC
+        ${dialect_libs}
+        ${conversion_libs}
         MLIRIR
         MLIRSupport
 
@@ -65,23 +83,19 @@ add_mlir_library(PAIC2_LIB
         MLIRLLVMDialect
         MLIRLLVMIRTransforms
         MLIRLLVMToLLVMIRTranslation
-        MLIRFuncDialect
-        MLIRMathDialect
-        MLIRMemRefDialect
-        MLIRLLVMDialect
         MLIRParser
         MLIRPass
         MLIRSideEffectInterfaces
         MLIRSupport
         MLIRTargetLLVMIRExport
         MLIRTransforms
+        MLIRJitRunner
         )
-target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
-target_compile_options (PAIC2_LIB PUBLIC -frtti)
-get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
-get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
-set(LIBS ${dialect_libs} ${conversion_libs})
-target_link_libraries(PAIC2_LIB PRIVATE ${LIBS})
+
+#target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
+#target_compile_options (PAIC2_LIB PUBLIC -frtti)
+#set(LIBS ${dialect_libs} ${conversion_libs})
+#target_link_libraries(PAIC2_LIB PRIVATE ${LIBS})
 
 # pybind11
 add_subdirectory(include)

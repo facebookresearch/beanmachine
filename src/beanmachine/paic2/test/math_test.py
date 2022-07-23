@@ -19,7 +19,7 @@ def foo(p1:float) -> float:
     i1 = math.pow(i0, 2.0)
     return i1
 
-class BuildTest(unittest.TestCase):
+class MathTest(unittest.TestCase):
     @pytest.mark.paic2
     def test_builtin_alias(self):
         try:

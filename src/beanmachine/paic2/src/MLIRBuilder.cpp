@@ -2,7 +2,7 @@
 // Created by Steffi Stumpos on 7/15/22.
 //
 #include "MLIRBuilder.h"
-
+#include <mlir/Target/LLVMIR/Export.h>
 #include "bm/passes.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -26,6 +26,8 @@
 #include "bm/BMDialect.h"
 #include "pybind_utils.h"
 #include <pybind11/stl_bind.h>
+#include "llvm/MC/TargetRegistry.h"
+//#include "llvm/ADT/Triple.h"
 
 using Tensor = std::vector<float, std::allocator<float>>;
 PYBIND11_MAKE_OPAQUE(Tensor);
@@ -340,24 +342,11 @@ void paic2::MLIRBuilder::bind(py::module &m) {
 
 paic2::MLIRBuilder::MLIRBuilder(pybind11::object contextObj) {}
 
-void paic2::MLIRBuilder::print_func_name(std::shared_ptr<paic2::PythonFunction> function) {
-    ::mlir::MLIRContext *context = new ::mlir::MLIRContext();
-    context->loadDialect<mlir::func::FuncDialect>();
-    context->loadDialect<mlir::math::MathDialect>();
-    context->loadDialect<mlir::memref::MemRefDialect>();
-    context->loadDialect<mlir::arith::ArithmeticDialect>();
-    context->loadDialect<mlir::bm::BMDialect>();
-    std::vector<std::shared_ptr<PythonFunction>> funcs;
-    funcs.push_back(function);
-    auto py_module = std::make_shared<paic2::PythonModule>(funcs);
-    mlir::ModuleOp module = MLIRGenImpl(*context).generate_op(py_module);
-    module.dump();
-}
-
-void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec, std::shared_ptr<std::vector<float>> init_nodes) {
+std::shared_ptr<mlir::ExecutionEngine> execution_engine_for_function(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec) {
+    // transform python to MLIR
     std::string function_name = function->getName().data();
-    std::vector<std::shared_ptr<PythonFunction>> functions{ function };
-    std::shared_ptr<PythonModule> py_module = std::make_shared<PythonModule>(functions);
+    std::vector<std::shared_ptr<paic2::PythonFunction>> functions{ function };
+    std::shared_ptr<paic2::PythonModule> py_module = std::make_shared<paic2::PythonModule>(functions);
     ::mlir::MLIRContext *context = new ::mlir::MLIRContext();
     context->loadDialect<mlir::func::FuncDialect>();
     context->loadDialect<mlir::bm::BMDialect>();
@@ -367,23 +356,6 @@ void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, 
     MLIRGenImpl generator(*context, worldClassSpec);
     mlir::ModuleOp mlir_module = generator.generate_op(py_module);
     mlir_module->dump();
-}
-
-pybind11::float_ paic2::MLIRBuilder::evaluate(std::shared_ptr<paic2::PythonFunction> function, pybind11::float_ input) {
-    // transform python to MLIR
-    std::string function_name = function->getName().data();
-    std::vector<std::shared_ptr<PythonFunction>> functions{ function };
-    std::shared_ptr<PythonModule> py_module = std::make_shared<PythonModule>(functions);
-    ::mlir::MLIRContext *context = new ::mlir::MLIRContext();
-    context->loadDialect<mlir::func::FuncDialect>();
-    context->loadDialect<mlir::bm::BMDialect>();
-    context->loadDialect<mlir::math::MathDialect>();
-    context->loadDialect<mlir::arith::ArithmeticDialect>();
-    context->loadDialect<mlir::memref::MemRefDialect>();
-    MLIRGenImpl generator(*context);
-    mlir::ModuleOp mlir_module = generator.generate_op(py_module);
-    mlir_module->dump();
-
     // lower to LLVM dialect
     mlir::PassManager pm(context);
     pm.addPass(mlir::bm::createLowerToFuncPass());
@@ -396,13 +368,54 @@ pybind11::float_ paic2::MLIRBuilder::evaluate(std::shared_ptr<paic2::PythonFunct
     mlir::registerLLVMDialectTranslation(*(mlir_module->getContext()));
 
     auto optPipeline = mlir::makeOptimizingTransformer(
-            /*optLevel=*/3, /*sizeLevel=*/0,
+            /*optLevel=*/0, /*sizeLevel=*/0,
             /*targetMachine=*/nullptr);
     mlir::ExecutionEngineOptions engineOptions;
     engineOptions.transformer = optPipeline;
-    auto maybeEngine = mlir::ExecutionEngine::create(mlir_module, engineOptions);
+    engineOptions.llvmModuleBuilder = llvm::function_ref<std::unique_ptr<llvm::Module>(mlir::ModuleOp,llvm::LLVMContext &)>([](mlir::ModuleOp mod, llvm::LLVMContext &llvmContext){
+        std::unique_ptr<llvm::Module> llvmModule = mlir::translateModuleToLLVMIR(mod, llvmContext);
+        if (!llvmModule) {
+            llvm::errs() << "Failed to emit LLVM IR\n";
+        }
+        //llvmModule->dump();
+        return llvmModule;
+    });
+    llvm::Expected<std::unique_ptr<mlir::ExecutionEngine>> maybeEngine = mlir::ExecutionEngine::create(mlir_module, engineOptions);
     assert(maybeEngine && "failed to construct an execution engine");
     auto &engine = maybeEngine.get();
+    auto ptr = std::move(engine);
+    mlir_module->dump();
+    return ptr;
+}
+
+void paic2::MLIRBuilder::print_func_name(std::shared_ptr<paic2::PythonFunction> function) {
+    paic2::WorldSpec spec;
+    spec.set_print_name("print");
+    auto engine = execution_engine_for_function(function, spec);
+}
+
+void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec, std::shared_ptr<std::vector<float>> init_nodes) {
+    // Invoke the JIT-compiled function.
+    auto engine = execution_engine_for_function(function, worldClassSpec);
+    float *data = new float[worldClassSpec.world_size()];
+    for(int i=0;i<worldClassSpec.world_size();i++){
+        float a = init_nodes->at(i);
+        data[i] = a;
+    }
+//    std::vector<float*> values(2);
+//    values[0] = data;
+//    values[1] = data;
+ //   auto ref = llvm::makeArrayRef(values);
+    auto invocationResult = engine->invoke(function->getName().data(), init_nodes.get(), init_nodes.get(), 0, 0, 1);
+    if (invocationResult) {
+        llvm::errs() << "JIT invocation failed\n";
+    }
+//    delete[] data;
+}
+
+pybind11::float_ paic2::MLIRBuilder::evaluate(std::shared_ptr<paic2::PythonFunction> function, pybind11::float_ input) {
+    paic2::WorldSpec spec;
+    auto engine = execution_engine_for_function(function, spec);
 
     // Invoke the JIT-compiled function.
     float res = 0;

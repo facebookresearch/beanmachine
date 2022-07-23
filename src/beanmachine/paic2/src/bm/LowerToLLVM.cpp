@@ -78,7 +78,7 @@ namespace {
             // Generate a call to printf for the current element of the loop.
             auto printOp = cast<bm::PrintWorldOp>(op);
             mlir::Value elementLoad = rewriter.create<memref::LoadOp>(loc, printOp.getInput(), loopIvs);
-            mlir::Value constant = rewriter.create<mlir::arith::ConstantFloatOp>(loc, llvm::APFloat((double)4.7), rewriter.getF64Type());
+           // mlir::Value constant = rewriter.create<mlir::arith::ConstantFloatOp>(loc, llvm::APFloat((double)4.7), rewriter.getF64Type());
             // printf is a vararg function that takes at least one pointer to i8 (char in C), which returns an integer
             TypeRange results(rewriter.getIntegerType(32));
             ArrayRef<Value> print_operands({formatSpecifierCst, elementLoad});

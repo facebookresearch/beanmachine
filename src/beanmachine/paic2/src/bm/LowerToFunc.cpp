@@ -62,7 +62,8 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
             auto world_ptr = type_input.dyn_cast_or_null<bm::WorldType>();
             if(world_ptr != nullptr){
                 mlir::ShapedType rankedTensorType = world_ptr.getElementTypes().front();
-                types.push_back(rankedTensorType);
+                mlir::ShapedType rankedMemRefType = mlir::MemRefType::get(rankedTensorType.getShape(), rankedTensorType.getElementType());
+                types.push_back(rankedMemRefType);
             } else {
                 types.push_back(type_input);
             }
@@ -74,7 +75,8 @@ struct FuncOpLowering : public OpConversionPattern<bm::FuncOp> {
             auto world_ptr = blockArgument.getType().dyn_cast_or_null<bm::WorldType>();
             if(world_ptr != nullptr) {
                 mlir::ShapedType rankedTensorType = world_ptr.getElementTypes().front();
-                blockArgument.setType(rankedTensorType);
+                mlir::ShapedType rankedMemRefType = mlir::MemRefType::get(rankedTensorType.getShape(), rankedTensorType.getElementType());
+                blockArgument.setType(rankedMemRefType);
             }
         }
         mlir::TypeRange typeRange(types);
