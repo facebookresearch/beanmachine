@@ -123,7 +123,9 @@ void eval_graph(
       case Operator::DISTRIBUTION_BETA:
       case Operator::DISTRIBUTION_NORMAL:
         // Distributions have no effect during evaluation.  They are examined
-        // by downstream nodes such as SAMPLE.
+        // by downstream nodes such as SAMPLE.  However, given that we do
+        // have an abstract class `Distribution`, we could create the
+        // distribution here (once we figure out where to store it).
         break;
       default:
         const OperatorNode* opnode = static_cast<const OperatorNode*>(node);

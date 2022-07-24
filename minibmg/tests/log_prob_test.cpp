@@ -11,10 +11,14 @@
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/num3.h"
 #include "beanmachine/minibmg/ad/real.h"
+#include "beanmachine/minibmg/distribution/bernoulli.h"
+#include "beanmachine/minibmg/distribution/beta.h"
+#include "beanmachine/minibmg/distribution/normal.h"
 #include "beanmachine/minibmg/log_prob.h"
 
 // using namespace ::testing;
 using namespace ::beanmachine::minibmg;
+using namespace ::beanmachine::minibmg::distribution;
 using namespace ::std;
 
 TEST(log_prob, normal_real) {
@@ -24,7 +28,7 @@ TEST(log_prob, normal_real) {
   // expected values computed using wolfram alpha:
   // log(PDF[NormalDistribution[4.223, 6.221], 1.234])
   double expected = -2.86229;
-  EXPECT_CLOSE(expected, log_prob_normal(v, mean, stdev).as_double());
+  EXPECT_CLOSE(expected, (Normal<Real>{mean, stdev}.log_prob(v).as_double()));
 }
 
 using Dual = Num2<Real>;
@@ -34,7 +38,7 @@ TEST(log_prob, normal_dual) {
   Dual stdev{6.221};
   // log(PDF[NormalDistribution[4.223, 6.221], 1.234])
   double expected = -2.86229;
-  auto result = log_prob_normal(v, mean, stdev);
+  auto result = Normal<Dual>{mean, stdev}.log_prob(v);
   EXPECT_CLOSE(expected, result.as_double());
   // ReplaceAll[D[log(PDF[NormalDistribution[4.223, 6.221], x]), {x, 1}], {x
   // -> 1.234}]
@@ -49,7 +53,7 @@ TEST(log_prob, normal_triune) {
   Triune stdev{6.221};
   // log(PDF[NormalDistribution[4.223, 6.221], 1.234])
   double expected = -2.86229;
-  auto result = log_prob_normal(v, mean, stdev);
+  auto result = Normal<Triune>{mean, stdev}.log_prob(v);
   EXPECT_CLOSE(expected, result.as_double());
   double expected_derivative1 = 0.0772335;
   EXPECT_CLOSE(expected_derivative1, result.derivative1().as_double());
