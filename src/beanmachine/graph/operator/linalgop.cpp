@@ -450,5 +450,30 @@ void MatrixExp::eval(std::mt19937& /* gen */) {
   value._matrix = Eigen::exp(in_nodes[0]->value._matrix.array());
 }
 
+MatrixSum::MatrixSum(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_SUM) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_SUM requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_SUM must be a BROADCAST_MATRIX");
+  }
+  auto atomic_type = type.atomic_type;
+  if (atomic_type != graph::AtomicType::REAL and
+      atomic_type != graph::AtomicType::POS_REAL and
+      atomic_type != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "operator MATRIX_SUM requires a neg_real, real or pos_real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(atomic_type));
+}
+
+void MatrixSum::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._double = in_nodes[0]->value._matrix.sum();
+}
+
 } // namespace oper
 } // namespace beanmachine

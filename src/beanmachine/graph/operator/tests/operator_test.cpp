@@ -1853,3 +1853,42 @@ TEST(testoperator, log_prob) {
   // Log[PDF[NormalDistribution[2, 3], 10]] ~ -5.57310637743
   EXPECT_NEAR(g.get_node(log_prob10)->value._double, -5.57310637743, epsilon);
 }
+
+TEST(testoperator, matrix_sum) {
+  Graph g;
+  Eigen::MatrixXd matrix1(2, 2);
+  matrix1 << 2.0, 1.0, 4.0, 3.0;
+  auto cm1 = g.add_constant_real_matrix(matrix1);
+  auto six = g.add_constant(6.0);
+
+  // negative tests
+  // MATRIX_SUM requires a matrix parent
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SUM, {six}), std::invalid_argument);
+  // MATRIX_SUM requires one parent
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SUM, {cm1, cm1}),
+      std::invalid_argument);
+
+  // test operator
+  // 2x2 real numbers
+  auto sum = g.add_operator(OperatorType::MATRIX_SUM, {cm1});
+  std::mt19937 gen;
+  g.get_node(sum)->eval(gen);
+  EXPECT_NEAR(g.get_node(sum)->value._double, 10.0, 1e-5);
+
+  // 3x1 positive reals
+  Eigen::MatrixXd matrix2(3, 1);
+  matrix2 << 2.0, 10.0, 5.5;
+  auto cm2 = g.add_constant_pos_matrix(matrix2);
+  auto sum2 = g.add_operator(OperatorType::MATRIX_SUM, {cm2});
+  g.get_node(sum2)->eval(gen);
+  EXPECT_NEAR(g.get_node(sum2)->value._double, 17.5, 1e-5);
+
+  // random 5x4 matrix
+  Eigen::MatrixXd m3 = Eigen::MatrixXd::Random(5, 4);
+  auto cm3 = g.add_constant_real_matrix(m3);
+  auto sum3 = g.add_operator(OperatorType::MATRIX_SUM, {cm3});
+  g.get_node(sum3)->eval(gen);
+  EXPECT_NEAR(g.get_node(sum3)->value._double, m3.sum(), 1e-5);
+}

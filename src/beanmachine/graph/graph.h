@@ -341,6 +341,7 @@ enum class OperatorType {
   CHOLESKY,
   MATRIX_EXP,
   LOG_PROB,
+  MATRIX_SUM,
 };
 
 enum class DistributionType {

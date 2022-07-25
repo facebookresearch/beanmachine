@@ -163,5 +163,10 @@ bool LogProb::is_registered = OperatorFactory::register_op(
     graph::OperatorType::LOG_PROB,
     &(LogProb::new_op));
 
+// MatrixSum function
+bool MatrixSum::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::MATRIX_SUM,
+    &(MatrixSum::new_op));
+
 } // namespace oper
 } // namespace beanmachine

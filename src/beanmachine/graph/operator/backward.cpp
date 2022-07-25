@@ -354,5 +354,12 @@ void MatrixExp::backward() {
   }
 }
 
+void MatrixSum::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1 = in_nodes[0]->back_grad1.array() + back_grad1;
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine
