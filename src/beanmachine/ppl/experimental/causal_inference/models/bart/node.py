@@ -46,10 +46,18 @@ class BaseNode:
         """Returns the left_child of the node."""
         return self._left_child
 
+    @left_child.setter
+    def left_child(self, left_child: Optional["BaseNode"]):
+        self._left_child = left_child
+
     @property
     def right_child(self) -> Optional["BaseNode"]:
         """Returns the right_child of the node."""
         return self._right_child
+
+    @right_child.setter
+    def right_child(self, right_child: Optional["BaseNode"]):
+        self._right_child = right_child
 
     @overload
     def data_in_node(
