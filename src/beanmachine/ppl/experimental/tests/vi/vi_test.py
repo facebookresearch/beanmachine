@@ -158,6 +158,17 @@ class BinaryGaussianMixture:
 
 class TestAutoGuide:
     @pytest.mark.parametrize("auto_guide_inference", [ADVI, MAP])
+    def test_can_use_functionals(self, auto_guide_inference):
+        test_rv = bm.random_variable(lambda: dist.Normal(0, 1))
+        test_functional = bm.functional(lambda: test_rv() ** 2)
+        auto_guide = auto_guide_inference(
+            queries=[test_rv(), test_functional()],
+            observations={},
+        )
+        world = auto_guide.infer(num_steps=10)
+        assert world.call(test_functional()) is not None
+
+    @pytest.mark.parametrize("auto_guide_inference", [ADVI, MAP])
     def test_neals_funnel(self, auto_guide_inference):
         nf = bm.random_variable(NealsFunnel)
 
