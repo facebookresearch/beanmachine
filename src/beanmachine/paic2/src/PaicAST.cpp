@@ -71,7 +71,8 @@ void paic2::Node::bind(pybind11::module &m) {
             .def(py::init<Location, NodeList>());
 
     py::class_<ReturnNode, std::shared_ptr<ReturnNode>, Node>(m, "ReturnNode")
-            .def(py::init<Location, std::shared_ptr<Expression>>());
+            .def(py::init<Location, std::shared_ptr<Expression>>())
+            .def("value", &paic2::ReturnNode::getValue);
 
     py::class_<PythonFunction, std::shared_ptr<PythonFunction>, Node>(m, "PythonFunction")
             .def(py::init<Location, const std::string &, std::shared_ptr<Type>,ParamList,std::shared_ptr<BlockNode>>());

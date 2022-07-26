@@ -30,5 +30,5 @@ first_party_detection=false
 
 [tool.ufmt]
 excludes = [
-    "src/beanmachine/paic2/externals/",
+    "src/beanmachine/paic2/externals/", "src/beanmachine/paic2/test/world_test.py"
 ]

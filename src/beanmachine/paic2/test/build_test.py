@@ -5,15 +5,18 @@ import unittest
 
 import paic2
 import pytest
-from beanmachine.paic2.inference.utils import get_globals
 from beanmachine.paic2.inference.metaworld import MetaWorld
 from beanmachine.paic2.inference.to_paic2_ast import paic2_ast_generator
+from beanmachine.paic2.inference.utils import get_globals
 
-def foo(a:float) -> float:
+
+def foo(a: float) -> float:
     return a
+
 
 def fake_inference(world: MetaWorld):
     world.print()
+
 
 def compile_to_mlir(py_func: typing.Callable):
     lines, _ = inspect.getsourcelines(py_func)

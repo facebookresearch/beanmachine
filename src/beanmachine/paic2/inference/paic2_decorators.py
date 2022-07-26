@@ -1,17 +1,19 @@
 import ast
 import inspect
-import paic2
 import typing
-from beanmachine.paic2.inference.utils import get_globals
+
+import paic2
 from beanmachine.paic2.inference.to_paic2_ast import paic2_ast_generator
+from beanmachine.paic2.inference.utils import get_globals
 from beanmachine.ppl.world import World
+
 
 def import_inference(entry_callable: typing.Callable):
     def wrapper(*args, **kwargs):
         mb = paic2.MLIRBuilder()
-        inference_fnc = kwargs['inference']
-        queries = kwargs['queries']
-        observations = kwargs['observations']
+        inference_fnc = kwargs["inference"]
+        queries = kwargs["queries"]
+        observations = kwargs["observations"]
 
         # configure world
         python_world = World.initialize_world(queries, observations)
@@ -37,7 +39,9 @@ def import_inference(entry_callable: typing.Callable):
 
         # lower and execute inference
         mb.infer(python_function, world_metadata, init_nodes)
+
     return wrapper
+
 
 def to_hardware(callable: typing.Callable):
     def wrapper(*args, **kwargs):
@@ -52,4 +56,5 @@ def to_hardware(callable: typing.Callable):
         arg = float(args[0])
         result = mb.evaluate(python_function, arg)
         return result
+
     return wrapper

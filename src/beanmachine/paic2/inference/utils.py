@@ -1,6 +1,7 @@
 import ast
-import typing
 import sys
+import typing
+
 
 def to_name(func) -> str:
     # TODO: check globals
@@ -22,6 +23,7 @@ def to_name(func) -> str:
             full_name = full_name + "." + segment
         i = i + 1
     return full_name
+
 
 def get_globals(f: typing.Callable) -> typing.Dict:
     if f.__module__ not in sys.modules:
