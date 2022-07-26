@@ -16,8 +16,8 @@ template <class Underlying>
 requires Number<Underlying>
 class Distribution {
  public:
-  virtual double sample(std::mt19937& gen) const;
-  virtual Underlying log_prob(const Underlying& value) const;
+  virtual double sample(std::mt19937& gen) const = 0;
+  virtual Underlying log_prob(const Underlying& value) const = 0;
   virtual ~Distribution() {}
 };
 
