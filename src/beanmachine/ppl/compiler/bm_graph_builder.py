@@ -28,6 +28,7 @@ supported_bool_types = {bool, np.bool_}
 supported_float_types = {np.longdouble, np.float16, np.float32, np.float64, float}
 supported_int_types = {np.int16, np.int32, np.int64, np.int8, np.longlong}
 supported_int_types |= {np.uint16, np.uint32, np.uint64, np.uint8, np.ulonglong, int}
+supported_tensor_types = {torch.Tensor, np.ndarray}
 
 _empty_context = ExecutionContext()
 
@@ -172,6 +173,11 @@ class BMGraphBuilder:
         """This takes any constant value of a supported type,
         creates a constant graph node for it, and adds it to the builder"""
         t = type(value)
+        # TODO: This checks whether the types are *exactly* a supported
+        # type, but we might have a value which is of a type derived
+        # from ndarray or tensor. Consider fixing these checks to see
+        # if the value is an instance of one of the supported types
+        # rather than an exact type check.
         if t in supported_bool_types:
             value = bool(value)
             t = bool
@@ -181,6 +187,21 @@ class BMGraphBuilder:
         elif t in supported_float_types:
             value = float(value)
             t = float
+        elif t in supported_tensor_types:
+            # Note that this makes a *copy* of the tensor if
+            # the operand is a tensor. We want to ensure that
+            # the value we've captured in the graph accumulation
+            # is NOT mutated in the unfortunate event that the
+            # original tensor is mutated.
+            value = torch.Tensor(value)
+            t = torch.Tensor
+        else:
+            raise ValueError(
+                "A constant value used as an operand of a stochastic "
+                + "operation is required to be bool, int, float or tensor. "
+                + f"This model uses a value of type {t.__name__}."
+            )
+
         return self._add_constant(value, t)
 
     def add_constant_of_matrix_type(
