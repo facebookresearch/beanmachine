@@ -38,8 +38,9 @@ class AutoGuideVI(VariationalInfer, metaclass=ABCMeta):
         # automatically instantiate `queries_to_guides`
         for query in queries:
             self._world.call(query)
-            distrib = self._world.get_variable(query).distribution
-            queries_to_guides[query] = self.get_guide(query, distrib)
+            if query.is_random_variable:
+                distrib = self._world.get_variable(query).distribution
+                queries_to_guides[query] = self.get_guide(query, distrib)
 
         super().__init__(
             queries_to_guides=queries_to_guides,
