@@ -53,6 +53,7 @@ def build_llvm(src_dir: str, cmake_build_dir: str):
         cmake_args = [
             "-DLLVM_TARGETS_TO_BUILD=Native",
             "-DLLVM_ENABLE_PROJECTS=mlir;llvm",
+            "-DLLVM_REQUIRES_RTTI=ON"
         ]
         if platform.system() == "Darwin":
             cpp_include_path = os.getenv("CPLUS_INCLUDE_PATH")

@@ -47,14 +47,7 @@ jobs:
       run: pip install -v -e .[dev]
 
     - name: Print out package info to help with debug
-      run: |
-        pip list
-        ls
-        cd src
-        cd beanmachine
-        ls -a
-        cd ..
-        cd ..
+      run: pip list
 
     - name: Run unit tests with pytest LINUX MACOS
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
