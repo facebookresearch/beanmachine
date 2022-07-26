@@ -68,7 +68,7 @@ class VariationalInfer:
         discrepancy_fn=kl_reverse,
         mc_approx=monte_carlo_approximate_reparam,  # TODO: support both reparam and SF in same guide
         step_callback: Optional[
-            Callable[[torch.Tensor, VariationalInfer], None]
+            Callable[[int, torch.Tensor, VariationalInfer], None]
         ] = None,
         subsample_factor: float = 1,
     ) -> VariationalWorld:
@@ -88,12 +88,12 @@ class VariationalInfer:
             initialized with optimized parameters
         """
         assert subsample_factor > 0 and subsample_factor <= 1
-        for _ in tqdm(range(num_steps)):
+        for it in tqdm(range(num_steps)):
             loss, _ = self.step(
                 num_samples, discrepancy_fn, mc_approx, subsample_factor
             )
             if step_callback:
-                step_callback(loss, self)
+                step_callback(it, loss, self)
 
         return VariationalWorld.initialize_world(
             queries=self.queries_to_guides.values(),
