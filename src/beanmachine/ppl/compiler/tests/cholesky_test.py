@@ -56,6 +56,15 @@ def cholesky4():
     return t.cholesky()
 
 
+@bm.functional
+def cholesky5():
+    n0 = norm(0) * norm(0)
+    n1 = norm(1) * norm(1)
+    t = tensor([[n0, 0.0], [0.0, n1]])
+    L, _ = torch.linalg.cholesky_ex(t)
+    return L
+
+
 # TODO: Test with a non-square matrix, should give an error.
 
 
@@ -100,6 +109,8 @@ digraph "graph" {
         observed = BMGInference().to_dot([cholesky2()], {})
         self.assertEqual(expected.strip(), observed.strip())
         observed = BMGInference().to_dot([cholesky3()], {})
+        self.assertEqual(expected.strip(), observed.strip())
+        observed = BMGInference().to_dot([cholesky5()], {})
         self.assertEqual(expected.strip(), observed.strip())
 
         expected = """

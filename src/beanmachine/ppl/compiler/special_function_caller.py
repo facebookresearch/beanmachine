@@ -444,6 +444,7 @@ class SpecialFunctionCaller:
             torch.bitwise_right_shift: self._torch_bitwise_right_shift,
             torch.Tensor.cholesky: self._torch_cholesky,
             torch.linalg.cholesky: self._torch_cholesky,
+            torch.linalg.cholesky_ex: self._torch_cholesky_ex,
             torch.Tensor.div: self._torch_div,
             torch.div: self._torch_div,
             torch.Tensor.divide: self._torch_div,
@@ -929,6 +930,23 @@ class SpecialFunctionCaller:
     ) -> BMGNode:
         # TODO: What to do with upper?
         return self._bmg.add_cholesky(input)
+
+    def _torch_cholesky_ex(
+        self,
+        input: BMGNode,
+        upper: Optional[BMGNode] = None,
+        check_errors: Optional[BMGNode] = None,
+        out: Any = None,
+    ) -> BMGNode:
+        # TODO: What to do with upper and check_errors?
+        # cholesky_ex returns a named tuple (L, info) where
+        # L is the result matrix and info is a tensor containing
+        # an index saying which input element was not
+        # positive-definite. We pretend that this operation always
+        # succeeds and return a graph node and a zero error index.
+        return torch.return_types.linalg_cholesky_ex(  # pyre-ignore
+            (self._bmg.add_cholesky(input), torch.tensor(0))
+        )
 
     def _torch_transpose(
         self,
