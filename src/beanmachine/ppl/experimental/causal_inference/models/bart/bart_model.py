@@ -69,10 +69,8 @@ class BART:
         self.num_samples = None
         self.all_tree_predictions = None
         self._all_trees = None
+        self.leaf_mean = None
         self.k = k
-        self.leaf_mean = LeafMean(
-            prior_loc=0.0, prior_scale=0.5 / (self.k * math.sqrt(self.num_trees))
-        )
         self.alpha = alpha
         self.beta = beta
 
@@ -122,6 +120,9 @@ class BART:
         self._load_data(X, y)
 
         self.samples = {"trees": [], "sigmas": []}
+        self.leaf_mean = LeafMean(
+            prior_loc=0.0, prior_scale=0.5 / (self.k * math.sqrt(self.num_trees))
+        )
         self._init_trees(X)
 
         for iter_id in trange(num_burn + num_samples):
