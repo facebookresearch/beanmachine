@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["windows-latest"]
+        os: ["ubuntu-latest", "macos-latest"]
         python-version: ['3.9']
     defaults:
       run:
@@ -61,14 +61,3 @@ jobs:
       env:
         PYTEST_ADDOPTS: '--color=yes -v --ignore=${{ github.workspace }}/src/beanmachine/paic2'
       run: pytest .
-
-    - name: Run unit tests with pytest WINDOWS
-      if: matrix.os == 'windows-latest'
-      env:
-        PYTEST_ADDOPTS: '--color=yes -v'
-      run: |
-        pwd
-        ls
-        cd src
-        ls
-        pytest ppl

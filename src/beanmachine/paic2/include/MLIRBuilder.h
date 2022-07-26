@@ -10,7 +10,7 @@
 #include "PaicAST.h"
 #include "WorldSpec.h"
 #include <vector>
-using Tensor = std::vector<float, std::allocator<float>>;
+using Tensor = std::vector<double, std::allocator<double>>;
 
 namespace paic2 {
 

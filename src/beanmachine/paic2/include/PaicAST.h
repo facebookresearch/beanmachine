@@ -51,7 +51,8 @@ namespace paic2 {
 
     enum PrimitiveCode {
         Void,
-        Float
+        Float,
+        Double
     };
 
     class PrimitiveType : public Type {

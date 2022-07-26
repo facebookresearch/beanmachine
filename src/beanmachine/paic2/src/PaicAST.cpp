@@ -24,6 +24,7 @@ void paic2::Node::bind(pybind11::module &m) {
 
     py::enum_<PrimitiveCode>(m, "PrimitiveCode")
             .value("Void", paic2::PrimitiveCode::Void)
+            .value("Double", paic2::PrimitiveCode::Double)
             .value("Float", paic2::PrimitiveCode::Float).export_values();
     py::class_<PrimitiveType, std::shared_ptr<PrimitiveType>, Type>(m, "PrimitiveType")
             .def(py::init<PrimitiveCode>());

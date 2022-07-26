@@ -2,7 +2,6 @@
 // Created by Steffi Stumpos on 7/15/22.
 //
 #include "MLIRBuilder.h"
-#include <mlir/Target/LLVMIR/Export.h>
 #include "bm/passes.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -26,10 +25,8 @@
 #include "bm/BMDialect.h"
 #include "pybind_utils.h"
 #include <pybind11/stl_bind.h>
-#include "llvm/MC/TargetRegistry.h"
-//#include "llvm/ADT/Triple.h"
 
-using Tensor = std::vector<float, std::allocator<float>>;
+using Tensor = std::vector<double, std::allocator<double>>;
 PYBIND11_MAKE_OPAQUE(Tensor);
 
 using llvm::ArrayRef;
@@ -85,6 +82,8 @@ private:
 
     mlir::Type typeForCode(paic2::PrimitiveCode code){
         switch(code){
+            case paic2::PrimitiveCode::Double:
+                return builder.getF64Type();
             case paic2::PrimitiveCode::Float:
                 return builder.getF32Type();
             case paic2::PrimitiveCode::Void:
@@ -211,7 +210,6 @@ private:
                     default:
                         throw std::invalid_argument("only float primitives are supported now");
                 }
-                break;
             }
             case paic2::NodeKind::Call:
                 return mlirGen(dynamic_cast<paic2::CallNode*>(expr));
@@ -337,7 +335,7 @@ void paic2::MLIRBuilder::bind(py::module &m) {
             .def("print_func_name", &MLIRBuilder::print_func_name)
             .def("infer", &MLIRBuilder::infer)
             .def("evaluate", &MLIRBuilder::evaluate);
-    bind_vector<float>(m, "Tensor", true);
+    bind_vector<double>(m, "Tensor", true);
 }
 
 paic2::MLIRBuilder::MLIRBuilder(pybind11::object contextObj) {}
@@ -356,6 +354,7 @@ std::shared_ptr<mlir::ExecutionEngine> execution_engine_for_function(std::shared
     MLIRGenImpl generator(*context, worldClassSpec);
     mlir::ModuleOp mlir_module = generator.generate_op(py_module);
     mlir_module->dump();
+
     // lower to LLVM dialect
     mlir::PassManager pm(context);
     pm.addPass(mlir::bm::createLowerToFuncPass());
@@ -372,14 +371,6 @@ std::shared_ptr<mlir::ExecutionEngine> execution_engine_for_function(std::shared
             /*targetMachine=*/nullptr);
     mlir::ExecutionEngineOptions engineOptions;
     engineOptions.transformer = optPipeline;
-    engineOptions.llvmModuleBuilder = llvm::function_ref<std::unique_ptr<llvm::Module>(mlir::ModuleOp,llvm::LLVMContext &)>([](mlir::ModuleOp mod, llvm::LLVMContext &llvmContext){
-        std::unique_ptr<llvm::Module> llvmModule = mlir::translateModuleToLLVMIR(mod, llvmContext);
-        if (!llvmModule) {
-            llvm::errs() << "Failed to emit LLVM IR\n";
-        }
-        //llvmModule->dump();
-        return llvmModule;
-    });
     llvm::Expected<std::unique_ptr<mlir::ExecutionEngine>> maybeEngine = mlir::ExecutionEngine::create(mlir_module, engineOptions);
     assert(maybeEngine && "failed to construct an execution engine");
     auto &engine = maybeEngine.get();
@@ -394,23 +385,19 @@ void paic2::MLIRBuilder::print_func_name(std::shared_ptr<paic2::PythonFunction> 
     auto engine = execution_engine_for_function(function, spec);
 }
 
-void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec, std::shared_ptr<std::vector<float>> init_nodes) {
+void paic2::MLIRBuilder::infer(std::shared_ptr<paic2::PythonFunction> function, paic2::WorldSpec const& worldClassSpec, std::shared_ptr<std::vector<double>> init_nodes) {
     // Invoke the JIT-compiled function.
     auto engine = execution_engine_for_function(function, worldClassSpec);
-    float *data = new float[worldClassSpec.world_size()];
-    for(int i=0;i<worldClassSpec.world_size();i++){
-        float a = init_nodes->at(i);
-        data[i] = a;
-    }
-//    std::vector<float*> values(2);
-//    values[0] = data;
-//    values[1] = data;
- //   auto ref = llvm::makeArrayRef(values);
-    auto invocationResult = engine->invoke(function->getName().data(), init_nodes.get(), init_nodes.get(), 0, 0, 1);
+    double* front = &(init_nodes->front());
+    double* data_ptr = &(init_nodes->front());
+    std::vector<double*> values(2);
+    values[0] = front;
+    values[1] = front;
+
+    auto invocationResult = engine->invoke(function->getName().data(), values, data_ptr, 0, 0, 1);
     if (invocationResult) {
         llvm::errs() << "JIT invocation failed\n";
     }
-//    delete[] data;
 }
 
 pybind11::float_ paic2::MLIRBuilder::evaluate(std::shared_ptr<paic2::PythonFunction> function, pybind11::float_ input) {

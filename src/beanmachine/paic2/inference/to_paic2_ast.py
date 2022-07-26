@@ -15,7 +15,7 @@ class paic2_ast_generator:
     def __init__(self, world_length:int = 0):
         self.unitType = paic2.PrimitiveType(paic2.PrimitiveCode.Void)
         self.floatType = paic2.PrimitiveType(paic2.PrimitiveCode.Float)
-        self.worldType = paic2.WorldType(paic2.PrimitiveCode.Float, world_length)
+        self.worldType = paic2.WorldType(paic2.PrimitiveCode.Double, world_length)
         self.type_map = {'float': self.floatType, 'MetaWorld' : self.worldType }
 
     def python_ast_to_paic_ast(self, function_def: _ast.FunctionDef, globals:typing.Dict) -> paic2.PythonFunction:
