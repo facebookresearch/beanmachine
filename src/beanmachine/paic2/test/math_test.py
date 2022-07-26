@@ -27,7 +27,7 @@ class MathTest(unittest.TestCase):
     @pytest.mark.paic2
     def test_builtin_alias(self):
         try:
-            call = foo_builtin_alias(3)
+            foo_builtin_alias(3)
             self.assertFalse(True)
         except MLIRCompileError as e:
             self.assertTrue(
@@ -40,7 +40,7 @@ class MathTest(unittest.TestCase):
         try:
             call = foo(3.0)
             assert call == math.pow(3.0 * 3.0, 2.0)
-        except MLIRCompileError as e:
+        except MLIRCompileError:
             assert False
 
 
