@@ -76,7 +76,7 @@ TEST(testmarginal, only_discrete) {
   EXPECT_EQ(bernoulli_sample_node->in_nodes[0], bernoulli_node);
 }
 
-TEST(testmarginal, parent_and_child) {
+TEST(testmarginal, DISABLED_parent_and_child) {
   /*
   Original graph:
   digraph G {
@@ -176,7 +176,7 @@ TEST(testmarginal, parent_and_child) {
   EXPECT_EQ(n_node->in_nodes[0], normal_node);
 }
 
-TEST(testmarginals, parent_and_children) {
+TEST(testmarginals, DISABLED_parent_and_children) {
   /*
   Original graph:
   digraph G {
