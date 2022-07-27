@@ -12,8 +12,12 @@ from copy import deepcopy
 from typing import cast, List, Optional, Tuple
 
 import torch
+
 from beanmachine.ppl.experimental.causal_inference.models.bart.exceptions import (
     NotInitializedError,
+)
+from beanmachine.ppl.experimental.causal_inference.models.bart.grow_from_root_tree_proposer import (
+    GrowFromRootTreeProposer,
 )
 from beanmachine.ppl.experimental.causal_inference.models.bart.grow_prune_tree_proposer import (
     GrowPruneTreeProposer,
@@ -27,6 +31,7 @@ from beanmachine.ppl.experimental.causal_inference.models.bart.split_rule import
     CompositeRules,
 )
 from beanmachine.ppl.experimental.causal_inference.models.bart.tree import Tree
+from torch.distributions.dirichlet import Dirichlet
 from tqdm.auto import trange
 
 
@@ -423,6 +428,8 @@ class XBART(BART):
         num_cuts: The maximum number of cuts per dimension.
         num_null_cuts: Number of "no split" null cuts to consider along each dimension.
             This affects the tree depth as discussed in [1].
+        m: Size of the subset of variables that are sampled for cutting points in the post
+            burnin period as discussed in section 3.4 of [1].
 
     """
 
@@ -434,14 +441,16 @@ class XBART(BART):
         tau: Optional[float] = None,
         noise_sd_concentration: float = 3.0,
         noise_sd_rate: float = 1.0,
-        tree_sampler: Optional[GrowPruneTreeProposer] = None,
+        tree_sampler: Optional[GrowFromRootTreeProposer] = None,
         random_state: Optional[int] = None,
         num_cuts: Optional[int] = None,
         num_null_cuts: int = 1,
+        m: Optional[int] = None,
     ):
         self.num_cuts = num_cuts
         self.num_null_cuts = num_null_cuts
         self.tau = tau
+        self.m = m
 
         super().__init__(
             num_trees=num_trees,
@@ -453,6 +462,16 @@ class XBART(BART):
             random_state=None,
         )
 
+        if tree_sampler is None:
+            self.tree_sampler = GrowFromRootTreeProposer()
+        elif isinstance(tree_sampler, GrowFromRootTreeProposer):
+            self.tree_sampler = tree_sampler
+        else:
+            raise NotImplementedError("tree_sampler not implemented")
+        self._step = self._grow_from_root_step
+        self.var_counts = None
+        self.all_tree_var_counts = None
+
     def fit(
         self,
         X: torch.Tensor,
@@ -462,10 +481,17 @@ class XBART(BART):
     ) -> XBART:
         """Fit the training data and learn the parameters of the model.
 
+        Reference:
+        [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
+        https://arxiv.org/abs/1810.02215
+
         Args:
             X: Training data / covariate matrix of shape (num_observations, input_dimensions).
             y: Response vector of shape (num_observations, 1).
+            num_samples: Number of post burnin samples to draw.
+            num_burn: Number of burnin samples to draw (for adaptation).
         """
+
         self.num_samples = num_samples
         self._load_data(X, y)
 
@@ -478,15 +504,30 @@ class XBART(BART):
         self.leaf_mean = LeafMean(prior_loc=0.0, prior_scale=math.sqrt(self.tau))
         if self.num_cuts is None:
             self._adaptively_init_num_cuts()
-        self.samples = {"trees": [], "sigmas": []}
+        if self.m is None:
+            self.m = self.X.shape[-1]
+
+        self.samples = {"trees": []}
         self._init_trees(X)
 
+        self.all_tree_predictions = (
+            (torch.clone(self.y) / self.num_trees)
+            .unsqueeze(1)
+            .tile((1, self.num_trees, 1))
+        )
+        self.var_counts = torch.ones((X.shape[-1],))
+        self.all_tree_var_counts = torch.ones((self.num_trees, X.shape[-1]))
+
+        is_burnin_period = True
+        num_dims_to_sample = self.X.shape[-1]
         for iter_id in trange(num_burn + num_samples):
-            trees, sigma = self._step()
-            self._all_trees = trees
             if iter_id >= num_burn:
+                is_burnin_period = False
+                num_dims_to_sample = self.m
+            trees = self._step(num_dims_to_sample=num_dims_to_sample)
+            self._all_trees = trees
+            if not is_burnin_period:
                 self.samples["trees"].append(trees)
-                self.samples["sigmas"].append(sigma)
         return self
 
     def _adaptively_init_num_trees(self):
@@ -518,4 +559,57 @@ class XBART(BART):
         https://arxiv.org/abs/1810.02215
         """
         n = len(self.X)
-        self.num_cuts = max(int(math.sqrt(n)), 100)
+        self.num_cuts = max(math.sqrt(n), 100)
+
+    def _grow_from_root_step(self, num_dims_to_sample: int) -> List[Tree]:
+        """Take a single MCMC step using the Grow-from-root approach of xBART [1].
+
+        Reference:
+            [1] He J., Yalov S., Hahn P.R. (2018). "XBART: Accelerated Bayesian Additive Regression Trees"
+        https://arxiv.org/abs/1810.02215
+
+        Args:
+            num_dims_to_sample: Size of the subset of variables that are sampled for cutting points
+                as discussed in section 3.4 of [1].
+        """
+        if self.X is None or self.y is None:
+            raise NotInitializedError("No training data")
+
+        all_tree_predictions = deepcopy(self.all_tree_predictions)
+        new_trees = []
+        for tree_id in range(self.num_trees):
+            # all_tree_predictions.shape -> (num_observations, num_trees, 1)
+            current_predictions = torch.sum(all_tree_predictions, dim=1)
+            last_iter_tree_prediction = all_tree_predictions[:, tree_id]
+            partial_residual = self.y - current_predictions + last_iter_tree_prediction
+
+            w = self._draw_var_weights()
+            new_tree, new_var_counts = self.tree_sampler.propose(
+                X=self.X,
+                partial_residual=partial_residual,
+                m=num_dims_to_sample,
+                w=w,
+                alpha=self.alpha,
+                beta=self.beta,
+                sigma_val=self.sigma.val,
+                leaf_sampler=self.leaf_mean,
+                root_node=self._get_root_node(),
+                num_cuts=self.num_cuts,
+                num_null_cuts=self.num_null_cuts,
+            )
+            new_trees.append(new_tree)
+            self.var_counts += new_var_counts - self.all_tree_var_counts[tree_id]
+            self.all_tree_var_counts[tree_id] = new_var_counts
+            all_tree_predictions[:, tree_id] = new_tree.predict(self.X)
+            self._update_sigma(self.y - torch.sum(all_tree_predictions, dim=1))
+        self.all_tree_predictions = all_tree_predictions
+        return new_trees
+
+    def _draw_var_weights(self) -> torch.Tensor:
+        return Dirichlet(self.var_counts).sample()
+
+    def _get_root_node(self):
+        return LeafNode(
+            depth=0,
+            composite_rules=CompositeRules(all_dims=list(range(self.X.shape[-1]))),
+        )
