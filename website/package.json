@@ -15,11 +15,10 @@
     "prettier:diff": "prettier --config .prettierrc --list-different \"**/*.{js,md}\""
   },
   "dependencies": {
-    "@docusaurus/core": "2.0.0-beta.14",
-    "@docusaurus/plugin-google-analytics": "2.0.0-beta.14",
-    "@docusaurus/preset-classic": "2.0.0-beta.14",
+    "@docusaurus/core": "2.0.0-beta.21",
+    "@docusaurus/plugin-google-analytics": "2.0.0-beta.21",
+    "@docusaurus/preset-classic": "2.0.0-beta.21",
     "clsx": "^1.1.1",
-    "internaldocs-fb-helpers": "^1.7.0",
     "plotly.js": "^2.8.1",
     "react": "^17.0.2",
     "react-dom": "^16.8.4",
@@ -32,7 +31,7 @@
   "devDependencies": {
     "babel-eslint": "^10.0.3",
     "classnames": "^2.2.6",
-    "docusaurus-plugin-internaldocs-fb": "0.10.7",
+    "docusaurus-plugin-internaldocs-fb": "0.12.2",
     "eslint": "^6.7.1",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.7.0",
