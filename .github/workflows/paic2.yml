@@ -104,4 +104,4 @@ jobs:
         cd ..
 
     - name: Run unit tests with pytest
-      run: pytest src/beanmachine/paic2/test
+      run: pytest -v src/beanmachine/paic2/test
