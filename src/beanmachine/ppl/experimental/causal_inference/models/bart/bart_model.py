@@ -420,6 +420,8 @@ class XBART(BART):
         tree_sampler: The tree sampling method used.
         random_state: Random state used to seed.
         num_cuts: The maximum number of cuts per dimension.
+        num_null_cuts: Number of "no split" null cuts to consider along each dimension.
+            This affects the tree depth as discussed in [1].
 
     """
 
@@ -434,8 +436,10 @@ class XBART(BART):
         tree_sampler: Optional[GrowPruneTreeProposer] = None,
         random_state: Optional[int] = None,
         num_cuts: Optional[int] = None,
+        num_null_cuts: int = 1,
     ):
         self.num_cuts = num_cuts
+        self.num_null_cuts = num_null_cuts
         self.tau = tau
 
         super().__init__(
