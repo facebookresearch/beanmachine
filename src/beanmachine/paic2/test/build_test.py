@@ -36,7 +36,7 @@ class BuildTest(unittest.TestCase):
         compile_to_mlir(foo)
 
     @pytest.mark.paic2
-    def disable_test_paic2_is_imported_world(self) -> None:
+    def test_paic2_is_imported_world(self) -> None:
         compile_to_mlir(fake_inference)
 
 
