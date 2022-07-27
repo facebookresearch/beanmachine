@@ -53,9 +53,6 @@ class Add : public MultiaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Add>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Multiply : public MultiaryOperator {
@@ -71,9 +68,6 @@ class Multiply : public MultiaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Multiply>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class LogSumExp : public MultiaryOperator {
@@ -89,9 +83,6 @@ class LogSumExp : public MultiaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<LogSumExp>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 // Pow is a special multiary operator that does not require all parents
@@ -109,9 +100,6 @@ class Pow : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Pow>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToMatrix : public Operator {
@@ -127,9 +115,6 @@ class ToMatrix : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToMatrix>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class LogProb : public Operator {
@@ -145,9 +130,6 @@ class LogProb : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<LogProb>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 } // namespace oper

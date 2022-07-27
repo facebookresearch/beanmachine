@@ -72,8 +72,6 @@ class Sample : public oper::StochasticOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Sample>(in_nodes);
   }
-
-  static bool is_registered;
 };
 
 class IIdSample : public oper::StochasticOperator {
@@ -86,9 +84,6 @@ class IIdSample : public oper::StochasticOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<IIdSample>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 } // namespace oper

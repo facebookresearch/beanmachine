@@ -56,10 +56,14 @@ std::unique_ptr<Operator> OperatorFactory::create_op(
     const graph::OperatorType op_type,
     const std::vector<graph::Node*>& in_nodes) {
   int op_id = static_cast<int>(op_type);
+  // Check OperatorFactory::factories_are_registered here to deactivate compiler
+  // optimization on unused static is_registered variables.
+  if (!OperatorFactory::factories_are_registered) {
+    throw std::runtime_error(
+        "internal error: unregistered operator type " + std::to_string(op_id));
+  }
   auto iter = OperatorFactory::op_map().find(op_id);
-  // Check Sample::is_registered here to deactivate compiler optimization on
-  // unused static is_registered variables.
-  if (iter != OperatorFactory::op_map().end() and Sample::is_registered) {
+  if (iter != OperatorFactory::op_map().end()) {
     return iter->second(in_nodes);
   }
   throw std::runtime_error(

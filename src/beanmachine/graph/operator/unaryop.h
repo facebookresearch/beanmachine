@@ -55,9 +55,6 @@ class Complement : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Complement>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToInt : public UnaryOperator {
@@ -72,9 +69,6 @@ class ToInt : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToInt>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToReal : public UnaryOperator {
@@ -89,9 +83,6 @@ class ToReal : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToReal>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToRealMatrix : public UnaryOperator {
@@ -106,9 +97,6 @@ class ToRealMatrix : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToRealMatrix>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToPosReal : public UnaryOperator {
@@ -123,9 +111,6 @@ class ToPosReal : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToPosReal>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToPosRealMatrix : public UnaryOperator {
@@ -140,9 +125,6 @@ class ToPosRealMatrix : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToPosRealMatrix>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToProbability : public UnaryOperator {
@@ -157,9 +139,6 @@ class ToProbability : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToProbability>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ToNegReal : public UnaryOperator {
@@ -174,9 +153,6 @@ class ToNegReal : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToNegReal>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Negate : public UnaryOperator {
@@ -192,9 +168,6 @@ class Negate : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Negate>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Exp : public UnaryOperator {
@@ -210,9 +183,6 @@ class Exp : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Exp>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ExpM1 : public UnaryOperator {
@@ -228,9 +198,6 @@ class ExpM1 : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ExpM1>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Phi : public UnaryOperator {
@@ -246,9 +213,6 @@ class Phi : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Phi>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Logistic : public UnaryOperator {
@@ -264,9 +228,6 @@ class Logistic : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Logistic>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Log1pExp : public UnaryOperator {
@@ -282,9 +243,6 @@ class Log1pExp : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log1pExp>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Log : public UnaryOperator {
@@ -300,9 +258,6 @@ class Log : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Log1mExp : public UnaryOperator {
@@ -318,9 +273,6 @@ class Log1mExp : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log1mExp>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class LogSumExpVector : public UnaryOperator {
@@ -336,9 +288,6 @@ class LogSumExpVector : public UnaryOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<LogSumExpVector>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 } // namespace oper

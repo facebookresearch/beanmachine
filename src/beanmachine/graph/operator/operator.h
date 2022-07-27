@@ -65,6 +65,7 @@ class OperatorFactory {
 
  private:
   static std::map<int, builder_type>& op_map();
+  static bool factories_are_registered;
 };
 
 } // namespace oper

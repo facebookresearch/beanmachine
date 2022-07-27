@@ -1108,7 +1108,6 @@ struct Graph {
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 
   // Graph statistics
- public:
   std::string collect_statistics();
 
  private:

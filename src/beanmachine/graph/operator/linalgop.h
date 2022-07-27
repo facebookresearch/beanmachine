@@ -28,9 +28,6 @@ class Transpose : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Transpose>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixMultiply : public Operator {
@@ -46,9 +43,6 @@ class MatrixMultiply : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<MatrixMultiply>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixScale : public Operator {
@@ -64,9 +58,6 @@ class MatrixScale : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<MatrixScale>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ElementwiseMultiply : public Operator {
@@ -82,9 +73,6 @@ class ElementwiseMultiply : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ElementwiseMultiply>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixAdd : public Operator {
@@ -100,9 +88,6 @@ class MatrixAdd : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<MatrixAdd>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Index : public Operator {
@@ -118,9 +103,6 @@ class Index : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Index>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ColumnIndex : public Operator {
@@ -136,9 +118,6 @@ class ColumnIndex : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ColumnIndex>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class BroadcastAdd : public Operator {
@@ -154,9 +133,6 @@ class BroadcastAdd : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<BroadcastAdd>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Cholesky : public Operator {
@@ -172,9 +148,6 @@ class Cholesky : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Cholesky>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixExp : public Operator {
@@ -190,9 +163,6 @@ class MatrixExp : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<MatrixExp>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixSum : public Operator {
