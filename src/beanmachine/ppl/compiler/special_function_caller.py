@@ -164,6 +164,18 @@ _empty_kwargs = {}
 _builtin_function_or_method = type(abs)
 
 
+def _is_any_distribution_ctor(f: Callable) -> bool:
+    # We need to handle calls to constructors for distributions
+    # that are NOT in the torch.distributions module such as
+    # Unit.
+    if not isinstance(f, type):
+        return False
+    mro = getattr(f, "__mro__", None)
+    if mro is None:
+        return False
+    return dist.Distribution in mro
+
+
 def _is_any_torch_function(f: Callable) -> bool:
     # Torch functions we either know about or we reject them immediately;
     # we do not attempt to extract a graph of a model which contains
@@ -587,6 +599,10 @@ class SpecialFunctionCaller:
             return True
         if _is_any_torch_function(func):
             return True
+        if _is_any_distribution_ctor(func):
+            return True
+        # TODO: What if its a member function of a distribution that's
+        # not in torch.distributions?
         if not _hashable(func):
             return False
         if func in allowed_functions:

@@ -53,15 +53,10 @@ class LROMMTest(unittest.TestCase):
         self.maxDiff = None
         queries = [beta_0(), beta_1(), sigma_out(), theta()]
         observations = {y(): _y_obs}
-
-        # TODO: This test demonstrates that we crash when attempting
-        # to compile a model with an unsupported distribution that
-        # does not come from the torch distributions module.
-
-        with self.assertRaises(RuntimeError) as ex:
+        with self.assertRaises(ValueError) as ex:
             BMGInference().to_dot(queries, observations)
         expected = """
-Could not infer dtype of LogAddExpNode
+Function Unit is not supported by Bean Machine Graph.
         """
         observed = str(ex.exception)
         self.assertEqual(observed.strip(), expected.strip())
