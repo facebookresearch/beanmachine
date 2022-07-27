@@ -7,13 +7,16 @@
         <lastBuildDate>Wed, 29 May 2019 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
         <item>
             <title><![CDATA[Welcome]]></title>
             <link>https://beanmachine.org/blog/welcome</link>
             <guid>welcome</guid>
             <pubDate>Wed, 29 May 2019 00:00:00 GMT</pubDate>
             <description><![CDATA[Welcome to this the BeanMachine site blog.]]></description>
-            <content:encoded><![CDATA[<p>Welcome to this the BeanMachine site blog.</p><p>This blog is created with <a href="https://v2.docusaurus.io/"><strong>Docusaurus 2 alpha</strong></a>.</p>]]></content:encoded>
+            <content:encoded><![CDATA[<p>Welcome to this the BeanMachine site blog.</p><p>This blog is created with <a href="https://v2.docusaurus.io/" target="_blank" rel="noopener noreferrer"><strong>Docusaurus 2 alpha</strong></a>.</p>]]></content:encoded>
+            <category>hello</category>
+            <category>beanmachine</category>
         </item>
     </channel>
 </rss>

@@ -13,10 +13,12 @@
         <link href="https://beanmachine.org/blog/welcome"/>
         <updated>2019-05-29T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Welcome to this the BeanMachine site blog.]]></summary>
-        <content type="html"><![CDATA[<p>Welcome to this the BeanMachine site blog.</p><p>This blog is created with <a href="https://v2.docusaurus.io/"><strong>Docusaurus 2 alpha</strong></a>.</p>]]></content>
+        <content type="html"><![CDATA[<p>Welcome to this the BeanMachine site blog.</p><p>This blog is created with <a href="https://v2.docusaurus.io/" target="_blank" rel="noopener noreferrer"><strong>Docusaurus 2 alpha</strong></a>.</p>]]></content>
         <author>
             <name>Probablity Team</name>
             <uri>https://github.com/facebook</uri>
         </author>
+        <category label="hello" term="hello"/>
+        <category label="beanmachine" term="beanmachine"/>
     </entry>
 </feed>
