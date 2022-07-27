@@ -40,7 +40,7 @@ class SampleNormalModel:
 
 class WorldTest(unittest.TestCase):
     @pytest.mark.paic2
-    def disable_test_create_type(self):
+    def test_create_type(self):
         try:
             # create model
             model = SampleNormalModel()
