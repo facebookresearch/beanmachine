@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest"]
+        os: ["ubuntu-latest", "macos-12"]
         python-version: ['3.9']
     defaults:
       run:
@@ -67,6 +67,12 @@ jobs:
         cached: ${{ steps.cache-llvm.outputs.cache-hit }}
         directory: ${{ runner.temp }}/llvm
 
+    - name: set macos env vars
+      if: matrix.os == 'macos-12'
+      run: |
+        export CPLUS_INCLUDE_PATH=${{ runner.temp }}/llvm/include/c++/v1:$(xcrun --show-sdk-path)/usr/include
+        echo $CPLUS_INCLUDE_PATH
+
     - name: build llvm
       run: |
         cd $GITHUB_WORKSPACE
@@ -89,7 +95,7 @@ jobs:
         cd $GITHUB_WORKSPACE/src/beanmachine/paic2
         mkdir build
         cd build
-        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -DBM_ROOT=$GITHUB_WORKSPACE -DMLIR_DIR=$GITHUB_WORKSPACE/build/lib/cmake/mlir -DLLVM_DIR=$GITHUB_WORKSPACE/build/lib/cmake/llvm
+        cmake $GITHUB_WORKSPACE/src/beanmachine/paic2 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/build -DPYTHON_EXECUTABLE=$(which python) -DBM_ROOT=$GITHUB_WORKSPACE -DMLIR_DIR=$GITHUB_WORKSPACE/build/lib/cmake/mlir -DLLVM_DIR=$GITHUB_WORKSPACE/build/lib/cmake/llvm
         cmake --build . 
         cp $GITHUB_WORKSPACE/src/beanmachine/paic2/build/*.so $GITHUB_WORKSPACE/src
 
