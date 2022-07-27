@@ -32,7 +32,7 @@ def compile_to_mlir(py_func: typing.Callable):
 
 class BuildTest(unittest.TestCase):
     @pytest.mark.paic2
-    def disable_test_paic2_is_imported_math(self) -> None:
+    def test_paic2_is_imported_math(self) -> None:
         compile_to_mlir(foo)
 
     @pytest.mark.paic2
