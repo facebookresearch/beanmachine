@@ -75,8 +75,11 @@ void Graph::Statistics::comp_node_stats(Graph& g) {
   oper_counts.resize(ENUM_SIZE(op_type), 0);
   dist_counts.resize(ENUM_SIZE(dist_type), 0);
   fact_counts.resize(ENUM_SIZE(fact_type), 0);
-  init_matrix(const_counts, ENUM_SIZE(atom_type), ENUM_SIZE(var_type));
-  init_matrix(root_terminal_per_node_type, ENUM_SIZE(node_type), 2);
+
+  uint num_atomic = uint(ENUM_SIZE(atom_type));
+  uint num_variable = uint(ENUM_SIZE(var_type));
+  init_matrix(const_counts, num_atomic, num_variable);
+  init_matrix(root_terminal_per_node_type, uint(ENUM_SIZE(node_type)), uint(2));
 
   for (auto const& node : g.nodes) {
     uint n_type = uint(node->node_type);
