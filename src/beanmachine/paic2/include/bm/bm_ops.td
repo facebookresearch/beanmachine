@@ -13,7 +13,6 @@ def BM_Dialect : Dialect {
   let name = "bm";
   let cppNamespace = "::mlir::bm";
   let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
-  let hasConstantMaterializer = 1;
   let useDefaultTypePrinterParser = 1;
 }
 
@@ -35,104 +34,6 @@ DialectType<BM_Dialect, CPred<"$_self.isa<WorldType>()">,
 // this allows us to specify for example that a call operations has an out type of either BM_WorldType or F32.
 // in reality it can also return a pointer but we are not there yet.
 def BM_Type : AnyTypeOf<[F32, BM_WorldType]>;
-//===----------------------------------------------------------------------===//
-// WorldAccessOp
-//===----------------------------------------------------------------------===//
-
-def WorldAccessOp : BM_Op<"World_access", [NoSideEffect]> {
-    let summary = "World access";
-    let description = [{
-        Access the Nth element of a value returning a World type.
-    }];
-
-    let arguments = (ins BM_WorldType:$input, I64Attr:$index);
-    let results = (outs BM_Type:$output);
-
-    let assemblyFormat = [{
-        $input `[` $index `]` attr-dict `:` type($input) `->` type($output)
-    }];
-
-    // Allow building a WorldAccessOp with just a World value and an index.
-    let builders = [
-        OpBuilder<(ins "Value":$input, "size_t":$index)>
-    ];
-
-    // Set the folder bit so that we can fold constant accesses.
-    let hasFolder = 1;
-
-        // Indicate that additional verification for this operation is necessary.
-    let hasVerifier = 1;
-}
-
-//===----------------------------------------------------------------------===//
-// WorldConstantOp
-//===----------------------------------------------------------------------===//
-
-def WorldConstantOp : BM_Op<"World_constant", [ConstantLike, NoSideEffect]> {
-    let summary = "World constant";
-    let description = [{
-        Constant operation turns a literal World value into an SSA value. The data
-        is attached to the operation as an attribute. The World constant is encoded
-        as an array of other constant values. For example:
-
-        ```mlir
-            %0 = bm.world_constant [
-            dense<[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]> : tensor<2x3xf64>
-            ] : !bm.world<tensor<*xf64>>
-        ```
-    }];
-
-    let arguments = (ins ArrayAttr:$value);
-    let results = (outs BM_WorldType:$output);
-
-    let assemblyFormat = "$value attr-dict `:` type($output)";
-
-    // Indicate that additional verification for this operation is necessary.
-    let hasVerifier = 1;
-    let hasFolder = 1;
-}
-def ConstantOp : BM_Op<"constant",
-        [ConstantLike, NoSideEffect]> {
-    // Provide a summary and description for this operation. This can be used to
-    // auto-generate documentation of the operations within our dialect.
-    let summary = "constant";
-    let description = [{
-        Constant operation turns a literal into an SSA value. The data is attached
-        to the operation as an attribute. For example:
-
-        ```mlir
-            %0 = toy.constant dense<[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]>
-                          : tensor<2x3xf64>
-        ```
-    }];
-
-    // The constant operation takes an attribute as the only input.
-    let arguments = (ins F64ElementsAttr:$value);
-
-    // The constant operation returns a single value of TensorType.
-    let results = (outs F64Tensor);
-
-    // Indicate that the operation has a custom parser and printer method.
-    let hasCustomAssemblyFormat = 1;
-
-    // Add custom build methods for the constant operation. These method populates
-    // the `state` that MLIR uses to create operations, i.e. these are used when
-    // using `builder.create<ConstantOp>(...)`.
-    let builders = [
-    // Build a constant with a given constant tensor value.
-    OpBuilder<(ins "DenseElementsAttr":$value), [{
-    build($_builder, $_state, value.getType(), value);
-    }]>,
-    // Build a constant with a given constant floating-point value.
-    OpBuilder<(ins "float":$value)>
-    ];
-
-    // Indicate that additional verification for this operation is necessary.
-    let hasVerifier = 1;
-
-    // Set the folder bit so that we can implement constant folders.
-    let hasFolder = 1;
-}
 
 def PrintWorldOp : BM_Op<"print_world"> {
     let summary = "print operation";

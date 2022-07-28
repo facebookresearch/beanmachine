@@ -13,6 +13,7 @@ find_package(MLIR REQUIRED CONFIG)
 add_subdirectory(${BM_ROOT}/src/beanmachine/paic2/externals/pybind11)
 
 message(STATUS "BM_ROOT: ${BM_ROOT}")
+message(STATUS "BM_ROOT: ${BM_ROOT}")
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -49,24 +50,6 @@ add_mlir_library(PAIC2_LIB
         DEPENDS
         bm_dialect
 
-        LINK_COMPONENTS
-        Core
-        CodeGen
-        AsmPrinter
-        Analysis
-        IRReader
-#        OrcTargetProcess
-#        OrcShared
-#        TransformUtils
-#        X86AsmParser
-#        X86CodeGen
-        Support
-        nativecodegen
-        OrcJIT
-        Target
-        JITLink
-        ExecutionEngine
-
         LINK_LIBS PUBLIC
         ${dialect_libs}
         ${conversion_libs}
@@ -92,11 +75,6 @@ add_mlir_library(PAIC2_LIB
         MLIRJitRunner
         )
 
-#target_compile_options (PAIC2_LIB PUBLIC -fexceptions)
-#target_compile_options (PAIC2_LIB PUBLIC -frtti)
-#set(LIBS ${dialect_libs} ${conversion_libs})
-#target_link_libraries(PAIC2_LIB PRIVATE ${LIBS})
-
 # pybind11
 add_subdirectory(include)
 add_subdirectory(src)
@@ -107,7 +85,6 @@ pybind11_add_module(paic2 src/pymod.cpp)
 target_include_directories(paic2 PUBLIC include)
 target_link_libraries(paic2 PRIVATE PAIC2_LIB)
 
-# EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a
+# PAIC2_VERSION_INFO is defined by setup.py and passed into the C++ code as a
 # define (VERSION_INFO) here.
-target_compile_definitions(paic2
-        PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
+target_compile_definitions(paic2 PRIVATE VERSION_INFO=${PAIC2_VERSION_INFO})

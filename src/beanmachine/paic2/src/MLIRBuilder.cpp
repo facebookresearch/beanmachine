@@ -326,9 +326,7 @@ private:
 void paic2::MLIRBuilder::bind(py::module &m) {
     py::class_<paic2::WorldSpec>(m, "WorldSpec")
             .def(py::init())
-            .def("set_print_name", &WorldSpec::set_print_name)
-            .def("set_world_size", &WorldSpec::set_world_size)
-            .def("set_world_name", &WorldSpec::set_world_name);
+            .def("set_print_name", &WorldSpec::set_print_name);
 
     py::class_<MLIRBuilder>(m, "MLIRBuilder")
             .def(py::init<py::object>(), py::arg("context") = py::none())

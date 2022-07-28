@@ -158,39 +158,7 @@ void BMDialect::printType(mlir::Type type,
     printer << '>';
 }
 
-mlir::Operation *BMDialect::materializeConstant(mlir::OpBuilder &builder,
-                                                mlir::Attribute value,
-                                                mlir::Type type,
-                                                mlir::Location loc) {
-    if (type.isa<WorldType>())
-        return builder.create<WorldConstantOp>(loc, type,
-                                               value.cast<mlir::ArrayAttr>());
-    return builder.create<ConstantOp>(loc, type,
-                                      value.cast<mlir::DenseElementsAttr>());
-}
-void WorldAccessOp::build(mlir::OpBuilder &b, mlir::OperationState &state,
-                          mlir::Value input, size_t index) {
-    // Extract the result type from the input type.
-    WorldType structTy = input.getType().cast<WorldType>();
-    assert(index < structTy.getNumElementTypes());
-    mlir::Type resultType = structTy.getElementTypes()[index];
 
-    // Call into the auto-generated build method.
-    build(b, state, resultType, input, b.getI64IntegerAttr(index));
-}
-
-mlir::LogicalResult WorldAccessOp::verify() {
-    WorldType structTy = getInput().getType().cast<WorldType>();
-    size_t indexValue = getIndex();
-    if (indexValue >= structTy.getNumElementTypes())
-        return emitOpError()
-                << "index should be within the range of the input struct type";
-    mlir::Type resultType = getResult().getType();
-    if (resultType != structTy.getElementTypes()[indexValue])
-        return emitOpError() << "must have the same result type as the struct "
-                                "element referred to by the index";
-    return mlir::success();
-}
 /// Verify that the given attribute value is valid for the given type.
 static mlir::LogicalResult verifyConstantForType(mlir::Type type,
                                                  mlir::Attribute opaqueValue,
@@ -245,60 +213,6 @@ static mlir::LogicalResult verifyConstantForType(mlir::Type type,
         if (failed(verifyConstantForType(std::get<0>(it), std::get<1>(it), op)))
             return mlir::failure();
     return mlir::success();
-}
-
-mlir::LogicalResult WorldConstantOp::verify() {
-    return verifyConstantForType(getResult().getType(), getValue(), *this);
-}
-
-/// Fold struct constants.
-OpFoldResult WorldConstantOp::fold(ArrayRef<Attribute> operands) {
-    return getValue();
-}
-
-OpFoldResult ConstantOp::fold(ArrayRef<Attribute> operands) {
-    return getValue();
-}
-
-/// Fold simple struct access operations that access into a constant.
-OpFoldResult WorldAccessOp::fold(ArrayRef<Attribute> operands) {
-    auto structAttr = operands.front().dyn_cast_or_null<mlir::ArrayAttr>();
-    if (!structAttr)
-        return nullptr;
-
-    size_t elementIndex = getIndex();
-    return structAttr[elementIndex];
-}
-
-/// Verifier for the constant operation. This corresponds to the `::verify(...)`
-/// in the op definition.
-mlir::LogicalResult ConstantOp::verify() {
-    return verifyConstantForType(getResult().getType(), getValue(), *this);
-}
-
-/// The 'OpAsmParser' class provides a collection of methods for parsing
-/// various punctuation, as well as attributes, operands, types, etc. Each of
-/// these methods returns a `ParseResult`. This class is a wrapper around
-/// `LogicalResult` that can be converted to a boolean `true` value on failure,
-/// or `false` on success. This allows for easily chaining together a set of
-/// parser rules. These rules are used to populate an `mlir::OperationState`
-/// similarly to the `build` methods described above.
-mlir::ParseResult ConstantOp::parse(mlir::OpAsmParser &parser,
-                                    mlir::OperationState &result) {
-    mlir::DenseElementsAttr value;
-    if (parser.parseOptionalAttrDict(result.attributes) ||
-        parser.parseAttribute(value, "value", result.attributes))
-        return failure();
-
-    result.addTypes(value.getType());
-    return success();
-}
-/// The 'OpAsmPrinter' class is a stream that allows for formatting
-/// strings, attributes, operands, types, etc.
-void ConstantOp::print(mlir::OpAsmPrinter &printer) {
-    printer << " ";
-    printer.printOptionalAttrDict((*this)->getAttrs(), /*elidedAttrs=*/{"value"});
-    printer << getValue();
 }
 
 //===----------------------------------------------------------------------===//

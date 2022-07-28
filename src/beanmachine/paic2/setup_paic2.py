@@ -7,12 +7,13 @@ import sys
 from typing import List
 
 
-def cmake_build_release(
+def build_with_cmake(
     src_dir: str,
     build_dir: str,
     cmake_args: List[str],
     build_args: List[str],
     name: str,
+    build_type: str,
 ):
     if os.path.isdir(build_dir):
         print(
@@ -22,7 +23,7 @@ def cmake_build_release(
     os.makedirs(build_dir, exist_ok=True)
     cmake_args.append(f"-B {build_dir}")
     cmake_args.append("-G Ninja")
-    cmake_args.append("-DCMAKE_BUILD_TYPE=Release")
+    cmake_args.append(f"-DCMAKE_BUILD_TYPE={build_type}")
     c_compiler = os.getenv("C_COMPILER")
     cxx_compiler = os.getenv("CXX_COMPILER")
     if c_compiler:
@@ -65,12 +66,13 @@ def build_llvm(src_dir: str, cmake_build_dir: str):
                     " and `/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/include/c++/v1:/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include`"
                     " is a valid path for CPLUS_INCLUDE_PATH"
                 )
-        cmake_build_release(
+        build_with_cmake(
             llvm_dir,
             cmake_build_dir,
             cmake_args,
             ["cmake", "--build", ".", "--target", "check-mlir"],
             "llvm",
+            "Release",
         )
 
 
@@ -80,8 +82,13 @@ def build_pybind11(base_dir: str):
     )
     build_dir = os.path.join(pybind11_dir, "build")
     cmake_args = [f"-DPYTHON_EXECUTABLE={sys.executable}"]
-    cmake_build_release(
-        pybind11_dir, build_dir, cmake_args, ["cmake", "--build", "."], "pybind11"
+    build_with_cmake(
+        pybind11_dir,
+        build_dir,
+        cmake_args,
+        ["cmake", "--build", "."],
+        "pybind11",
+        "Release",
     )
 
 
@@ -96,9 +103,15 @@ def build_paic2(
         f"-DLLVM_DIR={llvm_dir}",
         f"-DPYTHON_EXECUTABLE={sys.executable}",
         f"-DBM_ROOT={base_dir}",
+        f"-DPAIC2_VERSION_INFO=0.0",
     ]
-    cmake_build_release(
-        paic2_src, paic2_build_dir, paic2_cmake_args, ["cmake", "--build", "."], "paic2"
+    build_with_cmake(
+        paic2_src,
+        paic2_build_dir,
+        paic2_cmake_args,
+        ["cmake", "--build", "."],
+        "paic2",
+        "Debug",
     )
 
 

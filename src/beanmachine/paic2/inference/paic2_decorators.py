@@ -20,8 +20,6 @@ def import_inference(entry_callable: typing.Callable):
         world_size = python_world.__len__()
         world_metadata = paic2.WorldSpec()
         world_metadata.set_print_name("print")
-        world_metadata.set_world_name("MetaWorld")
-        world_metadata.set_world_size(world_size)
 
         # compile inference
         lines, _ = inspect.getsourcelines(inference_fnc)
