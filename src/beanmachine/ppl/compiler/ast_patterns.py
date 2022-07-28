@@ -139,6 +139,14 @@ def aug_assign(
     )
 
 
+def ann_assign(
+    target: Pattern = _any, op: Pattern = _any, value: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.AnnAssign, {"target": target, "op": op, "value": value}
+    )
+
+
 # TODO: what should we do about AnnAssign?
 
 

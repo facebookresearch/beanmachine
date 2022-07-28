@@ -75,6 +75,7 @@ import ast
 from typing import Any, Callable, List, Tuple
 
 from beanmachine.ppl.compiler.ast_patterns import (
+    ann_assign,
     assign,
     ast_boolop,
     ast_compare,
@@ -676,6 +677,9 @@ class SingleAssignment:
     #
     # Start of a series of rules that will define handle_assign
     #
+
+    def _handle_ann_assign(self) -> Rule:
+        return PatternRule(ann_assign(), lambda a: ast.Assign([a.target], a.value))
 
     def _handle_aug_assign_right(self) -> Rule:
         # This rule eliminates all augmented assignments whose right side
@@ -1794,6 +1798,7 @@ class SingleAssignment:
     def _handle_assign(self) -> Rule:
         return first(
             [
+                self._handle_ann_assign(),
                 self._handle_aug_assign_right(),
                 self._handle_aug_assign_left(),
                 self._handle_assign_unaryop(),
