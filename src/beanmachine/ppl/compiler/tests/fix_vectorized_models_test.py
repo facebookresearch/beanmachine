@@ -8,7 +8,15 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal, StudentT, Uniform
+from torch.distributions import (
+    Bernoulli,
+    Beta,
+    Gamma,
+    HalfCauchy,
+    Normal,
+    StudentT,
+    Uniform,
+)
 
 
 @bm.random_variable
@@ -105,6 +113,18 @@ def beta1234():
 def sum_inverted_log_probs():
     p = tensor([5.0, 6.0]) * (-beta1234()).log1p()
     return p.sum()
+
+
+@bm.random_variable
+def gamma():
+    return Gamma(1, 1)
+
+
+@bm.functional
+def normal_log_probs():
+    mu = tensor([5.0, 6.0])
+    x = tensor([7.0, 8.0])
+    return Normal(mu, gamma()).log_prob(x)
 
 
 class FixVectorizedModelsTest(unittest.TestCase):
@@ -1049,3 +1069,18 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_11(self) -> None:
+        self.maxDiff = None
+        queries = [normal_log_probs()]
+        observations = {}
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot(queries, observations)
+        expected = """
+The mu of a normal is required to be a real but is a 2 x 1 natural matrix.
+The normal was created in function call normal_log_probs().
+The value of a log_prob is required to be a real but is a 2 x 1 natural matrix.
+The log_prob was created in function call normal_log_probs().
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())
