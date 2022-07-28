@@ -1162,8 +1162,10 @@ struct Graph {
     void gen_node_stats_report();
     void gen_edge_stats_report();
     void gen_edge_stats_report(String_t etype, Counts_t counts);
-    template <class T>
-    void gen_detailed_stats(String_t title, Counts_t by_graph);
+    void gen_operator_stats(Counts_t counts);
+    void gen_distribution_stats(Counts_t counts);
+    void gen_factor_stats(Counts_t counts);
+    void gen_constant_stats(Matrix_t counts);
     void gen_roots_and_terminals(uint node_id);
 
     void emit(String_t output, char banner = '\0');

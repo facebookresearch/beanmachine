@@ -75,8 +75,11 @@ void Graph::Statistics::comp_node_stats(Graph& g) {
   oper_counts.resize(ENUM_SIZE(op_type), 0);
   dist_counts.resize(ENUM_SIZE(dist_type), 0);
   fact_counts.resize(ENUM_SIZE(fact_type), 0);
-  init_matrix(const_counts, ENUM_SIZE(atom_type), ENUM_SIZE(var_type));
-  init_matrix(root_terminal_per_node_type, ENUM_SIZE(node_type), 2);
+
+  uint num_atomic = uint(ENUM_SIZE(atom_type));
+  uint num_variable = uint(ENUM_SIZE(var_type));
+  init_matrix(const_counts, num_atomic, num_variable);
+  init_matrix(root_terminal_per_node_type, uint(ENUM_SIZE(node_type)), uint(2));
 
   for (auto const& node : g.nodes) {
     uint n_type = uint(node->node_type);
@@ -107,8 +110,8 @@ void Graph::Statistics::comp_edge_stats(Graph& g) {
 
   in_edge_histogram.resize(max_in + 1, 0);
   out_edge_histogram.resize(max_out + 1, 0);
-  init_matrix(in_edge_bytype, ENUM_SIZE(node_type), max_in + 1);
-  init_matrix(out_edge_bytype, ENUM_SIZE(node_type), max_out + 1);
+  init_matrix(in_edge_bytype, uint(ENUM_SIZE(node_type)), max_in + 1);
+  init_matrix(out_edge_bytype, uint(ENUM_SIZE(node_type)), max_out + 1);
 
   for (auto const& node : g.nodes) {
     uint n_type = uint(node->node_type);
@@ -169,32 +172,16 @@ void Graph::Statistics::gen_node_stats_report() {
 
       switch (n_type) {
         case NodeType::OPERATOR:
-          gen_detailed_stats<enum OperatorType>("Operator", oper_counts);
+          gen_operator_stats(oper_counts);
           break;
         case NodeType::DISTRIBUTION:
-          gen_detailed_stats<enum DistributionType>(
-              "Distribution", dist_counts);
+          gen_distribution_stats(dist_counts);
           break;
         case NodeType::FACTOR:
-          gen_detailed_stats<enum FactorType>("Factor", fact_counts);
+          gen_factor_stats(fact_counts);
           break;
         case NodeType::CONSTANT:
-          emit("Constant node statistics:", '-');
-          tab++;
-          for (uint k = 0; k < uint(const_counts.size()); k++) {
-            for (uint l = 0; l < uint(const_counts[k].size()); l++) {
-              if (const_counts[k][l] > 0) {
-                String_t label;
-                label = String_t(NAMEOF_ENUM(AtomicType(k)));
-                label += " and ";
-                label += String_t(NAMEOF_ENUM(VariableType(l)));
-                String_t value;
-                value = std::to_string(const_counts[k][l]);
-                emit(label + ": " + value);
-              }
-            }
-          }
-          emit("");
+          gen_constant_stats(const_counts);
           break;
         default:
           emit("Unrecognized node type in statistics module");
@@ -206,13 +193,56 @@ void Graph::Statistics::gen_node_stats_report() {
   }
 }
 
-template <class T>
-void Graph::Statistics::gen_detailed_stats(String_t title, Counts_t counts) {
-  emit(title + " node statistics:", '-');
+void Graph::Statistics::gen_operator_stats(Counts_t counts) {
+  emit("Operator node statistics:", '-');
   tab++;
   for (uint i = 0; i < uint(counts.size()); i++) {
     if (counts[i] > 0) {
-      emit(String_t(NAMEOF_ENUM(T(i))) + ": " + std::to_string(counts[i]));
+      String_t label = String_t(NAMEOF_ENUM(OperatorType(i)));
+      emit(label + ": " + std::to_string(counts[i]));
+    }
+  }
+  emit("");
+}
+
+void Graph::Statistics::gen_distribution_stats(Counts_t counts) {
+  emit("Distribution node statistics:", '-');
+  tab++;
+  for (uint i = 0; i < uint(counts.size()); i++) {
+    if (counts[i] > 0) {
+      String_t label = String_t(NAMEOF_ENUM(DistributionType(i)));
+      emit(label + ": " + std::to_string(counts[i]));
+    }
+  }
+  emit("");
+}
+
+void Graph::Statistics::gen_factor_stats(Counts_t counts) {
+  emit("Factor node statistics:", '-');
+  tab++;
+  for (uint i = 0; i < uint(counts.size()); i++) {
+    if (counts[i] > 0) {
+      String_t label = String_t(NAMEOF_ENUM(FactorType(i)));
+      emit(label + ": " + std::to_string(counts[i]));
+    }
+  }
+  emit("");
+}
+
+void Graph::Statistics::gen_constant_stats(Matrix_t counts) {
+  emit("Constant node statistics:", '-');
+  tab++;
+  for (uint k = 0; k < uint(counts.size()); k++) {
+    for (uint l = 0; l < uint(counts[k].size()); l++) {
+      if (counts[k][l] > 0) {
+        String_t label;
+        label = String_t(NAMEOF_ENUM(AtomicType(k)));
+        label += " and ";
+        label += String_t(NAMEOF_ENUM(VariableType(l)));
+        String_t value;
+        value = std::to_string(counts[k][l]);
+        emit(label + ": " + value);
+      }
     }
   }
   emit("");
