@@ -103,7 +103,7 @@ def build_paic2(
         f"-DLLVM_DIR={llvm_dir}",
         f"-DPYTHON_EXECUTABLE={sys.executable}",
         f"-DBM_ROOT={base_dir}",
-        f"-DPAIC2_VERSION_INFO=0.0",
+        "-DPAIC2_VERSION_INFO=0.0",
     ]
     build_with_cmake(
         paic2_src,
