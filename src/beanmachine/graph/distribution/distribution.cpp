@@ -21,6 +21,7 @@
 #include "beanmachine/graph/distribution/half_cauchy.h"
 #include "beanmachine/graph/distribution/half_normal.h"
 #include "beanmachine/graph/distribution/log_normal.h"
+#include "beanmachine/graph/distribution/multivariate_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
 #include "beanmachine/graph/distribution/poisson.h"
 #include "beanmachine/graph/distribution/student_t.h"
@@ -103,6 +104,22 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     switch (dist_type) {
       case graph::DistributionType::DIRICHLET: {
         return std::make_unique<Dirichlet>(sample_type, in_nodes);
+      }
+      default: {
+        throw std::invalid_argument(
+            "Unknown distribution " +
+            std::to_string(static_cast<int>(dist_type)) +
+            " for multivariate sample type.");
+      }
+    }
+  } else if (
+      sample_type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    switch (dist_type) {
+      case graph::DistributionType::MULTIVARIATE_NORMAL: {
+        return std::make_unique<MultivariateNormal>(sample_type, in_nodes);
+      }
+      case graph::DistributionType::FLAT: {
+        return std::make_unique<Flat>(sample_type, in_nodes);
       }
       default: {
         throw std::invalid_argument(
