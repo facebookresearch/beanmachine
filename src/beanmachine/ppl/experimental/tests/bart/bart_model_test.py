@@ -24,24 +24,7 @@ def y(X):
 
 @pytest.fixture
 def bart(X, y):
-    return BART(num_trees=1).fit(X=X, y=y, num_burn=1, num_samples=40)
-
-
-def test_prediction_with_intervals(X, y, bart):
-    coverage = 0.999
-    with pytest.raises(ValueError):
-        _ = bart.predict_with_intervals(X, coverage=coverage)
-    low_coverage = 0.2
-    y_pred, lower_bounds, upper_bounds = bart.predict_with_intervals(
-        X, coverage=low_coverage
-    )
-    pred_samples = bart.get_posterior_predictive_samples(X)
-
-    assert torch.all(torch.max(pred_samples, dim=1)[0] >= upper_bounds)
-    assert torch.all(torch.min(pred_samples, dim=1)[0] <= lower_bounds)
-    assert torch.all(torch.median(pred_samples, axis=1)[0] <= upper_bounds)
-    assert torch.all(torch.median(pred_samples, axis=1)[0] >= lower_bounds)
-    assert torch.all(y_pred == bart.predict(X))
+    return BART(num_trees=1).fit(X=X, y=y, num_burn=1, num_samples=39)
 
 
 @pytest.fixture
@@ -60,12 +43,32 @@ def test_predict(X_test, y_test, bart):
     assert len(y_test) == len(y_pred)
 
 
+def test_predict_with_quantiles_bart(X_test, bart):
+    quantiles = torch.Tensor([0.5])
+    y_pred, qvals = bart.predict_with_quantiles(X_test, quantiles=quantiles)
+    posterior_samples = bart.get_posterior_predictive_samples(X_test)
+    # median for even number of samples is not unique
+    assert (1 - bart.num_samples % 2) or torch.all(
+        torch.median(posterior_samples, dim=1)[0] == qvals
+    )
+
+
 @pytest.fixture
 def xbart(X, y):
-    return XBART(num_trees=1).fit(X=X, y=y, num_burn=1, num_samples=40)
+    return XBART(num_trees=1).fit(X=X, y=y, num_burn=1, num_samples=9)
 
 
 def test_predict_xbart(X_test, y_test, xbart):
     y_pred = xbart.predict(X_test)
     assert len(X_test) == len(y_pred)
     assert len(y_test) == len(y_pred)
+
+
+def test_predict_with_quantiles_xbart(X_test, xbart):
+    quantiles = torch.Tensor([0.5])
+    y_pred, qvals = xbart.predict_with_quantiles(X_test, quantiles=quantiles)
+    posterior_samples = xbart.get_posterior_predictive_samples(X_test)
+    # median for even number of samples is not unique
+    assert (1 - xbart.num_samples % 2) or torch.all(
+        torch.median(posterior_samples, dim=1)[0] == qvals
+    )

@@ -328,56 +328,38 @@ class BART:
         )
         return prediction.reshape(-1, 1)
 
-    def predict_with_intervals(
-        self, X: torch.Tensor, coverage: float = 0.95
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def predict_with_quantiles(
+        self, X: torch.Tensor, quantiles: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Returns the prediction along with lower and upper bounds for the interval defined by the given coverage.
-
-        Note:
-            Where possible, the interval is centered around the median of the predictive posterior samples.
+        Returns the quantiles of prediction.
 
         Args:
             X: Covariate matrix to predict on of shape (num_samples, input_dimensions).
-            coverage: Interval coverage required.
+            quantiles: The quantiles required. If nothing supplied, the default quantiles are [0.025, 0.5, 0.975]
 
         Returns:
-            prediction: Prediction corresponding to average of all samples of shape (num_samples, 1).
-            lower_bound: Lower bound of the interval defined by the coverage.
-            upper_bound: Upper bound of the interval defined by the coverage.
+            prediction, qvals: Prediction corresponding to average of all samples of shape (num_observations, 1),
+                qvals tensor of shape (num_obs, len(quantiles)) and qvals[:, i]
+                is quantile value corresponding to quantiles[i].
 
         """
-        interval_len = self._get_interval_len(coverage=coverage)
-        if interval_len >= self.num_samples:
-            raise ValueError("Not enough samples for desired coverage")
+        if quantiles is None:
+            quantiles = torch.Tensor([0.025, 0.5, 0.975])
+        for q in quantiles:
+            if not 0.0 < q < 1.0:
+                raise ValueError("Quantiles must be in (0, 1)")
         prediction_samples = self.get_posterior_predictive_samples(X)
-        sorted_prediction_samples, _ = torch.sort(prediction_samples, dim=-1)
-        median_dim = self.num_samples // 2
-        lower_bound = max(median_dim - (interval_len // 2), 0)
-        upper_bound = lower_bound + interval_len
-        if upper_bound >= self.num_samples:
-            interval_shift = upper_bound - self.num_samples + 1
-            lower_bound -= interval_shift
-            upper_bound -= interval_shift
-        return (
-            torch.mean(prediction_samples, dim=-1, dtype=torch.float).reshape(-1, 1),
-            sorted_prediction_samples[:, lower_bound],
-            sorted_prediction_samples[:, upper_bound],
+        prediction = torch.mean(prediction_samples, dim=-1, dtype=torch.float).reshape(
+            -1, 1
         )
 
-    def _get_interval_len(self, coverage: float) -> int:
-        """
-        Get the length of the interval with desired coverage using the formula :
-            coverage >= interval_length / (num_samples)
-
-        Args:
-            coverage: Interval coverage required.
-
-        Returns:
-            Coverage length.
-
-        """
-        return math.ceil(coverage * (self.num_samples + 1))
+        qvals = (
+            torch.quantile(prediction_samples, dim=1, q=quantiles)
+            .transpose(0, 1)
+            .reshape(-1, len(quantiles))
+        )
+        return prediction, qvals
 
     def get_posterior_predictive_samples(self, X: torch.Tensor) -> torch.Tensor:
         """
