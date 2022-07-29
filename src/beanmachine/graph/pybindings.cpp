@@ -102,6 +102,7 @@ PYBIND11_MODULE(graph, module) {
       .value("NORMAL", DistributionType::NORMAL)
       .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
       .value("LOG_NORMAL", DistributionType::LOG_NORMAL)
+      .value("MULTIVARIATE_NORMAL", DistributionType::MULTIVARIATE_NORMAL)
       .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
       .value("CAUCHY", DistributionType::CAUCHY)
       .value("STUDENT_T", DistributionType::STUDENT_T)
