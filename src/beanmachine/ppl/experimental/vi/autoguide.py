@@ -14,7 +14,7 @@ from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict
 from torch import distributions as dist
-from torch.distributions.constraint_registry import biject_to
+from torch.distributions.constraint_registry import biject_to, transform_to
 from torch.nn.functional import softplus
 
 
@@ -67,7 +67,6 @@ class ADVI(AutoGuideVI):
     def get_guide(query, distrib):
         @bm.param
         def param_loc():
-            # TODO: use event shape
             return (
                 torch.rand_like(biject_to(distrib.support).inv(distrib.sample())) * 4.0
                 - 2.0
@@ -75,7 +74,6 @@ class ADVI(AutoGuideVI):
 
         @bm.param
         def param_scale():
-            # TODO: use event shape
             return (
                 0.01
                 + torch.rand_like(biject_to(distrib.support).inv(distrib.sample()))
@@ -114,7 +112,8 @@ class MAP(AutoGuideVI):
         def param_loc():
             # TODO: use event shape
             return (
-                torch.rand_like(biject_to(distrib.support).inv(distrib.sample())) * 4.0
+                torch.rand_like(transform_to(distrib.support).inv(distrib.sample()))
+                * 4.0
                 - 2.0
             )
 
@@ -124,7 +123,7 @@ class MAP(AutoGuideVI):
                 if distrib.support == dist.constraints.positive:
                     loc = dist.transforms.SoftplusTransform()(loc)
                 else:
-                    loc = biject_to(distrib.support)(loc)
+                    loc = transform_to(distrib.support)(loc)
             q = Delta(loc)
             return q
 
