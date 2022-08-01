@@ -15,25 +15,27 @@ class SingleSiteMetropolisAdapatedLangevinAlgorithmConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
     def test_beta_binomial_conjugate_run(self):
-        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.05)
+        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.01)
         self.beta_binomial_conjugate_run(
-            mala, num_samples=500, num_adaptive_samples=500
+            mala, num_samples=1000, num_adaptive_samples=1000
         )
 
     def test_gamma_gamma_conjugate_run(self):
-        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.05)
+        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.01)
         self.gamma_gamma_conjugate_run(
             mala, num_samples=1000, num_adaptive_samples=1000
         )
 
     def test_gamma_normal_conjugate_run(self):
-        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.05)
-        self.gamma_normal_conjugate_run(mala, num_samples=500, num_adaptive_samples=500)
+        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.01)
+        self.gamma_normal_conjugate_run(
+            mala, num_samples=1000, num_adaptive_samples=1000
+        )
 
     def test_normal_normal_conjugate_run(self):
-        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.05)
+        mala = SingleSiteMetropolisAdapatedLangevinAlgorithm(0.01)
         self.normal_normal_conjugate_run(
-            mala, num_samples=500, num_adaptive_samples=500
+            mala, num_samples=1000, num_adaptive_samples=1000
         )
 
     def test_dirichlet_categorical_conjugate_run(self):
