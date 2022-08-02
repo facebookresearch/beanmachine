@@ -30,16 +30,16 @@ class AutoGuideVI(VariationalInfer, metaclass=ABCMeta):
         queries_to_guides = {}
 
         # runs all queries to discover their dimensions
-        self._world = VariationalWorld(
+        world = VariationalWorld(
             observations=observations,
             params={},
             queries_to_guides=queries_to_guides,
         )
         # automatically instantiate `queries_to_guides`
         for query in queries:
-            self._world.call(query)
+            world.call(query)
             if query.is_random_variable:
-                distrib = self._world.get_variable(query).distribution
+                distrib = world.get_variable(query).distribution
                 queries_to_guides[query] = self.get_guide(query, distrib)
 
         super().__init__(
