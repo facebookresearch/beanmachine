@@ -244,7 +244,7 @@ class BART:
             self._update_leaf_mean(new_trees[tree_id], partial_residual)
             all_tree_predictions[:, tree_id] = new_trees[tree_id].predict(self.X)
         self.all_tree_predictions = all_tree_predictions
-        self._update_sigma(self.y - self._predict_step())
+        self._update_sigma(self.y - torch.sum(all_tree_predictions, dim=1))
         return new_trees, self.sigma.val
 
     def _update_leaf_mean(self, tree: Tree, partial_residual: torch.Tensor):
