@@ -39,9 +39,10 @@ from beanmachine.ppl.compiler.fix_problem import (
     conditional_graph_fixer,
     fixpoint_graph_fixer,
     GraphFixer,
+    GraphFixerResult,
     node_fixer_first_match,
     NodeFixer,
-    sequential_graph_fixer, GraphFixerResult,
+    sequential_graph_fixer,
 )
 from beanmachine.ppl.compiler.fix_requirements import requirements_fixer
 from beanmachine.ppl.compiler.fix_transpose import identity_transpose_fixer
@@ -64,6 +65,7 @@ default_skip_optimizations: Set[str] = {
 
 def arithmetic_graph_fixer(skip: Set[str]) -> GraphFixer:
     typer = LatticeTyper()
+
     def _arithmetic_graph_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
         node_fixers = [
             addition_fixer(bmg, typer),
@@ -85,8 +87,8 @@ def arithmetic_graph_fixer(skip: Set[str]) -> GraphFixer:
         node_fixer = node_fixer_first_match(node_fixers)
         arith = ancestors_first_graph_fixer(typer, node_fixer)
         return fixpoint_graph_fixer(arith)(bmg)
-    return _arithmetic_graph_fixer
 
+    return _arithmetic_graph_fixer
 
 
 _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
@@ -98,10 +100,13 @@ _conjugacy_fixer_factories: List[Callable[[BMGraphBuilder], NodeFixer]] = [
 
 def conjugacy_graph_fixer(skip: Set[str]) -> GraphFixer:
     def _conjugacy_graph_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
-        node_fixers = [f(bmg) for f in _conjugacy_fixer_factories if f.__name__ not in skip]
+        node_fixers = [
+            f(bmg) for f in _conjugacy_fixer_factories if f.__name__ not in skip
+        ]
         node_fixer = node_fixer_first_match(node_fixers)
         # TODO: Make the typer optional
         return ancestors_first_graph_fixer(LatticeTyper(), node_fixer)(bmg)
+
     return _conjugacy_graph_fixer
 
 
@@ -121,7 +126,9 @@ def fix_problems(
             conjugacy_graph_fixer(skip_optimizations),
             requirements_fixer(),
             observations_fixer(),
-            conditional_graph_fixer(lambda gb: gb._fix_observe_true, lambda gb:observe_true_fixer(gb)),
+            conditional_graph_fixer(
+                lambda gb: gb._fix_observe_true, lambda gb: observe_true_fixer(gb)
+            ),
         ]
     )
     current, _, errors = all_fixers(current)
