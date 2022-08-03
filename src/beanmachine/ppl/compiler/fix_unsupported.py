@@ -358,7 +358,9 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
 
 
 def unsupported_node_reporter() -> GraphFixer:
-    def _error_for_unsupported_node(bmg: BMGraphBuilder, n: bn.BMGNode, index: int) -> Optional[BMGError]:
+    def _error_for_unsupported_node(
+        bmg: BMGraphBuilder, n: bn.BMGNode, index: int
+    ) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
         # Consider fixing this.

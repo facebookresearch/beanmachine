@@ -78,12 +78,16 @@ GraphFixerResult = Tuple[BMGraphBuilder, bool, ErrorReport]
 GraphFixer = Callable[[BMGraphBuilder], GraphFixerResult]
 
 # The identity graph fixer never makes a change or produces an error.
-identity_graph_fixer: GraphFixer = lambda gb : (gb, False, ErrorReport())
+identity_graph_fixer: GraphFixer = lambda gb: (gb, False, ErrorReport())
 
 
-def conditional_graph_fixer(condition: Callable[[BMGraphBuilder], bool], fixer: Callable[[BMGraphBuilder], GraphFixer]) -> GraphFixer:
-    def _condition_graph_fixer(bmg:BMGraphBuilder) -> GraphFixerResult:
+def conditional_graph_fixer(
+    condition: Callable[[BMGraphBuilder], bool],
+    fixer: Callable[[BMGraphBuilder], GraphFixer],
+) -> GraphFixer:
+    def _condition_graph_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
         return fixer(bmg) if condition(bmg) else identity_graph_fixer(bmg)
+
     return _condition_graph_fixer
 
 
@@ -128,7 +132,7 @@ def ancestors_first_graph_fixer(  # noqa
     # is that we might end up reporting an error on an edge that is NOT in the
     # subgraph of ancestors of samples, queries and observations, which would be
     # a bad user experience.
-    def ancestors_first(bmg:BMGraphBuilder) -> GraphFixerResult:
+    def ancestors_first(bmg: BMGraphBuilder) -> GraphFixerResult:
         errors = ErrorReport()
         replacements = {}
         reported = set()
@@ -221,7 +225,7 @@ def node_error_pass(
 def sequential_graph_fixer(fixers: List[GraphFixer]) -> GraphFixer:
     """Takes a list of graph fixers and applies each in turn once unless one fails."""
 
-    def sequential(bmg:BMGraphBuilder) -> GraphFixerResult:
+    def sequential(bmg: BMGraphBuilder) -> GraphFixerResult:
         made_progress = False
         errors = ErrorReport()
         current = bmg
@@ -239,7 +243,7 @@ def fixpoint_graph_fixer(fixer: GraphFixer) -> GraphFixer:
     """Executes a graph fixer repeatedly until it stops making progress
     or produces an error."""
 
-    def fixpoint(bmg:BMGraphBuilder) -> GraphFixerResult:
+    def fixpoint(bmg: BMGraphBuilder) -> GraphFixerResult:
         current = bmg
         while True:
             current, made_progress, errors = fixer(current)
