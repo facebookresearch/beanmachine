@@ -315,33 +315,6 @@ class TestStochasticVariationalInfer:
         sample_var = mu_approx.sample((100, 1)).var()
         assert sample_var > 0.1
 
-    @pytest.mark.skipif(
-        not torch.cuda.is_available(), reason="requires GPU access to train the model"
-    )
-    def test_normal_normal_guide_step_gpu(self):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        normal_normal_model = NormalNormal(device=device)
-        log_scale_normal_model = LogScaleNormal()
-
-        world = VariationalInfer(
-            queries_to_guides={normal_normal_model.mu(): log_scale_normal_model.q_mu()},
-            observations={
-                normal_normal_model.x(1): torch.tensor(9.0),
-                normal_normal_model.x(2): torch.tensor(10.0),
-            },
-            optimizer=lambda params: torch.optim.Adam(params, lr=1e0),
-            device=device,
-        ).infer(
-            num_steps=100,
-        )
-        mu_approx = world.get_variable(log_scale_normal_model.q_mu()).distribution
-
-        sample_mean = mu_approx.sample((100, 1)).mean()
-        assert sample_mean > 5.0
-
-        sample_var = mu_approx.sample((100, 1)).var()
-        assert sample_var > 0.1
-
     def test_normal_normal_guide_step(self):
         normal_normal_model = NormalNormal()
         log_scale_normal_model = LogScaleNormal()

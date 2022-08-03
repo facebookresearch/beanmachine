@@ -60,6 +60,7 @@ class VariationalInfer:
             world.call(guide)
         self.params = world._params
         self._optimizer = optimizer(self.params.values())
+        self._device = device
 
     def infer(
         self,
@@ -131,6 +132,7 @@ class VariationalInfer:
             self.params,
             self.queries_to_guides,
             subsample_factor=subsample_factor,
+            device=self._device,
         )
         if not torch.isnan(loss) and not torch.isinf(loss):
             loss.backward()
