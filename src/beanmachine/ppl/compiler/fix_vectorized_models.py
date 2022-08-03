@@ -372,16 +372,16 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
     return vect_op_node_fixer
 
 
-def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def vop_fixer() -> GraphFixerResult:
+def vectorized_operator_fixer() -> GraphFixer:
+    def vop_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
         sizer = Sizer()
 
         dist_fixer = _vectorized_distribution_node_fixer(bmg, sizer)
         oper_fixer = _vectorized_operator_node_fixer(bmg, sizer)
         scale_fixer = matrix_scale_fixer(bmg, sizer)
         node_fixer = node_fixer_first_match([dist_fixer, oper_fixer, scale_fixer])
-        vof = ancestors_first_graph_fixer(bmg, sizer, node_fixer)
-        made_progress, errors = vof()
+        vof = ancestors_first_graph_fixer(sizer, node_fixer)
+        bmg, made_progress, errors = vof(bmg)
 
         # If we changed something then we might have a leaf sample node;
         # we can remove it.
@@ -390,13 +390,13 @@ def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
                 if _is_fixable_sample(sizer, n):
                     assert n.is_leaf
                     bmg.remove_leaf(n)
-        return made_progress, errors
+        return bmg, made_progress, errors
 
     return vop_fixer
 
 
-def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def vobs_fixer() -> GraphFixerResult:
+def vectorized_observation_fixer() -> GraphFixer:
+    def vobs_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
         made_change = False
         # We might have an illegal observation. Fix it.
         for o in bmg.all_observations():
@@ -424,12 +424,12 @@ def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
                         bmg.add_observation(s, o.value[i][j])
             bmg.remove_leaf(o)
             made_change = True
-        return made_change, ErrorReport()
+        return bmg, made_change, ErrorReport()
 
     return vobs_fixer
 
 
-def vectorized_model_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    vector_ops = vectorized_operator_fixer(bmg)
-    vector_obs = vectorized_observation_fixer(bmg)
+def vectorized_model_fixer() -> GraphFixer:
+    vector_ops = vectorized_operator_fixer()
+    vector_obs = vectorized_observation_fixer()
     return fixpoint_graph_fixer(sequential_graph_fixer([vector_ops, vector_obs]))

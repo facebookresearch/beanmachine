@@ -357,8 +357,8 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
 # move this check for unsupported constant value to AFTER that rewrite.
 
 
-def unsupported_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
-    def _error_for_unsupported_node(n: bn.BMGNode, index: int) -> Optional[BMGError]:
+def unsupported_node_reporter() -> GraphFixer:
+    def _error_for_unsupported_node(bmg: BMGraphBuilder, n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
         # are not necessarily the best ones for displaying errors.
         # Consider fixing this.
@@ -385,13 +385,13 @@ def unsupported_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
             bmg.execution_context.node_locations(parent),
         )
 
-    return edge_error_pass(bmg, _error_for_unsupported_node)
+    return edge_error_pass(_error_for_unsupported_node)
 
 
-def bad_matmul_reporter(bmg: BMGraphBuilder) -> GraphFixer:
+def bad_matmul_reporter() -> GraphFixer:
     typer = LatticeTyper()
 
-    def get_error(node: bn.BMGNode) -> Optional[BMGError]:
+    def get_error(bmg: BMGraphBuilder, node: bn.BMGNode) -> Optional[BMGError]:
         if not isinstance(node, bn.MatrixMultiplicationNode):
             return None
 
@@ -409,10 +409,10 @@ def bad_matmul_reporter(bmg: BMGraphBuilder) -> GraphFixer:
             node, lt, rt, bmg.execution_context.node_locations(node)
         )
 
-    return node_error_pass(bmg, get_error)
+    return node_error_pass(get_error)
 
 
-def untypable_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
+def untypable_node_reporter() -> GraphFixer:
     # By the time this pass runs every node in the graph should
     # be a valid BMG node (except constants, which are rewritten later)
     # and therefore should have a valid type. Later passes rely on this
@@ -420,7 +420,7 @@ def untypable_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
     # the compiler rather than producing some strange error later on.
     typer = LatticeTyper()
 
-    def get_error(node: bn.BMGNode) -> Optional[BMGError]:
+    def get_error(bmg: BMGraphBuilder, node: bn.BMGNode) -> Optional[BMGError]:
         # If a node is untypable then all its descendants will be too.
         # We do not want to produce a cascading error here so let's just
         # report the nodes that are untypable who have no untypable parents.
@@ -435,4 +435,4 @@ def untypable_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
                 return None
         return UntypableNode(node, bmg.execution_context.node_locations(node))
 
-    return node_error_pass(bmg, get_error)
+    return node_error_pass(get_error)
