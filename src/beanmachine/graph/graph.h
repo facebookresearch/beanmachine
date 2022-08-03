@@ -1118,51 +1118,59 @@ struct Graph {
     std::string to_string();
 
    private:
-    // types
+    // 1. types
     using Counts_t = std::vector<uint>;
+    using Matrix_t = std::vector<Counts_t>;
     using String_t = std::string;
     using Stream_t = std::ostringstream;
 
-    // state
-    uint num_edges;
-    uint num_nodes;
-    uint max_in;
-    uint max_out;
-    String_t graph_density;
-    uint num_root_nodes;
-    uint num_terminal_nodes;
+    // 2. Graph statistics
+    uint num_edges; // Number of edges in the graph
+    uint num_nodes; // Number of nodes in the graph
+    uint max_in; // Largest number of incoming edges into a node
+    uint max_out; // Largest number of outgoign edges from a node
+    String_t graph_density; // From 0 to 1, 1 being a complete graph
+    uint num_root_nodes; // Number of nodes with no incoming edges
+    uint num_terminal_nodes; // Number of nodes with no outgoing edges
 
-    std::vector<Counts_t> const_counts; // atomic type & var type
-    Counts_t dist_counts;
-    Counts_t fact_counts;
-    Counts_t node_type_counts;
-    Counts_t oper_counts;
-    Counts_t in_edge_histogram;
-    Counts_t out_edge_histogram;
-
-    // statistics gathering methods
-    void initialize_scalars();
-    void initialize_count_vectors();
-    void compute_statistics(Graph& g);
-    void compute_node_statistics(NodeType node_type, Node* node);
+    void comp_graph_stats(Graph& g);
     String_t compute_density();
+    void init_matrix(Matrix_t& matrix, uint rows, uint n_cols);
 
-    // Report generation methods
-    Stream_t report;
+    // 3. Node statistics
+    Counts_t dist_counts; // Counts of distribution types in dist. nodes
+    Counts_t fact_counts; // Counts of factor types in factor nodes
+    Counts_t node_type_counts; // Counts of node types in the graph
+    Counts_t oper_counts; // Counts of operator types in operator nodes
+    Matrix_t const_counts; // atomic type & var type
+    Matrix_t root_terminal_per_node_type; // For each type, how many r & t
+
+    void comp_node_stats(Graph& g);
+
+    // 4. Edge statistics
+    Counts_t in_edge_histogram; // Counts of incoming edges in graph
+    Counts_t out_edge_histogram; // Counts of outgoing edges in graph
+    Matrix_t in_edge_bytype; // incoming edges by node type
+    Matrix_t out_edge_bytype; // outgoing edges by node type
+
+    void comp_edge_stats(Graph& g);
+
+    // 5. Reporting
+    Stream_t report; // to hold the generated report
+    uint tab;
 
     void gen_graph_stats_report();
     void gen_node_stats_report();
-    void gen_graph_properties_report();
-    void gen_edge_stats_report(String_t e_type, Counts_t counts);
-    template <class T>
-    void gen_detailed_stats(String_t title, Counts_t counts);
+    void gen_edge_stats_report();
+    void gen_edge_stats_report(String_t etype, Counts_t counts);
+    void gen_operator_stats(Counts_t counts);
+    void gen_distribution_stats(Counts_t counts);
+    void gen_factor_stats(Counts_t counts);
+    void gen_constant_stats(Matrix_t counts);
+    void gen_roots_and_terminals(uint node_id);
 
-    void emit_tab();
-    void emit(String_t label, String_t value);
-    void emit(String_t label, uint value);
-    void emit(String_t title);
-    void emit(String_t title, char banner);
-    void emit();
+    void emit(String_t output, char banner = '\0');
+    void emit_tab(uint n);
   };
 };
 
