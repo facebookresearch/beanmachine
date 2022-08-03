@@ -348,6 +348,8 @@ class GrowFromRootTreeProposer:
             beta: Hyperparameter controlling the prior probability of a node being terminal as discussed in [1].
 
         """
+        if len(candidate_cut_points) == 0:
+            return None
         selection_probabs = []
         sum_ = 0.0
         total_num_observations = invariants.O_.shape[-1]
