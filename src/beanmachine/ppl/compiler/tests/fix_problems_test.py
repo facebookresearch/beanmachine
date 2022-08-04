@@ -73,7 +73,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        fix_problems(bmg)
+        bmg, e = fix_problems(bmg)
         observed = to_dot(
             bmg,
             node_types=True,
@@ -179,7 +179,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        fix_problems(bmg)
+        bmg, e = fix_problems(bmg)
         observed = to_dot(
             bmg,
             node_types=True,
@@ -251,7 +251,7 @@ digraph "graph" {
         bmg.add_sample(norm)
         bmg.add_sample(bino)
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
 The count of a binomial is required to be a natural but is a positive real.
@@ -325,7 +325,7 @@ digraph "graph" {
 
         self.assertEqual(expected.strip(), observed.strip())
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
 
         self.assertEqual("", str(error_report).strip())
 
@@ -390,7 +390,7 @@ digraph "graph" {
         norm = bmg.add_normal(lg, one)
         bmg.add_sample(norm)
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = ""
         self.assertEqual(observed.strip(), expected.strip())
@@ -485,7 +485,7 @@ digraph "graph" {
 
         self.assertEqual(expected.strip(), observed.strip())
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
 
         self.assertEqual("", str(error_report).strip())
 
@@ -550,7 +550,7 @@ digraph "graph" {
         foo3 = bmg.add_uniform(one, foo2s)
         bmg.add_sample(foo3)
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
 The model uses a uniform operation unsupported by Bean Machine Graph.
@@ -601,7 +601,7 @@ digraph "graph" {
 
         self.assertEqual(expected.strip(), observed.strip())
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
 
         self.assertEqual("", str(error_report).strip())
 
@@ -694,7 +694,7 @@ digraph "graph" {
 
         self.assertEqual(expected.strip(), observed.strip())
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
 
         self.assertEqual("", str(error_report).strip())
 
@@ -792,7 +792,7 @@ digraph "graph" {
 
         self.assertEqual(expected.strip(), observed.strip())
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
 
         self.assertEqual("", str(error_report).strip())
 
@@ -878,7 +878,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         self.assertEqual("", str(error_report).strip())
 
         observed = to_dot(
@@ -938,7 +938,7 @@ digraph "graph" {
         bmg.add_observation(binos, 5.25)  # Bad
         bmg.add_observation(norms, True)  # OK; can be converted to 1.0
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
 A Bernoulli distribution is observed to have value -1.5 but only produces samples of type bool.
@@ -976,7 +976,7 @@ A binomial distribution is observed to have value 5.25 but only produces samples
         bmg.add_observation(binos, 5.0)  # Should be int
         bmg.add_observation(norms, True)  # Should be real
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
         observed = to_dot(
             bmg,
@@ -1037,7 +1037,7 @@ digraph "graph" {
         norm = bmg.add_normal(m, s)
         bmg.add_sample(norm)
 
-        error_report = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
         observed = to_dot(
             bmg,
