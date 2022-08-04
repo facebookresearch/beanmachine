@@ -10,7 +10,7 @@
 namespace beanmachine::graph {
 
 class NodeValue;
-class DoubleMatrix;
+struct DoubleMatrix;
 
 enum class TransformType { NONE = 0, LOG = 1 };
 
