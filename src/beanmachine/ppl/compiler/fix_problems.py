@@ -127,7 +127,7 @@ def fix_problems(
             requirements_fixer(),
             observations_fixer(),
             conditional_graph_fixer(
-                lambda gb: gb._fix_observe_true, lambda gb: observe_true_fixer(gb)
+                condition=lambda gb: gb._fix_observe_true, fixer=observe_true_fixer()
             ),
         ]
     )

@@ -36,7 +36,7 @@ def _skip_conversions(n: BMGNode) -> BMGNode:
     return n
 
 
-def observe_true_fixer(bmg: BMGraphBuilder) -> GraphFixer:
+def observe_true_fixer() -> GraphFixer:
     # A common technique in model design is to boost the probability density
     # score of a particular quantity by converting it to a probability
     # and then observing that a coin flip of that probability comes up heads.
@@ -54,7 +54,7 @@ def observe_true_fixer(bmg: BMGraphBuilder) -> GraphFixer:
     #      SOMETHING --> EXP --> TO_PROB --> BERNOULLI --> SAMPLE
     #        \
     #         --> EXP_PRODUCT
-    def fixer() -> GraphFixerResult:
+    def fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
         made_change = False
         for o in bmg.all_observations():
             if not is_one(o.value):
@@ -71,6 +71,6 @@ def observe_true_fixer(bmg: BMGraphBuilder) -> GraphFixer:
             bmg.add_exp_product(exp.operand)
             bmg.remove_leaf(o)
             made_change = True
-        return made_change, ErrorReport()
+        return bmg, made_change, ErrorReport()
 
     return fixer
