@@ -164,7 +164,9 @@ class GeneratedGraphPython:
             self._add_constant(node)
 
     def _generate_python(self) -> None:
-        fix_problems(self.bmg).raise_errors()
+        bmg, error_report = fix_problems(self.bmg)
+        self.bmg = bmg
+        error_report.raise_errors()
         for node in self.bmg.all_ancestor_nodes():
             self._generate_node(node)
         self.code = "\n".join(self._code)
