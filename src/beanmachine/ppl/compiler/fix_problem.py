@@ -83,7 +83,7 @@ identity_graph_fixer: GraphFixer = lambda gb: (gb, False, ErrorReport())
 
 def conditional_graph_fixer(
     condition: Callable[[BMGraphBuilder], bool],
-    fixer: Callable[[BMGraphBuilder], GraphFixer],
+    fixer: Callable[[BMGraphBuilder], GraphFixerResult],
 ) -> GraphFixer:
     def _condition_graph_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
         return fixer(bmg) if condition(bmg) else identity_graph_fixer(bmg)
