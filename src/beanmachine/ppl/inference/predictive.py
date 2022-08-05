@@ -137,7 +137,10 @@ class Predictive(object):
             predictives = []
 
             for _ in trange(
-                num_samples, desc="Samples collected", disable=not progress_bar
+                # pyre-fixme[6]: For 1st param expected `int` but got `Optional[int]`.
+                num_samples,
+                desc="Samples collected",
+                disable=not progress_bar,
             ):
                 sampler = inference.sampler(
                     queries, obs, num_samples, initialize_fn=init_from_prior

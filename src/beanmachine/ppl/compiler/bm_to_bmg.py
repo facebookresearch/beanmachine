@@ -807,8 +807,8 @@ def _create_enclosing_helper(
 
     helper_body = (
         [ast.Import(names=[ast.alias(name="operator", asname=None)])]
-        + transformed_body  # pyre-ignore
-        + [ast.Return(value=ast.Name(id=name, ctx=ast.Load()))]  # pyre-ignore
+        + transformed_body
+        + [ast.Return(value=ast.Name(id=name, ctx=ast.Load()))]
     )
 
     helper_func = ast.FunctionDef(
