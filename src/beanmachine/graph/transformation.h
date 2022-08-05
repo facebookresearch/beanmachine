@@ -10,7 +10,7 @@
 namespace beanmachine::graph {
 
 class NodeValue;
-class DoubleMatrix;
+struct DoubleMatrix;
 
 enum class TransformType { NONE = 0, LOG = 1 };
 
@@ -44,6 +44,17 @@ class Transformation {
     log |det(d x / d y)|
   :param constrained: the node value x in constrained space
   :param unconstrained: the node value y in unconstrained space
+
+  For a transformation that is applied to each element of the input
+  matrix independently (in other words, all of our transforms so far), the
+  jabobian is a matrix with only values on the diagnonal corresponding to the
+  derivative of that value with respect to the corresponding input.  Also, if
+  the function is monotonically increasing (which generally it should be), the
+  derivative values are positive and so the absolute values of them are
+  positive. Therefore, the determinant of the jacobian is the product of the
+  diagonal entries, which is the product of the elementwise derivatives.  The
+  log of that determinant is the sum of the log of the elementwise derivatives
+  (because the log of a product is the sum of the logs).
   */
   virtual double log_abs_jacobian_determinant(
       const NodeValue& /* constrained */,
