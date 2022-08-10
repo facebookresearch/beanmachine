@@ -374,9 +374,13 @@ class GrowFromRootTreeProposer:
             (math.pow((1 + current_node.depth), beta) / alpha) - 1
         )
 
-        null_log_likelihood = _integrated_log_likelihood(
-            num_observations=total_num_observations, residual=total_residual
-        ) + log(kappa)
+        null_log_likelihood = (
+            _integrated_log_likelihood(
+                num_observations=total_num_observations, residual=total_residual
+            )
+            + log(kappa)
+            + log(len(candidate_cut_points))
+        )
         if null_log_likelihood > MAX_LOG_LIKELIHOOD:
             MAX_LOG_LIKELIHOOD = null_log_likelihood
 
