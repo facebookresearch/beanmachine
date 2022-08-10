@@ -9,7 +9,7 @@
 
 const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
-const {fbContent} = require('internaldocs-fb-helpers');
+const {fbContent} = require('docusaurus-plugin-internaldocs-fb/internal');
 
 module.exports = {
   title: 'Bean Machine',
