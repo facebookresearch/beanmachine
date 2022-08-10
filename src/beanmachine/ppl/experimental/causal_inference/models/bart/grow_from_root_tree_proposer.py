@@ -356,6 +356,7 @@ class GrowFromRootTreeProposer:
         total_num_observations = invariants.O_.shape[-1]
         total_residual = torch.sum(partial_residual[invariants.O_[0]]).item()
         tau = leaf_sampler.prior_scale**2
+        sigma2 = sigma_val**2
         MAX_LOG_LIKELIHOOD = -float("inf")
 
         def _integrated_log_likelihood(
@@ -364,9 +365,9 @@ class GrowFromRootTreeProposer:
         ) -> float:
 
             log_likelihood = +0.5 * log(
-                (sigma_val**2) / (sigma_val**2 + tau * num_observations)
+                (sigma2) / (sigma2 + tau * num_observations)
             ) + 0.5 * (tau * (residual**2)) / (
-                (sigma_val**2) * (sigma_val**2 + tau * num_observations)
+                (sigma2) * (sigma2 + tau * num_observations)
             )
             return log_likelihood
 
