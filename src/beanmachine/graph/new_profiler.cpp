@@ -7,8 +7,8 @@
 
 // clang-format on
 
-#include "beanmachine/graph/new_profiler.h"
 #include <stdexcept>
+#include "beanmachine/graph/profiler.h"
 
 #define NOW std::chrono::high_resolution_clock::now()
 
