@@ -5,6 +5,7 @@
 
 import math
 from collections import Counter
+from math import log
 from typing import cast, List, NamedTuple, Optional, Tuple
 
 import torch
@@ -350,32 +351,41 @@ class GrowFromRootTreeProposer:
         """
         if len(candidate_cut_points) == 0:
             return None
+        selection_log_likelihoods = []
         selection_probabs = []
-        sum_ = 0.0
         total_num_observations = invariants.O_.shape[-1]
         total_residual = torch.sum(partial_residual[invariants.O_[0]]).item()
         tau = leaf_sampler.prior_scale**2
+        sigma2 = sigma_val**2
+        MAX_LOG_LIKELIHOOD = -float("inf")
 
-        def _integrated_likelihood(num_observations: int, residual: float) -> float:
-            log_likelihood = math.log(
-                (sigma_val**2) / (sigma_val**2 + tau * num_observations)
-            )
-            log_likelihood += (tau * (residual**2)) / (
-                (sigma_val**2) * (sigma_val**2 + tau * num_observations)
-            )
-            log_likelihood /= 2
-            return math.exp(log_likelihood)
+        def _integrated_log_likelihood(
+            num_observations: int,
+            residual: float,
+        ) -> float:
 
-        null_point_probab = _integrated_likelihood(
-            num_observations=total_num_observations, residual=total_residual
-        )
+            log_likelihood = +0.5 * log(
+                (sigma2) / (sigma2 + tau * num_observations)
+            ) + 0.5 * (tau * (residual**2)) / (
+                (sigma2) * (sigma2 + tau * num_observations)
+            )
+            return log_likelihood
+
         kappa = self.num_null_cuts * (
             (math.pow((1 + current_node.depth), beta) / alpha) - 1
         )
-        null_point_probab *= kappa
 
-        selection_probabs.append(null_point_probab)
-        sum_ += null_point_probab
+        null_log_likelihood = (
+            _integrated_log_likelihood(
+                num_observations=total_num_observations, residual=total_residual
+            )
+            + log(kappa)
+            + log(len(candidate_cut_points))
+        )
+        if null_log_likelihood > MAX_LOG_LIKELIHOOD:
+            MAX_LOG_LIKELIHOOD = null_log_likelihood
+
+        selection_log_likelihoods.append(null_log_likelihood)
 
         current_O_id_, current_uniq_val_id_ = 0, 0
         residuals_le_cutpoint, num_obs_le_cutpoint = [], []
@@ -408,16 +418,25 @@ class GrowFromRootTreeProposer:
                 current_uniq_val_id_ += 1
             residuals_le_cutpoint.append(current_residual)
             num_obs_le_cutpoint.append(current_num_obs)
-            cut_point_probab = _integrated_likelihood(
-                num_observations=current_num_obs, residual=current_residual
-            ) * _integrated_likelihood(
+            cut_point_log_likelihood = _integrated_log_likelihood(
+                num_observations=current_num_obs,
+                residual=current_residual,
+            ) + _integrated_log_likelihood(
                 num_observations=(total_num_observations - current_num_obs),
                 residual=(total_residual - current_residual),
             )
-            selection_probabs.append(cut_point_probab)
-            sum_ += cut_point_probab
+            if cut_point_log_likelihood > MAX_LOG_LIKELIHOOD:
+                MAX_LOG_LIKELIHOOD = cut_point_log_likelihood
+            selection_log_likelihoods.append(cut_point_log_likelihood)
 
+        # turn it into likelihoods
+        sum_ = 0.0
+        for log_likelihood in selection_log_likelihoods:
+            likelihood = math.exp(log_likelihood - MAX_LOG_LIKELIHOOD)
+            sum_ += likelihood
+            selection_probabs.append(likelihood)
         selection_probabs = torch.tensor([_ / sum_ for _ in selection_probabs])
+
         sampled_cut_id = cast(
             int, multinomial(input=selection_probabs, num_samples=1).item()
         )
