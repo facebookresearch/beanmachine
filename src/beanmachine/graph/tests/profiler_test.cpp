@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <string>
-#include "beanmachine/graph/new_profiler.h"
+#include "beanmachine/graph/profiler.h"
 
 namespace beanmachine {
 namespace graph {
