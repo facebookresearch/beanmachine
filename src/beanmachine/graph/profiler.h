@@ -77,21 +77,12 @@ class Profiler {
 
 extern Profiler* profiler;
 
-} // namespace graph
-} // namespace beanmachine
 /*
-This is the old profiler code. I am leaving it here for the moment, but
-at some point in the future, it should be removed.
-#pragma once
+The folliwing is the old profiler code. I am leaving it here for the moment
+because some code in the compiler side depends on it, and I do not want to break
+anything In the future, the new profiler should be made backward compatible with
+the old one so that we do not need to have both. #pragma once
 */
-
-#include <chrono>
-#include <map>
-#include <stack>
-#include <vector>
-
-namespace beanmachine {
-namespace graph {
 
 enum class ProfilerEvent {
   NMC_INFER,
