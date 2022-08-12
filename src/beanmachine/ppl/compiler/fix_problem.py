@@ -204,7 +204,7 @@ def edge_error_pass(
 
 
 def node_error_pass(
-    get_error: Callable[[bn.BMGNode], Optional[BMGError]]
+    get_error: Callable[[BMGraphBuilder, bn.BMGNode], Optional[BMGError]]
 ) -> GraphFixer:
     """Given a function that takes an node in the graph and returns an optional error,
     build a pass which checks for errors every node in the graph that is an ancestor
