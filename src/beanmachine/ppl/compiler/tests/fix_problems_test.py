@@ -73,7 +73,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        bmg, e = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         observed = to_dot(
             bmg,
             node_types=True,
@@ -179,7 +179,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        bmg, e = fix_problems(bmg)
+        bmg, error_report = fix_problems(bmg)
         observed = to_dot(
             bmg,
             node_types=True,

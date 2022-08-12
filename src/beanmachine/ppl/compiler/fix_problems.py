@@ -124,10 +124,10 @@ def fix_problems(
             bad_matmul_reporter(),
             untypable_node_reporter(),
             conjugacy_graph_fixer(skip_optimizations),
-            requirements_fixer(),
-            observations_fixer(),
+            requirements_fixer,
+            observations_fixer,
             conditional_graph_fixer(
-                condition=lambda gb: gb._fix_observe_true, fixer=observe_true_fixer()
+                condition=lambda gb: gb._fix_observe_true, fixer=observe_true_fixer
             ),
         ]
     )
