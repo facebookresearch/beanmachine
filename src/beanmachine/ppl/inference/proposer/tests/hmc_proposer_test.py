@@ -64,3 +64,24 @@ def test_leapfrog_step(hmc):
     )
     assert momentums == new_momentums
     assert new_positions == hmc._positions
+
+
+@pytest.mark.parametrize(
+    # forcing the step_size to be 0 for HMC/ NUTS
+    "algorithm",
+    [
+        bm.GlobalNoUTurnSampler(initial_step_size=0.0),
+        bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, initial_step_size=0.0),
+    ],
+)
+def test_step_size_exception(algorithm):
+    queries = [foo()]
+    observations = {bar(): torch.tensor(0.5)}
+
+    with pytest.raises(ValueError):
+        algorithm.infer(
+            queries,
+            observations,
+            num_samples=20,
+            num_chains=1,
+        )
