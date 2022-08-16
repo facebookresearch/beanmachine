@@ -63,6 +63,8 @@ class RequirementsFixer:
             return True
         if r is bt.any_real_matrix:
             return _is_real_matrix(t)
+        if r == bt.RealMatrix:
+            return isinstance(t, bt.RealMatrix)
         if isinstance(r, bt.UpperBound):
             return bt.supremum(t, r.bound) == r.bound
         if isinstance(r, bt.AlwaysMatrix):
@@ -112,6 +114,13 @@ class RequirementsFixer:
             else:
                 # It's some other type, such as Boolean or Natural matrix.
                 # Emit the value as the equivalent real matrix:
+                return self.bmg.add_real_matrix(node.value)
+
+        if requirement == bt.RealMatrix:
+            if isinstance(it, bt.RealMatrix):
+                assert isinstance(it, bt.BMGMatrixType)
+                return self.bmg.add_constant_of_matrix_type(node.value, it)
+            else:
                 return self.bmg.add_real_matrix(node.value)
 
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
@@ -299,7 +308,17 @@ class RequirementsFixer:
         # meets an upper bound requirement, then the conversion we want exists.
 
         node_type = self._typer[node]
-        if requirement is bt.any_real_matrix:
+        if isinstance(requirement, bt.RealMatrix):
+            if requirement.rows == 1 and requirement.columns == 1:
+                result = self.bmg.add_to_real(node)
+            else:
+                result = self.bmg.add_to_real_matrix(node)
+        elif requirement == bt.RealMatrix:
+            if isinstance(node_type, bt.BMGMatrixType) and node_type.rows == 1 and node_type.columns == 1:
+                result = self.bmg.add_to_real(node)
+            else:
+                result = self.bmg.add_to_real_matrix(node)
+        elif requirement is bt.any_real_matrix:
             result = self.bmg.add_to_real_matrix(node)
         elif self._type_meets_requirement(node_type, bt.upper_bound(requirement)):
             # If we got here then the node did NOT meet the requirement,
