@@ -41,7 +41,7 @@ def monte_carlo_approximate_reparam(
             params=params,
             queries_to_guides=queries_to_guides,
         )
-        world = World.initialize_world(
+        world = VariationalWorld.initialize_world(
             queries=[],
             observations={
                 **{
@@ -50,6 +50,7 @@ def monte_carlo_approximate_reparam(
                 },
                 **observations,
             },
+            params=params,
         )
 
         # form log density ratio logu = logp - logq

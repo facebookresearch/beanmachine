@@ -287,6 +287,37 @@ class TestAutoGuide:
         vi_estimate = world.get_guide_distribution(alpha()).sample((100,)).mean(dim=0)
         assert vi_estimate.isclose(map_truth, atol=0.1).all().item()
 
+    @pytest.mark.parametrize("auto_guide_inference", [ADVI, MAP])
+    def test_ppca(self, auto_guide_inference):
+        d, D = 2, 4
+        n = 150
+
+        @bm.random_variable
+        def A():
+            return dist.Normal(torch.zeros((D, d)), 2.0 * torch.ones((D, d)))
+
+        @bm.random_variable
+        def mu():
+            return dist.Normal(torch.zeros(D), 2.0 * torch.ones(D))
+
+        @bm.random_variable
+        def z():
+            return dist.Normal(torch.zeros(n, d), 1.0)
+
+        @bm.random_variable
+        def x():
+            return dist.Normal(z() @ A().T + mu(), 1.0)
+
+        vi = auto_guide_inference(
+            queries=[A(), mu()],
+            observations={x(): torch.random.randn(n, d) * torch.random.randn(d, D)},
+        )
+        losses = []
+        for _ in range(30):
+            loss, _ = vi.step()
+            losses.append(loss)
+        assert losses[-1].item() < losses[0].item()
+
 
 class TestStochasticVariationalInfer:
     @pytest.fixture(autouse=True)
