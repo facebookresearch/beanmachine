@@ -56,7 +56,8 @@ class VariationalInfer:
             params={},
             queries_to_guides=queries_to_guides,
         )
-        for guide in queries_to_guides.values():
+        for query, guide in queries_to_guides.items():
+            world.call(query)
             world.call(guide)
         self.params = world._params
         self._optimizer = optimizer(self.params.values())
