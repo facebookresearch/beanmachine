@@ -368,6 +368,7 @@ enum class DistributionType {
   GEOMETRIC,
   CAUCHY,
   DUMMY,
+  LKJ_CHOLESKY
 };
 
 enum class FactorType {

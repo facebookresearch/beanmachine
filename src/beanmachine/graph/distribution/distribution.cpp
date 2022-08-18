@@ -20,6 +20,7 @@
 #include "beanmachine/graph/distribution/geometric.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
 #include "beanmachine/graph/distribution/half_normal.h"
+#include "beanmachine/graph/distribution/lkj_cholesky.h"
 #include "beanmachine/graph/distribution/log_normal.h"
 #include "beanmachine/graph/distribution/multivariate_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
@@ -120,6 +121,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::FLAT: {
         return std::make_unique<Flat>(sample_type, in_nodes);
+      }
+      case graph::DistributionType::LKJ_CHOLESKY: {
+        return std::make_unique<LKJCholesky>(sample_type, in_nodes);
       }
       default: {
         throw std::invalid_argument(
