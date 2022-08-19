@@ -35,6 +35,7 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # what their inputs are.
 
 _known_requirements: Dict[type, List[bt.Requirement]] = {
+    bn.ElementwiseMultiplyNode: [bt.RealMatrix, bt.RealMatrix],
     bn.Observation: [bt.any_requirement],
     bn.Query: [bt.any_requirement],
     # Distributions
@@ -53,6 +54,9 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
     bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],
+    bn.MatrixAddNode: [bt.RealMatrix, bt.RealMatrix],
+    bn.MatrixExpNode: [bt.any_real_matrix],
+    bn.MatrixSumNode: [bt.any_real_matrix],
     bn.PhiNode: [bt.Real],
     bn.ToIntNode: [bt.upper_bound(bt.Real)],
     bn.ToNegativeRealNode: [bt.Real],

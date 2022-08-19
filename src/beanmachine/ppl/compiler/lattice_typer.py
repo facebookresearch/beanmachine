@@ -141,7 +141,10 @@ _always_matrix_types: Set[type] = {
     bn.ConstantProbabilityMatrixNode,
     bn.ConstantRealMatrixNode,
     bn.ConstantSimplexMatrixNode,
+    bn.ElementwiseMultiplyNode,
     bn.ToMatrixNode,
+    bn.MatrixAddNode,
+    bn.MatrixExpNode,
     bn.MatrixScaleNode,
     bn.TransposeNode,
 }
@@ -163,12 +166,16 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.CholeskyNode: self._type_cholesky,
             bn.ColumnIndexNode: self._type_column_index,
             bn.ComplementNode: self._type_complement,
+            bn.ElementwiseMultiplyNode: self._type_binary_elementwise_op,
             bn.ExpM1Node: self._type_expm1,
             bn.ExpNode: self._type_exp,
             bn.IfThenElseNode: self._type_if,
             bn.LogNode: self._type_log,
+            bn.MatrixAddNode: self._type_binary_elementwise_op,
             bn.MatrixMultiplicationNode: self._type_matrix_multiplication,
             bn.MatrixScaleNode: self._type_matrix_scale,
+            bn.MatrixExpNode: self._type_matrix_exp,
+            bn.MatrixSumNode: self._type_matrix_sum,
             bn.MultiplicationNode: self._type_multiplication,
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
@@ -177,8 +184,86 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.ToPositiveRealMatrixNode: self._type_to_pos_real_matrix,
             bn.ToRealMatrixNode: self._type_to_real_matrix,
             bn.VectorIndexNode: self._type_index,
+            bn.TensorNode: self._type_tensor_node,
             bn.TransposeNode: self._type_transpose,
         }
+
+    def _lattice_type_for_element_type(
+        self, element_type: bt.BMGElementType
+    ) -> bt.BMGLatticeType:
+        if element_type == bt.positive_real_element:
+            return bt.PositiveReal
+        if element_type == bt.negative_real_element:
+            return bt.NegativeReal
+        if element_type == bt.real_element:
+            return bt.Real
+        if element_type == bt.probability_element:
+            return bt.Probability
+        if element_type == bt.bool_element:
+            return bt.Boolean
+        if element_type == bt.natural_element:
+            return bt.Natural
+        else:
+            raise ValueError("unrecognized element type")
+
+    def _type_binary_elementwise_op(
+        self, node: bn.BinaryOperatorNode
+    ) -> bt.BMGLatticeType:
+        left_type = self[node.left]
+        right_type = self[node.right]
+        assert isinstance(left_type, bt.BMGMatrixType)
+        assert isinstance(right_type, bt.BMGMatrixType)
+        assert right_type.rows == left_type.rows
+        assert right_type.columns == left_type.columns
+        op_type = bt.supremum(
+            self._lattice_type_for_element_type(left_type.element_type),
+            self._lattice_type_for_element_type(right_type.element_type),
+        )
+        if bt.supremum(op_type, bt.NegativeReal) == bt.NegativeReal:
+            return bt.NegativeRealMatrix(left_type.rows, left_type.columns)
+        if bt.supremum(op_type, bt.PositiveReal) == bt.PositiveReal:
+            return bt.PositiveRealMatrix(left_type.rows, left_type.columns)
+        return bt.RealMatrix(left_type.rows, left_type.columns)
+
+    _matrix_tpe_constructors = {
+        bt.Real: lambda r, c: bt.RealMatrix(r, c),
+        bt.PositiveReal: lambda r, c: bt.PositiveRealMatrix(r, c),
+        bt.NegativeReal: lambda r, c: bt.NegativeRealMatrix(r, c),
+        bt.Probability: lambda r, c: bt.ProbabilityMatrix(r, c),
+        bt.Boolean: lambda r, c: bt.BooleanMatrix(r, c),
+        bt.NaturalMatrix: lambda r, c: bt.NaturalMatrix(r, c),
+    }
+
+    def _type_tensor_node(self, node: bn.TensorNode) -> bt.BMGLatticeType:
+        size = node._size
+        element_type = bt.supremum(*[self[i] for i in node.inputs])
+        if len(size) == 0:
+            return element_type
+        if len(size) == 1:
+            rows = 1
+            columns = size[0]
+        elif len(size) == 2:
+            rows = size[0]
+            columns = size[1]
+        else:
+            return bt.Untypable
+
+        return self._matrix_tpe_constructors[element_type](rows, columns)
+
+    def _type_matrix_exp(self, node: bn.MatrixExpNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 1
+        op = self[node.operand]
+        assert op is not bt.Untypable
+        assert isinstance(op, bt.BMGMatrixType)
+        return bt.PositiveRealMatrix(op.rows, op.columns)
+
+    def _type_matrix_sum(self, node: bn.MatrixSumNode) -> bt.BMGLatticeType:
+        operand_type = self[node.operand]
+        assert isinstance(operand_type, bt.BMGMatrixType)
+        operand_element_type = self._lattice_type_for_element_type(
+            operand_type.element_type
+        )
+        return operand_element_type
 
     def _type_observation(self, node: bn.Observation) -> bt.BMGLatticeType:
         return self[node.observed]

@@ -9,9 +9,69 @@ import beanmachine.ppl.compiler.bmg_types as bt
 import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
+from torch import Size
 
 
 class LatticeTyperTest(unittest.TestCase):
+    def test_lattice_typer_matrix_ops(self) -> None:
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+        typer = LatticeTyper()
+
+        # create non constant real matrix
+        zeros = bmg.add_real_matrix(torch.zeros(2, 2))
+        ones = bmg.add_pos_real_matrix(torch.ones(2, 2))
+        tensor_elements = []
+        for row in range(0, 2):
+            row_node = bmg.add_natural(row)
+            row_mu = bmg.add_column_index(zeros, row_node)
+            row_sigma = bmg.add_column_index(ones, row_node)
+            for column in range(0, 2):
+                index_node = bmg.add_natural(column)
+                index_mu = bmg.add_vector_index(row_mu, index_node)
+                index_sigma = bmg.add_vector_index(row_sigma, index_node)
+                normal = bmg.add_normal(index_mu, index_sigma)
+                sample = bmg.add_sample(normal)
+                tensor_elements.append(sample)
+        real_matrix = bmg.add_tensor(Size([2, 2]), *tensor_elements)
+
+        # create non constant bool matrix
+        probs = bmg.add_real_matrix(torch.tensor([[0.75, 0.25], [0.125, 0.875]]))
+        tensor_elements = []
+        for row in range(0, 2):
+            row_node = bmg.add_natural(row)
+            row_prob = bmg.add_column_index(probs, row_node)
+            for column in range(0, 2):
+                col_index = bmg.add_natural(column)
+                prob = bmg.add_vector_index(row_prob, col_index)
+                bernoulli = bmg.add_bernoulli(prob)
+                sample = bmg.add_sample(bernoulli)
+                tensor_elements.append(sample)
+        bool_matrix = bmg.add_tensor(Size([2, 2]), *tensor_elements)
+
+        neg_real = bmg.add_neg_real_matrix(torch.tensor([[-1.2, -1.3], [-4.7, -1.2]]))
+        pos_real = bmg.add_matrix_exp(real_matrix)
+
+        add_pos_to_reg = bmg.add_matrix_addition(pos_real, neg_real)
+        mult_pos_to_neg = bmg.add_elementwise_multiplication(pos_real, neg_real)
+        sum_bool = bmg.add_matrix_sum(bool_matrix)
+        bmg.add_query(sum_bool)
+
+        tpe_neg_real = typer[neg_real]
+        tpe_real = typer[real_matrix]
+        tpe_pos_real = typer[pos_real]
+
+        tpe_add = typer[add_pos_to_reg]
+        tpe_mult = typer[mult_pos_to_neg]
+        tpe_sum = typer[sum_bool]
+
+        self.assertTrue(isinstance(tpe_real, bt.RealMatrix))
+        self.assertTrue(isinstance(tpe_neg_real, bt.NegativeRealMatrix))
+        self.assertTrue(isinstance(tpe_pos_real, bt.PositiveRealMatrix))
+        self.assertTrue(isinstance(tpe_add, bt.RealMatrix))
+        self.assertTrue(isinstance(tpe_mult, bt.RealMatrix))
+        self.assertTrue(isinstance(tpe_sum, bt.BooleanMatrix))
+
     def test_lattice_typer_1(self) -> None:
         self.maxDiff = None
         bmg = BMGraphBuilder()

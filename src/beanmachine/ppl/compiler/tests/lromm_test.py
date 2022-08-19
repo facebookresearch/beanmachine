@@ -93,4 +93,4 @@ The value of a log_prob is required to be a real but is a 3 x 1 natural matrix.
 The log_prob was created in function call f().
         """
         observed = str(ex.exception)
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())

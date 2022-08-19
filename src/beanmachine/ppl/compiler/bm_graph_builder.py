@@ -1015,6 +1015,38 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    @memoize
+    def add_elementwise_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value * right.value)
+        node = bn.ElementwiseMultiplyNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_matrix_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value + right.value)
+        node = bn.MatrixAddNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_matrix_sum(self, matrix: BMGNode) -> BMGNode:
+        if isinstance(matrix, ConstantNode):
+            return self.add_constant(matrix.value.sum())
+        node = bn.MatrixSumNode(matrix)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_matrix_exp(self, matrix: BMGNode) -> BMGNode:
+        if isinstance(matrix, ConstantNode):
+            return self.add_constant(matrix.value.exp())
+        node = bn.MatrixExpNode(matrix)
+        self.add_node(node)
+        return node
+
     def add_exp_product(self, *inputs: BMGNode) -> bn.ExpProductFactorNode:
         # Note that factors are NOT deduplicated; this method is not
         # memoized. We need to be able to add multiple factors to the same

@@ -806,6 +806,14 @@ class LessThanEqualNode(ComparisonNode):
         return f"({str(self.left)}<={str(self.right)})"
 
 
+class ElementwiseMultiplyNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return f"{self.left} * {self.right}"
+
+
 class EqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
@@ -1035,6 +1043,17 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         return "(" + str(self.left) + "*" + str(self.right) + ")"
 
 
+class MatrixAddNode(BinaryOperatorNode):
+    """This represents an exponentiation operation; it is generated when
+    a model contains calls to Tensor.exp or math.exp."""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return f"{self.left} + {self.right}"
+
+
 class MatrixScaleNode(BinaryOperatorNode):
     """This represents a matrix scaling."""
 
@@ -1181,6 +1200,25 @@ class Log1mexpNode(UnaryOperatorNode):
 
     def __str__(self) -> str:
         return "Log1mexp(" + str(self.operand) + ")"
+
+
+class MatrixExpNode(UnaryOperatorNode):
+    """This represents an exponentiation operation; it is generated when
+    a model contains calls to Tensor.exp or math.exp."""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixExp(" + str(self.operand) + ")"
+
+
+class MatrixSumNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixSum(" + str(self.operand) + ")"
 
 
 class TransposeNode(UnaryOperatorNode):

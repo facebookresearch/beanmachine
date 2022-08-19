@@ -431,7 +431,8 @@ def untypable_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
             return None
         for i in node.inputs:
             t = typer[i]
-            if t == bt.Untypable or t == bt.Tensor:
+            is_tensor = t == bt.Tensor or isinstance(t, bt.BMGMatrixType)
+            if t == bt.Untypable or is_tensor:
                 return None
         return UntypableNode(node, bmg.execution_context.node_locations(node))
 
