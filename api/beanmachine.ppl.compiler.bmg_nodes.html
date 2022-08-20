@@ -747,6 +747,22 @@ probability distributions.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">ElementwiseMultiplyNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.InputList" title="beanmachine.ppl.compiler.bmg_nodes.InputList"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.InputList</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode.inputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.ppl.utils.item_counter.ItemCounter</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode.outputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.EqualNode">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">EqualNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.EqualNode" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.ComparisonNode" title="beanmachine.ppl.compiler.bmg_nodes.ComparisonNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.ComparisonNode</span></code></a></p>
@@ -1378,6 +1394,42 @@ a model contains calls to Tensor.sigmoid.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">MatrixAddNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode</span></code></a></p>
+<p>This represents an exponentiation operation; it is generated when
+a model contains calls to Tensor.exp or math.exp.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.InputList" title="beanmachine.ppl.compiler.bmg_nodes.InputList"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.InputList</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode.inputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.ppl.utils.item_counter.ItemCounter</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode.outputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">MatrixExpNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode</span></code></a></p>
+<p>This represents an exponentiation operation; it is generated when
+a model contains calls to Tensor.exp or math.exp.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.InputList" title="beanmachine.ppl.compiler.bmg_nodes.InputList"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.InputList</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.inputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.ppl.utils.item_counter.ItemCounter</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.outputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">MatrixMultiplicationNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BinaryOperatorNode</span></code></a></p>
@@ -1407,6 +1459,22 @@ a model contains calls to Tensor.sigmoid.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode.outputs">
 <span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.ppl.utils.item_counter.ItemCounter</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode.outputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.</span></span><span class="sig-name descname"><span class="pre">MatrixSumNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode" title="beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.UnaryOperatorNode</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_nodes.InputList" title="beanmachine.ppl.compiler.bmg_nodes.InputList"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.InputList</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode.inputs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.ppl.utils.item_counter.ItemCounter</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode.outputs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

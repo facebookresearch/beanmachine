@@ -158,6 +158,8 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_division">add_division() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_elementwise_multiplication">add_elementwise_multiplication() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_equal">add_equal() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.error_report.html#beanmachine.ppl.compiler.error_report.ErrorReport.add_error">add_error() (beanmachine.ppl.compiler.error_report.ErrorReport method)</a>
@@ -228,9 +230,15 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_lshift">add_lshift() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_addition">add_matrix_addition() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_exp">add_matrix_exp() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_multiplication">add_matrix_multiplication() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_scale">add_matrix_scale() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_sum">add_matrix_sum() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_mod">add_mod() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
@@ -312,12 +320,12 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_to_probability">add_to_probability() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_to_real">add_to_real() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_to_real_matrix">add_to_real_matrix() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_transpose">add_transpose() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_uniform">add_uniform() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
@@ -1669,6 +1677,8 @@
         <li><a href="beanmachine.ppl.compiler.bmg_types.html#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.element_type">(beanmachine.ppl.compiler.bmg_types.ZeroMatrix attribute)</a>
 </li>
       </ul></li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode">ElementwiseMultiplyNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
+</li>
       <li><a href="beanmachine.ppl.inference.predictive.html#beanmachine.ppl.inference.predictive.Predictive.empirical">empirical() (beanmachine.ppl.inference.predictive.Predictive static method)</a>
 
       <ul>
@@ -2222,6 +2232,8 @@
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.DivisionNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.DivisionNode attribute)</a>
 </li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode attribute)</a>
+</li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.EqualNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.EqualNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.Exp2Node.inputs">(beanmachine.ppl.compiler.bmg_nodes.Exp2Node attribute)</a>
@@ -2292,9 +2304,15 @@
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.LShiftNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.LShiftNode attribute)</a>
 </li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode attribute)</a>
+</li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ModNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.ModNode attribute)</a>
 </li>
@@ -2711,9 +2729,15 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.fix_matrix_scale.html#beanmachine.ppl.compiler.fix_matrix_scale.matrix_scale_fixer">matrix_scale_fixer() (in module beanmachine.ppl.compiler.fix_matrix_scale)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode">MatrixAddNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode">MatrixExpNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode">MatrixMultiplicationNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode">MatrixScaleNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode">MatrixSumNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
       <li><a href="beanmachine.ppl.distributions.html#beanmachine.ppl.distributions.Delta.mean">mean (beanmachine.ppl.distributions.Delta property)</a>
 
@@ -3149,6 +3173,8 @@
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.DivisionNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.DivisionNode attribute)</a>
 </li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.ElementwiseMultiplyNode attribute)</a>
+</li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.EqualNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.EqualNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.Exp2Node.outputs">(beanmachine.ppl.compiler.bmg_nodes.Exp2Node attribute)</a>
@@ -3217,9 +3243,15 @@
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.LShiftNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.LShiftNode attribute)</a>
 </li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixAddNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode attribute)</a>
+</li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixSumNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.ModNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.ModNode attribute)</a>
 </li>
