@@ -5,7 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
 #include "beanmachine/graph/distribution/lkj_cholesky.h"
+#include <cmath>
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
@@ -63,8 +65,8 @@ LKJCholesky::LKJCholesky(
 
   // This is an intermediate field used by log_prob and its gradients.
   order = Eigen::VectorXd(
-              2.0 * (in_nodes[0]->value._double - 1) + d -
-              Eigen::ArrayXf::LinSpaced(d - 1, 2.0, d).cast<double>())
+              2.0 * (in_nodes[0]->value._double - 1) + (double)d -
+              Eigen::ArrayXf::LinSpaced(d - 1, 2.0, (float)d).cast<double>())
               .array();
 }
 
@@ -72,15 +74,15 @@ Eigen::MatrixXd LKJCholesky::_matrix_sampler(std::mt19937& gen) const {
   Eigen::VectorXd beta_result(d);
   Eigen::MatrixXd normal_result(d, d);
 
-  for (int i = 0; i < d; i++) {
+  for (uint i = 0; i < d; i++) {
     beta_result(i) = util::sample_beta(gen, beta_conc1(i), beta_conc0(i));
   }
 
   // Sample a lower-triangular (excluding diagonal) matrix of standard normal
   // values.
   std::normal_distribution<double> dist(0.0, 1.0);
-  for (int i = 1; i < d; i++) { // Skips first row, this will be zeroed later
-    for (int j = 0; j < d; j++) {
+  for (uint i = 1; i < d; i++) { // Skips first row, this will be zeroed later
+    for (uint j = 0; j < d; j++) {
       if (j < i) {
         normal_result(i, j) = dist(gen);
       } else {
@@ -92,7 +94,7 @@ Eigen::MatrixXd LKJCholesky::_matrix_sampler(std::mt19937& gen) const {
   normal_result.rowwise().normalize();
 
   // Zero first row after normalization, since there will be nans
-  for (int i = 0; i < d; i++) {
+  for (uint i = 0; i < d; i++) {
     normal_result(0, i) = 0.0;
   }
 
@@ -104,7 +106,7 @@ Eigen::MatrixXd LKJCholesky::_matrix_sampler(std::mt19937& gen) const {
       (1 - (w.array() * w.array()).rowwise().sum()).cwiseMax(1e-38).sqrt();
 
   // Set diagonal elements of w
-  for (int i = 0; i < d; i++) {
+  for (uint i = 0; i < d; i++) {
     w(i, i) = diag(i, 0);
   }
 
@@ -112,7 +114,7 @@ Eigen::MatrixXd LKJCholesky::_matrix_sampler(std::mt19937& gen) const {
 }
 
 double LKJCholesky::log_prob(const graph::NodeValue& value) const {
-  int dm1 = d - 1;
+  uint dm1 = d - 1;
   auto diag_elems =
       value._matrix.diagonal().array()(Eigen::seq(1, Eigen::last));
   double eta = in_nodes[0]->value._double;
@@ -121,13 +123,13 @@ double LKJCholesky::log_prob(const graph::NodeValue& value) const {
   // Compute normalization constant
 
   // log(denominator) = lgamma(alpha) * (d - 1)
-  double log_pi = log(std::numbers::pi);
+  double log_pi = log(M_PI);
   double alpha = eta + 0.5 * dm1;
   double log_denom = lgamma(alpha) * dm1;
 
   // log(numerator) = multivariate_lgamma(alpha - 0.5, d-1)
   double log_numerator = log_pi * dm1 * (dm1 - 1.0) / 4.0;
-  for (int i = 1; i < d; i++) {
+  for (uint i = 1; i < d; i++) {
     log_numerator += lgamma(alpha - 0.5 - (i - 1.0) / 2.0);
   }
 
@@ -153,7 +155,7 @@ void LKJCholesky::gradient_log_prob_param(
     const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
-  int dm1 = d - 1;
+  uint dm1 = d - 1;
   double alpha = in_nodes[0]->value._double + 0.5 * dm1;
 
   // from contribution (through order) to unnormalized log pdf
@@ -166,7 +168,7 @@ void LKJCholesky::gradient_log_prob_param(
   grad2 += dm1 * util::polygamma(1, alpha);
 
   // from normalization factor numerator
-  for (int i = 1; i < d; i++) {
+  for (uint i = 1; i < d; i++) {
     grad1 -= util::polygamma(0, alpha - i / 2.0);
     grad2 -= util::polygamma(1, alpha - i / 2.0);
   }
@@ -180,7 +182,7 @@ void LKJCholesky::backward_value(
       value._matrix.diagonal().array()(Eigen::seq(1, Eigen::last));
   auto grad_diagonal = adjunct * order / diag_elems;
 
-  for (int i = 1; i < d; i++) {
+  for (uint i = 1; i < d; i++) {
     back_grad(i, i) = grad_diagonal(i - 1);
   }
 };
@@ -188,7 +190,7 @@ void LKJCholesky::backward_value(
 void LKJCholesky::backward_param(const graph::NodeValue& value, double adjunct)
     const {
   if (in_nodes[0]->needs_gradient()) {
-    int dm1 = d - 1;
+    uint dm1 = d - 1;
     double alpha = in_nodes[0]->value._double + 0.5 * dm1;
 
     // from contribution (through order) to unnormalized log pdf
@@ -200,7 +202,7 @@ void LKJCholesky::backward_param(const graph::NodeValue& value, double adjunct)
     in_nodes[0]->back_grad1 += dm1 * adjunct * util::polygamma(0, alpha);
 
     // from normalization factor numerator
-    for (int i = 1; i < d; i++) {
+    for (uint i = 1; i < d; i++) {
       in_nodes[0]->back_grad1 -= adjunct * util::polygamma(0, alpha - i / 2.0);
     }
   }

@@ -43,7 +43,7 @@ class LKJCholesky : public Distribution {
 
   Eigen::VectorXd beta_conc1;
   Eigen::VectorXd beta_conc0;
-  int d;
+  uint d;
 
  private:
   Eigen::ArrayXd order;
