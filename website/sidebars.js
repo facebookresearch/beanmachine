@@ -31,22 +31,25 @@ module.exports = {
       Framework: [
         'framework_topics/world',
         {
-          'Inference Methods': [
-            'framework_topics/inference/inference',
-            'framework_topics/inference/ancestral_metropolis_hastings',
-            'framework_topics/inference/random_walk',
-            'framework_topics/inference/uniform_metropolis_hastings',
-            'framework_topics/inference/hamiltonian_monte_carlo',
-            'framework_topics/inference/no_u_turn_sampler',
-            'framework_topics/inference/newtonian_monte_carlo',
-          ],
-          'Custom Inference': [
-            'framework_topics/custom_inference/programmable_inference',
-            'framework_topics/custom_inference/custom_proposers',
-            // Todo, stale and not fully supported
-            // 'framework_topics/custom_inference/transforms',
-            'framework_topics/custom_inference/compositional_inference',
-            'framework_topics/custom_inference/block_inference',
+          'MCMC Inference Methods': [
+            'framework_topics/mcmc_inference/inference',
+            'framework_topics/mcmc_inference/ancestral_metropolis_hastings',
+            'framework_topics/mcmc_inference/random_walk',
+            'framework_topics/mcmc_inference/uniform_metropolis_hastings',
+            'framework_topics/mcmc_inference/hamiltonian_monte_carlo',
+            'framework_topics/mcmc_inference/no_u_turn_sampler',
+            'framework_topics/mcmc_inference/newtonian_monte_carlo',
+
+            {
+              'Custom Inference': [
+                'framework_topics/mcmc_inference/custom_inference/programmable_inference',
+                'framework_topics/mcmc_inference/custom_inference/custom_proposers',
+                // Todo, stale and not fully supported
+                // 'framework_topics/custom_inference/transforms',
+                'framework_topics/mcmc_inference/custom_inference/compositional_inference',
+                'framework_topics/mcmc_inference/custom_inference/block_inference',
+              ],
+            },
           ],
           'Model Evaluation': [
             'framework_topics/model_evaluation/diagnostics',

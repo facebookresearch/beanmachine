@@ -25,7 +25,7 @@ The full NUTS algorithm description is quite involved. We recommend you check ou
 
 :::caution
 
-As with HMC, NUTS operates on continuous latent variables only. For discrete variables, use [`CompositionalInference`](../custom_inference/compositional_inference.md) or marginalize them out as in the [Zero inflated count data tutorial](../overview/tutorials/Zero_inflated_count_data/ZeroInflatedCountData).
+As with HMC, NUTS operates on continuous latent variables only. For discrete variables, use [`CompositionalInference`](./custom_inference/compositional_inference.md) or marginalize them out as in the [Zero inflated count data tutorial](../overview/tutorials/Zero_inflated_count_data/ZeroInflatedCountData).
 
 :::
 
