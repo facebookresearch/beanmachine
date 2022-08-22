@@ -9,8 +9,8 @@ from typing import Iterable
 import torch
 from beanmachine import ppl as bm
 from beanmachine.ppl.distributions.delta import Delta
-from beanmachine.ppl.experimental.vi.variational_infer import VariationalInfer
-from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
+from beanmachine.ppl.inference.vi.variational_infer import VariationalInfer
+from beanmachine.ppl.inference.vi.variational_world import VariationalWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict
 from torch import distributions as dist
