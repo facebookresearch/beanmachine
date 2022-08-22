@@ -28,7 +28,7 @@ class StatisticalModel:
     Every deterministic functional that a user would like to query during
     inference should be wrapped in a ``bm.functional`` .
 
-    [EXPERIMENTAL]: Every parameter of the guide distribution that is to be learned
+    Every parameter of the guide distribution that is to be learned
     via variational inference should be wrapped in a ``bm.param`` .
     """
 
@@ -119,7 +119,7 @@ class StatisticalModel:
 
           @bm.param
           def mu():
-            return Normal(0., 1.)
+            return torch.zeros(2)
 
           @bm.random_variable
           def foo():
