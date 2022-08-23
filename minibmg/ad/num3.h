@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <fmt/format.h>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -58,6 +59,7 @@ class Num3 {
       const Num3<Underlying>& when_not_less) const;
   bool is_constant(double& value) const;
   bool is_constant(const double& value) const;
+  std::string to_string() const;
 };
 
 template <class Underlying>
@@ -203,10 +205,6 @@ const {
       return 1;
     if (power == 1)
       return *this;
-    if (power == 2)
-      return (*this) * (*this);
-    if (power == -1)
-      return 1 / (*this);
   }
 
   const Underlying new_primal = this->m_primal.pow(other.m_primal);
@@ -390,6 +388,16 @@ requires Number<Underlying>
 bool Num3<Underlying>::is_constant(const double& value) const {
   return this->m_derivative1.is_constant(0) &&
       this->m_primal.is_constant(value);
+}
+
+template <class Underlying>
+requires Number<Underlying> std::string Num3<Underlying>::to_string()
+const {
+  return fmt::format(
+      "[primal={0}, derivative={1}, derivative2={2}]",
+      this->m_primal.to_string(),
+      this->m_derivative1.to_string(),
+      this->m_derivative2.to_string());
 }
 
 static_assert(Number<Num3<Real>>);

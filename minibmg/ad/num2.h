@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <fmt/format.h>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -57,6 +58,7 @@ class Num2 {
       const Num2<Underlying>& when_not_less) const;
   bool is_constant(double& value) const;
   bool is_constant(const double& value) const;
+  std::string to_string() const;
 };
 
 template <class Underlying>
@@ -161,10 +163,6 @@ const {
       return 1;
     if (power == 1)
       return *this;
-    if (power == 2)
-      return (*this) * (*this);
-    if (power == -1)
-      return 1 / (*this);
   }
 
   const Underlying new_primal = this->m_primal.pow(other.m_primal);
@@ -172,20 +170,20 @@ const {
   // From https://www.wolframalpha.com/
   // D[a(x) ^ (b(x)), x] ->
   //          a[x]^(-1 + b[x]) (b[x] a'[x] + a[x] Log[a[x]] b'[x])
-  //        = a[x]^b[x] (b[x] a'[x] / a[x] + Log[a[x]] b'[x])
+  //        = a[x]^(b[x] - 1) (b[x] a'[x] + a[x] Log[a[x]] b'[x])
 
   // We avoid using the log (e.g. of a negative number) when not needed.
-  // t0 = Log[a[x]] b'[x]
-  const Underlying t0 = other.m_derivative1.is_constant(0)
+  // t0 = a[x] Log[a[x]] b'[x]
+  const Underlying t0 =
+      other.m_derivative1.is_constant(0) || this->m_primal.is_constant(0)
       ? 0
-      : this->m_primal.log() * other.m_derivative1;
+      : this->m_primal * this->m_primal.log() * other.m_derivative1;
 
-  // b[x] * a'[x] / a[x] + Log[a[x]] b'[x]
-  const Underlying x0 =
-      other.m_primal * this->m_derivative1 / this->m_primal + t0;
+  // b[x] * a'[x] + a[x] Log[a[x]] b'[x]
+  const Underlying x0 = other.m_primal * this->m_derivative1 + t0;
 
-  // a[x]^b[x] (b[x] a'[x] / a[x] + Log[a[x]] b'[x])
-  Underlying new_derivative1 = new_primal * x0;
+  // a[x]^(b[x] - 1) (b[x] a'[x] + a[x] Log[a[x]] b'[x])
+  Underlying new_derivative1 = x0 * this->m_primal.pow(other.m_primal - 1);
 
   return Num2<Underlying>{new_primal, new_derivative1};
 }
@@ -278,6 +276,15 @@ requires Number<Underlying>
 bool Num2<Underlying>::is_constant(const double& value) const {
   return this->m_derivative1.is_constant(0) &&
       this->m_primal.is_constant(value);
+}
+
+template <class Underlying>
+requires Number<Underlying> std::string Num2<Underlying>::to_string()
+const {
+  return fmt::format(
+      "[primal={0}, derivative={1}]",
+      this->m_primal.to_string(),
+      this->m_derivative1.to_string);
 }
 
 static_assert(Number<Num2<Real>>);

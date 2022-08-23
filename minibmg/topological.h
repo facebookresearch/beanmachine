@@ -19,7 +19,7 @@ namespace beanmachine::minibmg {
 template <class T>
 std::map<T, uint> count_predecessors(
     const std::list<T>& root_nodes,
-    std::function<std::list<T>(T)> successors) {
+    std::function<std::vector<T>(const T&)> successors) {
   std::map<T, uint> predecessor_counts;
   std::list<T> to_count;
   std::set<T> counted;
@@ -62,7 +62,7 @@ std::map<T, uint> count_predecessors(
 template <class T>
 bool topological_sort(
     std::map<T, uint>& predecessor_counts,
-    std::function<std::list<T>(T)> successors,
+    std::function<std::vector<T>(const T&)> successors,
     std::vector<T>& result) {
   // initialize the ready set with those nodes that have no predecessors
   std::list<T> ready;
@@ -101,7 +101,7 @@ bool topological_sort(
 template <class T>
 bool topological_sort(
     const std::list<T>& root_nodes,
-    std::function<std::list<T>(T)> successors,
+    std::function<std::vector<T>(const T&)> successors,
     std::vector<T>& result) {
   // count the predecessors of each node.
   std::map<T, uint> predecessor_counts =

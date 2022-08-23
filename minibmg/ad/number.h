@@ -8,6 +8,7 @@
 #pragma once
 
 #include <concepts>
+#include <string>
 
 namespace beanmachine::minibmg {
 
@@ -38,6 +39,7 @@ concept Number = requires(T a, T b, T c, T d, double n) {
   // a number satisfies the test) way to sometimes know if a value is exactly
   // a constant.
   { a.is_constant(n) } -> std::same_as<bool>;
+  { a.to_string() } -> std::same_as<std::string>;
 };
 
 // Support binary operators with double on the left.

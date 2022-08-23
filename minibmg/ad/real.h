@@ -8,6 +8,7 @@
 #pragma once
 
 #include <boost/math/special_functions/polygamma.hpp>
+#include <fmt/format.h>
 #include <cmath>
 #include "beanmachine/minibmg/ad/number.h"
 
@@ -65,12 +66,14 @@ class Real {
     // Note the order of operands here.
     return boost::math::polygamma(other.value, this->value);
   }
-  INLINE Real
-  if_equal(Real comparand, Real when_equal, Real when_not_equal) const {
+  template <class T>
+  INLINE const T&
+  if_equal(Real comparand, const T& when_equal, const T& when_not_equal) const {
     return (this->value == comparand.value) ? when_equal : when_not_equal;
   }
-  INLINE Real
-  if_less(Real comparand, Real when_less, Real when_not_less) const {
+  template <class T>
+  INLINE const T&
+  if_less(Real comparand, const T& when_less, const T& when_not_less) const {
     return (this->value < comparand.value) ? when_less : when_not_less;
   }
   INLINE bool is_constant(double& value) const {
@@ -80,6 +83,12 @@ class Real {
   INLINE bool is_constant(const double& value) const {
     double v = 0;
     return is_constant(v) && v == value;
+  }
+  inline std::string to_string() const {
+    // The behavior of std::to_string(double) is that it uses a fixed number of
+    // digits of precision.  We would prefer to use the minimum number of digits
+    // that round-trips to the same value, so we use fmt::format.
+    return fmt::format("{0}", value);
   }
 };
 
