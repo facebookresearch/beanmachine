@@ -9,7 +9,6 @@
 
 #include "beanmachine/graph/distribution/dummy_marginal.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace distribution {

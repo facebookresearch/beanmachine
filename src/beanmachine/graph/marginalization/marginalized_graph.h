@@ -5,22 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include <functional>
 #include "beanmachine/graph/distribution/dummy_marginal.h"
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/marginalization/subgraph.h"
 
 namespace beanmachine {
 namespace graph {
 
-class MarginalizedGraph : public Graph {
- public:
-  explicit MarginalizedGraph(Graph& g);
-  void marginalize(uint discrete_node_id);
-
- private:
-  void connect_parent_to_marginal_distribution(
-      distribution::DummyMarginal* node,
-      Node* parent);
-};
+void marginalize_graph(Graph& g, uint discrete_sample_node_id);
 
 } // namespace graph
 } // namespace beanmachine

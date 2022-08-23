@@ -15,6 +15,8 @@ class GlobalProposer {
  public:
   explicit GlobalProposer() {}
   virtual void warmup(
+      GlobalState& /*state*/,
+      std::mt19937& /*gen*/,
       double /*acceptance_log_prob*/,
       int /*iteration*/,
       int /*num_warmup_samples*/) {}

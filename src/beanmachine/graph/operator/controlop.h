@@ -25,9 +25,6 @@ class IfThenElse : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<IfThenElse>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 // This is IfThenElse but the condition is a natural and there are n choices.
@@ -44,9 +41,6 @@ class Choice : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Choice>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 } // namespace oper

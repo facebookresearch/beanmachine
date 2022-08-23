@@ -13,7 +13,10 @@ namespace graph {
 
 class HMC : public GlobalMH {
  public:
-  HMC(Graph& g, double path_length, double step_size);
+  HMC(Graph& g,
+      double path_length,
+      double step_size,
+      bool adapt_mass_matrix = true);
   /*
   HMC by default transforms all unobserved random variables in the
   constrained space to the unconstrained space, similar to Stan in

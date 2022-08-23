@@ -24,8 +24,8 @@ class ExtractRadonTutorialData(etl.Extract):
     """Extract data for the radon tutorial."""
 
     _SCHEME = "http"
-    _NETLOC = "stat.columbia.edu"
-    _PATH = "~gelman/arm/examples/radon"
+    _NETLOC = "raw.githubusercontent.com"
+    _PATH = "pymc-devs/pymc-examples/main/examples/data"
     _RADON_FILENAME = "srrs2.dat"
     _COUNTY_FILENAME = "cty.dat"
 

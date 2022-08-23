@@ -13,7 +13,7 @@ docs: FORCE
 	$(MAKE) -C website apihtml
 
 tutorials: FORCE
-	python scripts/convert_ipynb_to_mdx.py
+	python website/scripts/convert_ipynb_to_mdx.py
 
 format-notebook: FORCE
 ifndef nb

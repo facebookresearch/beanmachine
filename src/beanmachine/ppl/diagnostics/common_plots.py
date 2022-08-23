@@ -21,6 +21,7 @@ def _samples_info(query_samples: Tensor) -> SamplesSummary:
     return SamplesSummary(
         num_chain=query_samples.size(0),
         num_samples=query_samples.size(1),
+        # pyre-fixme[6]: For 3rd param expected `Tensor` but got `Size`.
         single_sample_sz=query_samples.size()[2:],
     )
 

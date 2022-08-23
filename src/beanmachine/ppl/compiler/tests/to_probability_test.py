@@ -6,7 +6,6 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.hint import log1mexp
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch.distributions import Bernoulli, Beta
 
@@ -41,6 +40,10 @@ def bad_flip():
 
 
 # Similarly for log-probabilities which are negative reals.
+
+
+def log1mexp(x):
+    return (1 - x.exp()).log()
 
 
 @bm.functional

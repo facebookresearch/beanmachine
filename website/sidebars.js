@@ -7,7 +7,8 @@
  * @format
  */
 
-const {fbInternalOnly, fbContent} = require('internaldocs-fb-helpers');
+const {fbInternalOnly} = require('docusaurus-plugin-internaldocs-fb/internal');
+
 const tutorials = () => {
   const allTutorialMetadata = require('./tutorials.json');
   const tutorialPaths = [];

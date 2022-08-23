@@ -34,7 +34,19 @@ class StochasticOperator : public Operator {
   bool is_stochastic() const override {
     return true;
   }
+
   void compute_gradients() override {}
+  // TODO: compute_gradients is not doing anything currently,
+  // but this is not the correct thing to do in all contexts.
+  // For some situations we do need the gradients of
+  // stochastic functions.
+  // See for example https://pytorch.org/docs/stable/distributions.html
+  // and https://arxiv.org/abs/1506.05254.
+  // Because the Mixture distribution is one such case,
+  // I (Rodrigo) plan (as of May 2022) to introduce some such gradients
+  // using reparametrization (as described in these sources)
+  // while throwing errors in non-supported cases.
+
   void backward() override {
     _backward(true);
   }
@@ -60,8 +72,6 @@ class Sample : public oper::StochasticOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Sample>(in_nodes);
   }
-
-  static bool is_registered;
 };
 
 class IIdSample : public oper::StochasticOperator {
@@ -74,9 +84,6 @@ class IIdSample : public oper::StochasticOperator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<IIdSample>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 } // namespace oper

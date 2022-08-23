@@ -23,6 +23,8 @@ INSTALL_REQUIRES = [
     "botorch>=0.5.1",
     "gpytorch>=1.3.0",
     "graphviz>=0.17",
+    "functorch>=0.2.0",
+    "netCDF4<=1.5.8; python_version<'3.8'",
     "numpy>=1.18.1",
     "pandas>=0.24.2",
     "plotly>=2.2.1",
@@ -39,9 +41,13 @@ TUTORIALS_REQUIRES = [
     "cma",
     "ipywidgets",
     "jupyter",
+    "lxml>=4.9",
     "matplotlib",
+    "mdformat",
+    "mdformat-myst",
     "scikit-learn>=1.0.0",
     "seaborn",
+    "tabulate",
     "torchvision",
 ]
 DEV_REQUIRES = (
@@ -66,7 +72,6 @@ if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "/std:c++20"]
 else:
     CPP_COMPILE_ARGS = ["-std=c++2a", "-Werror"]
-    INSTALL_REQUIRES.append("functorch>=0.1.0")
 
 
 # Check for python version
@@ -112,6 +117,12 @@ if sys.platform.startswith("linux"):
             "/usr/include/boost169/",
             "/usr/include/x86_64-linux-gnu",
         ]
+    )
+elif sys.platform.startswith("darwin"):
+    # MacOS dependencies installed through HomeBrew
+    INCLUDE_DIRS.extend(
+        glob("/usr/local/Cellar/eigen/*/include/eigen3")
+        + glob("/usr/local/Cellar/boost/*/include")
     )
 
 setup(

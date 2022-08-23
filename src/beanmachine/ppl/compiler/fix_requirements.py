@@ -11,6 +11,8 @@ or cannot be made to meet type requirements, an error report is
 returned."""
 
 
+from typing import Tuple
+
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -63,6 +65,8 @@ class RequirementsFixer:
             return True
         if r is bt.any_real_matrix:
             return _is_real_matrix(t)
+        if r == bt.RealMatrix:
+            return isinstance(t, bt.RealMatrix)
         if isinstance(r, bt.UpperBound):
             return bt.supremum(t, r.bound) == r.bound
         if isinstance(r, bt.AlwaysMatrix):
@@ -112,6 +116,12 @@ class RequirementsFixer:
             else:
                 # It's some other type, such as Boolean or Natural matrix.
                 # Emit the value as the equivalent real matrix:
+                return self.bmg.add_real_matrix(node.value)
+
+        if requirement == bt.RealMatrix:
+            if isinstance(it, bt.RealMatrix):
+                return self.bmg.add_constant_of_matrix_type(node.value, it)
+            else:
                 return self.bmg.add_real_matrix(node.value)
 
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
@@ -283,6 +293,45 @@ class RequirementsFixer:
             or requirement == bt.upper_bound(bt.NegativeReal)
         ) and node_type == bt.Real
 
+    def _meet_real_matrix_requirement_type(
+        self, node: bn.OperatorNode, node_dim: Tuple[int, int]
+    ) -> bn.BMGNode:
+        if node_dim[0] == 1 and node_dim[1] == 1:
+            result = self.bmg.add_to_real(node)
+        else:
+            result = self.bmg.add_to_real_matrix(node)
+        return result
+
+    def _meet_real_matrix_requirement(
+        self,
+        node: bn.OperatorNode,
+        dim_req: Tuple[int, int],
+        node_dim: Tuple[int, int],
+        consumer: bn.BMGNode,
+        edge: str,
+    ) -> bn.BMGNode:
+        result = None
+        node_is_scalar = node_dim[0] == 1 and node_dim[1] == 1
+        requires_scalar = dim_req[0] == 1 and dim_req[1] == 1
+        if requires_scalar and node_is_scalar:
+            result = self.bmg.add_to_real(node)
+        elif node_dim[0] == dim_req[0] and node_dim[1] == dim_req[1]:
+            result = self.bmg.add_to_real_matrix(node)
+
+        if result is None:
+            self.errors.add_error(
+                Violation(
+                    node,
+                    self._typer[node],
+                    bt.RealMatrix(1, 1),
+                    consumer,
+                    edge,
+                    self.bmg.execution_context.node_locations(consumer),
+                )
+            )
+            return node
+        return result
+
     def _meet_operator_requirement(
         self,
         node: bn.OperatorNode,
@@ -299,7 +348,23 @@ class RequirementsFixer:
         # meets an upper bound requirement, then the conversion we want exists.
 
         node_type = self._typer[node]
-        if requirement is bt.any_real_matrix:
+        if isinstance(node_type, bt.BMGMatrixType):
+            rows = node_type.rows
+            columns = node_type.columns
+        else:
+            rows = 1
+            columns = 1
+        if isinstance(requirement, bt.RealMatrix):
+            return self._meet_real_matrix_requirement(
+                node,
+                dim_req=(requirement.rows, requirement.columns),
+                node_dim=(rows, columns),
+                consumer=consumer,
+                edge=edge,
+            )
+        elif requirement == bt.RealMatrix:
+            return self._meet_real_matrix_requirement_type(node, (rows, columns))
+        elif requirement is bt.any_real_matrix:
             result = self.bmg.add_to_real_matrix(node)
         elif self._type_meets_requirement(node_type, bt.upper_bound(requirement)):
             # If we got here then the node did NOT meet the requirement,

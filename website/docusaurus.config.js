@@ -9,7 +9,7 @@
 
 const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
-const {fbContent} = require('internaldocs-fb-helpers');
+const {fbContent} = require('docusaurus-plugin-internaldocs-fb/internal');
 
 module.exports = {
   title: 'Bean Machine',
@@ -52,7 +52,12 @@ module.exports = {
           position: 'left',
         },
         {
-          href: 'pathname:///api/index.html',
+          href: fbContent({
+            internal:
+              'https://www.internalfb.com/intern/wiki/Bean_Machine/api',
+            external:
+              'pathname:///api/index.html',
+          }),
           label: 'API',
           position: 'left',
         },
@@ -98,7 +103,10 @@ module.exports = {
     },
   },
   stylesheets: ['https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css'],
-  scripts: ['https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js'],
+  scripts: [
+    'https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js',
+    'https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.2.min.js',
+  ],
   presets: [
     [
       require.resolve('docusaurus-plugin-internaldocs-fb/docusaurus-preset'),

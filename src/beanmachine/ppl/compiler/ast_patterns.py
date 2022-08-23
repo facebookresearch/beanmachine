@@ -6,21 +6,15 @@
 
 """Pattern matching for ASTs"""
 import ast
-import math
 from platform import python_version
 from typing import Any, Dict
 
-import torch
 from beanmachine.ppl.compiler.patterns import (
     anyPattern as _any,
-    ListAll as list_all,
-    match,
     match_any,
     match_every,
-    MatchResult,
     negate,
     Pattern,
-    PatternBase,
     PredicatePattern,
     type_and_attributes,
 )
@@ -142,6 +136,14 @@ def aug_assign(
 ) -> Pattern:
     return type_and_attributes(
         ast.AugAssign, {"target": target, "op": op, "value": value}
+    )
+
+
+def ann_assign(
+    target: Pattern = _any, op: Pattern = _any, value: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.AnnAssign, {"target": target, "op": op, "value": value}
     )
 
 
@@ -452,105 +454,3 @@ constant_bool: Pattern = match_any(ast_true, ast_false)
 constant_literal: Pattern = match_any(number_constant, constant_bool)
 
 any_list: Pattern = ast.List
-
-constant_list: PatternBase
-
-
-class ConstantList(PatternBase):
-    """A recursively-defined pattern which matches a list expression containing only
-    numeric literals, or lists of numeric literals, and so on."""
-
-    # Note that the empty list does match; that's by design.
-
-    def match(self, test: Any) -> MatchResult:
-        return match(
-            ast_list(elts=list_all(match_any(constant_literal, constant_list))), test
-        )
-
-    def _to_str(self, test: str) -> str:
-        return f"{test} is a constant list"
-
-
-constant_list = ConstantList()
-
-tensor_name_str: Pattern = "tensor"
-
-# TODO: Matches "tensor" and "foo.tensor"
-# TODO: Do we need to specifically match just torch? What if there is an alias?
-
-
-# Recognizes tensor(pattern) and tensor([pattern]) -- that is, a tensor that represents
-# a single value.
-def tensor_single_value(p: Pattern) -> Pattern:
-    return call_to(id=tensor_name_str, args=[match_any(p, ast_list(elts=[p]))])
-
-
-# Recognizes tensor(1), tensor([]), tensor([1, 2]), tensor([[1, 2], [3, 4]]) and so on
-constant_tensor_any: Pattern = call_to(
-    id=tensor_name_str, args=[match_any(number_constant, constant_list)]
-)
-
-# int, float, bool or tensor
-constant_numeric: Pattern = match_any(
-    number_constant, constant_bool, constant_tensor_any
-)
-
-
-# 0, 0.0 and False are all treated as false.
-# A tensor with a single falsy value is treated as false.
-constant_falsy_literal: Pattern = match_any(zero, ast_false)
-constant_falsy: Pattern = match_any(
-    constant_falsy_literal, tensor_single_value(constant_falsy_literal)
-)
-
-# A non-zero literal and True are treated as true.
-# A tensor with a single truthy value is treated as true.
-constant_truthy_literal: Pattern = match_any(non_zero_num, ast_true)
-constant_truthy: Pattern = match_any(
-    constant_truthy_literal, tensor_single_value(constant_truthy_literal)
-)
-
-
-def ast_to_constant_value(x: ast.AST) -> Any:
-    if match(number_constant, x).is_success():
-        assert isinstance(x, ast.Num)
-        return x.n
-    if match(constant_bool, x).is_success():
-        assert isinstance(x, ast.NameConstant)
-        return x.value
-    if match(constant_tensor_any, x).is_success():
-        assert isinstance(x, ast.Call)
-        return torch.tensor(ast_to_constant_value(x.args[0]))
-    if match(any_list, x).is_success():
-        assert isinstance(x, ast.List)
-        return [ast_to_constant_value(e) for e in x.elts]
-    raise TypeError()
-
-
-_make_nan = ast.Call(
-    func=ast.Name(id="float", ctx=ast.Load()), args=[ast.Str(s="nan")], keywords=[]
-)
-
-
-def constant_value_to_ast(x: Any) -> ast.AST:
-    # Note that the check for bool must go first, because for unknown reasons
-    # isinstance(True, int) is True.
-    if isinstance(x, bool):
-        return ast.NameConstant(value=x)
-    if isinstance(x, int):
-        return ast.Num(n=x)
-    if isinstance(x, float):
-        return _make_nan if math.isnan(x) else ast.Num(n=x)
-    if isinstance(x, torch.Tensor):
-        return ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id="torch", ctx=ast.Load()),
-                attr="tensor",
-                ctx=ast.Load(),
-            ),
-            args=[constant_value_to_ast(x.tolist())],
-            keywords=[],
-        )
-    if isinstance(x, list):
-        return ast.List(elts=[constant_value_to_ast(e) for e in x], ctx=ast.Load())
-    raise TypeError(f"Unexpected constant of type {str(type(x))}")

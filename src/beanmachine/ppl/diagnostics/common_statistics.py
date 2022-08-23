@@ -49,6 +49,8 @@ def _compute_var(query_samples: Tensor) -> Tuple[Tensor, Tensor]:
     else:
         b = 0
     w = torch.mean(torch.var(query_samples, dim=1), dim=0)
+    # pyre-fixme[58]: `*` is not supported for operand types `float` and `Union[int,
+    #  torch._tensor.Tensor]`.
     var_hat = (n_samples - 1) / n_samples * w + (1 / n_samples) * b
     return w, var_hat.clamp(min=1e-10)
 
@@ -125,7 +127,6 @@ def effective_sample_size(query_samples: Tensor) -> Tensor:
     rho_sum = torch.reshape(rho_sum, query_dim)
     tau = -1 + 2 * rho_sum
     n_eff = torch.div(n_chains * n_samples, tau)
-    # pyre-fixme
     if n_eff.isnan().any():
         warnings.warn("NaN encountered in computing effective sample size.")
         return torch.tensor(0.0)

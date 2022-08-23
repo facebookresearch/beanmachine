@@ -66,6 +66,7 @@ PYBIND11_MODULE(graph, module) {
       .value("ADD", OperatorType::ADD)
       .value("PHI", OperatorType::PHI)
       .value("LOGISTIC", OperatorType::LOGISTIC)
+      .value("LOG_PROB", OperatorType::LOG_PROB)
       .value("LOG1PEXP", OperatorType::LOG1PEXP)
       .value("LOG1MEXP", OperatorType::LOG1MEXP)
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
@@ -75,6 +76,8 @@ PYBIND11_MODULE(graph, module) {
       .value("TRANSPOSE", OperatorType::TRANSPOSE)
       .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
       .value("MATRIX_SCALE", OperatorType::MATRIX_SCALE)
+      .value("ELEMENTWISE_MULTIPLY", OperatorType::ELEMENTWISE_MULTIPLY)
+      .value("MATRIX_ADD", OperatorType::MATRIX_ADD)
       .value("TO_PROBABILITY", OperatorType::TO_PROBABILITY)
       .value("INDEX", OperatorType::INDEX)
       .value("BROADCAST_ADD", OperatorType::BROADCAST_ADD)
@@ -85,7 +88,9 @@ PYBIND11_MODULE(graph, module) {
       .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX)
       .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL)
       .value("CHOICE", OperatorType::CHOICE)
-      .value("CHOLESKY", OperatorType::CHOLESKY);
+      .value("CHOLESKY", OperatorType::CHOLESKY)
+      .value("MATRIX_EXP", OperatorType::MATRIX_EXP)
+      .value("MATRIX_SUM", OperatorType::MATRIX_SUM);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)
@@ -96,13 +101,18 @@ PYBIND11_MODULE(graph, module) {
       .value("FLAT", DistributionType::FLAT)
       .value("NORMAL", DistributionType::NORMAL)
       .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
+      .value("LOG_NORMAL", DistributionType::LOG_NORMAL)
+      .value("MULTIVARIATE_NORMAL", DistributionType::MULTIVARIATE_NORMAL)
       .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
+      .value("CAUCHY", DistributionType::CAUCHY)
       .value("STUDENT_T", DistributionType::STUDENT_T)
       .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
       .value("GAMMA", DistributionType::GAMMA)
       .value("BIMIXTURE", DistributionType::BIMIXTURE)
       .value("DIRICHLET", DistributionType::DIRICHLET)
-      .value("CATEGORICAL", DistributionType::CATEGORICAL);
+      .value("CATEGORICAL", DistributionType::CATEGORICAL)
+      .value("POISSON", DistributionType::POISSON)
+      .value("GEOMETRIC", DistributionType::GEOMETRIC);
 
   py::enum_<FactorType>(module, "FactorType")
       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
@@ -368,10 +378,14 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "performance_report",
           &Graph::performance_report,
-          "performance report");
+          "performance report")
+      .def(
+          "collect_statistics",
+          &Graph::collect_statistics,
+          "collect statistics");
 
   py::class_<NUTS>(module, "NUTS")
-      .def(py::init<Graph&>())
+      .def(py::init<Graph&, bool, bool>())
       .def(
           "infer",
           &NUTS::infer,
@@ -383,7 +397,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("init_type") = InitType::RANDOM);
 
   py::class_<HMC>(module, "HMC")
-      .def(py::init<Graph&, double, double>())
+      .def(py::init<Graph&, double, double, bool>())
       .def(
           "infer",
           &HMC::infer,

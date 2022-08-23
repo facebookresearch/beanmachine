@@ -3,8 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
-import sys
 import warnings
 
 import beanmachine.ppl as bm
@@ -12,11 +10,11 @@ import pytest
 import torch
 import torch.distributions as dist
 
-if sys.platform.startswith("win"):
-    pytest.skip("functorch is not available on Windows", allow_module_level=True)
-
-if os.environ.get("SANDCASTLE") is not None:
-    pytest.skip("NNC does not work with Buck yet", allow_module_level=True)
+try:
+    import functorch  # noqa
+except Exception as e:
+    # skipping the NNC-related test if users don't have compatible functorch installed
+    pytest.skip(str(e), allow_module_level=True)
 
 
 class SampleModel:

@@ -806,6 +806,14 @@ class LessThanEqualNode(ComparisonNode):
         return f"({str(self.left)}<={str(self.right)})"
 
 
+class ElementwiseMultiplyNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return f"{self.left} * {self.right}"
+
+
 class EqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
@@ -889,6 +897,31 @@ class ModNode(BinaryOperatorNode):
 class RShiftNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
+
+
+# LogAddExpNode represents a call to the binary operator logAddExp in the original
+# code. It is transformed into LogSumExpNode.
+
+
+class LogAddExpNode(BinaryOperatorNode):
+    """This class represents the LogAddExp operation: for values v_1, v_2
+    we compute log(exp(v_1) + exp(v_2))"""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return "LogAddExp({self.left}, {self.right})"
+
+
+class LogProbNode(BinaryOperatorNode):
+    """This class represents the log_prob operator on a distribution"""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return "LogProb({self.left}, {self.right})"
 
 
 class SwitchNode(BMGNode):
@@ -1008,6 +1041,17 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
 
     def __str__(self) -> str:
         return "(" + str(self.left) + "*" + str(self.right) + ")"
+
+
+class MatrixAddNode(BinaryOperatorNode):
+    """This represents an exponentiation operation; it is generated when
+    a model contains calls to Tensor.exp or math.exp."""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return f"{self.left} + {self.right}"
 
 
 class MatrixScaleNode(BinaryOperatorNode):
@@ -1147,18 +1191,45 @@ class SquareRootNode(UnaryOperatorNode):
         return "SquareRoot(" + str(self.operand) + ")"
 
 
-# TODO: replace "log" with "log1mexp" as needed below and update defs
-
-
 class Log1mexpNode(UnaryOperatorNode):
-    """This represents a log1mexp operation; it is generated when
-    a model contains calls to log1mexp or math_log1mexp."""
+    """This represents a log1mexp operation; it is generated as an
+    optimization when a graph contains x -> exp -> complement -> log"""
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
     def __str__(self) -> str:
         return "Log1mexp(" + str(self.operand) + ")"
+
+
+class MatrixExpNode(UnaryOperatorNode):
+    """This represents an exponentiation operation; it is generated when
+    a model contains calls to Tensor.exp or math.exp."""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixExp(" + str(self.operand) + ")"
+
+
+class MatrixSumNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixSum(" + str(self.operand) + ")"
+
+
+class TransposeNode(UnaryOperatorNode):
+    """This represents a transpose operation; it is generated when
+    a model contains calls to transpose or Tensor.transpose"""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "Transpose(" + str(self.operand) + ")"
 
 
 # BMG supports three different kinds of negation:

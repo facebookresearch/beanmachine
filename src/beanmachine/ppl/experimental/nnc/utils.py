@@ -5,16 +5,11 @@
 
 import warnings
 
-import functorch
 import torch
 import torch.jit
 import torch.utils._pytree as pytree
-from functorch.compile import (
-    aot_function,
-    decomposition_table,
-    nop,
-    register_decomposition,
-)
+from functorch.compile import nnc_jit
+
 
 # the warning will only be shown to user once when this module is imported
 warnings.warn(
@@ -24,57 +19,8 @@ warnings.warn(
 )
 
 # allows reductions to be compiled by NNC
+# pyre-fixme[16]: Module `_C` has no attribute `_jit_set_texpr_reductions_enabled`.
 torch._C._jit_set_texpr_reductions_enabled(True)
-
-# override the usage of torch.jit.script, which has a bit of issue handling
-# empty lists (functorch#440)
-def simple_ts_compile(fx_g, example_inps):
-    f = torch.jit.trace(fx_g, example_inps, strict=False)
-    f = torch.jit.freeze(f.eval())
-    torch._C._jit_pass_remove_mutation(f.graph)
-
-    return f
-
-
-# Overrides decomposition rules for some operators
-aten = torch.ops.aten
-decompositions = [aten.detach]
-bm_decompositions = {
-    k: v for k, v in decomposition_table.items() if k in decompositions
-}
-
-
-@register_decomposition(aten.mv, bm_decompositions)
-def mv(a, b):
-    return (a * b).sum(dim=-1)
-
-
-@register_decomposition(aten.dot, bm_decompositions)
-def dot(a, b):
-    return (a * b).sum(dim=-1)
-
-
-@register_decomposition(aten.zeros_like, bm_decompositions)
-def zeros_like(a, **kwargs):
-    return a * 0
-
-
-@register_decomposition(aten.ones_like, bm_decompositions)
-def ones_like(a, **kwargs):
-    return a * 0 + 1
-
-
-def nnc_jit(f, static_argnums=None):
-    return aot_function(
-        f,
-        simple_ts_compile,
-        nop,
-        static_argnums=static_argnums,
-        decompositions=bm_decompositions,
-    )
-
-
-functorch._src.compilers.simple_ts_compile = simple_ts_compile
 
 
 # override default dict flatten (which requires keys to be sortable)

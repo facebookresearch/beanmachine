@@ -48,7 +48,7 @@ class ChangingSupportSameShapeModel:
 
     @bm.random_variable
     def component(self, i):
-        alpha = self.alpha(self.K().int().item() + 1)
+        alpha = self.alpha(self.K().int().item() + 2)
         return dist.Categorical(alpha)
 
 
@@ -60,7 +60,7 @@ class ChangingShapeModel:
 
     @bm.random_variable
     def alpha(self):
-        return dist.Dirichlet(torch.ones(self.K().int().item() + 1))
+        return dist.Dirichlet(torch.ones(self.K().int().item() + 2))
 
     @bm.random_variable
     def component(self, i):
@@ -226,12 +226,15 @@ def test_block_inference_changing_support():
     )
     sampler = compositional.sampler(queries, {})
     with pytest.raises(KeyError):
-        # since poisson is (0, inf), the number of alphas will keep
-        # changing and an error will eventually be thrown
+        world = next(sampler)
+        # since the support of poisson is all natural numbers, it's possible that we
+        # sample a new alue of K that's 1 greater than current one....
+        K_val = world.call(model.K())
+        new_world = world.replace({model.K(): K_val + 1})
+        # Since NUTS only supports static model, this is going to raise an error
         # TODO: this error is thrown in hmc_utils when fetching
         # transforms but should be checked earlier in the model
-        while True:
-            old_world = next(sampler)
+        sampler.send(new_world)
 
 
 def test_block_inference_changing_shape():

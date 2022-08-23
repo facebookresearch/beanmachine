@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: [3.7]
+        python-version: ['3.7', '3.8', '3.9', '3.10']
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
@@ -40,6 +40,10 @@ jobs:
         conda install -c conda-forge -y boost-cpp eigen=3.4.0
         python -m pip install --upgrade pip
 
+    - name: Install CPU PyTorch (only for Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+
     - name: Install Bean Machine in editable mode
       run: pip install -v -e .[dev]
 
@@ -47,4 +51,4 @@ jobs:
       run: pip list
 
     - name: Run unit tests with pytest
-      run: pytest --cov=. --cov-report term-missing
+      run: pytest .

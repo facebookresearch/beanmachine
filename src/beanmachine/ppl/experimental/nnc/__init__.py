@@ -3,10 +3,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import sys
+import logging
 from typing import Callable, Optional, Tuple, TypeVar
 
 from typing_extensions import ParamSpec
+
+logger = logging.getLogger(__name__)
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -23,16 +25,13 @@ def nnc_jit(
     try:
         # The setup code in `nnc.utils` will only be executed once in a Python session
         from beanmachine.ppl.experimental.nnc.utils import nnc_jit as raw_nnc_jit
-    except ImportError as e:
-        if sys.platform.startswith("win"):
-            message = "functorch is not available on Windows."
-        else:
-            message = (
-                "Fails to initialize NNC. This is likely caused by version mismatch "
-                "between PyTorch and functorch. Please checkout the functorch project "
-                "for installation guide (https://github.com/pytorch/functorch)."
-            )
-        raise RuntimeError(message) from e
+    except Exception as e:
+        logger.warn(
+            f"Fails to initialize NNC due to the following error: {str(e)}\n"
+            "Falling back to default inference engine."
+        )
+        # return original function without change
+        return f
 
     return raw_nnc_jit(f, static_argnums)
 

@@ -48,7 +48,7 @@ A:(1) 700 ms
     unattributed: 300 ms
   unattributed: 200 ms
 D:(1) 100 ms
-unattributed: 800 ms
+Total time: 800 ms
 """
         self.assertEqual(expected.strip(), str(report).strip())
 

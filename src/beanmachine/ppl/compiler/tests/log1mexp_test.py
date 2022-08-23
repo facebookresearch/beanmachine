@@ -4,16 +4,24 @@
 # LICENSE file in the root directory of this source tree.
 
 """End-to-end test for log1mexp"""
+import math
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
+import torch
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, HalfCauchy
 
-
 # New
+
+
+def log1mexp(lprob):
+    return torch.log(1 - torch.exp(lprob))
+
+
+def math_log1mexp(lprob):
+    return math.log(1 - math.exp(lprob))
 
 
 @bm.random_variable
@@ -101,9 +109,12 @@ digraph "graph" {
         observations = {}
         with self.assertRaises(ValueError) as ex:
             observed = BMGInference().to_dot(queries, observations)
+        # TODO: The location in this error message is oddly formatted.
+        # We probably shouldn't be putting descriptions of stochastic
+        # nodes into the call site.
         expected = """
-The operand of a log1mexp is required to be a negative real but is a positive real.
-The log1mexp was created in function call wrong()."""
+The operand of a log is required to be a positive real but is a real.
+The log was created in function call log1mexp(Sample(HalfCauchy(42.0)))."""
         self.assertEqual(expected.strip(), str(ex.exception).strip())
 
         with self.assertRaises(ValueError) as ex:
@@ -154,8 +165,8 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             observed = BMGInference().to_dot(queries, observations)
         expected = """
-The operand of a log1mexp is required to be a negative real but is a positive real.
-The log1mexp was created in function call math_wrong()."""
+The operand of a log is required to be a positive real but is a real.
+The log was created in function call math_log1mexp(Sample(HalfCauchy(42.0)))."""
         self.assertEqual(expected.strip(), str(ex.exception).strip())
 
         with self.assertRaises(ValueError) as ex:

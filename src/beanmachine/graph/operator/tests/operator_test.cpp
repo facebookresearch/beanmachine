@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 
+#include <beanmachine/graph/graph.h>
 #include "beanmachine/graph/distribution/bernoulli.h"
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/graph.h"
@@ -1031,6 +1032,88 @@ produces:
   EXPECT_NEAR(grad1[3]->coeff(1), 0.8053, 1e-3);
 }
 
+TEST(testoperator, matrix_elementwise_mult) {
+  Graph g;
+  // negative tests:
+  // requires two parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m0(2, 2);
+  m0 << 0.3, -0.1, 1.2, 0.9;
+  auto cm0 = g.add_constant_real_matrix(m0);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm0}),
+      std::invalid_argument);
+  // requires matrix parents
+  auto c1 = g.add_constant(1.5);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{c1, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm0, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{c1, cm0}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  Eigen::MatrixXd m2(2, 3);
+  m2 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm2 = g.add_constant_real_matrix(m2);
+  Eigen::MatrixXb m3 = Eigen::MatrixXb::Random(1, 2);
+  auto cm3 = g.add_constant_bool_matrix(m3);
+  // requires real/pos_real/neg_real/probability types
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm3, cm0}),
+      std::invalid_argument);
+  // requires compatible dimension
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm1, cm2}),
+      std::invalid_argument);
+
+  // test eval()
+  auto zero = g.add_constant(0.0);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos1});
+  auto two = g.add_constant((natural_t)2);
+  auto three = g.add_constant((natural_t)3);
+
+  auto x = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+  auto y = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+
+  Eigen::MatrixXd m4(3, 2);
+  m4 << 0.4, 0.1, 0.5, -1.1, 0.7, -0.6;
+  g.observe(x, m1);
+  g.observe(y, m4);
+
+  auto xy = g.add_operator(
+      OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{x, y});
+  g.query(xy);
+  const auto& xy_eval = g.infer(1, InferenceType::NMC);
+  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 3);
+  EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
+  // result should be m4 * m1 (elementwise)
+  EXPECT_NEAR(xy_eval[0][0]._matrix(0, 0), 0.12, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(1, 0), 0.6, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(2, 0), -1.82, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(0, 1), -0.01, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(1, 1), -0.99, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix(2, 1), -0.48, 0.001);
+}
+
 TEST(testoperator, matrix_scale) {
   Graph g;
   // negative tests:
@@ -1217,6 +1300,57 @@ def f_grad(x):
   // grad w
   EXPECT_NEAR(grad1[4]->coeff(0), -22.5115, 1e-3);
   EXPECT_NEAR(grad1[4]->coeff(1), 13.9038, 1e-3);
+}
+
+TEST(testoperator, matrix_add) {
+  Graph g;
+  // negative tests:
+  // requires two parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1}),
+      std::invalid_argument);
+  // requires two matrices matrix parent
+  auto c1 = g.add_constant(1.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{c1, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{c1, cm1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1, c1}),
+      std::invalid_argument);
+  // Arguments should have same atomic type
+  Eigen::MatrixXd mp1(3, 2);
+  mp1 << 0.3, 0.1, 1.2, 0.9, 2.6, 0.8;
+  auto cmp1 = g.add_constant_pos_matrix(mp1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1, cmp1}),
+      std::invalid_argument);
+  // requires real/pos_real/probability types
+  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
+  auto cmb2 = g.add_constant_bool_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cmb2, cmb2}),
+      std::invalid_argument);
+
+  // Test eval():
+  auto add =
+      g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1, cm1});
+  g.query(add);
+  auto add_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  for (uint i = 0; i < add_infer.type.rows; i++) {
+    for (uint j = 0; j < add_infer.type.cols; j++) {
+      auto expected = 2 * m1(i, j);
+      EXPECT_NEAR(expected, add_infer._matrix(i, j), 1e-4);
+    }
+  }
 }
 
 TEST(testoperator, transpose) {
@@ -1599,17 +1733,162 @@ TEST(testoperator, cholesky) {
       g.add_operator(OperatorType::CHOLESKY, {constant_non_square}),
       std::invalid_argument);
 
+  // throw runtime error if not positive definite
+  Eigen::MatrixXd not_positive_definite(2, 2);
+  not_positive_definite << 1.0, 2.0, 3.0, 4.0;
+  auto not_positive_definite_matrix =
+      g.add_constant_real_matrix(not_positive_definite);
+  auto lower =
+      g.add_operator(OperatorType::CHOLESKY, {not_positive_definite_matrix});
+  g.query(lower);
+  EXPECT_THROW(g.infer(2, InferenceType::REJECTION)[0][0], std::runtime_error);
+
+  Graph g1;
   Eigen::MatrixXd positive_definite(3, 3);
-  positive_definite << 4.0, 12, -16, 12, 37, -43, -16, -43, 98;
-  auto positive_definite_matrix = g.add_constant_real_matrix(positive_definite);
-  auto l = g.add_operator(OperatorType::CHOLESKY, {positive_definite_matrix});
-  g.query(l);
-  auto l_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  positive_definite << 10, 5, 2, 5, 3, 2, 2, 2, 3;
+  auto positive_definite_matrix =
+      g1.add_constant_real_matrix(positive_definite);
+  auto l = g1.add_operator(OperatorType::CHOLESKY, {positive_definite_matrix});
+  g1.query(l);
+  auto l_infer = g1.infer(2, InferenceType::REJECTION)[0][0];
   Eigen::MatrixXd l_expected(3, 3);
-  l_expected << 2.0, 0, 0, 6, 1, 0, -8, 5, 3;
+  l_expected << 3.1623, 0, 0, 1.5811, 0.7071, 0, 0.6325, 1.4142, 0.7746;
   for (uint i = 0; i < l_infer.type.rows; i++) {
     for (uint j = 0; j < l_infer.type.cols; j++) {
       EXPECT_NEAR(l_expected(i, j), l_infer._matrix(i, j), 1e-4);
     }
   }
+}
+
+TEST(testgradient, matrix_exp) {
+  Graph g;
+
+  // negative tests
+  // MATRIX_EXP requires matrix parent
+  auto real_number = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_EXP, {real_number}),
+      std::invalid_argument);
+  // must be real, pos real, or neg real
+  Eigen::MatrixXb bools(2, 1);
+  bools << false, true;
+  auto bools_matrix = g.add_constant_bool_matrix(bools);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_EXP, {bools_matrix}),
+      std::invalid_argument);
+  // can only have one parent
+  Eigen::MatrixXd m1(3, 1);
+  m1 << -2., 1.0, 0.0;
+  auto m1_matrix = g.add_constant_real_matrix(m1);
+  Eigen::MatrixXd m2(1, 2);
+  m2 << 0.5, 20;
+  auto m2_matrix = g.add_constant_real_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_EXP, {m1_matrix, m2_matrix}),
+      std::invalid_argument);
+
+  auto exp = g.add_operator(OperatorType::MATRIX_EXP, {m1_matrix});
+  g.query(exp);
+
+  auto exp_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  Eigen::MatrixXd exp_expected(3, 1);
+  exp_expected << -2.0, 1.0, 0.0;
+  exp_expected = Eigen::exp(exp_expected.array());
+  for (uint i = 0; i < exp_infer.type.rows; i++) {
+    for (uint j = 0; j < exp_infer.type.cols; j++) {
+      EXPECT_NEAR(exp_expected(i, j), exp_infer._matrix(i, j), 1e-4);
+    }
+  }
+}
+
+TEST(testoperator, log_prob) {
+  Graph g;
+  std::mt19937 gen;
+  double epsilon = 0.00000001;
+
+  // negative tests
+  // LOG_PROB requires two parents
+  auto two = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG_PROB, {}), std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG_PROB, {two}), std::invalid_argument);
+  // The first parent must be a distribution
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG_PROB, {two, two}),
+      std::invalid_argument);
+
+  // mean of two and standard deviation of three
+  auto distribution = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      {two, g.add_constant_pos_real(3.0)});
+
+  // test at 2
+  auto log_prob2 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(2.0)});
+  EXPECT_EQ(g.get_node(log_prob2)->value.type, graph::AtomicType::REAL);
+  g.get_node(log_prob2)->eval(gen);
+  // log[PDF[NormalDistribution[2, 3], 2]] ~ -2.01755082187
+  EXPECT_NEAR(g.get_node(log_prob2)->value._double, -2.01755082187, epsilon);
+
+  // test at 3
+  auto log_prob3 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(3.0)});
+  g.get_node(log_prob3)->eval(gen);
+  // Log[PDF[NormalDistribution[2, 3], 3]] ~ -2.07310637743
+  EXPECT_NEAR(g.get_node(log_prob3)->value._double, -2.07310637743, epsilon);
+
+  // test at 5
+  auto log_prob5 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(5.0)});
+  g.get_node(log_prob5)->eval(gen);
+  // Log[PDF[NormalDistribution[2, 3], 5]] ~ -2.51755082187
+  EXPECT_NEAR(g.get_node(log_prob5)->value._double, -2.51755082187, epsilon);
+
+  // test at 10
+  auto log_prob10 = g.add_operator(
+      OperatorType::LOG_PROB, {distribution, g.add_constant(10.0)});
+  g.get_node(log_prob10)->eval(gen);
+  // Log[PDF[NormalDistribution[2, 3], 10]] ~ -5.57310637743
+  EXPECT_NEAR(g.get_node(log_prob10)->value._double, -5.57310637743, epsilon);
+}
+
+TEST(testoperator, matrix_sum) {
+  Graph g;
+  Eigen::MatrixXd matrix1(2, 2);
+  matrix1 << 2.0, 1.0, 4.0, 3.0;
+  auto cm1 = g.add_constant_real_matrix(matrix1);
+  auto six = g.add_constant(6.0);
+
+  // negative tests
+  // MATRIX_SUM requires a matrix parent
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SUM, {six}), std::invalid_argument);
+  // MATRIX_SUM requires one parent
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SUM, {cm1, cm1}),
+      std::invalid_argument);
+
+  // test operator
+  // 2x2 real numbers
+  auto sum = g.add_operator(OperatorType::MATRIX_SUM, {cm1});
+  std::mt19937 gen;
+  g.get_node(sum)->eval(gen);
+  EXPECT_NEAR(g.get_node(sum)->value._double, 10.0, 1e-5);
+
+  // 3x1 positive reals
+  Eigen::MatrixXd matrix2(3, 1);
+  matrix2 << 2.0, 10.0, 5.5;
+  auto cm2 = g.add_constant_pos_matrix(matrix2);
+  auto sum2 = g.add_operator(OperatorType::MATRIX_SUM, {cm2});
+  g.get_node(sum2)->eval(gen);
+  EXPECT_NEAR(g.get_node(sum2)->value._double, 17.5, 1e-5);
+
+  // random 5x4 matrix
+  Eigen::MatrixXd m3 = Eigen::MatrixXd::Random(5, 4);
+  auto cm3 = g.add_constant_real_matrix(m3);
+  auto sum3 = g.add_operator(OperatorType::MATRIX_SUM, {cm3});
+  g.get_node(sum3)->eval(gen);
+  EXPECT_NEAR(g.get_node(sum3)->value._double, m3.sum(), 1e-5);
 }

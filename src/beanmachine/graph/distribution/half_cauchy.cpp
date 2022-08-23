@@ -72,7 +72,7 @@ double HalfCauchy::log_prob(const NodeValue& value) const {
     throw std::runtime_error(
         "HalfCauchy::log_prob applied to invalid variable type");
   }
-  return (-std::log(M_PI_2) - std::log(s)) * size - result;
+  return (-std::log(M_PI_2 * s)) * size - result;
 }
 
 void HalfCauchy::log_prob_iid(
@@ -80,8 +80,8 @@ void HalfCauchy::log_prob_iid(
     Eigen::MatrixXd& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
-  log_probs = -std::log(M_PI_2) - std::log(s) -
-      (value._matrix.array() / s).pow(2).log1p();
+  log_probs =
+      -std::log(M_PI_2 * s) - (value._matrix.array() / s).pow(2).log1p();
 }
 
 void HalfCauchy::_grad1_log_prob_value(

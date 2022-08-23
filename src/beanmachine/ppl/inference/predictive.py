@@ -3,15 +3,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.legacy.inference.single_site_ancestral_mh import (
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import init_from_prior, RVDict, World
+from torch import Tensor
 from torch.distributions import Categorical
+from tqdm.auto import trange
 
 
 def _concat_rv_dicts(rvdict: List) -> Dict:
@@ -30,12 +33,29 @@ class Predictive(object):
     Class for the posterior predictive distribution.
     """
 
+    @staticmethod
+    def _extract_values_from_world(
+        world: World, queries: List[RVIdentifier]
+    ) -> Dict[RVIdentifier, Tensor]:
+        query_dict = {query: [] for query in queries}
+        # Extract samples
+        for query in queries:
+            raw_val = world.call(query)
+            if not isinstance(raw_val, torch.Tensor):
+                raise TypeError(
+                    "The value returned by a queried function must be a tensor."
+                )
+            query_dict[query].append(raw_val)
+        query_dict = {node: torch.stack(val) for node, val in query_dict.items()}
+        return query_dict
+
     @staticmethod  # noqa: C901
     def simulate(  # noqa: C901
         queries: List[RVIdentifier],
-        posterior: Optional[MonteCarloSamples] = None,
+        posterior: Optional[Union[MonteCarloSamples, RVDict]] = None,
         num_samples: Optional[int] = None,
         vectorized: Optional[bool] = False,
+        progress_bar: Optional[bool] = True,
     ) -> MonteCarloSamples:
         """
         Generates predictives from a generative model.
@@ -54,7 +74,7 @@ class Predictive(object):
            predictives = simulate(queries, num_samples=1000)
 
         :param query: list of `random_variable`'s corresponding to the observations.
-        :param posterior: Optional `MonteCarloSamples` of the latent variables.
+        :param posterior: Optional `MonteCarloSamples` or `RVDict` of the latent variables.
         :param num_samples: Number of prior predictive samples, defaults to 1. Should
             not be specified if `posterior` is specified.
         :returns: `MonteCarloSamples` of the generated predictives.
@@ -62,19 +82,20 @@ class Predictive(object):
         assert (
             (posterior is not None) + (num_samples is not None)
         ) == 1, "Only one of posterior or num_samples should be set."
-        sampler = SingleSiteAncestralMetropolisHastings()
+        inference = SingleSiteAncestralMetropolisHastings()
         if posterior is not None:
-            n_warmup = posterior.num_adaptive_samples
-            # drop the warm up samples
-            obs = {k: v[:, n_warmup:] for k, v in posterior.items()}
+            if isinstance(posterior, dict):
+                posterior = MonteCarloSamples([posterior])
+
+            obs = dict(posterior)
             if vectorized:
-                # predictives are jointly sampled
-                sampler.queries_ = queries
-                sampler.observations_ = obs
-                try:
-                    query_dict = sampler._infer(1, initialize_from_prior=True)
-                finally:
-                    sampler.reset()
+                sampler = inference.sampler(
+                    queries, obs, num_samples, initialize_fn=init_from_prior
+                )
+                query_dict = Predictive._extract_values_from_world(
+                    next(sampler), queries
+                )
+
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
@@ -90,16 +111,20 @@ class Predictive(object):
 
                 for c in range(posterior.num_chains):
                     rv_dicts = []
-                    for i in range(posterior.get_num_samples()):
+                    for i in trange(
+                        posterior.get_num_samples(),
+                        desc="Samples collected",
+                        disable=not progress_bar,
+                    ):
                         obs = {rv: posterior.get_chain(c)[rv][i] for rv in posterior}
-                        sampler.queries_ = queries
-                        sampler.observations_ = obs
-                        try:
-                            rv_dicts.append(
-                                sampler._infer(1, initialize_from_prior=True)
+                        sampler = inference.sampler(
+                            queries, obs, num_samples, initialize_fn=init_from_prior
+                        )
+                        rv_dicts.append(
+                            Predictive._extract_values_from_world(
+                                next(sampler), queries
                             )
-                        finally:
-                            sampler.reset()
+                        )
                     preds.append(_concat_rv_dicts(rv_dicts))
                 post_pred = MonteCarloSamples(
                     preds,
@@ -111,14 +136,18 @@ class Predictive(object):
             obs = {}
             predictives = []
 
-            # pyre-fixme
-            for _ in range(num_samples):
-                sampler.queries_ = queries
-                sampler.observations_ = obs
-                try:
-                    query_dict = sampler._infer(1, initialize_from_prior=True)
-                finally:
-                    sampler.reset()
+            for _ in trange(
+                # pyre-fixme[6]: For 1st param expected `int` but got `Optional[int]`.
+                num_samples,
+                desc="Samples collected",
+                disable=not progress_bar,
+            ):
+                sampler = inference.sampler(
+                    queries, obs, num_samples, initialize_fn=init_from_prior
+                )
+                query_dict = Predictive._extract_values_from_world(
+                    next(sampler), queries
+                )
                 predictives.append(query_dict)
 
             rv_dict = {}

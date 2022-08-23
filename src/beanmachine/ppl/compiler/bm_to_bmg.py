@@ -50,8 +50,6 @@ from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.single_assignment import single_assignment
 
 
-# TODO: Detect unsupported operators
-# TODO: Detect unsupported control flow
 # TODO: Would be helpful if we could track original source code locations.
 
 _top_down = ast_domain.top_down
@@ -809,8 +807,8 @@ def _create_enclosing_helper(
 
     helper_body = (
         [ast.Import(names=[ast.alias(name="operator", asname=None)])]
-        + transformed_body  # pyre-ignore
-        + [ast.Return(value=ast.Name(id=name, ctx=ast.Load()))]  # pyre-ignore
+        + transformed_body
+        + [ast.Return(value=ast.Name(id=name, ctx=ast.Load()))]
     )
 
     helper_func = ast.FunctionDef(

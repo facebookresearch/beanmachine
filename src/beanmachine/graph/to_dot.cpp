@@ -175,6 +175,10 @@ class DOT {
         return "MatrixMultiply";
       case OperatorType::MATRIX_SCALE:
         return "MatrixScale";
+      case OperatorType::ELEMENTWISE_MULTIPLY:
+        return "ElementwiseMultiply";
+      case OperatorType::MATRIX_ADD:
+        return "MatrixAdd";
       case OperatorType::TO_PROBABILITY:
         return "ToProb";
       case OperatorType::TO_NEG_REAL:

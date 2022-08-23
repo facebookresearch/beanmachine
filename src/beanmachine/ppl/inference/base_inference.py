@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import copy
+import warnings
 from abc import ABCMeta, abstractmethod
 from functools import partial
 from typing import List, Optional, Set, Tuple
@@ -59,7 +60,7 @@ class BaseInference(metaclass=ABCMeta):
         observations: RVDict,
         num_samples: int,
         num_adaptive_samples: int,
-        verbose: VerboseLevel,
+        show_progress_bar: bool,
         initialize_fn: InitializeFn,
         max_init_retries: int,
         chain_id: int,
@@ -74,7 +75,7 @@ class BaseInference(metaclass=ABCMeta):
             observations: A dictionary of observations.
             num_samples: Number of samples.
             num_adaptive_samples: Number of adaptive samples.
-            verbose: Whether to display the progress bar or not.
+            show_progress_bar: Whether to display the progress bar.
             initialize_fn: A callable that takes in a distribution and returns a Tensor.
             max_init_retries: The number of attempts to make to initialize values for an
                 inference before throwing an error.
@@ -87,7 +88,7 @@ class BaseInference(metaclass=ABCMeta):
 
             # A hack to fix the issue where tqdm doesn't render progress bar correctly in
             # subprocess in Jupyter notebook (https://github.com/tqdm/tqdm/issues/485)
-            if verbose == VerboseLevel.LOAD_BAR and issubclass(tqdm, notebook_tqdm):
+            if show_progress_bar and issubclass(tqdm, notebook_tqdm):
                 print(" ", end="", flush=True)
 
         sampler = self.sampler(
@@ -106,7 +107,7 @@ class BaseInference(metaclass=ABCMeta):
             sampler,
             total=num_samples + num_adaptive_samples,
             desc="Samples collected",
-            disable=verbose == VerboseLevel.OFF,
+            disable=not show_progress_bar,
             position=chain_id,
         ):
             for idx, obs in enumerate(observations):
@@ -131,11 +132,12 @@ class BaseInference(metaclass=ABCMeta):
         num_samples: int,
         num_chains: int = 4,
         num_adaptive_samples: Optional[int] = None,
-        verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
+        show_progress_bar: bool = True,
         initialize_fn: InitializeFn = init_to_uniform,
         max_init_retries: int = 100,
         run_in_parallel: bool = False,
         mp_context: Optional[Literal["fork", "spawn", "forkserver"]] = None,
+        verbose: Optional[VerboseLevel] = None,
     ) -> MonteCarloSamples:
         """
         Performs inference and returns a ``MonteCarloSamples`` object with samples from the posterior.
@@ -147,17 +149,29 @@ class BaseInference(metaclass=ABCMeta):
             num_chains: Number of chains to run, defaults to 4.
             num_adaptive_samples: Number of adaptive samples. If not provided, BM will
                 fall back to algorithm-specific default value based on num_samples.
-            verbose: Whether to display the progress bar or not.
+            show_progress_bar: Whether to display the progress bar, defaults to True.
             initialize_fn: A callable that takes in a distribution and returns a Tensor.
                 The default behavior is to sample from Uniform(-2, 2) then biject to
                 the support of the distribution.
             max_init_retries: The number of attempts to make to initialize values for an
                 inference before throwing an error (default to 100).
             run_in_parallel: Whether to run multiple chains in parallel (with multiple
-                processes) or not.
+                processes).
             mp_context: The `multiprocessing context <https://docs.python.org/3.8/library/multiprocessing.html#contexts-and-start-methods>`_
                 to used for parallel inference.
+            verbose: (Deprecated) Whether to display the progress bar. This option
+                is deprecated, please use ``show_progress_bar`` instead.
         """
+        if verbose is not None:
+            warnings.warn(
+                "The `verbose` argument and `VerboseLevel` are "
+                "deprecated and will be removed in the next release of Bean "
+                "Machine. Please use `show_progress_bar` instead.",
+                DeprecationWarning,
+                stacklevel=2,  # show the caller rather than this line
+            )
+            show_progress_bar = bool(verbose)
+
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )
@@ -170,7 +184,7 @@ class BaseInference(metaclass=ABCMeta):
             observations,
             num_samples,
             num_adaptive_samples,
-            verbose,
+            show_progress_bar,
             initialize_fn,
             max_init_retries,
         )

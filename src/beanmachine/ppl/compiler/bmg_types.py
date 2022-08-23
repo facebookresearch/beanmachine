@@ -553,7 +553,7 @@ def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
     # treat it as a single value.
 
     if elements == 1:
-        return type_of_value(float(v))  # pyre-fixme
+        return type_of_value(float(v))
 
     # We have more than one element. What's the shape?
 

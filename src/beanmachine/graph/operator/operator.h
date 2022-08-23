@@ -27,6 +27,9 @@ class Operator : public graph::Node {
 
   // Computes gradients of node's value based on its in-nodes values and
   // gradients (forward autodifferentiation).
+  // TODO: eval_gradient would be a better name, as it mirrors eval() very well,
+  // but since a general refactoring in planned (as of May 2022),
+  // we will wait until then.
   void compute_gradients() override;
 
   // Computes the gradient of the log probability of this node's value based on
@@ -62,6 +65,7 @@ class OperatorFactory {
 
  private:
   static std::map<int, builder_type>& op_map();
+  static bool factories_are_registered;
 };
 
 } // namespace oper
