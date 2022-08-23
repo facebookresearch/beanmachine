@@ -25,7 +25,7 @@ struct Node {
 const int n = 100;
 
 bool is_topologically_sorted(std::vector<Node*> nodes) {
-  std::set<Node*> seen;
+  std::set<const Node*> seen;
   for (int i = nodes.size() - 1; i >= 0; i--) {
     auto n = nodes[i];
     for (auto succ : n->successors) {
@@ -82,7 +82,7 @@ TEST(topological_test, ensure_sorted) {
     auto sorted = topological_sort<Node*>(
         std::list<Node*>{nodes.begin(), nodes.end()},
         [](Node* node) {
-          return std::list<Node*>{
+          return std::vector<Node*>{
               node->successors.begin(), node->successors.end()};
         },
         result);
@@ -106,8 +106,8 @@ TEST(topological_test, ensure_sorted) {
     result.clear();
     sorted = topological_sort<Node*>(
         std::list<Node*>{nodes.begin(), nodes.end()},
-        [](Node* node) {
-          return std::list<Node*>{
+        [](Node* const& node) {
+          return std::vector<Node*>{
               node->successors.begin(), node->successors.end()};
         },
         result);

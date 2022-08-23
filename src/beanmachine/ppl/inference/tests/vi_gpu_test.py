@@ -9,7 +9,7 @@ import beanmachine.ppl as bm
 import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.vi import VariationalInfer
+from beanmachine.ppl.inference.vi import VariationalInfer
 
 cpu_device = torch.device("cpu")
 

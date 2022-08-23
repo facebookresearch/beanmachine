@@ -12,11 +12,9 @@ import pytest
 import scipy.stats
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.vi import ADVI, MAP, VariationalInfer
-from beanmachine.ppl.experimental.vi.gradient_estimator import (
-    monte_carlo_approximate_sf,
-)
-from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
+from beanmachine.ppl.inference.vi import ADVI, MAP, VariationalInfer
+from beanmachine.ppl.inference.vi.gradient_estimator import monte_carlo_approximate_sf
+from beanmachine.ppl.inference.vi.variational_world import VariationalWorld
 from beanmachine.ppl.world import init_from_prior, RVDict
 from torch import optim
 from torch.distributions import constraints

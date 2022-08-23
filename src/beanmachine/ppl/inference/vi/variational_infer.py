@@ -10,11 +10,11 @@ from typing import Callable, Dict, Optional, Tuple
 
 import torch
 import torch.optim as optim
-from beanmachine.ppl.experimental.vi.discrepancy import kl_reverse
-from beanmachine.ppl.experimental.vi.gradient_estimator import (
+from beanmachine.ppl.inference.vi.discrepancy import kl_reverse
+from beanmachine.ppl.inference.vi.gradient_estimator import (
     monte_carlo_approximate_reparam,
 )
-from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
+from beanmachine.ppl.inference.vi.variational_world import VariationalWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.world import RVDict
 from tqdm.auto import tqdm

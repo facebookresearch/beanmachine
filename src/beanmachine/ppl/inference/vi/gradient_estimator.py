@@ -8,7 +8,7 @@
 from typing import Callable, Mapping
 
 import torch
-from beanmachine.ppl.experimental.vi.variational_world import VariationalWorld
+from beanmachine.ppl.inference.vi.variational_world import VariationalWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World
 

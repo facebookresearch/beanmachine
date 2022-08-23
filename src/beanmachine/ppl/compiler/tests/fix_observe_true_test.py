@@ -158,13 +158,8 @@ digraph "graph" {
   N20[label=Log];
   N21[label="+"];
   N22[label=LogSumExp];
-  N23[label=Exp];
-  N24[label=ToProb];
-  N25[label=Bernoulli];
-  N26[label=Sample];
-  N27[label=Sample];
-  N28[label=ExpProduct];
-  N29[label=ExpProduct];
+  N23[label=ExpProduct];
+  N24[label=ExpProduct];
   N00 -> N01;
   N00 -> N01;
   N01 -> N02;
@@ -194,12 +189,7 @@ digraph "graph" {
   N20 -> N21;
   N21 -> N22;
   N22 -> N23;
-  N22 -> N28;
-  N22 -> N29;
-  N23 -> N24;
-  N24 -> N25;
-  N25 -> N26;
-  N25 -> N27;
+  N22 -> N24;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
