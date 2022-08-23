@@ -31,7 +31,7 @@ module.exports = {
       Framework: [
         'framework_topics/world',
         {
-          'MCMC Inference Methods': [
+          'MCMC Inference': [
             'framework_topics/mcmc_inference/inference',
             'framework_topics/mcmc_inference/ancestral_metropolis_hastings',
             'framework_topics/mcmc_inference/random_walk',
@@ -51,6 +51,9 @@ module.exports = {
               ],
             },
           ],
+        },
+        'framework_topics/variational_inference',
+        {
           'Model Evaluation': [
             'framework_topics/model_evaluation/diagnostics',
             // TODO(rodrigobraz) - rewrite for clarity and completeness and check if simulate API has changed.
