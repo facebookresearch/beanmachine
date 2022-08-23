@@ -44,9 +44,9 @@ permits more customized interactions (e.g. tensorboard callbacks).
 Manually defining a guide for each random variable can become tedious.
 [`AutoGuideVI`](https://beanmachine.org/api/beanmachine.ppl.inference.vi.autoguide.htm://beanmachine.org/api/beanmachine.ppl.inference.vi.autoguide.html#beanmachine.ppl.inference.vi.autoguide.AutoGuideVI)
 provides an initialization strategy for `VariationalInfer` which
-automatically defines guides through calling a method 
+automatically defines guides through calling a method
 `get_guide(query: RVIdentifier, distrib: dist.Distribution)` implemented by
-subclasses. 
+subclasses.
 
 All `AutoGuide`s currently make a mean-field assumption over `RVIdentifiers`:
 $$q(x) = \prod_{i \in \text{RVIDs}} q_i(x_i)$$
@@ -63,4 +63,3 @@ In Maximum A Posteriori (MAP) inference,
 a [`Delta`](https://beanmachine.org/api/beanmachine.ppl.distributions.html#beanmachine.ppl.distributions.Delta)
 point estimate is used as the guide for each site:
 $$q_i \sim \text{Delta}(\mu_i)$$
-
