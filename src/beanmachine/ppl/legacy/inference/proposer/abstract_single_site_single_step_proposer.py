@@ -68,9 +68,6 @@ class AbstractSingleSiteSingleStepProposer(
                 negative_proposal_log_update - node_var.jacobian
             )
 
-        # pyre-fixme[7]: Expected Tuple[Tensor, Tensor, Dict[typing.Any,
-        # typing.Any]] but got Tuple[typing.Any, typing.Union[Tensor, float],
-        # Dict[typing.Any, typing.Any]].
         return (
             new_value,
             negative_proposal_log_update,

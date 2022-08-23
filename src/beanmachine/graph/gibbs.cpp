@@ -17,9 +17,10 @@
 namespace beanmachine {
 namespace graph {
 
+// TODO: move this inference method out of Graph.
 void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
-  std::set<uint> supp = compute_support();
+  std::set<uint> ordered_support_node_ids = compute_ordered_support_node_ids();
   // eval each node so that we have a starting value and verify that these
   // values are all scalar
   // also compute the pool of variables that we will infer over and
@@ -34,8 +35,7 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
   // x in sto_desc[y] => y in inv_sto[x]
   // this is a temp object which is needed to construct markov_blanket (below)
   std::map<uint, std::set<uint>> inv_sto;
-  std::vector<Node*> ordered_supp;
-  for (uint node_id : supp) {
+  for (uint node_id : ordered_support_node_ids) {
     Node* node = nodes[node_id].get();
     bool node_is_not_observed = observed.find(node_id) == observed.end();
     if (node_is_not_observed) {
@@ -44,7 +44,8 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
     if (node->is_stochastic() and node_is_not_observed) {
       std::vector<uint> det_nodes;
       std::vector<uint> sto_nodes;
-      std::tie(det_nodes, sto_nodes) = compute_affected_nodes(node_id, supp);
+      std::tie(det_nodes, sto_nodes) =
+          compute_affected_nodes(node_id, ordered_support_node_ids);
       pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
       cache_logodds[node_id] = NAN; // nan => needs to be re-computed
       for (auto sto : sto_nodes) {
@@ -53,9 +54,6 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
         }
         inv_sto[sto].insert(node_id);
       }
-    }
-    if (infer_config.keep_log_prob) {
-      ordered_supp.push_back(node);
     }
   }
   // markov_blanket of a node is the set of other nodes whose conditional
@@ -167,7 +165,7 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
       }
     }
     if (infer_config.keep_log_prob) {
-      collect_log_prob(_full_log_prob(ordered_supp));
+      collect_log_prob(full_log_prob());
     }
     if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
       collect_sample();

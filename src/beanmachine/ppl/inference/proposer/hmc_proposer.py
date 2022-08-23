@@ -258,6 +258,15 @@ class HMCProposer(BaseProposer):
         step_size_scale = 2**direction
         while new_direction == direction:
             step_size *= step_size_scale
+            if step_size == 0:
+                raise ValueError(
+                    f"Current step size is {step_size}. No acceptably small step size could be found."
+                    "Perhaps the posterior is not continuous?"
+                )
+            if step_size > 1e7:
+                raise ValueError(
+                    f"Current step size is {step_size}. Posterior is improper. Please check your model"
+                )
             # not covered in the paper, but both Stan and Pyro re-sample the momentum
             # after each update
             momentums = self._initialize_momentums(positions)

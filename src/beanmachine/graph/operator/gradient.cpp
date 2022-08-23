@@ -8,11 +8,14 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/controlop.h"
 #include "beanmachine/graph/operator/linalgop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/unaryop.h"
+
+using namespace beanmachine::distribution;
 
 namespace beanmachine {
 namespace oper {
@@ -252,6 +255,28 @@ void Add::compute_gradients() {
   }
 }
 
+void MatrixMultiply::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  int rows = static_cast<int>(in_nodes[0]->value.type.rows);
+  int cols = static_cast<int>(in_nodes[1]->value.type.cols);
+  Grad1 = Eigen::MatrixXd::Zero(rows, cols);
+  Grad2 = Eigen::MatrixXd::Zero(rows, cols);
+
+  bool parent_0_has_grad = in_nodes[0]->Grad1.size() != 0;
+  bool parent_1_has_grad = in_nodes[1]->Grad1.size() != 0;
+  if (parent_0_has_grad) {
+    Grad1 += in_nodes[0]->Grad1 * in_nodes[1]->value._matrix;
+    Grad2 += in_nodes[0]->Grad2 * in_nodes[1]->value._matrix;
+  }
+  if (parent_1_has_grad) {
+    Grad1 += in_nodes[0]->value._matrix * in_nodes[1]->Grad1;
+    Grad2 += in_nodes[0]->value._matrix * in_nodes[1]->Grad2;
+  }
+  if (parent_0_has_grad and parent_1_has_grad) {
+    Grad2 += 2 * (in_nodes[0]->Grad1 * in_nodes[1]->Grad1);
+  }
+}
+
 void Multiply::compute_gradients() {
   // in general, computing the first and second derivatives of a product
   // would have a quadratic number of terms to add if we naively applied
@@ -279,6 +304,39 @@ void Multiply::compute_gradients() {
   }
   grad1 = sum_product_one_grad1;
   grad2 = sum_product_two_grad1 * 2 + sum_product_one_grad2;
+}
+
+void ElementwiseMultiply::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  int rows = static_cast<int>(in_nodes[1]->value.type.rows);
+  int cols = static_cast<int>(in_nodes[1]->value.type.cols);
+  Grad1 = Eigen::MatrixXd::Zero(rows, cols);
+  Grad2 = Eigen::MatrixXd::Zero(rows, cols);
+
+  bool parent_0_has_grad1 = in_nodes[0]->Grad1.size() != 0;
+  bool parent_1_has_grad1 = in_nodes[1]->Grad1.size() != 0;
+  bool parent_0_has_grad2 = in_nodes[0]->Grad2.size() != 0;
+  bool parent_1_has_grad2 = in_nodes[1]->Grad2.size() != 0;
+  if (parent_0_has_grad1) {
+    Grad1 += (in_nodes[0]->Grad1.array() * in_nodes[1]->value._matrix.array())
+                 .matrix();
+  }
+  if (parent_1_has_grad1) {
+    Grad1 += (in_nodes[1]->Grad1.array() * in_nodes[0]->value._matrix.array())
+                 .matrix();
+  }
+  if (parent_0_has_grad2) {
+    Grad2 += (in_nodes[0]->Grad2.array() * in_nodes[1]->value._matrix.array())
+                 .matrix();
+  }
+  if (parent_1_has_grad2) {
+    Grad2 += (in_nodes[1]->Grad2.array() * in_nodes[0]->value._matrix.array())
+                 .matrix();
+  }
+  if (parent_0_has_grad1 and parent_1_has_grad1) {
+    Grad2 +=
+        2 * (in_nodes[0]->Grad1.array() * in_nodes[1]->Grad1.array()).matrix();
+  }
 }
 
 void LogSumExp::compute_gradients() {
@@ -388,6 +446,21 @@ void BroadcastAdd::compute_gradients() {
   }
 }
 
+void MatrixAdd::compute_gradients() {
+  auto rows = in_nodes[0]->value.type.rows;
+  auto cols = in_nodes[0]->value.type.cols;
+  Grad1.setZero(rows, cols);
+  Grad2.setZero(rows, cols);
+  if (in_nodes[0]->Grad1.size() != 0) {
+    Grad1 += in_nodes[0]->Grad1;
+    Grad2 += in_nodes[0]->Grad2;
+  }
+  if (in_nodes[1]->Grad1.size() != 0) {
+    Grad1 += in_nodes[1]->Grad1;
+    Grad2 += in_nodes[1]->Grad2;
+  }
+}
+
 void Cholesky::compute_gradients() {
   // equation 19 and 20 of
   // Differentiation of the Cholesky decomposition by Iain Murray
@@ -443,6 +516,75 @@ void Cholesky::compute_gradients() {
       Grad2(i, j) = 0.0;
     }
   }
+}
+
+void MatrixExp::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // f(x) = e^g(x)
+  // f'(x) = e^g(x) * g'(x)
+  // f''(x) = e^g(x) * g'(x) * g'(x) + e^g(x) * g''(x)
+  Grad1 = value._matrix.cwiseProduct(in_nodes[0]->Grad1);
+  Grad2 = Grad1.cwiseProduct(in_nodes[0]->Grad1) +
+      value._matrix.cwiseProduct(in_nodes[0]->Grad2);
+}
+
+void LogProb::compute_gradients() {
+  auto dist = (Distribution*)in_nodes[0];
+  auto value = in_nodes[1];
+
+  // Compute the gradient with respect to the value.
+  // Note that we assume the value itself is a function g(x) of some distant
+  // variable x with respect to which we are computing the derivative.
+
+  // First compute d/dg logprob(g) and d^2/dg^2 logprob(g),
+  // which are the derivatives of the log probability of the distribution with
+  // respect to the value parameter.
+  double log_prob_value_grad1 = 0, log_prob_value_grad2 = 0;
+  dist->gradient_log_prob_value(
+      value->value, log_prob_value_grad1, log_prob_value_grad2);
+
+  // Note: First order chain rule:
+  // d/dx[f(g(x))]
+  //     = f’(g(x)) g’(x)
+  // Second order chain rule:
+  // d^2/dx^2[f(g(x))]
+  //     = d/dx[f’(g(x)) g’(x)] // first order chain rule
+  //     = d/dx[f’(g(x))] g’(x) // product rule
+  //       + d/dx[g’(x)] f’(g(x))
+  //     = f’’(g(x)) g’(x) g’(x) // first order chain rule
+  //       + g’’(x) f’(g(x))
+  //     = f’’(g(x)) g’(x) g’(x) + g’’(x) f’(g(x))
+  // Here f is log(PDF), g is the value of the parameter to the function
+  // being differentiated, and g' and g'' are the incoming gradients of
+  // the value.
+  // We apply the first and second order chain rules to compute this node's
+  // gradients (the component contributed by the value parameter).
+  double result_grad1 = value->grad1 * log_prob_value_grad1;
+  double result_grad2 = log_prob_value_grad2 * value->grad1 * value->grad1 +
+      value->grad2 * log_prob_value_grad1;
+
+  // Compute the gradient with respect to the parameters of the
+  // distribution and add them to result_*. Note that the function
+  // gradient_log_prob_param applies the chain rule so we do not have to do it.
+  dist->gradient_log_prob_param(value->value, result_grad1, result_grad2);
+
+  // Store the computed gradients.
+  this->grad1 = result_grad1;
+  this->grad2 = result_grad2;
+}
+
+void LogProb::backward() {
+  auto dist = (Distribution*)in_nodes[0];
+  auto value = in_nodes[1];
+  auto adjunct = back_grad1;
+  dist->backward_value(value->value, value->back_grad1, adjunct);
+  dist->backward_param(value->value, adjunct);
+}
+
+void MatrixSum::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  grad1 = in_nodes[0]->Grad1.sum();
+  grad2 = in_nodes[0]->Grad2.sum();
 }
 
 } // namespace oper

@@ -28,9 +28,6 @@ class Transpose : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Transpose>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixMultiply : public Operator {
@@ -40,18 +37,12 @@ class MatrixMultiply : public Operator {
 
   void eval(std::mt19937& gen) override;
   void backward() override;
-  void compute_gradients() override {
-    throw std::runtime_error(
-        "MATRIX_MULTIPLY does not support forward gradient propagation.");
-  }
+  void compute_gradients() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<MatrixMultiply>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class MatrixScale : public Operator {
@@ -67,9 +58,36 @@ class MatrixScale : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<MatrixScale>(in_nodes);
   }
+};
 
- private:
-  static bool is_registered;
+class ElementwiseMultiply : public Operator {
+ public:
+  explicit ElementwiseMultiply(const std::vector<graph::Node*>& in_nodes);
+  ~ElementwiseMultiply() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ElementwiseMultiply>(in_nodes);
+  }
+};
+
+class MatrixAdd : public Operator {
+ public:
+  explicit MatrixAdd(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixAdd() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixAdd>(in_nodes);
+  }
 };
 
 class Index : public Operator {
@@ -85,9 +103,6 @@ class Index : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Index>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class ColumnIndex : public Operator {
@@ -103,9 +118,6 @@ class ColumnIndex : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ColumnIndex>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class BroadcastAdd : public Operator {
@@ -121,9 +133,6 @@ class BroadcastAdd : public Operator {
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<BroadcastAdd>(in_nodes);
   }
-
- private:
-  static bool is_registered;
 };
 
 class Cholesky : public Operator {
@@ -138,6 +147,36 @@ class Cholesky : public Operator {
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Cholesky>(in_nodes);
+  }
+};
+
+class MatrixExp : public Operator {
+ public:
+  explicit MatrixExp(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixExp() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixExp>(in_nodes);
+  }
+};
+
+class MatrixSum : public Operator {
+ public:
+  explicit MatrixSum(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixSum() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixSum>(in_nodes);
   }
 
  private:

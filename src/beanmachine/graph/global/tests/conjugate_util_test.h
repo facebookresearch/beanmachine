@@ -11,21 +11,30 @@
 namespace beanmachine {
 namespace graph {
 
-void build_gamma_gamma_model(Graph& g);
-void test_gamma_gamma_model(
+void test_conjugate_model_moments(
+    GlobalMH& mh,
+    std::vector<double> expected_moments,
+    int num_samples = 5000,
+    int num_warmup_samples = 2000,
+    double delta = 0.02,
+    int seed = 17);
+
+std::vector<double> build_gamma_gamma_model(Graph& g);
+
+std::vector<double> build_normal_normal_model(Graph& g);
+
+std::vector<double> build_gamma_normal_model(Graph& g);
+
+std::vector<double> build_beta_binomial_model(Graph& g);
+
+std::vector<double> build_mixed_model(Graph& g);
+
+void build_half_cauchy_model(Graph& g);
+void test_half_cauchy_model(
     GlobalMH& mh,
     int num_samples = 5000,
-    int seed = 17,
-    int num_warmup_samples = 0,
-    double delta = 0.01);
-
-void build_normal_normal_model(Graph& g);
-void test_normal_normal_model(
-    GlobalMH& mh,
-    int num_samples = 5000,
-    int seed = 17,
-    int num_warmup_samples = 0,
-    double delta = 0.01);
-
+    int num_warmup_samples = 2000,
+    double delta = 0.02,
+    int seed = 17);
 } // namespace graph
 } // namespace beanmachine

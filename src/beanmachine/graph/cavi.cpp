@@ -29,7 +29,7 @@ void Graph::cavi(
     var_samples.push_back(std::vector<NodeValue>());
   }
   assert(node_ptrs.size() > 0); // keep linter happy
-  std::set<uint> supp = compute_support();
+  std::set<uint> ordered_support_node_ids = compute_ordered_support_node_ids();
   // the variational parameter probability for each node (initially 0.5)
   std::vector<double> param_probability =
       std::vector<double>(nodes.size(), 0.5);
@@ -43,7 +43,7 @@ void Graph::cavi(
       uint,
       std::tuple<std::vector<uint>, std::vector<uint>, std::vector<uint>>>
       pool;
-  for (uint node_id : supp) {
+  for (uint node_id : ordered_support_node_ids) {
     Node* node = node_ptrs[node_id];
     if (not node->is_observed) {
       node->eval(gen); // evaluate the value of non-observed operator nodes
@@ -60,7 +60,8 @@ void Graph::cavi(
       // log_prob. We will call these nodes the log_prob_nodes.
       std::vector<uint> det_desc;
       std::vector<uint> logprob_nodes;
-      std::tie(det_desc, logprob_nodes) = compute_affected_nodes(node_id, supp);
+      std::tie(det_desc, logprob_nodes) =
+          compute_affected_nodes(node_id, ordered_support_node_ids);
       // In order to compute the log_prob of these nodes we need to
       // materialize their ancestors both deterministic and stochastic.
       // The unobserved stochastic ancestors are to be sampled while the
@@ -148,7 +149,7 @@ void Graph::cavi(
       // and log Q(Z) is the log of the variational distribution for the pool.
       double elbo = 0;
       for (uint step = 0; step < elbo_samples; step++) {
-        for (uint node_id : supp) {
+        for (uint node_id : ordered_support_node_ids) {
           Node* node = node_ptrs[node_id];
           if (node->is_stochastic()) {
             if (not node->is_observed) {

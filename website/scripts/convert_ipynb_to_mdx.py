@@ -4,21 +4,23 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
+import re
 import shutil
 import uuid
 from os import PathLike
 from pathlib import Path
-from textwrap import wrap
 from typing import Dict, Tuple, Union
 
+import mdformat  # @manual=fbsource//third-party/pypi/mdformat:mdformat
 import nbformat
+import pandas as pd
 from nbformat.notebooknode import NotebookNode
 
 try:
     from libfb.py.fbcode_root import get_fbcode_dir
 except ImportError:
     SCRIPTS_DIR = Path(__file__).parent.resolve()
-    LIB_DIR = SCRIPTS_DIR.joinpath("..").resolve()
+    LIB_DIR = SCRIPTS_DIR.parent.parent.resolve()
 else:
     LIB_DIR = (Path(get_fbcode_dir()) / "beanmachine").resolve()
 
@@ -95,23 +97,31 @@ def transform_markdown_cell(
         new_img_path = str(img_folder.joinpath(name))
         shutil.copy(str(old_img_path), new_img_path)
 
-    # Wrap lines using black's default of 88 characters. Used to help debug issues from
-    # the tutorials. Note that all tables (lines that start with |) are not wrapped as
-    # well as any LaTeX formulas that start new block math sections ($$).
-    cell_source = cell_source.splitlines()
-    math_lines = [i for i, line in enumerate(cell_source) if line.startswith("$$")]
-    math_lines = [(i, j) for i, j in zip(math_lines, math_lines[1:])]
-    math_line_check = [False] * len(cell_source)
-    for start, stop in math_lines:
-        math_line_check[start : stop + 1] = [True] * (stop + 1 - start)
-    new_cell_source = ""
-    for i, line in enumerate(cell_source):
-        if math_line_check[i] or line.startswith("|"):
-            new_cell_source += f"{line}\n"
-        elif not math_line_check[i]:
-            md = "\n".join(wrap(line, width=88, replace_whitespace=False))
-            new_cell_source += f"{md}\n"
+    # Wrap lines using black's default of 88 characters.
+    new_cell_source = mdformat.text(
+        cell_source,
+        options={"wrap": 88},
+        extensions={"myst"},
+    )
 
+    # We will attempt to handle inline style attributes written in HTML by converting
+    # them to something React can consume.
+    token = "style="
+    pattern = re.compile(f'{token}"([^"]*)"')
+    found_patterns = re.findall(pattern, new_cell_source)
+    for found_pattern in found_patterns:
+        react_style_string = json.dumps(
+            dict(
+                [
+                    [t.strip() for t in token.strip().split(":")]
+                    for token in found_pattern.split(";")
+                    if token
+                ]
+            )
+        )
+        react_style_string = f"{{{react_style_string}}}"
+        new_cell_source = new_cell_source.replace(found_pattern, react_style_string)
+        new_cell_source = new_cell_source.replace('"{{', "{{").replace('}}"', "}}")
     return f"{new_cell_source}\n\n"
 
 
@@ -156,6 +166,7 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
     jsx_output = ""
     link_btn = "../../../../website/src/components/LinkButtons.jsx"
     cell_out = "../../../../website/src/components/CellOutput.jsx"
+    plot_out = "../../../../website/src/components/Plotting.jsx"
     components_output = f'import LinkButtons from "{link_btn}";\n'
     components_output += f'import CellOutput from "{cell_out}";\n'
 
@@ -228,37 +239,28 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
                 # Handle plotly images.
                 if plotly_flag:
+                    components_output += f'import {{PlotlyFigure}} from "{plot_out}";\n'
                     cell_output_data = cell_output["data"]
                     for key, value in cell_output_data.items():
                         if key == "application/vnd.plotly.v1+json":
                             # Save the plotly JSON data.
                             file_name = "PlotlyFigure" + str(uuid.uuid4())
-                            component_name = file_name.replace("-", "")
-                            components_output += (
-                                f'import { {component_name} } from "./{filename}.jsx";\n'
-                            ).replace("'", " ")
                             file_path = str(
                                 plot_data_folder.joinpath(f"{file_name}.json")
                             )
                             with open(file_path, "w") as f:
                                 json.dump(value, f, indent=2)
 
-                            # Add a React component to the jsx output.
+                            # Add the Plotly figure to the MDX output.
                             path_to_data = f"./assets/plot_data/{file_name}.json"
-                            jsx_output += (
-                                f"export const {component_name} = () => {{\n"
-                                f'  const pathToData = "{path_to_data}";\n'
-                                "  const plotData = React.useMemo(() => "
-                                "require(`${pathToData}`), []);\n"
-                                '  const data = plotData["data"];\n'
-                                '  const layout = plotData["layout"];\n'
-                                "  return <PlotlyFigure data={data} layout={layout} />\n"
-                                f"}};\n\n"
+                            mdx_output += (
+                                f"<PlotlyFigure data={{require('{path_to_data}')}} "
+                                "/>\n\n"
                             )
-                            mdx_output += f"<{component_name} />\n\n"
 
                 # Handle bokeh images.
                 if bokeh_flag:
+                    components_output += f'import {{BokehFigure}} from "{plot_out}";\n'
                     # Ignore any HTML data objects. The bokeh object we want is a
                     # `application/javascript` object. We will also ignore the first
                     # bokeh output, which is an image indicating that bokeh is loading.
@@ -276,13 +278,6 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         token = "show("
                         plot_name = plot_name[plot_name.find(token) + len(token) : -1]
                         div_name = plot_name.replace("_", "-")
-                        component_name = "".join(
-                            [token.title() for token in plot_name.split("_")]
-                        )
-                        components_output += (
-                            f'import { {component_name} } from "./{filename}.jsx";\n'
-                        ).replace("'", " ")
-                        mdx_output += f"<{component_name} />\n\n"
                         # Parse the javascript for the bokeh JSON data.
                         flag = "const docs_json = "
                         json_string = list(
@@ -314,20 +309,39 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
                         file_path = str(plot_data_folder.joinpath(f"{div_name}.json"))
                         with open(file_path, "w") as f:
                             json.dump(js, f, indent=2)
-                        # Add a React component to the jsx output.
+
+                            # Add the Bokeh figure to the MDX output.
                         path_to_data = f"./assets/plot_data/{div_name}.json"
-                        jsx_output += (
-                            f"export const {component_name} = () => {{\n"
-                            f'  const pathToData = "{path_to_data}";\n'
-                            f"  const data = React.useMemo(() => "
-                            "require(`${pathToData}`), []);\n"
-                            "  return <BokehFigure data={data} />\n"
-                            f"}};\n\n"
+                        mdx_output += (
+                            f"<BokehFigure data={{require('{path_to_data}')}} />\n\n"
                         )
 
             # Handle "execute_result".
             if cell_output_type == "execute_result":
                 if data_category == "text":
+                    # Handle HTML.
+                    if data_type == "html":
+                        # Handle pandas DataFrames. There is a scoped style tag in the
+                        # DataFrame output that uses the class name `dataframe` to style
+                        # the output. We will use this token to determine if a pandas
+                        # DataFrame is being displayed.
+                        if "dataframe" in cell_output_data:
+                            df = pd.read_html(cell_output_data, flavor="lxml")
+                            # NOTE: The return is a list of dataframes and we only care
+                            #       about the first one.
+                            md_df = df[0]
+                            for column in md_df.columns:
+                                if column.startswith("Unnamed"):
+                                    md_df.rename(columns={column: ""}, inplace=True)
+                            # Remove the index if it is just a range, and output to
+                            # markdown.
+                            md = ""
+                            if isinstance(md_df.index, pd.RangeIndex):
+                                md = md_df.to_markdown(showindex=False)
+                            elif not isinstance(md_df.index, pd.RangeIndex):
+                                md = md_df.to_markdown()
+                            mdx_output += f"\n{md}\n\n"
+
                     # Handle plain text.
                     if data_type == "plain":
                         cell_output_data = "\n".join(

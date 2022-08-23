@@ -171,7 +171,6 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
                 + "Falls back to Eigen decomposition."
             )
             eig_vecs, eig_vals = soft_abs_inverse(neg_hessian)
-            # pyre-fixme
             distance = (
                 eig_vecs
                 @ (torch.eye(len(eig_vals)) * eig_vals)
@@ -180,7 +179,6 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             _arguments["distance"] = distance
             mean = (node_val_reshaped + distance * frac_dist).squeeze(0)
             _proposer = NormalEig(mean, eig_vals, eig_vecs)
-            # pyre-fixme
             _arguments["eig_decomp"] = (eig_vals, eig_vecs)
 
         return (
@@ -223,7 +221,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # parameters-of-a-beta-distribution-using-the-mean-and-variance
         alpha = ((1.0 - new_mu) / new_var - (1.0 / new_mu)) * (new_mu**2)
         beta = alpha * (1.0 - new_mu) / new_mu
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `bool`.
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
         alpha = torch.where(alpha <= 0, torch.ones_like(alpha), alpha)
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `bool`.
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
         beta = torch.where(beta <= 0, torch.ones_like(beta), beta)
         return alpha, beta
 
@@ -249,6 +251,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         """
         if not is_accepted:
             if self.accepted_samples_ == 0:
+                # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
                 self.alpha_, self.beta_ = (
                     tensor(1.0, dtype=self.learning_rate_.dtype),
                     tensor(1.0, dtype=self.learning_rate_.dtype),

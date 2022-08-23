@@ -8,7 +8,15 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal, StudentT, Uniform
+from torch.distributions import (
+    Bernoulli,
+    Beta,
+    Gamma,
+    HalfCauchy,
+    Normal,
+    StudentT,
+    Uniform,
+)
 
 
 @bm.random_variable
@@ -89,6 +97,34 @@ def operators():
 @bm.functional
 def multiplication():
     return beta_2_2() * tensor([5.0, 6.0])
+
+
+@bm.functional
+def complement_with_log1p():
+    return (-beta_2_2()).log1p()
+
+
+@bm.random_variable
+def beta1234():
+    return Beta(tensor([1.0, 2.0]), tensor([3.0, 4.0]))
+
+
+@bm.functional
+def sum_inverted_log_probs():
+    p = tensor([5.0, 6.0]) * (-beta1234()).log1p()
+    return p.sum()
+
+
+@bm.random_variable
+def gamma():
+    return Gamma(1, 1)
+
+
+@bm.functional
+def normal_log_probs():
+    mu = tensor([5.0, 6.0])
+    x = tensor([7.0, 8.0])
+    return Normal(mu, gamma()).log_prob(x)
 
 
 class FixVectorizedModelsTest(unittest.TestCase):
@@ -912,3 +948,139 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_9(self) -> None:
+        self.maxDiff = None
+        observations = {}
+        queries = [complement_with_log1p()]
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+
+        # The model before the rewrite:
+
+        expected = """
+digraph "graph" {
+  N0[label="[2.0,2.0]"];
+  N1[label="[3.0,4.0]"];
+  N2[label=Beta];
+  N3[label=Sample];
+  N4[label="-"];
+  N5[label=Log1p];
+  N6[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+  N4 -> N5;
+  N5 -> N6;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # After:
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        expected = """
+digraph "graph" {
+  N00[label=2];
+  N01[label=1];
+  N02[label=2.0];
+  N03[label=3.0];
+  N04[label=Beta];
+  N05[label=Sample];
+  N06[label=complement];
+  N07[label=Log];
+  N08[label=4.0];
+  N09[label=Beta];
+  N10[label=Sample];
+  N11[label=complement];
+  N12[label=Log];
+  N13[label=ToMatrix];
+  N14[label=Query];
+  N00 -> N13;
+  N01 -> N13;
+  N02 -> N04;
+  N02 -> N09;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N13;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_10(self) -> None:
+        self.maxDiff = None
+        queries = [sum_inverted_log_probs()]
+        observations = {}
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N00[label=5.0];
+  N01[label=1.0];
+  N02[label=3.0];
+  N03[label=Beta];
+  N04[label=Sample];
+  N05[label=complement];
+  N06[label=Log];
+  N07[label="-"];
+  N08[label="*"];
+  N09[label="-"];
+  N10[label=6.0];
+  N11[label=2.0];
+  N12[label=4.0];
+  N13[label=Beta];
+  N14[label=Sample];
+  N15[label=complement];
+  N16[label=Log];
+  N17[label="-"];
+  N18[label="*"];
+  N19[label="-"];
+  N20[label="+"];
+  N21[label=Query];
+  N00 -> N08;
+  N01 -> N03;
+  N02 -> N03;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N20;
+  N10 -> N18;
+  N11 -> N13;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N19;
+  N19 -> N20;
+  N20 -> N21;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_11(self) -> None:
+        self.maxDiff = None
+        queries = [normal_log_probs()]
+        observations = {}
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot(queries, observations)
+        expected = """
+The mu of a normal is required to be a real but is a 2 x 1 natural matrix.
+The normal was created in function call normal_log_probs().
+The value of a log_prob is required to be a real but is a 2 x 1 natural matrix.
+The log_prob was created in function call normal_log_probs().
+        """
+        observed = str(ex.exception)
+        self.assertEqual(observed.strip(), expected.strip())

@@ -192,6 +192,8 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         else:
             chain_queries = []
             for chain in range(num_chains):
+                # pyre-fixme[6]: For 1st param expected `int` but got `Union[bool,
+                #  float, int]`.
                 AbstractMCInference.set_seed_for_chain(random_seed, chain)
                 rv_dicts = self._infer(
                     num_samples,

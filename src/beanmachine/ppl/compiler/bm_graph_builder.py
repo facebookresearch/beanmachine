@@ -14,7 +14,6 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.compiler.execution_context import ExecutionContext
-from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import memoize
 
 
@@ -29,6 +28,7 @@ supported_bool_types = {bool, np.bool_}
 supported_float_types = {np.longdouble, np.float16, np.float32, np.float64, float}
 supported_int_types = {np.int16, np.int32, np.int64, np.int8, np.longlong}
 supported_int_types |= {np.uint16, np.uint32, np.uint64, np.uint8, np.ulonglong, int}
+supported_tensor_types = {torch.Tensor, np.ndarray}
 
 _empty_context = ExecutionContext()
 
@@ -173,6 +173,11 @@ class BMGraphBuilder:
         """This takes any constant value of a supported type,
         creates a constant graph node for it, and adds it to the builder"""
         t = type(value)
+        # TODO: This checks whether the types are *exactly* a supported
+        # type, but we might have a value which is of a type derived
+        # from ndarray or tensor. Consider fixing these checks to see
+        # if the value is an instance of one of the supported types
+        # rather than an exact type check.
         if t in supported_bool_types:
             value = bool(value)
             t = bool
@@ -182,6 +187,21 @@ class BMGraphBuilder:
         elif t in supported_float_types:
             value = float(value)
             t = float
+        elif t in supported_tensor_types:
+            # Note that this makes a *copy* of the tensor if
+            # the operand is a tensor. We want to ensure that
+            # the value we've captured in the graph accumulation
+            # is NOT mutated in the unfortunate event that the
+            # original tensor is mutated.
+            value = torch.Tensor(value)
+            t = torch.Tensor
+        else:
+            raise ValueError(
+                "A constant value used as an operand of a stochastic "
+                + "operation is required to be bool, int, float or tensor. "
+                + f"This model uses a value of type {t.__name__}."
+            )
+
         return self._add_constant(value, t)
 
     def add_constant_of_matrix_type(
@@ -897,10 +917,16 @@ class BMGraphBuilder:
     @memoize
     def add_log1mexp(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
-            return self.add_constant(log1mexp(operand.value))
+            return self.add_constant((1 - operand.value.exp()).log())
         if isinstance(operand, ConstantNode):
-            return self.add_constant(math_log1mexp(operand.value))
+            return self.add_constant(math.log(1 - math.exp(operand.value)))
         node = bn.Log1mexpNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_transpose(self, operand: BMGNode) -> bn.TransposeNode:
+        node = bn.TransposeNode(operand)
         self.add_node(node)
         return node
 
@@ -947,6 +973,18 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_logaddexp(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.LogAddExpNode:
+        node = bn.LogAddExpNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_log_prob(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.LogProbNode:
+        node = bn.LogProbNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_switch(self, *elements: BMGNode) -> bn.SwitchNode:
         # TODO: Verify that the list is well-formed.
         node = bn.SwitchNode(list(elements))
@@ -974,6 +1012,38 @@ class BMGraphBuilder:
         # those restrictions here, instead detect bad queries in the
         # problem fixing phase and report accordingly.
         node = bn.Query(operator)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_elementwise_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value * right.value)
+        node = bn.ElementwiseMultiplyNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_matrix_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value + right.value)
+        node = bn.MatrixAddNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_matrix_sum(self, matrix: BMGNode) -> BMGNode:
+        if isinstance(matrix, ConstantNode):
+            return self.add_constant(matrix.value.sum())
+        node = bn.MatrixSumNode(matrix)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_matrix_exp(self, matrix: BMGNode) -> BMGNode:
+        if isinstance(matrix, ConstantNode):
+            return self.add_constant(matrix.value.exp())
+        node = bn.MatrixExpNode(matrix)
         self.add_node(node)
         return node
 

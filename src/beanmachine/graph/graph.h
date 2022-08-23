@@ -13,12 +13,15 @@
 #include <memory>
 #include <random>
 #include <set>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <variant>
 #include <vector>
 #include "beanmachine/graph/double_matrix.h"
 #include "beanmachine/graph/profiler.h"
+#include "beanmachine/graph/third-party/nameof.h"
+#include "beanmachine/graph/transformation.h"
 
 #define NATURAL_TYPE unsigned long long int
 #ifdef _MSC_VER
@@ -36,15 +39,15 @@ namespace graph {
 const double PRECISION = 1e-10; // minimum precision of values
 
 enum class VariableType {
-  UNKNOWN = 0,
-  SCALAR = 1,
+  UNKNOWN, // For error catching
+  SCALAR,
   BROADCAST_MATRIX,
   COL_SIMPLEX_MATRIX,
 };
 
 enum class AtomicType {
-  UNKNOWN = 0,
-  BOOLEAN = 1,
+  UNKNOWN, // This is for error catching
+  BOOLEAN,
   PROBABILITY,
   REAL,
   POS_REAL, // Real numbers greater than *or* equal to zero
@@ -141,9 +144,7 @@ class NodeValue {
   // contains a non-static data member with a non-trivial special member
   // function (copy/move constructor, copy/move assignment, or destructor), that
   // function is deleted by default in the union and needs to be defined
-  // explicitly by the programmer."  Because anonymous unions cannot define
-  // destructors, we declare these outside the union so that they are
-  // destructed.
+  // explicitly by the programmer."
   Eigen::MatrixXd _matrix;
   Eigen::MatrixXb _bmatrix;
   Eigen::MatrixXn _nmatrix;
@@ -303,13 +304,14 @@ class NodeValue {
 };
 
 enum class OperatorType {
-  UNKNOWN = 0,
-  SAMPLE = 1, // This is the ~ operator in models
+  UNKNOWN,
+  SAMPLE, // This is the ~ operator in models
   IID_SAMPLE,
   TO_REAL,
   TO_POS_REAL,
   COMPLEMENT,
   NEGATE,
+  ELEMENTWISE_MULTIPLY,
   EXP,
   EXPM1,
   MULTIPLY,
@@ -326,6 +328,7 @@ enum class OperatorType {
   TRANSPOSE,
   MATRIX_MULTIPLY,
   MATRIX_SCALE,
+  MATRIX_ADD,
   TO_PROBABILITY,
   INDEX,
   COLUMN_INDEX,
@@ -337,10 +340,13 @@ enum class OperatorType {
   CHOICE,
   TO_INT,
   CHOLESKY,
+  MATRIX_EXP,
+  LOG_PROB,
+  MATRIX_SUM,
 };
 
 enum class DistributionType {
-  UNKNOWN = 0,
+  UNKNOWN,
   TABULAR,
   BERNOULLI,
   BERNOULLI_NOISY_OR,
@@ -349,33 +355,48 @@ enum class DistributionType {
   DIRICHLET,
   FLAT,
   NORMAL,
+  LOG_NORMAL,
   HALF_NORMAL,
+  MULTIVARIATE_NORMAL,
   HALF_CAUCHY,
   STUDENT_T,
   BERNOULLI_LOGIT,
   GAMMA,
   BIMIXTURE,
   CATEGORICAL,
+  POISSON,
+  GEOMETRIC,
+  CAUCHY,
   DUMMY,
+  LKJ_CHOLESKY
 };
 
 enum class FactorType {
-  UNKNOWN = 0,
-  EXP_PRODUCT = 1,
+  UNKNOWN,
+  EXP_PRODUCT,
 };
 
 enum class NodeType {
-  UNKNOWN = 0,
-  CONSTANT = 1,
-  DISTRIBUTION = 2,
-  OPERATOR = 3,
-  FACTOR = 4,
-  MAX
+  UNKNOWN,
+  CONSTANT,
+  DISTRIBUTION,
+  OPERATOR,
+  FACTOR,
+  MAX,
 };
 
-enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
+enum class InferenceType {
+  UNKNOWN,
+  REJECTION,
+  GIBBS,
+  NMC,
+};
 
-enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
+enum class AggregationType {
+  UNKNOWN,
+  NONE,
+  MEAN,
+};
 
 struct InferConfig {
   bool keep_log_prob;
@@ -396,60 +417,6 @@ struct InferConfig {
         step_size(step_size),
         num_warmup(num_warmup),
         keep_warmup(keep_warmup) {}
-};
-
-enum class TransformType { NONE = 0, LOG = 1 };
-
-class Transformation {
- public:
-  Transformation() : transform_type(TransformType::NONE) {}
-  explicit Transformation(TransformType transform_type)
-      : transform_type(transform_type) {}
-  virtual ~Transformation() {}
-
-  /*
-  Overload the () to perform the variable transformation y=f(x) from the
-  constrained value x to unconstrained y
-  :param constrained: the node value x in constrained space
-  :param unconstrained: the node value y in unconstrained space
-  */
-  virtual void operator()(
-      const NodeValue& /* constrained */,
-      NodeValue& /* unconstrained */) {}
-  /*
-  Perform the inverse variable transformation x=f^{-1}(y) from the
-  unconstrained value y to the original constrained x
-  :param constrained: the node value x in constrained space
-  :param unconstrained: the node value y in unconstrained space
-  */
-  virtual void inverse(
-      NodeValue& /* constrained */,
-      const NodeValue& /* unconstrained */) {}
-  /*
-  Return the log of the absolute jacobian determinant:
-    log |det(d x / d y)|
-  :param constrained: the node value x in constrained space
-  :param unconstrained: the node value y in unconstrained space
-  */
-  virtual double log_abs_jacobian_determinant(
-      const NodeValue& /* constrained */,
-      const NodeValue& /* unconstrained */) {
-    return 0;
-  }
-  /*
-  Given the gradient of the joint log prob w.r.t x, update the value so
-  that it is taken w.r.t y:
-    back_grad = back_grad * dx / dy + d(log |det(d x / d y)|) / dy
-  :param back_grad: the gradient w.r.t x
-  :param constrained: the node value x in constrained space
-  :param unconstrained: the node value y in unconstrained space
-  */
-  virtual void unconstrained_gradient(
-      DoubleMatrix& /* back_grad */,
-      const NodeValue& /* constrained */,
-      const NodeValue& /* unconstrained */) {}
-
-  TransformType transform_type;
 };
 
 class Node {
@@ -497,8 +464,27 @@ class Node {
   // evaluate the node and store the result in `value` if appropriate
   // eval may involve sampling and that's why we need the random number engine
   virtual void eval(std::mt19937& gen) = 0;
-  // populate the derivatives
+
+  // Computes the first and second gradients of this node
+  // with respect to some (unspecified -- see below) variable.
+  // More specifically, it uses the values stored in this node's input
+  // nodes grad1 and grad2 fields (or Grad1 and Grad2 if they are matrices)
+  // to compute the value of this node's own gradient fields
+  // (again grad1, grad2 or Grad1 and Grad2).
+  // Note that this method does *not* compute the gradient of
+  // this node with respect to its inputs,
+  // but with respect to some (possibly distant) variable.
+  // The method is neutral regarding which variable this is,
+  // and simply computes its own gradient with respect
+  // to the same variable its input node gradients are
+  // with respect to.
+  // In the planned refactoring of BMG's autograd (as of May 2022)
+  // this should be replaced by the more fundamental and modular function
+  // computing a node's gradient with respect to its own inputs,
+  // which should then be used as needed in
+  // applications of the chain rule.
   virtual void compute_gradients() {}
+
   /*
   Gradient backward propagation: computes the 1st-order gradient update and
   add it to the parent's back_grad1.
@@ -681,20 +667,21 @@ struct Graph {
     return elbo_vals;
   }
   /*
-  The support of a graph is the set of operator and factor nodes that are
-  needed to determine the value of query and observed variables.
-  In other words, it is the set of queried and observed variables themselves
-  plus their ancestors that are operator and factor nodes.
+  The support of a graph is the set of operator and factor nodes that
+  are needed to determine the value of query and observed variables. In other
+  words, it is the set of queried and observed variables themselves plus their
+  ancestors that are operator and factor nodes.
   */
-  std::set<uint> compute_support();
+  std::set<uint> compute_ordered_support_node_ids();
   /*
-  The full support of a graph includes *all* nodes, including distribution nodes
-  and constant nodes, that are needed to determine the value of query and
-  observed variables
+  The full support of a graph includes *all* nodes, including
+  distribution nodes and constant nodes, that are needed to determine the value
+  of query and observed variables
   */
-  std::set<uint> compute_full_support();
+  std::set<uint> compute_full_ordered_support_node_ids();
 
-  std::set<uint> _compute_support(bool operator_factor_only);
+  std::set<uint> compute_ordered_support_node_ids_with_operators_only_choice(
+      bool operator_factor_only);
 
   /*
   Computes the _affected nodes_ of a root node.
@@ -727,18 +714,24 @@ struct Graph {
   typically re-computing the *values* of deterministic nodes,
   and re-computing the *probability* of stochastic nodes.
 
+  The method guarantees to return the deterministic node in
+  a topologically sorted order from the source.
+  This ensures that evaluating these nodes individually
+  in the given order produces the correct global result.
+
   :param node_id: the id (index in topological order) of the node for which
   we are computing the descendants
-  :param support: the set of indices of the distribution support.
-  :returns: vector of intervening operator deterministic nodes and vector of
-  stochastic nodes that are operators and immediate stochastic descendants of
-  the current node and in the support (that is to say, we don't return
-  descendants of stochastic descendants). The current node is included in result
-  if it is in support and is stochastic.
+  :param ordered_support_node_ids: the (ordered) set of indices of the
+  distribution support.
+  :returns: vector of intervening operator deterministic
+  nodes and vector of stochastic nodes that are operators and immediate
+  stochastic descendants of the current node and in the support (that is to say,
+  we don't return descendants of stochastic descendants). The current node is
+  included in result if it is in support and is stochastic.
   */
   std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
       uint node_id,
-      const std::set<uint>& support);
+      const std::set<uint>& ordered_support_node_ids);
 
   /*
   This function is almost the same as `compute_affected_nodes` above, with
@@ -752,7 +745,8 @@ struct Graph {
   function only includes its children
   :param node_id: the id (index in topological order) of the node for which we
   are computing the descendants
-  :param support: the set of indices of the distribution support.
+  :param ordered_support_node_ids: the set of indices of the distribution
+  support.
   :returns: vector of all intermediate deterministic nodes and vector of
   stochastic nodes and immediate stochastic descendants of the current node and
   in the support (that is to say, we don't return descendants of stochastic
@@ -761,19 +755,19 @@ struct Graph {
   */
   std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
       uint node_id,
-      const std::set<uint>& support);
+      const std::set<uint>& ordered_support_node_ids);
 
   std::tuple<std::vector<uint>, std::vector<uint>>
   _compute_nodes_until_stochastic(
       uint node_id,
-      const std::set<uint>& support,
+      const std::set<uint>& ordered_support_node_ids,
       bool affected_only,
       bool include_root_node);
 
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
 
-  void update_backgrad(std::vector<Node*>& ordered_supp);
+  void eval_and_update_backgrad(std::vector<Node*>& ordered_supp);
   /*
   Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
@@ -793,9 +787,9 @@ struct Graph {
       double& grad1,
       double& grad2);
   /*
-  Evaluate all nodes in the support and compute their gradients in backward
-  mode. (used for unit tests)
-  :param grad1: Output value of first gradient.
+  Evaluate all nodes in the support and compute their gradients in
+  backward mode. (used for unit tests) :param grad1: Output value of first
+  gradient.
   :param seed: Random number generator seed.
   */
   void eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed = 5123412);
@@ -809,21 +803,19 @@ struct Graph {
 
   /*
   Evaluate the deterministic descendants of the source node and compute
-  the logprob_gradient of all stochastic descendants in the support including
-  the source node.
+  the logprob_gradient of all stochastic descendants in the support
+  including the source node.
 
   :param src_idx: The index of the node to evaluate the gradients w.r.t., must
                   be a vector valued node.
-  :param grad1: Output value of first gradient (double), or gradient vector
-                (Eigen::MatrixXd)
-  :param grad2: Output value of the second gradient (double), or the diagonal
-                terms of the gradient matrix (Eigen::MatrixXd).
+  :param grad1: Output value of first gradient (double)
+  :param grad2: Output value of the second gradient (double)
   */
   void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
-  the sum of logprob of all stochastic descendants in the support including
-  the source node.
+  the sum of logprob of all stochastic descendants in the support
+  including the source node.
 
   :param src_idx: source node
   :returns: The sum of log_prob of source node and all stochastic descendants.
@@ -908,19 +900,22 @@ struct Graph {
       uint elbo_samples);
   /*
   Evaluate the full log probability over the support of the graph.
-  :param ordered_supp: node pointers in the support in topological order.
-  :returns: The sum of log_prob of stochastic nodes in the support.
+  :param ordered_supp: node pointers in the support in topological
+  order.
+  :returns: The sum of log_prob of stochastic nodes in the
+  support.
   */
 
   // TODO: Review what members of this class can be made static.
 
-  static double _full_log_prob(std::vector<Node*>& ordered_supp);
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
-  void _test_backgrad(std::set<uint>& supp, std::vector<DoubleMatrix*>& grad1);
+  void _test_backgrad(
+      std::set<uint>& ordered_support_node_ids,
+      std::vector<DoubleMatrix*>& grad1);
 
   ProfilerData profiler_data;
   bool _collect_performance_data = false;
@@ -941,6 +936,190 @@ struct Graph {
   }
 
   void reindex_nodes();
+
+  // members brought in from MH class since they are really Graph properties
+ public:
+  // A graph maintains of a vector of nodes; the index into that vector is
+  // the id of the node. We often need to translate from node ids into node
+  // pointers; to do so quickly we obtain the address of
+  // every node in the graph up front and then look it up when we need it.
+  std::vector<Node*> node_ptrs;
+
+  // Every node in the graph has a value; when we propose a new graph state,
+  // we update the values. If we then reject the proposed new state, we need
+  // to restore the values. This vector stores the original values of the
+  // nodes that we change during the proposal step.
+  // We do the same for the log probability of the stochastic nodes
+  // affected by the last revertible set and propagate operation
+  // see (revertibly_set_and_propagate method).
+  std::vector<NodeValue> old_values;
+  double old_sto_affected_nodes_log_prob;
+
+  // The support is the set of all nodes in the graph that are queried or
+  // observed, directly or indirectly. We keep both node ids and node pointer
+  // forms.
+  std::set<uint> supp_ids;
+  std::vector<Node*> supp;
+
+  // Nodes in support that are not directly observed. Note that
+  // the order of nodes in this vector matters! We must enumerate
+  // them in order from lowest node identifier to highest.
+  std::vector<Node*> unobserved_supp;
+
+  // Nodes in unobserved_supp that are stochastic; similarly, order matters.
+  std::vector<Node*> unobserved_sto_supp;
+
+  // A vector containing the index of a node in vector unobserved_sto_supp for
+  // each node_id. Since not all nodes are in unobserved_sto_support, some
+  // elements of this vector should never be accessed.
+  std::vector<uint> unobserved_sto_support_index_by_node_id;
+
+  // These vectors are the same size as unobserved_sto_support.
+  // The i-th elements are vectors of nodes which are
+  // respectively the vector of
+  // the immediate stochastic descendants of node with index i in the
+  // support, and the vector of the intervening deterministic nodes
+  // between the i-th node and its immediate stochastic descendants.
+  // In other words, these are the cached results of
+  // invoking graph::compute_affected_nodes
+  // for each node.
+  std::vector<std::vector<Node*>> sto_affected_nodes;
+  std::vector<std::vector<Node*>> det_affected_nodes;
+
+  bool ready_for_evaluation_and_inference = false;
+
+  // Methods
+
+  // Ensures graph is ready for evaluation and inference (by building
+  // intermediate internal data structures).
+  // The data structures are built only the first time the method is invoked.
+  // After that, the method is simply ensuring they are built.
+  // Note that this assumes the graph has not changed since the last invocation.
+  // If the graph does change, client code can set field "ready" to false
+  // and then invoke this method.
+  void ensure_evaluation_and_inference_readiness();
+
+  void collect_node_ptrs();
+
+  void compute_support();
+
+  void ensure_all_nodes_are_supported();
+
+  void compute_initial_values();
+
+  void compute_affected_nodes();
+
+  void generate_sample();
+
+  void collect_samples(uint num_samples, InferConfig infer_config);
+
+  void collect_sample(InferConfig infer_config);
+
+  const std::vector<Node*>& get_det_affected_nodes(Node* node);
+
+  const std::vector<Node*>& get_sto_affected_nodes(Node* node);
+
+  // Sets a given node to a new value and
+  // updates its deterministically affected nodes.
+  // Does so in a revertible manner by saving old values and old stochastic
+  // affected nodes log prob.
+  // Old values can be accessed through get_old_* methods.
+  // The reversion is executed by invoking revert_set_and_propagate.
+  void revertibly_set_and_propagate(Node* node, const NodeValue& value);
+
+  // Revert the last revertibly_set_and_propagate
+  void revert_set_and_propagate(Node* node);
+
+  void save_old_value(const Node* node);
+
+  void save_old_values(const std::vector<Node*>& nodes);
+
+  NodeValue& get_old_value(const Node* node);
+
+  double get_old_sto_affected_nodes_log_prob() {
+    return old_sto_affected_nodes_log_prob;
+  }
+
+  void restore_old_value(Node* node);
+
+  void restore_old_values(const std::vector<Node*>& det_nodes);
+
+  void compute_gradients(const std::vector<Node*>& det_nodes);
+
+  void eval(const std::vector<Node*>& det_nodes);
+
+  void clear_gradients(Node* node);
+
+  void clear_gradients(const std::vector<Node*>& nodes);
+
+  void clear_gradients_of_node_and_its_affected_nodes(Node* node);
+
+  double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
+
+  // Graph statistics
+  std::string collect_statistics();
+
+ private:
+  class Statistics {
+   public:
+    explicit Statistics(Graph& g);
+    std::string to_string();
+
+   private:
+    // 1. types
+    using Counts_t = std::vector<uint>;
+    using Matrix_t = std::vector<Counts_t>;
+    using String_t = std::string;
+    using Stream_t = std::ostringstream;
+
+    // 2. Graph statistics
+    uint num_edges; // Number of edges in the graph
+    uint num_nodes; // Number of nodes in the graph
+    uint max_in; // Largest number of incoming edges into a node
+    uint max_out; // Largest number of outgoign edges from a node
+    String_t graph_density; // From 0 to 1, 1 being a complete graph
+    uint num_root_nodes; // Number of nodes with no incoming edges
+    uint num_terminal_nodes; // Number of nodes with no outgoing edges
+
+    void comp_graph_stats(Graph& g);
+    String_t compute_density();
+    void init_matrix(Matrix_t& matrix, uint rows, uint n_cols);
+
+    // 3. Node statistics
+    Counts_t dist_counts; // Counts of distribution types in dist. nodes
+    Counts_t fact_counts; // Counts of factor types in factor nodes
+    Counts_t node_type_counts; // Counts of node types in the graph
+    Counts_t oper_counts; // Counts of operator types in operator nodes
+    Matrix_t const_counts; // atomic type & var type
+    Matrix_t root_terminal_per_node_type; // For each type, how many r & t
+
+    void comp_node_stats(Graph& g);
+
+    // 4. Edge statistics
+    Counts_t in_edge_histogram; // Counts of incoming edges in graph
+    Counts_t out_edge_histogram; // Counts of outgoing edges in graph
+    Matrix_t in_edge_bytype; // incoming edges by node type
+    Matrix_t out_edge_bytype; // outgoing edges by node type
+
+    void comp_edge_stats(Graph& g);
+
+    // 5. Reporting
+    Stream_t report; // to hold the generated report
+    uint tab;
+
+    void gen_graph_stats_report();
+    void gen_node_stats_report();
+    void gen_edge_stats_report();
+    void gen_edge_stats_report(String_t etype, Counts_t counts);
+    void gen_operator_stats(Counts_t counts);
+    void gen_distribution_stats(Counts_t counts);
+    void gen_factor_stats(Counts_t counts);
+    void gen_constant_stats(Matrix_t counts);
+    void gen_roots_and_terminals(uint node_id);
+
+    void emit(String_t output, char banner = '\0');
+    void emit_tab(uint n);
+  };
 };
 
 } // namespace graph

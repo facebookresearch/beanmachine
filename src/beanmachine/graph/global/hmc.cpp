@@ -12,9 +12,10 @@
 namespace beanmachine {
 namespace graph {
 
-HMC::HMC(Graph& g, double path_length, double step_size)
+HMC::HMC(Graph& g, double path_length, double step_size, bool adapt_mass_matrix)
     : GlobalMH(g), graph(g) {
-  proposer = std::make_unique<HmcProposer>(HmcProposer(path_length, step_size));
+  proposer = std::make_unique<HmcProposer>(
+      HmcProposer(path_length, step_size, adapt_mass_matrix));
 }
 
 void HMC::prepare_graph() {

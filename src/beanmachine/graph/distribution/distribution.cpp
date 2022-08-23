@@ -13,12 +13,18 @@
 #include "beanmachine/graph/distribution/bimixture.h"
 #include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/distribution/categorical.h"
+#include "beanmachine/graph/distribution/cauchy.h"
 #include "beanmachine/graph/distribution/dirichlet.h"
 #include "beanmachine/graph/distribution/flat.h"
 #include "beanmachine/graph/distribution/gamma.h"
+#include "beanmachine/graph/distribution/geometric.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
 #include "beanmachine/graph/distribution/half_normal.h"
+#include "beanmachine/graph/distribution/lkj_cholesky.h"
+#include "beanmachine/graph/distribution/log_normal.h"
+#include "beanmachine/graph/distribution/multivariate_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
+#include "beanmachine/graph/distribution/poisson.h"
 #include "beanmachine/graph/distribution/student_t.h"
 #include "beanmachine/graph/distribution/tabular.h"
 
@@ -57,6 +63,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       case graph::DistributionType::HALF_NORMAL: {
         return std::make_unique<Half_Normal>(atype, in_nodes);
       }
+      case graph::DistributionType::LOG_NORMAL: {
+        return std::make_unique<LogNormal>(atype, in_nodes);
+      }
       case graph::DistributionType::HALF_CAUCHY: {
         return std::make_unique<HalfCauchy>(atype, in_nodes);
       }
@@ -75,6 +84,15 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       case graph::DistributionType::CATEGORICAL: {
         return std::make_unique<Categorical>(atype, in_nodes);
       }
+      case graph::DistributionType::POISSON: {
+        return std::make_unique<Poisson>(atype, in_nodes);
+      }
+      case graph::DistributionType::GEOMETRIC: {
+        return std::make_unique<Geometric>(atype, in_nodes);
+      }
+      case graph::DistributionType::CAUCHY: {
+        return std::make_unique<Cauchy>(atype, in_nodes);
+      }
       default: {
         throw std::invalid_argument(
             "Unknown distribution " +
@@ -87,6 +105,25 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     switch (dist_type) {
       case graph::DistributionType::DIRICHLET: {
         return std::make_unique<Dirichlet>(sample_type, in_nodes);
+      }
+      default: {
+        throw std::invalid_argument(
+            "Unknown distribution " +
+            std::to_string(static_cast<int>(dist_type)) +
+            " for multivariate sample type.");
+      }
+    }
+  } else if (
+      sample_type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    switch (dist_type) {
+      case graph::DistributionType::MULTIVARIATE_NORMAL: {
+        return std::make_unique<MultivariateNormal>(sample_type, in_nodes);
+      }
+      case graph::DistributionType::FLAT: {
+        return std::make_unique<Flat>(sample_type, in_nodes);
+      }
+      case graph::DistributionType::LKJ_CHOLESKY: {
+        return std::make_unique<LKJCholesky>(sample_type, in_nodes);
       }
       default: {
         throw std::invalid_argument(

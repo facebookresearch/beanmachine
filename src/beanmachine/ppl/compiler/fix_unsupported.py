@@ -211,6 +211,9 @@ class UnsupportedNodeFixer:
         # Otherwise, just generate the vector LSE BMG node.
         return self._bmg.add_logsumexp_vector(operand)
 
+    def _replace_lae(self, node: bn.LogAddExpNode) -> Optional[bn.BMGNode]:
+        return self._bmg.add_logsumexp(*node.inputs)
+
     def _replace_tensor(self, node: bn.TensorNode) -> Optional[bn.BMGNode]:
         # Replace a 1-d or 2-d tensor with a TO_MATRIX node.
         size = node._size
@@ -336,6 +339,7 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
             type_guard(bn.Log1pNode, usnf._replace_log1p),
             type_guard(bn.Log2Node, usnf._replace_log2),
             type_guard(bn.LogSumExpTorchNode, usnf._replace_lse),
+            type_guard(bn.LogAddExpNode, usnf._replace_lae),
             type_guard(bn.SquareRootNode, usnf._replace_squareroot),
             type_guard(bn.SwitchNode, usnf._replace_switch),
             type_guard(bn.TensorNode, usnf._replace_tensor),
@@ -427,7 +431,8 @@ def untypable_node_reporter(bmg: BMGraphBuilder) -> GraphFixer:
             return None
         for i in node.inputs:
             t = typer[i]
-            if t == bt.Untypable or t == bt.Tensor:
+            is_tensor = t == bt.Tensor or isinstance(t, bt.BMGMatrixType)
+            if t == bt.Untypable or is_tensor:
                 return None
         return UntypableNode(node, bmg.execution_context.node_locations(node))
 

@@ -39,6 +39,11 @@ def scaled2_sym():
     return (torch.tensor([scalar(), scalar()])) * scalar()
 
 
+@bm.functional
+def multiple_scalars():
+    return scalar() * scalar() * matrix * scalar() * scalar()
+
+
 class FixMatrixScaleTest(unittest.TestCase):
     def test_fix_matrix_scale_1(self) -> None:
         self.maxDiff = None
@@ -311,3 +316,44 @@ digraph "graph" {
         # The model runs on Bean Machine Graph
 
         _ = BMGInference().infer(queries, observations, num_samples=num_samples)
+
+    def test_fix_matrix_scale_3(self) -> None:
+        # TODO: The matrix scale optimizer correctly removes the extra matrix scale
+        # but the multiary multiplication optimizer does not optimize to a single
+        # multiplication node. That optimizer does not optimize nodes where the
+        # outgoing edge count is more than one, but in this case the outgoing
+        # edges are to orphaned nodes, illustrating a flaw in this design.
+        # We might consider always doing the optimization even if there are multiple
+        # outgoing edges -- that risks making a suboptimal graph but that scenario
+        # is likely rare. Or we could write an orphan-trimming pass.
+        self.maxDiff = None
+        observations = {}
+        queries = [multiple_scalars()]
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label="*"];
+  N5[label="*"];
+  N6[label="*"];
+  N7[label="[20,40]"];
+  N8[label=MatrixScale];
+  N9[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+  N3 -> N4;
+  N3 -> N5;
+  N3 -> N6;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N8;
+  N7 -> N8;
+  N8 -> N9;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())

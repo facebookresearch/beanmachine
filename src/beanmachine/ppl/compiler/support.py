@@ -92,16 +92,16 @@ _product_of_inputs = {
     bn.BitAndNode: torch.Tensor.__and__,
     bn.BitOrNode: torch.Tensor.__or__,
     bn.BitXorNode: torch.Tensor.__xor__,
-    bn.CholeskyNode: torch.Tensor.cholesky,  # pyre-ignore
+    bn.CholeskyNode: torch.Tensor.cholesky,
     bn.DivisionNode: torch.Tensor.div,
     bn.EqualNode: torch.Tensor.eq,
-    bn.ExpM1Node: torch.Tensor.expm1,  # pyre-ignore
-    bn.ExpNode: torch.Tensor.exp,  # pyre-ignore
+    bn.ExpM1Node: torch.Tensor.expm1,
+    bn.ExpNode: torch.Tensor.exp,
     bn.Exp2Node: torch.exp2,
     bn.FloorDivNode: torch.Tensor.__floordiv__,
     bn.GreaterThanEqualNode: torch.Tensor.ge,
     bn.GreaterThanNode: torch.Tensor.gt,
-    bn.InvertNode: torch.Tensor.__invert__,  # pyre-ignore
+    bn.InvertNode: torch.Tensor.__invert__,
     bn.ItemNode: lambda x: x,  # item() is an identity
     bn.LessThanEqualNode: torch.Tensor.le,
     bn.LessThanNode: torch.Tensor.lt,
@@ -111,7 +111,7 @@ _product_of_inputs = {
     bn.Log1pNode: torch.log1p,
     bn.Log2Node: torch.log2,
     bn.LShiftNode: torch.Tensor.__lshift__,
-    bn.MatrixMultiplicationNode: torch.Tensor.mm,  # pyre-ignore
+    bn.MatrixMultiplicationNode: torch.Tensor.mm,
     bn.ModNode: torch.Tensor.__mod__,
     bn.MultiplicationNode: torch.Tensor.mul,
     bn.NegateNode: torch.Tensor.neg,

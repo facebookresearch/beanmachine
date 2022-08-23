@@ -31,7 +31,6 @@ class GlobalState {
  private:
   int flat_size;
   Graph& graph;
-  std::vector<Node*> ordered_support;
   std::vector<Node*> stochastic_nodes;
   std::vector<Node*> deterministic_nodes;
   std::vector<NodeValue> stochastic_unconstrained_vals_backup;

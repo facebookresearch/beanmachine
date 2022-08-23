@@ -25,7 +25,9 @@ namespace beanmachine {
 namespace graph {
 
 void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
-  mh->graph->pd_begin(get_step_profiler_event());
+  auto graph = mh->graph;
+
+  graph->pd_begin(get_step_profiler_event());
   // Implements a Metropolis-Hastings step using the MH proposer.
   //
   // We are given an unobserved stochastic "target" node and we wish
@@ -63,16 +65,16 @@ void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
 
   NodeValue new_value = mh->sample(proposal_given_old_value);
 
-  mh->revertibly_set_and_propagate(tgt_node, new_value);
+  graph->revertibly_set_and_propagate(tgt_node, new_value);
 
   double new_sto_affected_nodes_log_prob =
-      mh->compute_log_prob_of(mh->get_sto_affected_nodes(tgt_node));
+      graph->compute_log_prob_of(graph->get_sto_affected_nodes(tgt_node));
 
   auto proposal_given_new_value = get_proposal_distribution(tgt_node);
 
-  NodeValue& old_value = mh->get_old_value(tgt_node);
+  NodeValue& old_value = graph->get_old_value(tgt_node);
   double old_sto_affected_nodes_log_prob =
-      mh->get_old_sto_affected_nodes_log_prob();
+      graph->get_old_sto_affected_nodes_log_prob();
 
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob +
@@ -81,7 +83,7 @@ void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
 
   bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc);
   if (!accepted) {
-    mh->revert_set_and_propagate(tgt_node);
+    graph->revert_set_and_propagate(tgt_node);
   }
 
   // Gradients must be cleared (equal to 0)
@@ -98,9 +100,9 @@ void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
   // This was the case for example for
   // StochasticOperator::gradient_log_prob,
   // but that dependence has been removed.
-  mh->clear_gradients_of_node_and_its_affected_nodes(tgt_node);
+  graph->clear_gradients_of_node_and_its_affected_nodes(tgt_node);
 
-  mh->graph->pd_finish(get_step_profiler_event());
+  graph->pd_finish(get_step_profiler_event());
 }
 
 } // namespace graph

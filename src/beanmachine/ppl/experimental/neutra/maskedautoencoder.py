@@ -77,7 +77,6 @@ class MaskedAutoencoder(nn.Module):
         self.masked_autoencoder = []
         self.permute_ = {}
         g1 = torch.Generator()
-        # pyre-fixme
         g1.manual_seed(seed_num)  # assign a seed to generator
         self.create_masks_(in_layer, out_layer, n_block, hidden_layer, g1)
 
@@ -108,7 +107,6 @@ class MaskedAutoencoder(nn.Module):
         )  # output layer would considered later for auto-regressive property.
         for layer in range(n_block):
             if in_layer > 1:
-                # pyre-fixme
                 self.permute_[layer] = torch.randint(
                     self.permute_[layer - 1].min(),
                     in_layer - 1,
@@ -116,7 +114,6 @@ class MaskedAutoencoder(nn.Module):
                     generator=g1,
                 )
             else:
-                # pyre-fixme
                 self.permute_[layer] = torch.randint(
                     self.permute_[layer - 1].min(), 2, (hidden_layer,), generator=g1
                 )

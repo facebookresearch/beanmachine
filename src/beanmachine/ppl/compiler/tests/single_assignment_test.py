@@ -3599,3 +3599,22 @@ else:
 x = a1
 """
         self.check_rewrite(source, expected)
+
+    def test_single_assignment_handle_assign(self) -> None:
+        """Test the rule for removing annotations"""
+
+        source = """
+def f(x):
+    z:float = 1 + a
+"""
+        expected = """
+def f(x):
+    a1 = 1
+    z = a1 + a
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign())),
+        )

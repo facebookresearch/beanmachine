@@ -24,7 +24,7 @@ TEST(testmarginal, subgraph_basic) {
   SubGraph subgraph = SubGraph(g);
   subgraph.add_node_by_id(bernoulli);
   subgraph.add_node_by_id(bernoulli_sample);
-  subgraph.move_nodes_from_graph();
+  subgraph.move_nodes_from_graph_and_reindex();
 
   Node* subgraph_bernoulli = subgraph.get_node(0);
   EXPECT_EQ(subgraph_bernoulli->node_type, NodeType::DISTRIBUTION);

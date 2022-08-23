@@ -10,15 +10,9 @@
 namespace beanmachine {
 namespace graph {
 
+// TODO: move this inference method out of Graph.
 void Graph::rejection(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
-  std::vector<Node*> ordered_supp;
-  if (infer_config.keep_log_prob) {
-    std::set<uint> supp = compute_support();
-    for (uint node_id : supp) {
-      ordered_supp.push_back(nodes[static_cast<uint>(node_id)].get());
-    }
-  }
   for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {
     // rejection sampling
     bool rejected;
@@ -46,7 +40,7 @@ void Graph::rejection(uint num_samples, uint seed, InferConfig infer_config) {
       }
     } while (rejected);
     if (infer_config.keep_log_prob) {
-      collect_log_prob(_full_log_prob(ordered_supp));
+      collect_log_prob(full_log_prob());
     }
     if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
       collect_sample();

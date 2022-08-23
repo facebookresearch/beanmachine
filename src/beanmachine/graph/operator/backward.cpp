@@ -231,6 +231,33 @@ void MatrixScale::backward() {
   }
 }
 
+void ElementwiseMultiply::backward() {
+  assert(in_nodes.size() == 2);
+  auto node_a = in_nodes[0];
+  auto node_b = in_nodes[1];
+  Eigen::MatrixXd& A = node_a->value._matrix;
+  Eigen::MatrixXd& B = node_b->value._matrix;
+
+  if (node_a->needs_gradient()) {
+    node_a->back_grad1 += (back_grad1.array() * B.array()).matrix();
+  }
+  if (node_b->needs_gradient()) {
+    node_b->back_grad1 += (back_grad1.array() * A.array()).matrix();
+  }
+}
+
+void MatrixAdd::backward() {
+  assert(in_nodes.size() == 2);
+  auto node_a = in_nodes[0];
+  auto node_b = in_nodes[1];
+  if (node_a->needs_gradient()) {
+    node_a->back_grad1 += back_grad1;
+  }
+  if (node_b->needs_gradient()) {
+    node_b->back_grad1 += back_grad1;
+  }
+}
+
 void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];
@@ -272,7 +299,66 @@ void BroadcastAdd::backward() {
 }
 
 void Cholesky::backward() {
-  // TODO: fill this in
+  assert(in_nodes.size() == 1);
+  // We compute the gradient in place on a copy of the upstream gradient
+  // according to the algorithm described in section 4.1 of
+  // https://homepages.inf.ed.ac.uk/imurray2/pub/16choldiff/choldiff.pdf
+  if (in_nodes[0]->needs_gradient()) {
+    uint n = in_nodes[0]->value.type.rows;
+    Eigen::MatrixXd L = value._matrix;
+    Eigen::MatrixXd dS = back_grad1.as_matrix().triangularView<Eigen::Lower>();
+    for (int i = n - 1; i >= 0; i--) {
+      // update grad dS at lower-triangular col i, including (i,i)
+      Eigen::VectorXd L_c = L(Eigen::seq(i + 1, Eigen::last), i);
+      Eigen::VectorXd dS_c = dS(Eigen::seq(i + 1, Eigen::last), i);
+      dS(i, i) -= L_c.dot(dS_c) / L(i, i);
+      dS(Eigen::seq(i, Eigen::last), i) /= L(i, i);
+
+      if (i > 0) {
+        // update grad dS at lower-triangular row i (excluding i,i)
+        Eigen::MatrixXd L_r = L(i, Eigen::seq(0, i - 1));
+        Eigen::MatrixXd L_rB =
+            L(Eigen::seq(i, Eigen::last), Eigen::seq(0, i - 1));
+
+        dS(i, Eigen::seq(0, i - 1)) -=
+            dS(Eigen::seq(i, Eigen::last), i).transpose() * L_rB;
+
+        // update grad dS at lower-triangular block left/below index (i, i)
+        dS(Eigen::seq(i + 1, Eigen::last), Eigen::seq(0, i - 1)) -=
+            dS(Eigen::seq(i + 1, Eigen::last), i) * L_r;
+      }
+
+      dS(i, i) /= 2;
+    }
+
+    // split gradient between upper and lower triangular parts of input,
+    // which are symmetric. This follows the convention used by Pytorch,
+    // while the Iain Murray description accumulates all gradients
+    // to the lower triangular part.
+    for (uint i = 0; i < n; i++) {
+      for (uint j = i + 1; j < n; j++) {
+        dS(j, i) /= 2;
+        dS(i, j) = dS(j, i);
+      }
+    }
+
+    in_nodes[0]->back_grad1 += dS;
+  }
+}
+
+void MatrixExp::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1 +=
+        back_grad1.as_matrix().cwiseProduct(value._matrix);
+  }
+}
+
+void MatrixSum::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1 = in_nodes[0]->back_grad1.array() + back_grad1;
+  }
 }
 
 } // namespace oper

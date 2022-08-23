@@ -63,6 +63,7 @@ _node_labels = {
     bn.ExpProductFactorNode: "ExpProduct",
     bn.FlatNode: "Flat",
     bn.FloorDivNode: "//",
+    bn.ElementwiseMultiplyNode: "ElementwiseMult",
     bn.GammaNode: "Gamma",
     bn.GreaterThanEqualNode: ">=",
     bn.GreaterThanNode: ">",
@@ -82,12 +83,17 @@ _node_labels = {
     bn.Log10Node: "Log10",
     bn.Log1pNode: "Log1p",
     bn.Log2Node: "Log2",
+    bn.LogProbNode: "LogProb",
     bn.LogSumExpNode: "LogSumExp",
     bn.LogSumExpTorchNode: "LogSumExp",
     bn.LogSumExpVectorNode: "LogSumExp",
+    bn.LogAddExpNode: "LogAddExp",
     bn.LShiftNode: "<<",
+    bn.MatrixAddNode: "MatrixAdd",
+    bn.MatrixExpNode: "MatrixExp",
     bn.MatrixMultiplicationNode: "@",
     bn.MatrixScaleNode: "MatrixScale",
+    bn.MatrixSumNode: "MatrixSum",
     bn.ModNode: "%",
     bn.MultiplicationNode: "*",
     bn.NaturalNode: _val,
@@ -123,6 +129,7 @@ _node_labels = {
     bn.UniformNode: "Uniform",
     bn.UntypedConstantNode: _val,
     bn.VectorIndexNode: "index",
+    bn.TransposeNode: "Transpose",
 }
 
 # These are the labels used when describing a node in an error message.
@@ -176,6 +183,7 @@ _node_error_labels = {
     bn.LessThanNode: "'less than' (<)",
     bn.Log1mexpNode: "log1mexp",
     bn.LogisticNode: "logistic",
+    bn.LogProbNode: "log_prob",
     bn.LogNode: "log",
     bn.Log10Node: "log10",
     bn.Log1pNode: "log1p",
@@ -183,6 +191,7 @@ _node_error_labels = {
     bn.LogSumExpNode: "logsumexp",
     bn.LogSumExpTorchNode: "logsumexp",
     bn.LogSumExpVectorNode: "logsumexp",
+    bn.LogAddExpNode: "logaddexp",
     bn.LShiftNode: "'left shift' (<<)",
     bn.MatrixMultiplicationNode: "matrix multiplication (@)",
     bn.MatrixScaleNode: "matrix scale",
@@ -221,6 +230,7 @@ _node_error_labels = {
     bn.UniformNode: "uniform",
     bn.UntypedConstantNode: "constant value",
     bn.VectorIndexNode: "index",
+    bn.TransposeNode: "transpose",
 }
 
 
@@ -268,6 +278,7 @@ _edge_labels = {
     bn.ConstantTensorNode: _none,
     bn.DirichletNode: ["concentration"],
     bn.DivisionNode: _left_right,
+    bn.ElementwiseMultiplyNode: _left_right,
     bn.EqualNode: _left_right,
     bn.ExpM1Node: _operand,
     bn.ExpNode: _operand,
@@ -288,12 +299,17 @@ _edge_labels = {
     bn.Log10Node: _operand,
     bn.Log1pNode: _operand,
     bn.Log2Node: _operand,
+    bn.LogProbNode: ["distribution", "value"],
     bn.LogSumExpNode: _numbered_or_left_right,
     bn.LogSumExpTorchNode: ["operand", "dim", "keepdim"],
     bn.LogSumExpVectorNode: _operand,
+    bn.LogAddExpNode: _left_right,
     bn.SwitchNode: _numbered_or_left_right,
+    bn.MatrixAddNode: _left_right,
+    bn.MatrixExpNode: _operand,
     bn.MatrixMultiplicationNode: _left_right,
     bn.MatrixScaleNode: _numbered_or_left_right,
+    bn.MatrixSumNode: _operand,
     bn.MultiplicationNode: _numbered_or_left_right,
     bn.NaturalNode: _none,
     bn.NegateNode: _operand,
@@ -324,6 +340,7 @@ _edge_labels = {
     bn.ToRealNode: _operand,
     bn.UniformNode: ["low", "high"],
     bn.VectorIndexNode: _left_right,
+    bn.TransposeNode: _operand,
 }
 
 

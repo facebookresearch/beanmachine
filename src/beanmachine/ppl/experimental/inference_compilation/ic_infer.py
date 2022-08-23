@@ -114,7 +114,6 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         loss = -(proposal_distribution.log_prob(node_var.value))
         optimizer.zero_grad()
         loss.backward()
-        # pyre-fixme[20]: Argument `closure` expected.
         optimizer.step()
 
 
@@ -212,6 +211,7 @@ class ICInference(AbstractMHInference):
             self._GMM_NUM_COMPONENTS = gmm_num_components
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
+        # pyre-fixme[6]: For 1st param expected `int` but got `Union[bool, float, int]`.
         AbstractMCInference.set_seed_for_chain(random_seed, 0)
 
         # initialize once so observation embedding network can access RVIdentifiers

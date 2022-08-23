@@ -6,6 +6,8 @@
  */
 
 #include "beanmachine/graph/operator/linalgop.h"
+#include <beanmachine/graph/graph.h>
+#include <stdexcept>
 #include "beanmachine/graph/graph.h"
 
 /*
@@ -187,6 +189,81 @@ void MatrixScale::compute_gradients() {
   }
 }
 
+ElementwiseMultiply::ElementwiseMultiply(
+    const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::ELEMENTWISE_MULTIPLY) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument(
+        "ELEMENTWISE_MULTIPLY requires two parent nodes");
+  }
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  graph::ValueType type1 = in_nodes[1]->value.type;
+  if (type0.variable_type == graph::VariableType::SCALAR or
+      type1.variable_type == graph::VariableType::SCALAR) {
+    throw std::invalid_argument(
+        "ELEMENTWISE_MULTIPLY cannot have SCALAR parents");
+  }
+  if (type0.cols != type1.cols or type0.rows != type1.rows) {
+    throw std::invalid_argument(
+        "parent nodes have incompatible dimensions for ELEMENTWISE_MULTIPLY");
+  }
+  CHECK_TYPE_DOUBLE(type0.atomic_type, "ELEMENTWISE_MULTIPLY")
+  graph::ValueType new_type = graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      type0.atomic_type,
+      type0.rows,
+      type0.cols);
+
+  value = graph::NodeValue(new_type);
+}
+
+void ElementwiseMultiply::eval(std::mt19937& /* gen */) {
+  value._matrix =
+      (in_nodes[0]->value._matrix.array() * in_nodes[1]->value._matrix.array())
+          .matrix();
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    to_scalar();
+  }
+}
+
+MatrixAdd::MatrixAdd(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_ADD) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument("MATRIX_ADD requires two parent nodes");
+  }
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  graph::ValueType type1 = in_nodes[1]->value.type;
+  if (type0.variable_type != graph::VariableType::BROADCAST_MATRIX or
+      type1.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "MATRIX_ADD takes two BROADCAST_MATRIX parents");
+  }
+  // For the rest, we will follow the same typing rule as for regular
+  // addition (ADD)
+  auto at0 = type0.atomic_type;
+  if (at0 != graph::AtomicType::REAL and at0 != graph::AtomicType::POS_REAL and
+      at0 != graph::AtomicType::PROBABILITY and
+      at0 != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "MATRIX_ADD requires a real, pos_real, neg_real, or probability parent");
+  }
+  auto at1 = type1.atomic_type;
+  if (at0 != at1) {
+    throw std::invalid_argument(
+        "MATRIX_ADD requires both parents have same atomic type");
+  }
+  if (type0.rows != type1.rows or type0.cols != type1.cols) {
+    throw std::invalid_argument(
+        "MATRIX_ADD requires both parents have same shape");
+  }
+  value = graph::NodeValue(type0);
+}
+
+void MatrixAdd::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 2);
+  value._matrix = in_nodes[0]->value._matrix + in_nodes[1]->value._matrix;
+}
+
 Index::Index(const std::vector<graph::Node*>& in_nodes)
     : Operator(graph::OperatorType::INDEX) {
   if (in_nodes.size() != 2) {
@@ -336,7 +413,66 @@ Cholesky::Cholesky(const std::vector<graph::Node*>& in_nodes)
 
 void Cholesky::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  value._matrix = in_nodes[0]->value._matrix.llt().matrixL();
+  Eigen::LLT<Eigen::MatrixXd> llt_matrix = in_nodes[0]->value._matrix.llt();
+  value._matrix = llt_matrix.matrixL();
+  if (llt_matrix.info() == Eigen::NumericalIssue) {
+    throw std::runtime_error("CHOLESKY requires a positive definite matrix");
+  }
+}
+
+MatrixExp::MatrixExp(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_EXP) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_EXP requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_EXP must be a BROADCAST_MATRIX");
+  }
+  auto atomic_type = type.atomic_type;
+  graph::AtomicType new_type;
+  if (atomic_type == graph::AtomicType::REAL or
+      atomic_type == graph::AtomicType::POS_REAL) {
+    new_type = graph::AtomicType::POS_REAL;
+  } else if (atomic_type == graph::AtomicType::NEG_REAL) {
+    new_type = graph::AtomicType::PROBABILITY;
+  } else {
+    throw std::invalid_argument(
+        "operator MATRIX_EXP requires a neg_real, real or pos_real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX, new_type, type.rows, type.cols));
+}
+
+void MatrixExp::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = Eigen::exp(in_nodes[0]->value._matrix.array());
+}
+
+MatrixSum::MatrixSum(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_SUM) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_SUM requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_SUM must be a BROADCAST_MATRIX");
+  }
+  auto atomic_type = type.atomic_type;
+  if (atomic_type != graph::AtomicType::REAL and
+      atomic_type != graph::AtomicType::POS_REAL and
+      atomic_type != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "operator MATRIX_SUM requires a neg_real, real or pos_real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(atomic_type));
+}
+
+void MatrixSum::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._double = in_nodes[0]->value._matrix.sum();
 }
 
 } // namespace oper

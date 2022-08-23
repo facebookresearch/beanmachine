@@ -11,6 +11,7 @@ import operator
 import unittest
 
 import beanmachine.ppl as bm
+import numpy as np
 import torch
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal
@@ -1176,49 +1177,49 @@ def lshift_1():
 @bm.functional
 def lshift_2():
     # Tensor arithmetic, << operator
-    return torch.tensor(2.0) << torch.tensor(2.0)
+    return torch.tensor(2) << torch.tensor(2)
 
 
 @bm.functional
 def lshift_3():
     # Tensor constants, Tensor.bitwise_left_shift.
-    return torch.Tensor.bitwise_left_shift(torch.tensor(6.0), torch.tensor(2.0))
+    return torch.Tensor.bitwise_left_shift(torch.tensor(6), torch.tensor(2))
 
 
 @bm.functional
 def lshift_4():
     # Tensor constant, instance bitwise_left_shift
-    return torch.tensor(8.0).bitwise_left_shift(torch.tensor(2.0))
+    return torch.tensor(8).bitwise_left_shift(torch.tensor(2))
 
 
 @bm.functional
 def lshift_5():
     # Stochastic value, << operator
-    return beta() << 4.0
+    return beta() << 4
 
 
 @bm.functional
 def lshift_6():
     # Stochastic value, Tensor.bitwise_left_shift
-    return torch.Tensor.bitwise_left_shift(beta(), torch.tensor(8.0))
+    return torch.Tensor.bitwise_left_shift(beta(), torch.tensor(8))
 
 
 @bm.functional
 def lshift_7():
     # Stochastic value, instance bitwise_left_shift
-    return beta().bitwise_left_shift(torch.tensor(16.0))
+    return beta().bitwise_left_shift(torch.tensor(16))
 
 
 @bm.functional
 def lshift_8():
     # Constant values, operator.lshift
-    return operator.lshift(torch.tensor(16.0), torch.tensor(2.0))
+    return operator.lshift(torch.tensor(16), torch.tensor(2))
 
 
 @bm.functional
 def lshift_9():
     # Stochastic values, operator.lshift
-    return operator.lshift(beta(), torch.tensor(32.0))
+    return operator.lshift(beta(), torch.tensor(32))
 
 
 @bm.functional
@@ -1572,49 +1573,49 @@ def rshift_1():
 @bm.functional
 def rshift_2():
     # Tensor arithmetic, << operator
-    return torch.tensor(4.0) >> torch.tensor(2.0)
+    return torch.tensor(4) >> torch.tensor(2)
 
 
 @bm.functional
 def rshift_3():
     # Tensor constants, Tensor.bitwise_right_shift.
-    return torch.Tensor.bitwise_right_shift(torch.tensor(6.0), torch.tensor(2.0))
+    return torch.Tensor.bitwise_right_shift(torch.tensor(6), torch.tensor(2))
 
 
 @bm.functional
 def rshift_4():
     # Tensor constant, instance bitwise_right_shift
-    return torch.tensor(8.0).bitwise_right_shift(torch.tensor(2.0))
+    return torch.tensor(8).bitwise_right_shift(torch.tensor(2))
 
 
 @bm.functional
 def rshift_5():
     # Stochastic value, >> operator
-    return beta() >> 4.0
+    return beta() >> 4
 
 
 @bm.functional
 def rshift_6():
     # Stochastic value, Tensor.bitwise_right_shift
-    return torch.Tensor.bitwise_right_shift(beta(), torch.tensor(8.0))
+    return torch.Tensor.bitwise_right_shift(beta(), torch.tensor(8))
 
 
 @bm.functional
 def rshift_7():
     # Stochastic value, instance bitwise_right_shift
-    return beta().bitwise_right_shift(torch.tensor(16.0))
+    return beta().bitwise_right_shift(torch.tensor(16))
 
 
 @bm.functional
 def rshift_8():
     # Constant values, operator.rshift
-    return operator.rshift(torch.tensor(16.0), torch.tensor(2.0))
+    return operator.rshift(torch.tensor(16), torch.tensor(2))
 
 
 @bm.functional
 def rshift_9():
-    # Stochastic values, operator.lshift
-    return operator.rshift(beta(), torch.tensor(32.0))
+    # Stochastic values, operator.rshift
+    return operator.rshift(beta(), torch.tensor(32))
 
 
 @bm.functional
@@ -1751,6 +1752,12 @@ def xor_8():
 def xor_9():
     # Stochastic values, operator.xor
     return operator.xor(beta(), torch.tensor(16))
+
+
+@bm.functional
+def numpy_operand():
+    a = np.array([0.5, 0.25])
+    return a * beta()
 
 
 class BMGArithmeticTest(unittest.TestCase):
@@ -3510,11 +3517,8 @@ digraph "graph" {
 
     def test_bmg_neg_of_neg(self) -> None:
         # This test shows that we treat torch.neg the same as the unary negation
-        # operator when generating a graph.
-        #
-        # TODO: This test also shows that we do NOT optimize away negative-of-negative
-        # which we certainly could. Once we implement that optimization, come back
-        # and fix up this test accordingly.
+        # operator when generating a graph.  Note that since this this produces
+        # a neg-of-neg situation, the optimizer then removes both of them.
 
         self.maxDiff = None
         observed = BMGInference().to_dot([neg_of_neg()], {})
@@ -3524,20 +3528,16 @@ digraph "graph" {
   N1[label=1.0];
   N2[label=Normal];
   N3[label=Sample];
-  N4[label="-"];
-  N5[label="-"];
-  N6[label=Normal];
-  N7[label=Sample];
-  N8[label=Query];
+  N4[label=Normal];
+  N5[label=Sample];
+  N6[label=Query];
   N0 -> N2;
   N1 -> N2;
-  N1 -> N6;
+  N1 -> N4;
   N2 -> N3;
   N3 -> N4;
   N4 -> N5;
   N5 -> N6;
-  N6 -> N7;
-  N7 -> N8;
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
@@ -3604,11 +3604,11 @@ digraph "graph" {
         self.maxDiff = None
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer([unsupported_add()], {}, 1)
-        # TODO: This error message is terrible; fix it.
-        expected = """
-The model uses a constant value operation unsupported by Bean Machine Graph.
-The unsupported node is the right of an addition (+).
-        """
+        expected = (
+            "A constant value used as an operand of a stochastic "
+            + "operation is required to be bool, int, float or tensor. "
+            + "This model uses a value of type str."
+        )
         observed = str(ex.exception)
         self.assertEqual(expected.strip(), observed.strip())
 
@@ -3637,6 +3637,28 @@ digraph "graph" {
   N5 -> N7;
   N6 -> N7;
   N7 -> N8;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_numpy_operand(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([numpy_operand()], {})
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label="[0.5,0.25]"];
+  N4[label=MatrixScale];
+  N5[label=Query];
+  N0 -> N1;
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N4;
+  N3 -> N4;
+  N4 -> N5;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
