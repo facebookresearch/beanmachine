@@ -1,0 +1,22 @@
+beanmachine.ppl.inference.vi package
+====================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.inference.vi.autoguide
+   beanmachine.ppl.inference.vi.discrepancy
+   beanmachine.ppl.inference.vi.gradient_estimator
+   beanmachine.ppl.inference.vi.variational_infer
+   beanmachine.ppl.inference.vi.variational_world
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.vi
+   :members:
+   :undoc-members:
+   :show-inheritance:

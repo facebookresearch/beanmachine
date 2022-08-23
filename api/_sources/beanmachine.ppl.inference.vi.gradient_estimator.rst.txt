@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.vi.gradient\_estimator module
+=======================================================
+
+.. automodule:: beanmachine.ppl.inference.vi.gradient_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:

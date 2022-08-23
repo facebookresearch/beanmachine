@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.vi.variational\_world module
+======================================================
+
+.. automodule:: beanmachine.ppl.inference.vi.variational_world
+   :members:
+   :undoc-members:
+   :show-inheritance:

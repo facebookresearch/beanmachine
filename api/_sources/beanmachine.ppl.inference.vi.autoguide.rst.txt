@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.vi.autoguide module
+=============================================
+
+.. automodule:: beanmachine.ppl.inference.vi.autoguide
+   :members:
+   :undoc-members:
+   :show-inheritance:

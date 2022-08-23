@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.vi.discrepancy module
+===============================================
+
+.. automodule:: beanmachine.ppl.inference.vi.discrepancy
+   :members:
+   :undoc-members:
+   :show-inheritance:

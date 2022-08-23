@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.vi.variational\_infer module
+======================================================
+
+.. automodule:: beanmachine.ppl.inference.vi.variational_infer
+   :members:
+   :undoc-members:
+   :show-inheritance:
