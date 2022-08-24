@@ -52,7 +52,7 @@ The goal of these equations is to determine where the new sample will come to re
 
 :::caution
 
-Since we are computing gradients, all of the latent (non-observed) variables must be continuous. For discrete variables, use [`CompositionalInference`](../custom_inference/compositional_inference.md) or marginalize them out as in the [Zero inflated count data tutorial](../overview/tutorials/Zero_inflated_count_data/ZeroInflatedCountData).
+Since we are computing gradients, all of the latent (non-observed) variables must be continuous. For discrete variables, use [`CompositionalInference`](./custom_inference/compositional_inference.md) or marginalize them out as in the [Zero inflated count data tutorial](../overview/tutorials/Zero_inflated_count_data/ZeroInflatedCountData).
 
 :::
 

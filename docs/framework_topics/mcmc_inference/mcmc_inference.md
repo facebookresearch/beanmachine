@@ -2,7 +2,7 @@
 id: inference
 title: 'Inference Methods'
 sidebar_label: 'Overview'
-slug: '/inference'
+slug: '/mcmc_inference'
 ---
 <!-- @import "../../header.md" -->
 
@@ -14,4 +14,4 @@ Each [world](../world.md) corresponds to a potential sample for the posterior di
 
 In an MCMC method, worlds are computed sequentially. A new world is "proposed" based on the random variable assignments from the current world. In each inference step, an MCMC method iterates over all unobserved random variables and proposes a new value. The world is updated to reflect this change; that is, likelihoods are updated and new variables may be added or removed. This updated world will either replace the existing world or be discarded as determined by the specific inference method. The value associated with each variable at the $i$th inference step is returned as the $i$th sample for the variable.
 
-As you can imagine, there are a variety of ways of proposing new worlds from the current world, and even for deciding whether to accept or reject a proposed world. Lots of research goes into designing inference methods that are both flexible and performant for a wide class of models. Bean Machine supports several inference methods out-of-the-box, which are described in the following sections, as well as ways to [combine these methods in the same subroutine](../custom_inference/programmable_inference.md).
+As you can imagine, there are a variety of ways of proposing new worlds from the current world, and even for deciding whether to accept or reject a proposed world. Lots of research goes into designing inference methods that are both flexible and performant for a wide class of models. Bean Machine supports several inference methods out-of-the-box, which are described in the following sections, as well as ways to [combine these methods in the same subroutine](./custom_inference/programmable_inference.md).
