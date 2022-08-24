@@ -24,6 +24,8 @@ Submodules
    beanmachine.ppl.compiler.bmg_nodes
    beanmachine.ppl.compiler.bmg_requirements
    beanmachine.ppl.compiler.bmg_types
+   beanmachine.ppl.compiler.copy_and_replace
+   beanmachine.ppl.compiler.copy_transformer
    beanmachine.ppl.compiler.error_report
    beanmachine.ppl.compiler.execution_context
    beanmachine.ppl.compiler.fix_additions

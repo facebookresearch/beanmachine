@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.copy\_and\_replace module
+==================================================
+
+.. automodule:: beanmachine.ppl.compiler.copy_and_replace
+   :members:
+   :undoc-members:
+   :show-inheritance:
