@@ -551,7 +551,7 @@ functions of <code class="docutils literal notranslate"><span class="pre">bm.ran
 <dd><p>Decorator to be used for params (variable to be optimized with VI).:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">param</span>
 <span class="k">def</span> <span class="nf">mu</span><span class="p">():</span>
-  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
 <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>

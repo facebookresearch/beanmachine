@@ -136,7 +136,7 @@ BM random variable.</p>
 declaration wrapped the <code class="docutils literal notranslate"><span class="pre">bm.random_variable</span></code> .</p>
 <p>Every deterministic functional that a user would like to query during
 inference should be wrapped in a <code class="docutils literal notranslate"><span class="pre">bm.functional</span></code> .</p>
-<p>[EXPERIMENTAL]: Every parameter of the guide distribution that is to be learned
+<p>Every parameter of the guide distribution that is to be learned
 via variational inference should be wrapped in a <code class="docutils literal notranslate"><span class="pre">bm.param</span></code> .</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.model.StatisticalModel.functional">
@@ -178,7 +178,7 @@ a particular function call.</p>
 <dd><p>Decorator to be used for params (variable to be optimized with VI).:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">param</span>
 <span class="k">def</span> <span class="nf">mu</span><span class="p">():</span>
-  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
 <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
@@ -232,7 +232,7 @@ functions of <code class="docutils literal notranslate"><span class="pre">bm.ran
 <dd><p>Decorator to be used for params (variable to be optimized with VI).:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@bm</span><span class="o">.</span><span class="n">param</span>
 <span class="k">def</span> <span class="nf">mu</span><span class="p">():</span>
-  <span class="k">return</span> <span class="n">Normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="nd">@bm</span><span class="o">.</span><span class="n">random_variable</span>
 <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
