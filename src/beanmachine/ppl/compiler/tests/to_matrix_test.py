@@ -12,8 +12,13 @@ from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import tensor
 from torch.distributions import Normal
+
+
+def _rv_id() -> RVIdentifier:
+    return RVIdentifier(lambda a, b: a, (1, 1))
 
 
 @bm.random_variable
@@ -344,8 +349,8 @@ digraph "graph" {
         tpr = bmg.add_to_positive_real_matrix(c1)
         lse0 = bmg.add_logsumexp_vector(c0)
         lse1 = bmg.add_logsumexp_vector(tpr)
-        bmg.add_query(lse0)
-        bmg.add_query(lse1)
+        bmg.add_query(lse0, _rv_id())
+        bmg.add_query(lse1, _rv_id())
 
         observed = to_dot(
             bmg,

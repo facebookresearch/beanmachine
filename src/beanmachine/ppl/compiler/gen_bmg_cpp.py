@@ -183,7 +183,9 @@ class GeneratedGraphCPP:
             self._add_constant(node)
 
     def _generate_cpp(self) -> None:
-        fix_problems(self.bmg).raise_errors()
+        bmg, error_report = fix_problems(self.bmg)
+        error_report.raise_errors()
+        self.bmg = bmg
         for node in self.bmg.all_ancestor_nodes():
             self._generate_node(node)
         self.code = "\n".join(self._code)

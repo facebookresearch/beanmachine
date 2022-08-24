@@ -9,7 +9,12 @@ import beanmachine.ppl.compiler.bmg_types as bt
 import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Size
+
+
+def _rv_id() -> RVIdentifier:
+    return RVIdentifier(lambda a, b: a, (1, 1))
 
 
 class LatticeTyperTest(unittest.TestCase):
@@ -55,7 +60,7 @@ class LatticeTyperTest(unittest.TestCase):
         add_pos_to_reg = bmg.add_matrix_addition(pos_real, neg_real)
         mult_pos_to_neg = bmg.add_elementwise_multiplication(pos_real, neg_real)
         sum_bool = bmg.add_matrix_sum(bool_matrix)
-        bmg.add_query(sum_bool)
+        bmg.add_query(sum_bool, _rv_id())
 
         tpe_neg_real = typer[neg_real]
         tpe_real = typer[real_matrix]

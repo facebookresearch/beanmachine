@@ -128,13 +128,6 @@ class BMGRuntime:
 
     in_flight: Set[MemoizationKey]
 
-    # We also need to keep track of which query node is associated
-    # with each RVID queried by the user. Query nodes are deduplicated
-    # so it is possible that two different RVIDs are associated with
-    # the same query node.
-
-    _rv_to_query: Dict[RVIdentifier, bn.Query]
-
     _pd: Optional[prof.ProfilerData]
 
     _special_function_caller: SpecialFunctionCaller
@@ -147,7 +140,6 @@ class BMGRuntime:
         self.rv_map = {}
         self.lifted_map = {}
         self.in_flight = set()
-        self._rv_to_query = {}
         self._special_function_caller = SpecialFunctionCaller(self._bmg)
 
     def _begin(self, s: str) -> None:
@@ -719,7 +711,6 @@ class BMGRuntime:
             self._bmg.add_observation(node, val)
         for qrv in queries:
             node = self._rv_to_node(qrv)
-            q = self._bmg.add_query(node)
-            self._rv_to_query[qrv] = q
+            self._bmg.add_query(node, qrv)
         self._finish(prof.accumulate)
         return self._bmg

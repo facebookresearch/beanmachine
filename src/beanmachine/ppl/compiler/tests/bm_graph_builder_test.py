@@ -14,6 +14,7 @@ from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor
 
 
@@ -52,7 +53,7 @@ class BMGraphBuilderTest(unittest.TestCase):
         add = bmg.add_addition(two, neg)
         mult = bmg.add_multiplication(two, add)
         bmg.add_observation(samp, True)
-        bmg.add_query(mult)
+        bmg.add_query(mult, RVIdentifier(wrapper=lambda a, b: a, arguments=(1, 1)))
 
         observed = to_dot(bmg, label_edges=False)
         expected = """
@@ -157,7 +158,7 @@ uint q0 = g.query(n7);
         div = bmg.add_division(real, two)
         p = bmg.add_power(div, two)
         lg = bmg.add_log(p)
-        bmg.add_query(lg)
+        bmg.add_query(lg, RVIdentifier(wrapper=lambda a, b: a, arguments=(1, 1)))
         # Note that the orphan nodes "1" and "4" are not stripped out
         # by default. If you want them gone, the "after_transform" flag does
         # a type check and also removes everything that is not an ancestor

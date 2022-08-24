@@ -153,9 +153,8 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().to_dot([matmul_bad_dimensions()], {})
         expected = """
-The model uses a matrix multiplication (@) operation unsupported by Bean Machine Graph.
-The dimensions of the operands are 2x2 and 3x3.
-The unsupported node was created in function call matmul_bad_dimensions()."""
+The node matrix multiplication (@) cannot be sized.The operand sizes may be incompatible. The sizes are: [torch.Size([2, 2]), torch.Size([3, 3])]
+The unsizable node was created in function call matmul_bad_dimensions()."""
         self.assertEqual(expected.strip(), str(ex.exception).strip())
 
         expected = """

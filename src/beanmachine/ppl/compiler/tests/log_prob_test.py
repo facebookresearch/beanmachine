@@ -43,11 +43,11 @@ class LogProbTest(unittest.TestCase):
         observed = BMGInference().to_dot(queries, {})
         expected = """
 digraph "graph" {
-  N00[label=0.0];
-  N01[label=1.0];
-  N02[label=Normal];
-  N03[label=Sample];
-  N04[label=HalfCauchy];
+  N00[label=1.0];
+  N01[label=HalfCauchy];
+  N02[label=Sample];
+  N03[label=0.0];
+  N04[label=Normal];
   N05[label=Sample];
   N06[label=Sample];
   N07[label=Normal];
@@ -60,18 +60,18 @@ digraph "graph" {
   N14[label=LogProb];
   N15[label="+"];
   N16[label=Query];
-  N00 -> N02;
-  N00 -> N07;
-  N00 -> N09;
+  N00 -> N01;
+  N00 -> N04;
   N01 -> N02;
-  N01 -> N04;
-  N02 -> N03;
-  N03 -> N08;
-  N03 -> N10;
-  N03 -> N14;
+  N01 -> N06;
+  N02 -> N07;
+  N03 -> N04;
+  N03 -> N07;
+  N03 -> N09;
   N04 -> N05;
-  N04 -> N06;
-  N05 -> N07;
+  N05 -> N08;
+  N05 -> N10;
+  N05 -> N14;
   N06 -> N09;
   N07 -> N08;
   N08 -> N15;

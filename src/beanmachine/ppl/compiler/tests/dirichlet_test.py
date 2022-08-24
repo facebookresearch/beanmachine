@@ -25,12 +25,17 @@ from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference import BMGInference, SingleSiteNewtonianMonteCarlo
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Size, tensor
 from torch.distributions import Bernoulli, Dirichlet
 
 
 def tidy(s: str) -> str:
     return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
+
+
+def _rv_id() -> RVIdentifier:
+    return RVIdentifier(lambda a, b: a, (1, 1))
 
 
 # Support for Dirichlet distributions has recently been added to BMG;
@@ -186,9 +191,9 @@ class DirichletTest(unittest.TestCase):
 
         # Verify that we can add these nodes to the graph, do a type analysis,
         # and survive the problem-fixing pass without generating an exception.
-        bmg.add_query(c1)
-        bmg.add_query(c2)
-        bmg.add_query(c3)
+        bmg.add_query(c1, _rv_id())
+        bmg.add_query(c2, _rv_id())
+        bmg.add_query(c3, _rv_id())
         expected = """
 digraph "graph" {
   N0[label="1.0:R+"];

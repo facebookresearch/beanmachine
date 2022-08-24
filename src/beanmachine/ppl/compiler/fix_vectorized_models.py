@@ -372,64 +372,56 @@ def _vectorized_operator_node_fixer(bmg: BMGraphBuilder, sizer: Sizer) -> NodeFi
     return vect_op_node_fixer
 
 
-def vectorized_operator_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def vop_fixer() -> GraphFixerResult:
-        sizer = Sizer()
+def vop_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
+    sizer = Sizer()
 
-        dist_fixer = _vectorized_distribution_node_fixer(bmg, sizer)
-        oper_fixer = _vectorized_operator_node_fixer(bmg, sizer)
-        scale_fixer = matrix_scale_fixer(bmg, sizer)
-        node_fixer = node_fixer_first_match([dist_fixer, oper_fixer, scale_fixer])
-        vof = ancestors_first_graph_fixer(bmg, sizer, node_fixer)
-        made_progress, errors = vof()
+    dist_fixer = _vectorized_distribution_node_fixer(bmg, sizer)
+    oper_fixer = _vectorized_operator_node_fixer(bmg, sizer)
+    scale_fixer = matrix_scale_fixer(bmg, sizer)
+    node_fixer = node_fixer_first_match([dist_fixer, oper_fixer, scale_fixer])
+    vof = ancestors_first_graph_fixer(sizer, node_fixer)
+    bmg, made_progress, errors = vof(bmg)
 
-        # If we changed something then we might have a leaf sample node;
-        # we can remove it.
-        if made_progress:
-            for n in bmg.all_nodes():
-                if _is_fixable_sample(sizer, n):
-                    assert n.is_leaf
-                    bmg.remove_leaf(n)
-        return made_progress, errors
-
-    return vop_fixer
+    # If we changed something then we might have a leaf sample node;
+    # we can remove it.
+    if made_progress:
+        for n in bmg.all_nodes():
+            if _is_fixable_sample(sizer, n):
+                assert n.is_leaf
+                bmg.remove_leaf(n)
+    return bmg, made_progress, errors
 
 
-def vectorized_observation_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def vobs_fixer() -> GraphFixerResult:
-        made_change = False
-        # We might have an illegal observation. Fix it.
-        for o in bmg.all_observations():
-            observed = o.observed
-            if not isinstance(observed, bn.TensorNode):
-                continue
-            if not _is_fixable_size(observed._size):
-                continue
-            # TODO: What if the observation is of a different size than the
-            # tensor node we've just generated? That should be an error, but instead
-            # we just crash here. Figure out where to put an error detection pass
-            # which prevents this crash and reports the error.
-            dim = len(observed._size)
-            if dim == 1:
-                for i in range(0, observed._size[0]):
-                    s = observed.inputs[i]
+def vobs_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
+    made_change = False
+    # We might have an illegal observation. Fix it.
+    for o in bmg.all_observations():
+        observed = o.observed
+        if not isinstance(observed, bn.TensorNode):
+            continue
+        if not _is_fixable_size(observed._size):
+            continue
+        # TODO: What if the observation is of a different size than the
+        # tensor node we've just generated? That should be an error, but instead
+        # we just crash here. Figure out where to put an error detection pass
+        # which prevents this crash and reports the error.
+        dim = len(observed._size)
+        if dim == 1:
+            for i in range(0, observed._size[0]):
+                s = observed.inputs[i]
+                assert isinstance(s, bn.SampleNode)
+                bmg.add_observation(s, o.value[i])
+        else:
+            assert dim == 2
+            for i in range(0, observed._size[0]):
+                for j in range(0, observed._size[1]):
+                    s = observed.inputs[i * observed._size[1] + j]
                     assert isinstance(s, bn.SampleNode)
-                    bmg.add_observation(s, o.value[i])
-            else:
-                assert dim == 2
-                for i in range(0, observed._size[0]):
-                    for j in range(0, observed._size[1]):
-                        s = observed.inputs[i * observed._size[1] + j]
-                        assert isinstance(s, bn.SampleNode)
-                        bmg.add_observation(s, o.value[i][j])
-            bmg.remove_leaf(o)
-            made_change = True
-        return made_change, ErrorReport()
-
-    return vobs_fixer
+                    bmg.add_observation(s, o.value[i][j])
+        bmg.remove_leaf(o)
+        made_change = True
+    return bmg, made_change, ErrorReport()
 
 
-def vectorized_model_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    vector_ops = vectorized_operator_fixer(bmg)
-    vector_obs = vectorized_observation_fixer(bmg)
-    return fixpoint_graph_fixer(sequential_graph_fixer([vector_ops, vector_obs]))
+def vectorized_model_fixer() -> GraphFixer:
+    return fixpoint_graph_fixer(sequential_graph_fixer([vop_fixer, vobs_fixer]))

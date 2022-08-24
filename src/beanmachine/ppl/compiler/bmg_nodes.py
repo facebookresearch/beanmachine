@@ -8,9 +8,9 @@ from typing import Any, Iterable, List
 
 import beanmachine.ppl.compiler.bmg_types as bt
 import torch
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor
-
 
 # Note that we're not going to subclass list or UserList here because we
 # only need to use the most basic list operations: initialization, getting
@@ -1505,13 +1505,18 @@ class Query(BMGNode):
     # need to represent a query as a *node*, and BMG does not
     # do so. We might wish to follow this pattern as well.
 
-    def __init__(self, operator: BMGNode):
+    def __init__(self, operator: BMGNode, rvidentifier: RVIdentifier):
         BMGNode.__init__(self, [operator])
+        self._rvidentifier = rvidentifier
 
     @property
     def operator(self) -> BMGNode:
         c = self.inputs[0]
         return c
+
+    @property
+    def rv_identifier(self) -> RVIdentifier:
+        return self._rvidentifier
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"

@@ -159,9 +159,11 @@ digraph "graph" {
   N1[label=Bernoulli];
   N2[label=Sample];
   N3[label=Query];
+  N4[label=Query];
   N0 -> N1;
   N1 -> N2;
   N2 -> N3;
+  N2 -> N4;
 }
 """
         self.assertEqual(expected.strip(), str(observed).strip())

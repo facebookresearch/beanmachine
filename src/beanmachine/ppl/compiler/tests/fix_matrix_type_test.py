@@ -9,7 +9,12 @@ import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Size
+
+
+def _rv_id() -> RVIdentifier:
+    return RVIdentifier(lambda a, b: a, (1, 1))
 
 
 class FixMatrixOpTest(unittest.TestCase):
@@ -29,7 +34,7 @@ class FixMatrixOpTest(unittest.TestCase):
         exp = bmg.add_matrix_exp(matrix)
         mult = bmg.add_elementwise_multiplication(matrix, matrix)
         add = bmg.add_matrix_addition(exp, mult)
-        bmg.add_query(add)
+        bmg.add_query(add, _rv_id())
         observed = to_dot(bmg, after_transform=False)
         expectation = """
 digraph "graph" {
@@ -195,7 +200,7 @@ digraph "graph" {
         add = bmg.add_matrix_addition(matrix, matrix)
         mult = bmg.add_elementwise_multiplication(exp, add)
         sum = bmg.add_matrix_sum(mult)
-        bmg.add_query(sum)
+        bmg.add_query(sum, _rv_id())
         observed = to_dot(bmg, after_transform=False)
         expectation = """
 digraph "graph" {
@@ -365,7 +370,7 @@ digraph "graph" {
                 tensor_elements.append(sample)
         matrix = bmg.add_tensor(Size([2, 2]), *tensor_elements)
         sum = bmg.add_matrix_sum(matrix)
-        bmg.add_query(sum)
+        bmg.add_query(sum, _rv_id())
         observed_beanstalk = to_dot(bmg, after_transform=True)
         expected = """
 digraph "graph" {
@@ -515,7 +520,7 @@ digraph "graph" {
                 tensor_elements.append(sample)
         matrix = bmg.add_tensor(Size([2, 2]), *tensor_elements)
         sum = bmg.add_matrix_exp(matrix)
-        bmg.add_query(sum)
+        bmg.add_query(sum, _rv_id())
         observed_beanstalk = to_dot(bmg, after_transform=True)
         expectation = """
 digraph "graph" {

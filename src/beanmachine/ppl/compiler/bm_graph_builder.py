@@ -14,6 +14,7 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.compiler.execution_context import ExecutionContext
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.memoize import memoize
 
 
@@ -1005,13 +1006,13 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_query(self, operator: BMGNode) -> bn.Query:
+    def add_query(self, operator: BMGNode, rvidentifier: RVIdentifier) -> bn.Query:
         # TODO: BMG requires that the target of a query be classified
         # as an operator and that queries be unique; that is, every node
         # is queried *exactly* zero or one times. Rather than making
         # those restrictions here, instead detect bad queries in the
         # problem fixing phase and report accordingly.
-        node = bn.Query(operator)
+        node = bn.Query(operator, rvidentifier)
         self.add_node(node)
         return node
 
@@ -1148,3 +1149,11 @@ class BMGraphBuilder:
             (n for n in self._nodes if isinstance(n, bn.Observation)),
             key=lambda n: self._nodes[n],
         )
+
+
+def rv_to_query(bmg: BMGraphBuilder) -> Dict[RVIdentifier, bn.Query]:
+    rv_to_query_map: Dict[RVIdentifier, bn.Query] = {}
+    for node in bmg.all_nodes():
+        if isinstance(node, bn.Query):
+            rv_to_query_map[node.rv_identifier] = node
+    return rv_to_query_map

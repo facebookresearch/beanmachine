@@ -32,7 +32,12 @@ from beanmachine.ppl.compiler.bmg_types import (
     ZeroMatrix,
 )
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import tensor
+
+
+def _rv_id() -> RVIdentifier:
+    return RVIdentifier(lambda a, b: a, (1, 1))
 
 
 class BMGTypesTest(unittest.TestCase):
@@ -175,7 +180,7 @@ class BMGTypesTest(unittest.TestCase):
         bern = bmg.add_bernoulli(mult)
         bmg.add_sample(norm)
         bmg.add_sample(bern)
-        bmg.add_query(mult)
+        bmg.add_query(mult, _rv_id())
 
         observed = to_dot(
             bmg,

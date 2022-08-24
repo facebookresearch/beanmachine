@@ -74,19 +74,24 @@ def type_guard(t: Type, fixer: Callable) -> NodeFixer:
 # error report is non-empty then further processing should stop and the error should
 # be reported to the user.
 
-GraphFixerResult = Tuple[bool, ErrorReport]
-GraphFixer = Callable[[], GraphFixerResult]
+GraphFixerResult = Tuple[BMGraphBuilder, bool, ErrorReport]
+GraphFixer = Callable[[BMGraphBuilder], GraphFixerResult]
 
 # The identity graph fixer never makes a change or produces an error.
-identity_graph_fixer: GraphFixer = lambda: (False, ErrorReport())
+identity_graph_fixer: GraphFixer = lambda gb: (gb, False, ErrorReport())
 
 
-def conditional_graph_fixer(condition: bool, fixer: GraphFixer) -> GraphFixer:
-    return fixer if condition else identity_graph_fixer
+def conditional_graph_fixer(
+    condition: Callable[[BMGraphBuilder], bool],
+    fixer: Callable[[BMGraphBuilder], GraphFixerResult],
+) -> GraphFixer:
+    def _condition_graph_fixer(bmg: BMGraphBuilder) -> GraphFixerResult:
+        return fixer(bmg) if condition(bmg) else identity_graph_fixer(bmg)
+
+    return _condition_graph_fixer
 
 
 def ancestors_first_graph_fixer(  # noqa
-    bmg: BMGraphBuilder,
     typer: TyperBase,
     node_fixer: NodeFixer,
     get_error: Optional[Callable[[bn.BMGNode, int], Optional[BMGError]]] = None,
@@ -127,7 +132,7 @@ def ancestors_first_graph_fixer(  # noqa
     # is that we might end up reporting an error on an edge that is NOT in the
     # subgraph of ancestors of samples, queries and observations, which would be
     # a bad user experience.
-    def ancestors_first() -> Tuple[bool, ErrorReport]:
+    def ancestors_first(bmg: BMGraphBuilder) -> GraphFixerResult:
         errors = ErrorReport()
         replacements = {}
         reported = set()
@@ -165,20 +170,20 @@ def ancestors_first_graph_fixer(  # noqa
 
             if node_was_updated:
                 typer.update_type(node)
-        return made_progress, errors
+        return bmg, made_progress, errors
 
     return ancestors_first
 
 
 def edge_error_pass(
-    bmg: BMGraphBuilder, get_error: Callable[[bn.BMGNode, int], Optional[BMGError]]
+    get_error: Callable[[BMGraphBuilder, bn.BMGNode, int], Optional[BMGError]]
 ) -> GraphFixer:
     """Given a function that takes an edge in the graph and returns an optional error,
     build a pass which checks for errors every edge in the graph that is an ancestor
     of a query, observation, or sample. The edge is given as the descendant node and
     the index of the parent node."""
 
-    def error_pass() -> Tuple[bool, ErrorReport]:
+    def error_pass(bmg: BMGraphBuilder) -> GraphFixerResult:
         errors = ErrorReport()
         reported = set()
         nodes = bmg.all_ancestor_nodes()
@@ -189,30 +194,30 @@ def edge_error_pass(
                 # one error per parent node.
                 if parent in reported:
                     continue
-                error = get_error(node, i)
+                error = get_error(bmg, node, i)
                 if error is not None:
                     errors.add_error(error)
                     reported.add(parent)
-        return False, errors
+        return bmg, False, errors
 
     return error_pass
 
 
 def node_error_pass(
-    bmg: BMGraphBuilder, get_error: Callable[[bn.BMGNode], Optional[BMGError]]
+    get_error: Callable[[BMGraphBuilder, bn.BMGNode], Optional[BMGError]]
 ) -> GraphFixer:
     """Given a function that takes an node in the graph and returns an optional error,
     build a pass which checks for errors every node in the graph that is an ancestor
     of a query, observation, or sample."""
 
-    def error_pass() -> Tuple[bool, ErrorReport]:
+    def error_pass(bmg: BMGraphBuilder) -> GraphFixerResult:
         errors = ErrorReport()
         nodes = bmg.all_ancestor_nodes()
         for node in nodes:
-            error = get_error(node)
+            error = get_error(bmg, node)
             if error is not None:
                 errors.add_error(error)
-        return False, errors
+        return bmg, False, errors
 
     return error_pass
 
@@ -220,15 +225,16 @@ def node_error_pass(
 def sequential_graph_fixer(fixers: List[GraphFixer]) -> GraphFixer:
     """Takes a list of graph fixers and applies each in turn once unless one fails."""
 
-    def sequential() -> GraphFixerResult:
+    def sequential(bmg: BMGraphBuilder) -> GraphFixerResult:
         made_progress = False
         errors = ErrorReport()
+        current = bmg
         for fixer in fixers:
-            fixer_made_progress, errors = fixer()
+            current, fixer_made_progress, errors = fixer(current)
             made_progress |= fixer_made_progress
             if errors.any():
                 break
-        return made_progress, errors
+        return current, made_progress, errors
 
     return sequential
 
@@ -237,11 +243,12 @@ def fixpoint_graph_fixer(fixer: GraphFixer) -> GraphFixer:
     """Executes a graph fixer repeatedly until it stops making progress
     or produces an error."""
 
-    def fixpoint() -> GraphFixerResult:
+    def fixpoint(bmg: BMGraphBuilder) -> GraphFixerResult:
+        current = bmg
         while True:
-            made_progress, errors = fixer()
+            current, made_progress, errors = fixer(current)
             if not made_progress or errors.any():
-                return made_progress, errors
+                return current, made_progress, errors
 
     return fixpoint
 

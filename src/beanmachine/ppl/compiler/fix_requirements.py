@@ -19,7 +19,6 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
-from beanmachine.ppl.compiler.fix_problem import GraphFixer
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels
 from beanmachine.ppl.compiler.internal_error import InternalError
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
@@ -533,10 +532,7 @@ class RequirementsFixer:
         return made_progress
 
 
-def requirements_fixer(bmg: BMGraphBuilder) -> GraphFixer:
-    def graph_fixer():
-        rf = RequirementsFixer(bmg, LatticeTyper())
-        made_progress = rf.fix_problems()
-        return made_progress, rf.errors
-
-    return graph_fixer
+def requirements_fixer(bmg: BMGraphBuilder):
+    rf = RequirementsFixer(bmg, LatticeTyper())
+    made_progress = rf.fix_problems()
+    return bmg, made_progress, rf.errors

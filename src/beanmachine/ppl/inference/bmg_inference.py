@@ -13,6 +13,8 @@ import beanmachine.ppl.compiler.profiler as prof
 import graphviz
 import torch
 from beanmachine.graph import Graph, InferConfig, InferenceType
+
+from beanmachine.ppl.compiler.bm_graph_builder import rv_to_query
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
@@ -224,7 +226,11 @@ class BMGInference:
 
         # TODO: Make _rv_to_query public. Add it to BMGraphBuilder?
         mcsamples = self._build_mcsamples(
-            rt._rv_to_query, samples, query_to_query_id, num_samples, num_chains
+            rv_to_query(generated_graph.bmg),
+            samples,
+            query_to_query_id,
+            num_samples,
+            num_chains,
         )
 
         self._finish(prof.infer)
@@ -352,6 +358,7 @@ class BMGInference:
         generated_graph = to_bmg_graph(bmg)
         g = generated_graph.graph
         query_to_query_id = generated_graph.query_to_query_id
-        rv_to_query = rt._rv_to_query
-        rv_to_query_id = {rv: query_to_query_id[rv_to_query[rv]] for rv in queries}
+        rv_to_query_map = rv_to_query(generated_graph.bmg)
+        rv_to_query_id = {rv: query_to_query_id[rv_to_query_map[rv]] for rv in queries}
+
         return g, rv_to_query_id

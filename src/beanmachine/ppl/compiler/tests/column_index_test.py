@@ -10,6 +10,11 @@ from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+
+
+def _rv_id() -> RVIdentifier:
+    return RVIdentifier(lambda a, b: a, (1, 1))
 
 
 class ColumnIndexTest(unittest.TestCase):
@@ -29,7 +34,7 @@ class ColumnIndexTest(unittest.TestCase):
         m = bmg.add_to_matrix(t, t, e, ns, ns, ns)
         ci = bmg.add_column_index(m, bs)
         lsev = bmg.add_logsumexp_vector(ci)
-        bmg.add_query(lsev)
+        bmg.add_query(lsev, _rv_id())
 
         observed = to_dot(
             bmg,
