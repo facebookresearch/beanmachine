@@ -1,0 +1,18 @@
+beanmachine.ppl.inference.proposer.nnc package
+==============================================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.inference.proposer.nnc.utils
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.proposer.nnc
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    beanmachine.ppl.inference.proposer.nmc
+   beanmachine.ppl.inference.proposer.nnc
 
 Submodules
 ----------
