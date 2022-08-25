@@ -6,8 +6,8 @@
 from typing import NamedTuple, Set, Tuple
 
 import torch
-from beanmachine.ppl.experimental.nnc import nnc_jit
 from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
+from beanmachine.ppl.inference.proposer.nnc import nnc_jit
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World
 

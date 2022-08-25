@@ -24,7 +24,7 @@ def nnc_jit(
     """
     try:
         # The setup code in `nnc.utils` will only be executed once in a Python session
-        from beanmachine.ppl.experimental.nnc.utils import nnc_jit as raw_nnc_jit
+        from beanmachine.ppl.inference.proposer.nnc.utils import nnc_jit as raw_nnc_jit
     except Exception as e:
         logger.warn(
             f"Fails to initialize NNC due to the following error: {str(e)}\n"

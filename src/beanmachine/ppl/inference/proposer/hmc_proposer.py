@@ -8,7 +8,6 @@ import warnings
 from typing import Callable, cast, Optional, Set, Tuple
 
 import torch
-from beanmachine.ppl.experimental.nnc import nnc_jit
 from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.hmc_utils import (
     DualAverageAdapter,
@@ -16,6 +15,7 @@ from beanmachine.ppl.inference.proposer.hmc_utils import (
     RealSpaceTransform,
     WindowScheme,
 )
+from beanmachine.ppl.inference.proposer.nnc import nnc_jit
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World
 
