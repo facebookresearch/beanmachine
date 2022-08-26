@@ -30,7 +30,8 @@ def bar():
 def nuts():
     world = World(observations={bar(): torch.tensor(0.8)})
     world.call(bar())
-    nuts_proposer = NUTSProposer(world, world.latent_nodes, 10)
+    # TODO(T130186904): fix NNC
+    nuts_proposer = NUTSProposer(world, world.latent_nodes, 10, nnc_compile=False)
     return nuts_proposer
 
 
@@ -45,7 +46,10 @@ def tree_node(nuts):
 @pytest.fixture
 def tree_args(tree_node, nuts):
     initial_energy = nuts._hamiltonian(
-        nuts._positions, tree_node.momentums, nuts._mass_inv, nuts._pe
+        nuts._positions,
+        tree_node.momentums,
+        nuts._mass_inv,
+        nuts._pe,
     )
     return _TreeArgs(
         log_slice=-initial_energy,

@@ -66,8 +66,8 @@ class NUTSProposer(HMCProposer):
         adapt_mass_matrix: Whether to adapt mass matrix using Welford Scheme, defaults to True.
         multinomial_sampling: Whether to use multinomial sampling as in [2], defaults to True.
         target_accept_prob: Target accept probability. Increasing this would lead to smaller step size. Defaults to 0.8.
-        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
-            inference (defaults to False).
+        nnc_compile: If True, NNC compiler will be used to accelerate the
+            inference.
     """
 
     def __init__(
@@ -82,7 +82,7 @@ class NUTSProposer(HMCProposer):
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = False,
+        nnc_compile: bool = True,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(

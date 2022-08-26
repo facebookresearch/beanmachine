@@ -34,8 +34,8 @@ class GlobalNoUTurnSampler(BaseInference):
             defaults to True.
         target_accept_prob (float): Target accept probability. Increasing this would
             lead to smaller step size. Defaults to 0.8.
-        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
-            inference (defaults to False).
+        nnc_compile: If True, NNC compiler will be used to accelerate the
+            inference.
     """
 
     def __init__(
@@ -47,7 +47,7 @@ class GlobalNoUTurnSampler(BaseInference):
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = False,
+        nnc_compile: bool = True,
     ):
         self.max_tree_depth = max_tree_depth
         self.max_delta_energy = max_delta_energy
