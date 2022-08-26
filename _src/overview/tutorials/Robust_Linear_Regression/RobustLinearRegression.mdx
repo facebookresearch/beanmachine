@@ -6,9 +6,9 @@ nb_path: tutorials/Robust_Linear_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Robust_Linear_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Robust_Linear_Regression.ipynb
 ---
+import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Robust_Linear_Regression.ipynb"
@@ -127,7 +127,7 @@ indicating a deviation, and $\nu$ is a term describing degrees of freedom. Speci
 We are interested in fitting posterior distributions for $\beta$, $\alpha$, $\sigma$,
 and $\nu$ given a collection of training data $\{x, y\}_{i=1}^N$.
 
-Let's visualize the Gamma distribution that we used as our prior for $\epsilon$:
+Let's visualize the Gamma distribution that we used as our prior for $\nu$:
 
 
 ```python
@@ -142,9 +142,9 @@ cds = ColumnDataSource({"x": x.tolist(), "y": y.tolist()})
 
 gamma_prior_plot = plots.line_plot(
     plot_sources=[cds],
-    tooltips=[[("Density", "@y{0.000}"), ("ϵ", "@x{0.000}")]],
+    tooltips=[[("Density", "@y{0.000}"), ("ν", "@x{0.000}")]],
     figure_kwargs={
-        "x_axis_label": "epsilon",
+        "x_axis_label": "nu",
         "y_axis_label": "density",
         "title": f"Γ({concentration}, {rate}) prior",
     },
