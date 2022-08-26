@@ -388,10 +388,12 @@ class SingleAssignment:
             c = a.value
             ast_op_a = ast_op(a)
             assert isinstance(c, ast_op_a)
+            # pyre-fixme[16]: `expr` has no attribute `elts`.
             assignment, elts_new = self._splice_non_identifier(c.elts)
             return ListEdit(
                 [
                     assignment,
+                    # pyre-fixme[16]: `expr` has no attribute `ctx`.
                     ast.Assign(targets=a.targets, value=ast_op_a(elts_new, c.ctx)),
                 ]
             )
@@ -404,6 +406,8 @@ class SingleAssignment:
         def _do_it(a: ast.Assign) -> ListEdit:
             c = a.value
             assert isinstance(c, ast_op)
+            # pyre-fixme[16]: `expr` has no attribute `keys`.
+            # pyre-fixme[16]: `expr` has no attribute `values`.
             assignment, keys_new, values_new = self._splice_non_entry(c.keys, c.values)
             return ListEdit(
                 [
