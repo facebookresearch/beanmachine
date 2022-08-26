@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional
 
 import torch
 import torch.optim as optim
@@ -90,19 +90,11 @@ class VariationalInfer:
         """
         assert subsample_factor > 0 and subsample_factor <= 1
         for it in tqdm(range(num_steps)):
-            loss, _ = self.step(
-                num_samples, discrepancy_fn, mc_approx, subsample_factor
-            )
+            loss = self.step(num_samples, discrepancy_fn, mc_approx, subsample_factor)
             if step_callback:
                 step_callback(it, loss, self)
 
-        return VariationalWorld.initialize_world(
-            queries=self.queries_to_guides.values(),
-            observations=self.observations,
-            params=self.params,
-            queries_to_guides=self.queries_to_guides,
-            initialize_fn=lambda d: d.sample(),
-        )
+        return self.initialize_world()
 
     def step(
         self,
@@ -110,7 +102,7 @@ class VariationalInfer:
         discrepancy_fn=kl_reverse,
         mc_approx=monte_carlo_approximate_reparam,  # TODO: support both reparam and SF in same guide
         subsample_factor: float = 1,
-    ) -> Tuple[torch.Tensor, VariationalInfer]:
+    ) -> torch.Tensor:
         """
         Perform one step of variatonal inference.
 
@@ -121,8 +113,7 @@ class VariationalInfer:
             subsample_factor: subsampling factor used for subsampling, helps scale the observations to avoid overshrinking towards the prior
 
         Returns:
-            Tuple[torch.Tensor, VariationalInfer]: the loss value (before the
-            step) and the ``VariationalInfer`` instance
+            torch.Tensor: the loss value (before the step)
         """
         self._optimizer.zero_grad()
         loss = mc_approx(
@@ -139,4 +130,21 @@ class VariationalInfer:
             self._optimizer.step()
         else:
             logging.warn("Encountered NaN/inf loss, skipping step.")
-        return loss, self
+        return loss
+
+    def initialize_world(self) -> VariationalWorld:
+        """
+        Initializes a `VariationalWorld` using samples from guide distributions
+        evaluated at the current parameter values.
+
+        Returns:
+            VariationalWorld: a `World` where guide samples and distributions
+            have replaced their corresponding queries
+        """
+        return VariationalWorld.initialize_world(
+            queries=self.queries_to_guides.values(),
+            observations=self.observations,
+            params=self.params,
+            queries_to_guides=self.queries_to_guides,
+            initialize_fn=lambda d: d.sample(),
+        )
