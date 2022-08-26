@@ -45,8 +45,8 @@ class HMCProposer(BaseProposer):
         adapt_step_size: Flag whether to adapt step size, defaults to True.
         adapt_mass_matrix: Flat whether to adapt mass matrix, defaults to True.
         target_accept_prob: Target accept prob, defaults to 0.8.
-        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
-            inference (defaults to False).
+        nnc_compile: If True, NNC compiler will be used to accelerate the
+            inference.
     """
 
     def __init__(
@@ -59,7 +59,7 @@ class HMCProposer(BaseProposer):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = False,
+        nnc_compile: bool = True,
     ):
         self.world = initial_world
         self._target_rvs = target_rvs

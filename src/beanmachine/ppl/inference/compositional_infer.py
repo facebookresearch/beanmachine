@@ -46,10 +46,11 @@ class _DefaultInference(BaseInference):
     Mixed inference class that handles both discrete and continuous RVs
     """
 
-    def __init__(self):
+    def __init__(self, nnc_compile: bool = True):
         self._disc_proposers = {}
         self._cont_proposer = None
         self._continuous_rvs = set()
+        self._nnc_compile = nnc_compile
 
     def get_proposers(
         self,
@@ -77,7 +78,10 @@ class _DefaultInference(BaseInference):
         else:
             if len(self._continuous_rvs):
                 continuous_proposer = NUTSProposer(
-                    world, self._continuous_rvs, num_adaptive_sample
+                    world,
+                    self._continuous_rvs,
+                    num_adaptive_sample,
+                    nnc_compile=self._nnc_compile,
                 )
                 self._cont_proposer = continuous_proposer
                 proposers.append(self._cont_proposer)
@@ -138,6 +142,7 @@ class CompositionalInference(BaseInference):
 
     Args:
         inference_dict: an optional inference configuration as shown above.
+        nnc_compile: where available, use NNC to compile proposers.
     """
 
     def __init__(
@@ -148,6 +153,7 @@ class CompositionalInference(BaseInference):
                 Union[BaseInference, Tuple[BaseInference, ...], EllipsisClass],
             ]
         ] = None,
+        nnc_compile: bool = True,
     ):
         self.config: Dict[Union[Callable, Tuple[Callable, ...]], BaseInference] = {}
         # create a set for the RV families that are being covered in the config; this is
@@ -155,7 +161,7 @@ class CompositionalInference(BaseInference):
         # default inference method
         self._covered_rv_families = set()
 
-        default_inference = _DefaultInference()
+        default_inference = _DefaultInference(nnc_compile=nnc_compile)
         if inference_dict is not None:
             default_inference = inference_dict.pop(Ellipsis, default_inference)
             assert isinstance(default_inference, BaseInference)

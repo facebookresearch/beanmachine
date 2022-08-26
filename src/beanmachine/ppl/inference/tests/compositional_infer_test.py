@@ -203,7 +203,7 @@ def test_block_inference_changing_support():
         {
             (model.K, model.component): bm.SingleSiteAncestralMetropolisHastings(),
             ...: bm.SingleSiteNewtonianMonteCarlo(),
-        }
+        },
     )
     sampler = compositional.sampler(queries, {}, num_samples=10, num_adaptive_samples=5)
     old_world = next(sampler)
@@ -221,8 +221,10 @@ def test_block_inference_changing_support():
             assert world[model.component(0)] is old_world[model.component(0)]
         old_world = world
 
+    # disable NNC because changing support => non-static model
     compositional = bm.CompositionalInference(
-        {(model.K, model.component): bm.SingleSiteAncestralMetropolisHastings()}
+        {(model.K, model.component): bm.SingleSiteAncestralMetropolisHastings()},
+        nnc_compile=False,
     )
     sampler = compositional.sampler(queries, {})
     with pytest.raises(KeyError):
@@ -240,7 +242,8 @@ def test_block_inference_changing_support():
 def test_block_inference_changing_shape():
     model = ChangingShapeModel()
     queries = [model.K()] + [model.component(j) for j in range(3)]
-    compositional = bm.CompositionalInference()
+    # disable NNC because changing shape => non-static model
+    compositional = bm.CompositionalInference(nnc_compile=False)
 
     # should run without error
     samples = compositional.infer(queries, {}, num_samples=5, num_chains=1).get_chain()

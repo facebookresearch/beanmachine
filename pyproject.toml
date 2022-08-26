@@ -22,6 +22,8 @@ filterwarnings = [
     "default:distutils Version classes are deprecated.*:DeprecationWarning",
     # statsmodels imports a module that's deprecated since pandas 1.14.0
     "default:pandas.Int64Index is deprecated *:FutureWarning",
+    # functorch 0.1.0 imports deprecated _stateless module
+    "default:The `torch.nn.utils._stateless` code is deprecated*:DeprecationWarning",
 ]
 
 [tool.usort]

@@ -137,9 +137,10 @@ The global variant for adaptive HMC, `GlobalHamiltonianMonteCarlo`, which propos
 bm.GlobalHamiltonianMonteCarlo(
     1.0,  # trajectory length
     initial_step_size=0.1,
-    adapt_step_size=True
-    adapt_mass_matrix=True
-    target_accept_prob=0.8
+    adapt_step_size=True,
+    adapt_mass_matrix=True,
+    target_accept_prob=0.8,
+    nnc_compile=True,
 ).infer(
     queries,
     observations,
@@ -148,6 +149,14 @@ bm.GlobalHamiltonianMonteCarlo(
     num_adaptive_samples=100,
 )
 ```
+
+:::caution
+
+Functorch's [ahead of time (AOT) autograd compiler](https://pytorch.org/functorch/stable/aot_autograd.html) is used
+by default. If working with a non-static model or unexpected errors are encountered, you may need to manually
+disable the `nnc_compile` flag.
+
+:::
 
 These arguments allow us to decide if we want to tune the step size `adjust_step_size` or covariance matrix `adapt_mass_matrix`. The `target_accept_prob` argument indicates the acceptance probability which should be targeted by the step size tuning algorithm. While the optimal value is 65.1%, higher values have been show to be more robust. As a result, Bean Machine targets an acceptance rate of 0.8 by default.
 

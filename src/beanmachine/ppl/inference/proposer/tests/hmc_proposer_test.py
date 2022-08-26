@@ -30,7 +30,10 @@ def world():
 
 @pytest.fixture
 def hmc(world):
-    hmc_proposer = HMCProposer(world, world.latent_nodes, 10, trajectory_length=1.0)
+    # TODO(T130186904): fix NNC
+    hmc_proposer = HMCProposer(
+        world, world.latent_nodes, 10, trajectory_length=1.0, nnc_compile=False
+    )
     return hmc_proposer
 
 

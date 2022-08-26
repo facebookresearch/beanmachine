@@ -86,6 +86,8 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         adapt_mass_matrix (bool): Whether to adapt the mass matrix. Defaults to True,
         target_accept_prob (float): Target accept prob. Increasing this value would lead
             to smaller step size. Defaults to 0.8.
+        nnc_compile: If True, NNC compiler will be used to accelerate the
+            inference.
     """
 
     def __init__(
@@ -95,7 +97,7 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = False,
+        nnc_compile: bool = True,
     ):
         self.trajectory_length = trajectory_length
         self.initial_step_size = initial_step_size
