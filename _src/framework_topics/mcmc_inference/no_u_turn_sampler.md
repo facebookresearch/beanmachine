@@ -59,7 +59,6 @@ bm.GlobalNoUTurnSampler(
     adapt_mass_matrix=True,
     multinomial_sampling=True,
     target_accept_prob=0.8,
-    nnc_compile=False,
 ).infer(
     queries,
     observations,
@@ -68,6 +67,14 @@ bm.GlobalNoUTurnSampler(
     num_adaptive_samples=1000,
 )
 ```
+
+:::caution
+
+Functorch's [ahead of time (AOT) autograd compiler](https://pytorch.org/functorch/stable/aot_autograd.html) is used
+by default. If working with a non-static model or unexpected errors are encountered, you may need to manually
+disable the `nnc_compile` flag.
+
+:::
 
 The `GlobalNoUTurnSampler` has all the acceptance step size, covariance matrix, and acceptance probability tuning arguments of `GlobalHamiltonianMonteCarlo` as well as a few more parameters related to tuning the path length. While there are many optional parameters for this inference method, in practice, the parameters you are most likely to modify are `target_accept_prob` and `max_tree_depth`. When dealing with posteriors where the probability density has a more complicated shape, we benefit from taking smaller steps. Setting `target_accept_prob` to a higher value like `0.9` will lead to a more careful exploration of the space using smaller step sizes while still benefiting from some tuning of that step size. Since we will be taking smaller steps, we need to compensate by having a larger path length. This is accomplished by increasing `max_tree_depth`. Otherwise, using the defaults provided is highly recommended.
 
@@ -80,7 +87,7 @@ A more complete explanation of parameters to `GlobalNoUTurnSampler` are provided
 | `initial_step_size`    | The initial step size $\epsilon$ used in adaptive HMC. This value is simply the step size if tuning is disabled.                                                                                                                                          |
 | `multinomial_sampling` | Lets us decide between a faster multinomial sampler for the trajectory or the slice sampler described in the [original paper](https://arxiv.org/pdf/1111.4246.pdf). The option is useful for fairly comparing against other NUTS implementations.         |
 | `target_accept_prob`   | Indicates the acceptance probability which should be targeted by the step size tuning algorithm. While the optimal value is 65.1%, higher values have been show to be more robust leading to a default of 0.8.                                            |
-| `nnc_compile`          | NNC (Neural network compiler) is an experimental Pytorch JIT compiler that that transforms Pytorch programs to LLVM-compiled binaries. The model support is currently limited, so if your model fails, consider filing an issue and turning this flag off.|
+| `nnc_compile`          | NNC (neural network compiler) is a Pytorch JIT compiler that that transforms Pytorch programs to LLVM-compiled binaries. The model support is currently limited, so if your model fails, consider filing an issue and turning this flag off.|
 
 The parameters to `infer` are described below:
 
