@@ -160,8 +160,24 @@ initialized with optimized parameters</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.VariationalInfer.initialize_world">
+<span class="sig-name descname"><span class="pre">initialize_world</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_world.html#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="beanmachine.ppl.inference.vi.variational_world.VariationalWorld"><span class="pre">beanmachine.ppl.inference.vi.variational_world.VariationalWorld</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.VariationalInfer.initialize_world" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes a <cite>VariationalWorld</cite> using samples from guide distributions
+evaluated at the current parameter values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a <cite>World</cite> where guide samples and distributions
+have replaced their corresponding queries</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_world.html#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="beanmachine.ppl.inference.vi.variational_world.VariationalWorld">VariationalWorld</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.VariationalInfer.step">
-<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">num_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></em>, <em class="sig-param"><span class="pre">discrepancy_fn=&lt;function</span> <span class="pre">kl_reverse&gt;</span></em>, <em class="sig-param"><span class="pre">mc_approx=&lt;function</span> <span class="pre">monte_carlo_approximate_reparam&gt;</span></em>, <em class="sig-param"><span class="pre">subsample_factor:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_infer.html#beanmachine.ppl.inference.vi.variational_infer.VariationalInfer" title="beanmachine.ppl.inference.vi.variational_infer.VariationalInfer"><span class="pre">beanmachine.ppl.inference.vi.variational_infer.VariationalInfer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.VariationalInfer.step" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">num_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></em>, <em class="sig-param"><span class="pre">discrepancy_fn=&lt;function</span> <span class="pre">kl_reverse&gt;</span></em>, <em class="sig-param"><span class="pre">mc_approx=&lt;function</span> <span class="pre">monte_carlo_approximate_reparam&gt;</span></em>, <em class="sig-param"><span class="pre">subsample_factor:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.VariationalInfer.step" title="Permalink to this definition"></a></dt>
 <dd><p>Perform one step of variatonal inference.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -173,11 +189,10 @@ initialized with optimized parameters</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the loss value (before the
-step) and the <code class="docutils literal notranslate"><span class="pre">VariationalInfer</span></code> instance</p>
+<dd class="field-even"><p>the loss value (before the step)</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Tuple[torch.Tensor, <a class="reference internal" href="#beanmachine.ppl.inference.vi.VariationalInfer" title="beanmachine.ppl.inference.vi.VariationalInfer">VariationalInfer</a>]</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
