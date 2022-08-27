@@ -7,6 +7,38 @@
     "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Coin_flipping.ipynb",
     "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Coin_flipping.ipynb"
   },
+  "MLE_and_MAP_point_estimation": {
+    "title": "Maximum likelihood estimation and maximum a priori inference",
+    "sidebar_label": "MLE and MAP",
+    "path": "overview/tutorials/MLE_and_MAP_point_estimation/MLE_and_MAP_point_estimation",
+    "nb_path": "tutorials/MLE_and_MAP_point_estimation.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/MLE_and_MAP_point_estimation.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/MLE_and_MAP_point_estimation.ipynb"
+  },
+  "Automatic_differentiation_variational_inference": {
+    "title": "Automatic differentiation variational inference",
+    "sidebar_label": "ADVI",
+    "path": "overview/tutorials/Automatic_differentiation_variational_inference/Automatic_differentiation_variational_inference",
+    "nb_path": "tutorials/Automatic_differentiation_variational_inference.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Automatic_differentiation_variational_inference.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Automatic_differentiation_variational_inference.ipynb"
+  },
+  "VI_generalized_linear_mixed_model": {
+    "title": "Variational inference in a generalized linear mixed model",
+    "sidebar_label": "VI in GLMM",
+    "path": "overview/tutorials/VI_generalized_linear_mixed_model/VI_generalized_linear_mixed_model",
+    "nb_path": "tutorials/VI_generalized_linear_mixed_model.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/VI_generalized_linear_mixed_model.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/VI_generalized_linear_mixed_model.ipynb"
+  },
+  "Probabilistic_PCA": {
+    "title": "Probabilistic principal components analysis",
+    "sidebar_label": "Probabilistic PCA",
+    "path": "overview/tutorials/Probabilistic_PCA/Probabilistic_PCA",
+    "nb_path": "tutorials/Probabilistic_PCA.ipynb",
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Probabilistic_PCA.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Probabilistic_PCA.ipynb"
+  },
   "Robust_Linear_Regression": {
     "title": "Robust linear regression",
     "sidebar_label": "Robust linear regression",
