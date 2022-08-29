@@ -1,6 +1,4 @@
 """Effective Sample Size (ESS) diagnostic tool for a Bean Machine model."""
-from __future__ import annotations
-
 from typing import Any, TypeVar
 
 import arviz as az

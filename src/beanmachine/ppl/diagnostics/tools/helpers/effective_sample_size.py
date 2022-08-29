@@ -1,7 +1,5 @@
 """Methods used to generate the diagnostic tool."""
-from __future__ import annotations
-
-from numbers import Number
+from typing import List
 
 import arviz as az
 
@@ -32,7 +30,7 @@ FIGURE_NAMES = ["ess"]
 
 def compute_data(
     data: npt.NDArray,
-    first_draw: Number = 0,
+    first_draw: float = 0.0,
     num_points: int = 20,
 ) -> typing.Data:
     """Compute effective sample size estimates using the given data.
@@ -43,7 +41,7 @@ def compute_data(
         A 2D NumPy array where the length of the first dimension is the number of chains
         of the model, and the length of the second dimension is the number of draws of
         the model.
-    first_draw : Number, optional default is 0
+    first_draw : float, optional default is 0
         The first draw index.
     num_points : int, optional default is 20
         The number of divisions in the model samples to compute the effective sample
@@ -381,14 +379,14 @@ def add_tooltips(figures: typing.Figures, tooltips: typing.Tooltips) -> None:
         fig.add_tools(tips)
 
 
-def create_widgets(rv_name: str, rv_names: list[str]) -> typing.Widgets:
+def create_widgets(rv_name: str, rv_names: List[str]) -> typing.Widgets:
     """Create the widgets used in the tool.
 
     Parameters
     ----------
     rv_name : str
         The string representation of the random variable data.
-    rv_names : list[str]
+    rv_names : List[str]
         A list of all available random variable names.
 
     Returns

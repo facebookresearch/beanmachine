@@ -1,7 +1,5 @@
 """Methods used to generate the diagnostic tool."""
-from __future__ import annotations
-
-from typing import Optional
+from typing import List, Optional
 
 import arviz as az
 
@@ -36,9 +34,9 @@ def compute_stats(
     kde_x: npt.NDArray,
     kde_y: npt.NDArray,
     hdi_probability: float,
-    text_align: Optional[list[str]] = None,
-    x_offset: Optional[list[int]] = None,
-    y_offset: Optional[list[int]] = None,
+    text_align: Optional[List[str]] = None,
+    x_offset: Optional[List[int]] = None,
+    y_offset: Optional[List[int]] = None,
     return_labels: bool = False,
 ) -> typing.StatsAndLabelsData:
     """Compute statistics for the given data, and its KDE.
@@ -55,11 +53,11 @@ def compute_stats(
         The y-axis KDE estimate of the random variable data.
     hdi_probability : float
         The HDI probability to use when calculating the HDI bounds.
-    text_align : list[str] | None, optional default is ``None``
+    text_align : List[str] | None, optional default is ``None``
         How to display label justifications for the statistics in Bokeh.
-    x_offset : list[int] | None, optional default is ``None``
+    x_offset : List[int] | None, optional default is ``None``
         x-axis offsets for the labels.
-    y_offset : list[int] | None, optional default is ``None``
+    y_offset : List[int] | None, optional default is ``None``
         y-axis offsets for the labels.
     return_labels : bool, optional default is ``False``
         ``True`` returns labels to be used in the Bokeh figure.
@@ -464,7 +462,7 @@ def add_tooltips(figures: typing.Figures, tooltips: typing.Tooltips) -> None:
 
 def create_widgets(
     rv_name: str,
-    rv_names: list[str],
+    rv_names: List[str],
     bw_factor: float,
     bandwidth: float,
 ) -> typing.Widgets:
@@ -474,7 +472,7 @@ def create_widgets(
     ----------
     rv_name : str
         The string representation of the random variable data.
-    rv_names : list[str]
+    rv_names : List[str]
         A list of all available random variable names.
     bw_factor : float
         Multiplicative factor used when calculating the kernel density estimate.
@@ -611,7 +609,7 @@ def update(
         A dictionary of Bokeh Figure objects.
     rv_name : str
         The string representation of the random variable data.
-    rv_names : list[str]
+    rv_names : List[str]
         A list of all available random variable names.
     hdi_probability : float
         The HDI probability to use when calculating the HDI bounds.

@@ -1,7 +1,5 @@
 """Marginal 2D diagnostic tool types for a Bean Machine model."""
-from __future__ import annotations
-
-from typing import Any, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 from beanmachine.ppl.diagnostics.tools.typing import marginal1d as m1d
 
@@ -15,13 +13,13 @@ from bokeh.plotting.figure import Figure
 
 # NOTE: These are the types pyre gives us when using `reveal_type(...)` on the outputs
 # of the methods.
-Data = dict[Any, Any]
-Sources = dict[Any, Any]
-Figures = dict[Any, Any]
-Glyphs = dict[Any, Any]
-Annotations = dict[str, dict[str, Legend]]
-Tooltips = dict[Any, Any]
-Widgets = dict[str, Select | Slider]
+Data = Dict[Any, Any]
+Sources = Dict[Any, Any]
+Figures = Dict[Any, Any]
+Glyphs = Dict[Any, Any]
+Annotations = Dict[str, Dict[str, Legend]]
+Tooltips = Dict[Any, Any]
+Widgets = Dict[str, Select | Slider]
 
 # NOTE: TypedDict objects are for reference only. Due to the way pyre accesses keys in
 #       dictionaries, and how NumPy casts arrays when using tolist(), we are unable to
@@ -29,24 +27,24 @@ Widgets = dict[str, Select | Slider]
 
 
 class _DistributionData(TypedDict):
-    x: list[float]
-    y: list[float]
-    bandwidth: list[float]
+    x: List[float]
+    y: List[float]
+    bandwidth: List[float]
 
 
 class _StatsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
+    x: List[float]
+    y: List[float]
+    text: List[str]
 
 
 class _LabelsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
-    text_align: list[str]
-    x_offset: list[int]
-    y_offset: list[int]
+    x: List[float]
+    y: List[float]
+    text: List[str]
+    text_align: List[str]
+    x_offset: List[int]
+    y_offset: List[int]
 
 
 class _MarginalDataSingleChain(TypedDict):
@@ -57,13 +55,13 @@ class _MarginalDataSingleChain(TypedDict):
 
 
 class _ForestLineData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _ForestCircleData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _ForestDataSingleChain(TypedDict):
@@ -74,8 +72,8 @@ class _ForestDataSingleChain(TypedDict):
 
 
 class _TraceLineData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _TraceDataSingleChain(TypedDict):
@@ -85,17 +83,17 @@ class _TraceDataSingleChain(TypedDict):
 
 
 class _RankQuadData(TypedDict):
-    left: list[float]
-    top: list[float]
-    right: list[float]
-    bottom: list[float]
-    draws: list[str]
-    rank: list[float]
+    left: List[float]
+    top: List[float]
+    right: List[float]
+    bottom: List[float]
+    draws: List[str]
+    rank: List[float]
 
 
 class _RankLineData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _RankDataSingleChain(TypedDict):
@@ -106,10 +104,10 @@ class _RankDataSingleChain(TypedDict):
     mean: float
 
 
-MarginalData = dict[str, _MarginalDataSingleChain]
-ForestData = dict[str, _ForestDataSingleChain]
-TraceData = dict[str, _TraceDataSingleChain]
-RankData = dict[str, _RankDataSingleChain]
+MarginalData = Dict[str, _MarginalDataSingleChain]
+ForestData = Dict[str, _ForestDataSingleChain]
+TraceData = Dict[str, _TraceDataSingleChain]
+RankData = Dict[str, _RankDataSingleChain]
 
 
 class _Data(TypedDict):
@@ -137,10 +135,10 @@ class _RankSourceSingleChain(TypedDict):
     line: ColumnDataSource
 
 
-MarginalSources = dict[str, _MarginalSourceSingleChain]
-ForestSources = dict[str, _ForestSourceSingleChain]
-TraceSources = dict[str, _TraceSourceSingleChain]
-RankSources = dict[str, _RankSourceSingleChain]
+MarginalSources = Dict[str, _MarginalSourceSingleChain]
+ForestSources = Dict[str, _ForestSourceSingleChain]
+TraceSources = Dict[str, _TraceSourceSingleChain]
+RankSources = Dict[str, _RankSourceSingleChain]
 
 
 class _FigureSources(TypedDict):
@@ -150,7 +148,7 @@ class _FigureSources(TypedDict):
     ranks: RankSources
 
 
-_Sources = dict[str, _FigureSources]
+_Sources = Dict[str, _FigureSources]
 
 
 class _Figures(TypedDict):
@@ -208,10 +206,10 @@ class _RankGlyphSingleChain(TypedDict):
     line: _RankLineGlyph
 
 
-MarginalGlyphs = dict[str, _MarginalGlyphSingleChain]
-ForestGlyphs = dict[str, _ForestGlyphSingleChain]
-TraceGlyphs = dict[str, _TraceGlyphSingleChain]
-RankGlyphs = dict[str, _RankGlyphSingleChain]
+MarginalGlyphs = Dict[str, _MarginalGlyphSingleChain]
+ForestGlyphs = Dict[str, _ForestGlyphSingleChain]
+TraceGlyphs = Dict[str, _TraceGlyphSingleChain]
+RankGlyphs = Dict[str, _RankGlyphSingleChain]
 
 
 class _FigureGlyphs(TypedDict):
@@ -221,10 +219,10 @@ class _FigureGlyphs(TypedDict):
     ranks: RankGlyphs
 
 
-_Glyphs = dict[str, _FigureGlyphs]
+_Glyphs = Dict[str, _FigureGlyphs]
 
-_FigureAnnotations = dict[str, Legend]
-_Annotations = dict[str, _FigureAnnotations]
+_FigureAnnotations = Dict[str, Legend]
+_Annotations = Dict[str, _FigureAnnotations]
 
 
 class _Widgets(TypedDict):

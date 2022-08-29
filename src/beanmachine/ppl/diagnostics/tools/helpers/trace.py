@@ -1,5 +1,5 @@
 """Methods used to generate the diagnostic tool."""
-from __future__ import annotations
+from typing import List
 
 import arviz as az
 import beanmachine.ppl.diagnostics.tools.typing.trace as typing
@@ -647,14 +647,14 @@ def add_tooltips(figures: typing.Figures, tooltips: typing.Tooltips) -> None:
             fig.add_tools(tips)
 
 
-def create_widgets(rv_name: str, rv_names: list[str]) -> typing.Widgets:
+def create_widgets(rv_name: str, rv_names: List[str]) -> typing.Widgets:
     """Create the widgets used in the tool.
 
     Parameters
     ----------
     rv_name : str
         The string representation of the random variable data.
-    rv_names : list[str]
+    rv_names : List[str]
         A list of all available random variable names.
 
     Returns

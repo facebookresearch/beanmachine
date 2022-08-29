@@ -1,7 +1,5 @@
 """Autocorrelation diagnostic tool for a Bean Machine model."""
-from __future__ import annotations
-
-from typing import Any, TypeVar
+from typing import Any, Tuple, TypeVar
 
 import arviz as az
 
@@ -67,8 +65,8 @@ class Autocorrelation:
 
         def update_range_slider(
             attr: Any,
-            old: tuple[int, int],
-            new: tuple[int, int],
+            old: Tuple[int, int],
+            new: Tuple[int, int],
         ) -> None:
             fig = figures[list(figures.keys())[0]]
             fig.x_range.start, fig.x_range.end = new

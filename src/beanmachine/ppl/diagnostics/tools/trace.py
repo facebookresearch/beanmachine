@@ -1,6 +1,4 @@
 """Trace diagnostic tool for a Bean Machine model."""
-from __future__ import annotations
-
 from typing import Any, TypeVar
 
 import arviz as az
@@ -34,7 +32,7 @@ class Trace:
 
         # Compute the initial data displayed in the tool.
         rv_data = self.idata["posterior"][rv_identifier].values
-        num_chains, num_draws = rv_data.shape
+        num_chains, _ = rv_data.shape
         computed_data = tool.compute_data(
             data=rv_data,
             bw_factor=bw_factor,

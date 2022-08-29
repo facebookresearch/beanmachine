@@ -1,7 +1,5 @@
 """Methods used to generate the diagnostic tool."""
-from __future__ import annotations
-
-from typing import Optional
+from typing import List, Optional
 
 import arviz as az
 import beanmachine.ppl.diagnostics.tools.typing.marginal2d as typing
@@ -44,8 +42,8 @@ def compute_xy_data(
     y: npt.NDArray,
     x_label: str,
     y_label: str,
-    x_stats: list[float],
-    y_stats: list[float],
+    x_stats: List[float],
+    y_stats: List[float],
 ) -> typing.XYData:
     """Compute the two-dimensional marginal.
 
@@ -63,9 +61,9 @@ def compute_xy_data(
         The HDI probability to use when calculating the HDI bounds for the x-axis.
     y_hdi_probability : float
         The HDI probability to use when calculating the HDI bounds for the y-axis.
-    x_stats : list[float]
+    x_stats : List[float]
         Statistics for the x-axis; HDI bounds and the mean.
-    y_stats : list[float]
+    y_stats : List[float]
         Statistics for the y-axis; HDI bounds and the mean.
 
     Returns
@@ -196,7 +194,7 @@ def compute_data(
     x_hdi_probability: float,
     y_hdi_probability: float,
     bw_factor: Optional[float] = None,
-    bins: Optional[list[int]] = None,
+    bins: Optional[List[int]] = None,
 ) -> typing.Data:
     """Compute effective sample size estimates using the given data.
 
@@ -216,7 +214,7 @@ def compute_data(
         The HDI probability to use when calculating the HDI bounds for the y-axis.
     bw_factor : float, optional, default is 1.0 if None is given
         Multiplicative factor used when calculating the kernel density estimate.
-    bins : list[int], optional, default is [128, 128] if None is given
+    bins : List[int], optional, default is [128, 128] if None is given
         The grid points to use when calculating the two-dimensional KDE.
 
     Returns
@@ -770,7 +768,7 @@ def add_tooltips(figures: typing.Figures, tooltips: typing.Tooltips) -> None:
 def create_widgets(
     x_rv_name: str,
     y_rv_name: str,
-    rv_names: list[str],
+    rv_names: List[str],
     bw_factor: float,
     x_bw: float,
     y_bw: float,
@@ -783,7 +781,7 @@ def create_widgets(
         The name of the random variable along the x-axis.
     y_rv_name : str
         The name of the random variable along the y-axis.
-    rv_names : list[str]
+    rv_names : List[str]
         A list of all available random variable names.
     bw_factor : float
         Multiplicative factor used when calculating the kernel density estimate.

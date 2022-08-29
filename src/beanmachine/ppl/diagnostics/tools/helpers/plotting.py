@@ -1,5 +1,5 @@
 """Plotting utilities for the diagnostics tools."""
-from __future__ import annotations
+from typing import Dict, List
 
 from bokeh.core.property.nullable import Nullable
 from bokeh.core.property.primitive import Null
@@ -51,7 +51,7 @@ def choose_palette(n: int) -> tuple:
     return Colorblind[palette_index]
 
 
-def create_toolbar(figures: dict[str, Figure]) -> ToolbarBox:
+def create_toolbar(figures: Dict[str, Figure]) -> ToolbarBox:
     """Create a single toolbar for multiple figures.
 
     This will also remove any ``HoverTool`` tools on the figures. These are removed from
@@ -61,7 +61,7 @@ def create_toolbar(figures: dict[str, Figure]) -> ToolbarBox:
 
     Parameters
     ----------
-    figures : dict[str, Figure]
+    figures : Dict[str, Figure]
         A dictionary of Bokeh figures.
 
     Returns
@@ -90,7 +90,7 @@ def filter_renderers(
     search: str,
     glyph_type: str = "GlyphRenderer",
     substring: bool = False,
-) -> list[GlyphRenderer]:
+) -> List[GlyphRenderer]:
     """Filter Bokeh figure renderers given the search string.
 
     Parameters
@@ -108,7 +108,7 @@ def filter_renderers(
 
     Returns
     -------
-    list[GlyphRenderer]
+    List[GlyphRenderer]
         A list of Bokeh glyph renderer objects.
     """
     output = []

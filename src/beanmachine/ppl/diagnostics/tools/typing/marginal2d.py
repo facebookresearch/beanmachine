@@ -1,7 +1,5 @@
 """Marginal 2D diagnostic tool types for a Bean Machine model."""
-from __future__ import annotations
-
-from typing import Any, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 from beanmachine.ppl.diagnostics.tools.typing import marginal1d as m1d
 
@@ -17,18 +15,18 @@ from bokeh.plotting.figure import Figure
 
 # NOTE: These are the types pyre gives us when using `reveal_type(...)` on the outputs
 # of the methods.
-XYData = dict[
+XYData = Dict[
     str,
-    dict[str, dict[str, dict[str, Any]]] | dict[str, list[Any]],
+    Dict[str, Dict[str, Dict[str, Any]]] | Dict[str, List[Any]],
 ]
-YData = dict[str, dict[str, Any]]
-Data = dict[str, Any]
-Sources = dict[Any, Any]
-Figures = dict[Any, Any]
-Glyphs = dict[Any, Any]
-Annotations = dict[str, dict[str, Band] | Band]
-Tooltips = dict[Any, Any]
-Widgets = dict[str, Div | Select | Slider]
+YData = Dict[str, Dict[str, Any]]
+Data = Dict[str, Any]
+Sources = Dict[Any, Any]
+Figures = Dict[Any, Any]
+Glyphs = Dict[Any, Any]
+Annotations = Dict[str, Dict[str, Band] | Band]
+Tooltips = Dict[Any, Any]
+Widgets = Dict[str, Div | Select | Slider]
 
 # NOTE: TypedDict objects are for reference only. Due to the way pyre accesses keys in
 #       dictionaries, and how NumPy casts arrays when using tolist(), we are unable to
@@ -36,24 +34,24 @@ Widgets = dict[str, Div | Select | Slider]
 
 
 class _DistributionData(TypedDict):
-    x: list[float]
-    y: list[float]
-    bandwidth: list[float]
+    x: List[float]
+    y: List[float]
+    bandwidth: List[float]
 
 
 class _StatsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
+    x: List[float]
+    y: List[float]
+    text: List[str]
 
 
 class _LabelsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
-    text_align: list[str]
-    x_offset: list[int]
-    y_offset: list[int]
+    x: List[float]
+    y: List[float]
+    text: List[str]
+    text_align: List[str]
+    x_offset: List[int]
+    y_offset: List[int]
 
 
 class _XData(TypedDict):
@@ -76,18 +74,18 @@ class _YData(TypedDict):
 
 
 class _XYDistributionData(TypedDict):
-    image: list[list[float]]
-    xmin: list[float]
-    xmax: list[float]
-    ymin: list[float]
-    ymax: list[float]
-    dw: list[float]
-    dh: list[float]
+    image: List[List[float]]
+    xmin: List[float]
+    xmax: List[float]
+    ymin: List[float]
+    ymax: List[float]
+    dw: List[float]
+    dh: List[float]
 
 
 class _XYHDIDatum(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _XYHDIDataLowerUpper(TypedDict):
@@ -101,12 +99,12 @@ class _XYHDIData(TypedDict):
 
 
 class _XYStatsData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _XYLabelsData(TypedDict):
-    mean: list[str]
+    mean: List[str]
 
 
 class _XYData(TypedDict):

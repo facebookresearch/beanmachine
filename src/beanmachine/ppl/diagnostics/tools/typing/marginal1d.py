@@ -1,7 +1,5 @@
 """Marginal 1D diagnostic tool types for a Bean Machine model."""
-from __future__ import annotations
-
-from typing import Any, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 from bokeh.models.annotations import Band, LabelSet
 from bokeh.models.glyphs import Circle, Line
@@ -15,15 +13,15 @@ from bokeh.plotting.figure import Figure
 
 # NOTE: These are the types pyre gives us when using `reveal_type(...)` on the outputs
 # of the methods.
-StatsAndLabelsData = dict[str, dict[str, Any]]
-HDIData = dict[str, Any]
-Data = dict[Any, Any]
-Sources = dict[Any, Any]
-Figures = dict[Any, Any]
-Glyphs = dict[Any, Any]
-Annotations = dict[Any, Any]
-Tooltips = dict[Any, Any]
-Widgets = dict[str, Div | Select | Slider]
+StatsAndLabelsData = Dict[str, Dict[str, Any]]
+HDIData = Dict[str, Any]
+Data = Dict[Any, Any]
+Sources = Dict[Any, Any]
+Figures = Dict[Any, Any]
+Glyphs = Dict[Any, Any]
+Annotations = Dict[Any, Any]
+Tooltips = Dict[Any, Any]
+Widgets = Dict[str, Div | Select | Slider]
 
 # NOTE: TypedDict objects are for reference only. Due to the way pyre accesses keys in
 #       dictionaries, and how NumPy casts arrays when using tolist(), we are unable to
@@ -31,39 +29,39 @@ Widgets = dict[str, Div | Select | Slider]
 
 
 class _DistributionData(TypedDict):
-    x: list[float]
-    y: list[float]
-    bandwidth: list[float]
+    x: List[float]
+    y: List[float]
+    bandwidth: List[float]
 
 
 class _HDIData(TypedDict):
-    base: list[float]
-    lower: list[float]
-    upper: list[float]
+    base: List[float]
+    lower: List[float]
+    upper: List[float]
 
 
 class _StatsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
+    x: List[float]
+    y: List[float]
+    text: List[str]
 
 
 class _LabelsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
-    text_align: list[str]
-    x_offset: list[int]
-    y_offset: list[int]
+    x: List[float]
+    y: List[float]
+    text: List[str]
+    text_align: List[str]
+    x_offset: List[int]
+    y_offset: List[int]
 
 
 class _StatsAndLabelsData(TypedDict):
-    x: list[float]
-    y: list[float]
-    text: list[str]
-    text_align: list[str]
-    x_offset: list[int]
-    y_offset: list[int]
+    x: List[float]
+    y: List[float]
+    text: List[str]
+    text_align: List[str]
+    x_offset: List[int]
+    y_offset: List[int]
 
 
 class _GlyphData(TypedDict):

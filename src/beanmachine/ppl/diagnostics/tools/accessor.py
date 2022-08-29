@@ -1,6 +1,4 @@
 """Accessor definition for extending Bean Machine `MonteCarloSamples` objects."""
-from __future__ import annotations
-
 import contextlib
 import warnings
 from typing import Callable, TypeVar

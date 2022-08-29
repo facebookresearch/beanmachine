@@ -1,7 +1,5 @@
 """Effective Sample Size diagnostic tool types for a Bean Machine model."""
-from __future__ import annotations
-
-from typing import Any, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 from bokeh.models.annotations import Legend
 from bokeh.models.glyphs import Circle, Line
@@ -13,13 +11,13 @@ from bokeh.plotting.figure import Figure
 
 # NOTE: These are the types pyre gives us when using `reveal_type(...)` on the outputs
 # of the methods.
-Data = dict[str, dict[str, dict[str, Any]]]
-Sources = dict[str, dict[str, dict[str, ColumnDataSource]]]
-Figures = dict[str, Figure]
-Glyphs = dict[str, dict[Any, Any]]
-Annotations = dict[Any, Any]
-Tooltips = dict[str, dict[Any, Any]]
-Widgets = dict[str, Select]
+Data = Dict[str, Dict[str, Dict[str, Any]]]
+Sources = Dict[str, Dict[str, Dict[str, ColumnDataSource]]]
+Figures = Dict[str, Figure]
+Glyphs = Dict[str, Dict[Any, Any]]
+Annotations = Dict[Any, Any]
+Tooltips = Dict[str, Dict[Any, Any]]
+Widgets = Dict[str, Select]
 
 # NOTE: TypedDict objects are for reference only. Due to the way pyre accesses keys in
 #       dictionaries, and how NumPy casts arrays when using tolist(), we are unable to
@@ -27,19 +25,19 @@ Widgets = dict[str, Select]
 
 
 class _BulkData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _TailData(TypedDict):
-    x: list[float]
-    y: list[float]
+    x: List[float]
+    y: List[float]
 
 
 class _RuleOfThumbData(TypedDict):
-    x: list[float]
-    y: list[float]
-    label: list[str]
+    x: List[float]
+    y: List[float]
+    label: List[str]
 
 
 class _GlyphData(TypedDict):
