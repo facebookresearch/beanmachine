@@ -136,6 +136,10 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
         graph::OperatorType::MATRIX_EXP,
         &(MatrixExp::new_op)) &&
 
+    OperatorFactory::register_op(
+        graph::OperatorType::MATRIX_LOG,
+        &(MatrixLog::new_op)) &&
+
     // matrix index
     OperatorFactory::register_op(
         graph::OperatorType::INDEX,

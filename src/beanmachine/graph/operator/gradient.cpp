@@ -528,6 +528,19 @@ void MatrixExp::compute_gradients() {
       value._matrix.cwiseProduct(in_nodes[0]->Grad2);
 }
 
+void MatrixLog::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // f(x) = log(g(x))
+  // f'(x) = g'(x) / g(x)
+  // f''(x) = (g''(x) * g(x) + g'(x) * g'(x)) / (g(x) * g(x))
+  //        = g''(x) / g(x) + f'(x) * f'(x)
+  auto g = in_nodes[0]->value._matrix;
+  auto g1 = in_nodes[0]->Grad1;
+  auto g2 = in_nodes[0]->Grad2;
+  Grad1 = g1.cwiseQuotient(g);
+  Grad2 = g2.cwiseQuotient(g) + Grad1.cwiseProduct(Grad1);
+}
+
 void LogProb::compute_gradients() {
   auto dist = (Distribution*)in_nodes[0];
   auto value = in_nodes[1];

@@ -19,6 +19,7 @@ def _rv_id() -> RVIdentifier:
 
 class FixMatrixOpTest(unittest.TestCase):
     def test_fix_matrix_addition(self) -> None:
+        self.maxDiff = None
         bmg = BMGraphBuilder()
         zeros = bmg.add_real_matrix(torch.zeros(2))
         ones = bmg.add_pos_real_matrix(torch.ones(2))
@@ -149,7 +150,7 @@ digraph "graph" {
   N11[label="~"];
   N12[label="2"];
   N13[label="ToMatrix"];
-  N14[label="Operator"];
+  N14[label="MatrixExp"];
   N15[label="ToReal"];
   N16[label="ElementwiseMultiply"];
   N17[label="MatrixAdd"];
@@ -184,6 +185,7 @@ digraph "graph" {
         self.assertEqual(expectation.strip(), observed.strip())
 
     def test_fix_elementwise_multiply(self) -> None:
+        self.maxDiff = None
         bmg = BMGraphBuilder()
         zeros = bmg.add_real_matrix(torch.zeros(2))
         ones = bmg.add_pos_real_matrix(torch.ones(2))
@@ -319,11 +321,11 @@ digraph "graph" {
   N11[label="~"];
   N12[label="2"];
   N13[label="ToMatrix"];
-  N14[label="Operator"];
+  N14[label="MatrixExp"];
   N15[label="ToReal"];
   N16[label="MatrixAdd"];
   N17[label="ElementwiseMultiply"];
-  N18[label="Operator"];
+  N18[label="MatrixSum"];
   N0 -> N2;
   N0 -> N8;
   N1 -> N2;
@@ -356,6 +358,7 @@ digraph "graph" {
         self.assertEqual(expectation.strip(), observed.strip())
 
     def test_fix_matrix_sum(self) -> None:
+        self.maxDiff = None
         bmg = BMGraphBuilder()
         probs = bmg.add_real_matrix(torch.tensor([[0.75, 0.25], [0.125, 0.875]]))
         tensor_elements = []
@@ -466,7 +469,7 @@ digraph "graph" {
   N21[label="2"];
   N22[label="ToMatrix"];
   N23[label="ToReal"];
-  N24[label="Operator"];
+  N24[label="MatrixSum"];
   N0 -> N2;
   N0 -> N12;
   N1 -> N2;
@@ -506,6 +509,7 @@ digraph "graph" {
         self.assertEqual(expectation.strip(), observed_bmg.strip())
 
     def test_fix_matrix_exp(self) -> None:
+        self.maxDiff = None
         bmg = BMGraphBuilder()
         probs = bmg.add_real_matrix(torch.tensor([[0.75, 0.25], [0.125, 0.875]]))
         tensor_elements = []
@@ -615,7 +619,7 @@ digraph "graph" {
   N21[label="2"];
   N22[label="ToMatrix"];
   N23[label="ToReal"];
-  N24[label="Operator"];
+  N24[label="MatrixExp"];
   N0 -> N2;
   N0 -> N12;
   N1 -> N2;

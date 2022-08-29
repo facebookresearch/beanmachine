@@ -1760,7 +1760,7 @@ TEST(testoperator, cholesky) {
   }
 }
 
-TEST(testgradient, matrix_exp) {
+TEST(testoperator, matrix_exp) {
   Graph g;
 
   // negative tests
@@ -1797,6 +1797,47 @@ TEST(testgradient, matrix_exp) {
   for (uint i = 0; i < exp_infer.type.rows; i++) {
     for (uint j = 0; j < exp_infer.type.cols; j++) {
       EXPECT_NEAR(exp_expected(i, j), exp_infer._matrix(i, j), 1e-4);
+    }
+  }
+}
+
+TEST(testoperator, matrix_log) {
+  Graph g;
+
+  // negative tests
+  // MATRIX_LOG requires matrix parent
+  auto real_number = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG, {real_number}),
+      std::invalid_argument);
+  // must be pos real or prob
+  Eigen::MatrixXb bools(2, 1);
+  bools << false, true;
+  auto bools_matrix = g.add_constant_bool_matrix(bools);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG, {bools_matrix}),
+      std::invalid_argument);
+  // can only have one parent
+  Eigen::MatrixXd m1(3, 1);
+  m1 << 2.0, 1.0, 3.0;
+  auto m1_matrix = g.add_constant_pos_matrix(m1);
+  Eigen::MatrixXd m2(1, 2);
+  m2 << 0.5, 20.0;
+  auto m2_matrix = g.add_constant_pos_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG, {m1_matrix, m2_matrix}),
+      std::invalid_argument);
+
+  auto mlog = g.add_operator(OperatorType::MATRIX_LOG, {m1_matrix});
+  g.query(mlog);
+
+  auto mlog_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  Eigen::MatrixXd mlog_expected(3, 1);
+  mlog_expected << 2.0, 1.0, 3.0;
+  mlog_expected = Eigen::log(mlog_expected.array());
+  for (uint i = 0; i < mlog_infer.type.rows; i++) {
+    for (uint j = 0; j < mlog_infer.type.cols; j++) {
+      EXPECT_NEAR(mlog_expected(i, j), mlog_infer._matrix(i, j), 1e-4);
     }
   }
 }

@@ -189,6 +189,18 @@ class DOT {
         return "ToMatrix";
       case OperatorType::COLUMN_INDEX:
         return "ColumnIndex";
+      case OperatorType::BROADCAST_ADD:
+        return "BroadcastAdd";
+      case OperatorType::CHOLESKY:
+        return "Cholesky";
+      case OperatorType::MATRIX_EXP:
+        return "MatrixExp";
+      case OperatorType::LOG_PROB:
+        return "LogProb";
+      case OperatorType::MATRIX_SUM:
+        return "MatrixSum";
+      case OperatorType::MATRIX_LOG:
+        return "MatrixLog";
       default:
         return "Operator";
     }

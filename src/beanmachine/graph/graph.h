@@ -343,6 +343,7 @@ enum class OperatorType {
   MATRIX_EXP,
   LOG_PROB,
   MATRIX_SUM,
+  MATRIX_LOG,
 };
 
 enum class DistributionType {

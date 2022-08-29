@@ -354,6 +354,14 @@ void MatrixExp::backward() {
   }
 }
 
+void MatrixLog::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1 +=
+        back_grad1.as_matrix().cwiseQuotient(in_nodes[0]->value._matrix);
+  }
+}
+
 void MatrixSum::backward() {
   assert(in_nodes.size() == 1);
   if (in_nodes[0]->needs_gradient()) {
