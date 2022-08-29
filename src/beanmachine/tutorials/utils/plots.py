@@ -293,11 +293,10 @@ def scatter_plot(  # noqa flake8 C901 too complex
     plot = figure(**fig_kwargs)
 
     for i, plot_source in enumerate(plot_sources):
+        color = next(colors)
         if plot_kwargs:
             if "fill_color" in plot_kwargs:
                 color = plot_kwargs["fill_color"]
-        else:
-            color = next(colors)
         plot_kwargs.update({"fill_color": color})
         if legend_items:
             glyph = plot.circle(
