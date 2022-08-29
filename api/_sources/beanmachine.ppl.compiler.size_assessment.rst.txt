@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.size\_assessment module
+================================================
+
+.. automodule:: beanmachine.ppl.compiler.size_assessment
+   :members:
+   :undoc-members:
+   :show-inheritance:

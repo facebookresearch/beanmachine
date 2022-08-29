@@ -60,9 +60,11 @@ Submodules
    beanmachine.ppl.compiler.rules
    beanmachine.ppl.compiler.runtime
    beanmachine.ppl.compiler.single_assignment
+   beanmachine.ppl.compiler.size_assessment
    beanmachine.ppl.compiler.sizer
    beanmachine.ppl.compiler.special_function_caller
    beanmachine.ppl.compiler.support
+   beanmachine.ppl.compiler.tensorizer_transformer
    beanmachine.ppl.compiler.typer_base
 
 Module contents
