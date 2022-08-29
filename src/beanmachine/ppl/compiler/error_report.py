@@ -210,7 +210,8 @@ class UnsizableNode(BMGError):
     def __str__(self) -> str:
         msg = (
             f"The node {get_node_error_label(self.node)} cannot be sized."
-            f"The operand sizes may be incompatible. The sizes are: {self.input_sizes}"
+            f"The operand sizes may be incompatible or the size may not be computable at compile time."
+            f" The operand sizes are: {self.input_sizes}"
         )
 
         if len(self.node_locations) > 0:
