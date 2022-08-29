@@ -61,4 +61,5 @@ __all__ = [
     "random_variable",
     "simulate",
     "split_r_hat",
+    "viz",
 ]
