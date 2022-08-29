@@ -176,7 +176,7 @@ def compute_y_data(
         "distribution": {
             "x": kde_y.tolist(),
             "y": kde_x.tolist(),
-            "bandwidth": bandwidth,
+            "bandwidth": [bandwidth],
         },
         "hdi": {
             "top": {"base": top_base, "lower": top_lower, "upper": top_upper},

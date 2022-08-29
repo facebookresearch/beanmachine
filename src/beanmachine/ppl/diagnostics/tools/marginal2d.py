@@ -52,8 +52,8 @@ class Marginal2d:
             y_hdi_probability=y_hdi_probability,
             bw_factor=bw_factor,
         )
-        x_bw = computed_data["x"]["distribution"]["bandwidth"]
-        y_bw = float(computed_data["y"]["distribution"]["bandwidth"])
+        x_bw = computed_data["x"]["distribution"]["bandwidth"][0]
+        y_bw = computed_data["y"]["distribution"]["bandwidth"][0]
 
         # Create the Bokeh source(s).
         sources = tool.create_sources(computed_data)

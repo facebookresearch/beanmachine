@@ -35,7 +35,7 @@ FIGURE_NAMES = ["ess"]
 
 def compute_data(
     data: npt.NDArray,
-    first_draw: float = 0.0,
+    first_draw: int = 0,
     num_points: int = 20,
 ) -> typing.Data:
     """Compute effective sample size estimates using the given data.
