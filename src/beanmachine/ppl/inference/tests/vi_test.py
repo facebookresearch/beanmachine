@@ -419,7 +419,7 @@ class TestStochasticVariationalInfer:
     def test_discrete_mixture(self):
         model = BinaryGaussianMixture()
 
-        N = 25
+        N = 10
         with bm.world.World.initialize_world(
             itertools.chain.from_iterable([model.x(i), model.h(i)] for i in range(N)),
             initialize_fn=init_from_prior,
@@ -462,7 +462,7 @@ class TestStochasticVariationalInfer:
         assert accuracy.float().item() > 0.80
 
     def test_logistic_regression(self):
-        n, d = 5_000, 2
+        n, d = 500, 2
         X = torch.randn(n, d)
         W = torch.randn(d)
 
@@ -492,7 +492,7 @@ class TestStochasticVariationalInfer:
             observations={},
             optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
         ).infer(
-            num_steps=5000,
+            num_steps=4000,
             num_samples=1,
             # NOTE: since y/q_y are discrete and not reparameterizable, we must
             # use the score function estimator
@@ -558,7 +558,7 @@ class TestStochasticVariationalInfer:
                     for i in range(num_samples)
                 },
                 optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
-            ).infer(num_steps=50, subsample_factor=1.0, num_samples=100)
+            ).infer(num_steps=50, subsample_factor=1.0, num_samples=50)
             mu_approx = world.get_guide_distribution(normal_normal_model.mu())
             assert (mu_approx.mean - expected_mean).norm() > 0.05 or (
                 mu_approx.stddev - expected_stddev
