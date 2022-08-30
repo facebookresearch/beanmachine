@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.devectorizer\_transformer module
+=========================================================
+
+.. automodule:: beanmachine.ppl.compiler.devectorizer_transformer
+   :members:
+   :undoc-members:
+   :show-inheritance:

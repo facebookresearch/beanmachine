@@ -1,0 +1,7 @@
+beanmachine.ppl.compiler.broadcaster module
+===========================================
+
+.. automodule:: beanmachine.ppl.compiler.broadcaster
+   :members:
+   :undoc-members:
+   :show-inheritance:
