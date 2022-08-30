@@ -196,6 +196,10 @@ def test_block_inference_with_default_algorithm():
     assert isinstance(proposers[0], SequentialProposer)
 
 
+@pytest.mark.xfail(
+    raises=RuntimeError,
+    reason="Need to redesign how change in support is being handled in block inference",
+)
 def test_block_inference_changing_support():
     model = ChangingSupportSameShapeModel()
     queries = [model.K()] + [model.component(j) for j in range(3)]
@@ -245,11 +249,10 @@ def test_block_inference_changing_shape():
     # disable NNC because changing shape => non-static model
     compositional = bm.CompositionalInference(nnc_compile=False)
 
-    # should run without error
-    samples = compositional.infer(queries, {}, num_samples=5, num_chains=1).get_chain()
-    # however, K is going to be stuck at its initial value because changing it will
-    # invalidate alpha
-    assert torch.all(samples[model.K()] == samples[model.K()][0])
+    # cannot perform inference since the shape of alpha can change if the value
+    # of K changes
+    with pytest.raises(RuntimeError):
+        compositional.infer(queries, {}, num_samples=10, num_chains=1)
 
 
 def test_default_num_adaptive_samples():

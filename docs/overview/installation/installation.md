@@ -9,7 +9,7 @@ sidebar_label: 'Installation'
 The Google Colaboratory web service (Colab) is probably the quickest way to run Bean Machine. For example, [here is what our Coin Flipping tutorial looks like on Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/main/tutorials/Coin_flipping.ipynb). Similar links can be found for each of our tutorials in the Tutorials section.
 
 ## Requirements
-Python 3.7-3.9 and PyTorch 1.10.
+Python 3.7-3.10 and PyTorch 1.12.
 
 ## Latest Release
 

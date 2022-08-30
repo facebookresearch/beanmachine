@@ -475,5 +475,34 @@ void MatrixSum::eval(std::mt19937& /* gen */) {
   value._double = in_nodes[0]->value._matrix.sum();
 }
 
+MatrixLog::MatrixLog(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_LOG) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_LOG requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_LOG must be a BROADCAST_MATRIX");
+  }
+  auto atomic_type = type.atomic_type;
+  graph::AtomicType new_type;
+  if (atomic_type == graph::AtomicType::POS_REAL) {
+    new_type = graph::AtomicType::REAL;
+  } else if (atomic_type == graph::AtomicType::PROBABILITY) {
+    new_type = graph::AtomicType::NEG_REAL;
+  } else {
+    throw std::invalid_argument(
+        "operator MATRIX_LOG requires a probability or pos_real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX, new_type, type.rows, type.cols));
+}
+
+void MatrixLog::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = Eigen::log(in_nodes[0]->value._matrix.array());
+}
+
 } // namespace oper
 } // namespace beanmachine

@@ -318,6 +318,14 @@ def transform_code_cell(  # noqa: C901 (flake8 too complex)
 
             # Handle "execute_result".
             if cell_output_type == "execute_result":
+                # Handle binary images.
+                if data_category == "image":
+                    if data_type in ["png", "jpeg", "gif", "bmp"]:
+                        mdx_output += (
+                            f"![](data:{data_object};base64,{cell_output_data})\n\n"
+                        )
+                    # TODO: Handle svg images.
+
                 if data_category == "text":
                     # Handle HTML.
                     if data_type == "html":

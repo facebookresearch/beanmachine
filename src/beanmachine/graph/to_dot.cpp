@@ -48,8 +48,8 @@ class DOT {
         os << v._double;
         break;
       default:
-        os << "Scalar";
-        break;
+        throw std::invalid_argument(
+            "internal error: missing case for AtomicType");
     }
   }
 
@@ -75,7 +75,8 @@ class DOT {
         simplex(v);
         break;
       default:
-        os << "Value";
+        throw std::invalid_argument(
+            "internal error: missing case for VariableType");
     }
   }
 
@@ -118,7 +119,8 @@ class DOT {
       case DistributionType::HALF_NORMAL:
         return "HalfNormal";
       default:
-        return "distribution";
+        throw std::invalid_argument(
+            "internal error: missing case for DistributionType");
     }
   }
 
@@ -189,8 +191,21 @@ class DOT {
         return "ToMatrix";
       case OperatorType::COLUMN_INDEX:
         return "ColumnIndex";
+      case OperatorType::BROADCAST_ADD:
+        return "BroadcastAdd";
+      case OperatorType::CHOLESKY:
+        return "Cholesky";
+      case OperatorType::MATRIX_EXP:
+        return "MatrixExp";
+      case OperatorType::LOG_PROB:
+        return "LogProb";
+      case OperatorType::MATRIX_SUM:
+        return "MatrixSum";
+      case OperatorType::MATRIX_LOG:
+        return "MatrixLog";
       default:
-        return "Operator";
+        throw std::invalid_argument(
+            "internal error: missing case for OperatorType");
     }
   }
 
@@ -241,8 +256,8 @@ std::string Graph::to_dot() const {
         dot.node(node->index, "Factor");
         break;
       default:
-        dot.node(node->index, "Node");
-        break;
+        throw std::invalid_argument(
+            "internal error: missing case for NodeType");
     }
   }
 

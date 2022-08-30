@@ -206,6 +206,19 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         else:
             raise ValueError("unrecognized element type")
 
+    def __assert_can_be_broadcast_to(
+        self, small: bt.BMGMatrixType, big: bt.BMGMatrixType
+    ):
+        if small.rows == 1:
+            assert small.columns == 1 or small.columns == big.columns
+        else:
+            assert small.rows == big.rows
+
+        if small.columns == 1:
+            assert small.rows == 1 or small.rows == big.rows
+        else:
+            assert small.columns == big.columns
+
     def _type_binary_elementwise_op(
         self, node: bn.BinaryOperatorNode
     ) -> bt.BMGLatticeType:
@@ -213,8 +226,12 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         right_type = self[node.right]
         assert isinstance(left_type, bt.BMGMatrixType)
         assert isinstance(right_type, bt.BMGMatrixType)
-        assert right_type.rows == left_type.rows
-        assert right_type.columns == left_type.columns
+        r_count = right_type.columns * right_type.rows
+        l_count = left_type.columns * left_type.rows
+        if l_count < r_count:
+            self.__assert_can_be_broadcast_to(left_type, right_type)
+        else:
+            self.__assert_can_be_broadcast_to(right_type, left_type)
         op_type = bt.supremum(
             self._lattice_type_for_element_type(left_type.element_type),
             self._lattice_type_for_element_type(right_type.element_type),

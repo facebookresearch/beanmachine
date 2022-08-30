@@ -39,23 +39,7 @@ class Variable:
         Returns
              The logprob of the `value` of the value given the distribution.
         """
-        try:
-            return self.distribution.log_prob(self.value)
-        # Numerical errors in Cholesky factorization are handled upstream
-        # in respective proposers or in `Sampler.send`.
-        # TODO: Change to torch.linalg.LinAlgError when in release.
-        except (RuntimeError, ValueError) as e:
-            err_msg = str(e)
-            if isinstance(e, RuntimeError) and (
-                "singular U" in err_msg or "input is not positive-definite" in err_msg
-            ):
-                raise e
-            dtype = (
-                self.value.dtype
-                if torch.is_floating_point(self.value)
-                else torch.float32
-            )
-            return torch.tensor(float("-inf"), device=self.value.device, dtype=dtype)
+        return self.distribution.log_prob(self.value)
 
     def replace(self, **changes) -> Variable:
         """Return a new Variable object with fields replaced by the changes"""

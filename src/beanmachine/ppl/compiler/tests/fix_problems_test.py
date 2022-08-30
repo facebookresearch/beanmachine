@@ -257,7 +257,6 @@ digraph "graph" {
         observed = str(error_report)
         expected = """
 The count of a binomial is required to be a natural but is a positive real.
-The probability of a Bernoulli is required to be a probability but is a 2 x 1 simplex matrix.
 The probability of a binomial is required to be a probability but is a positive real.
 The sigma of a normal is required to be a positive real but is a negative real.
         """

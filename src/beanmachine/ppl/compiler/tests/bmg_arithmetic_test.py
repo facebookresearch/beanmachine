@@ -3134,9 +3134,6 @@ digraph "graph" {
     def test_bmg_arithmetic_sum(self) -> None:
         self.maxDiff = None
 
-        # TODO: sum operators are not yet properly supported by the compiler/BMG;
-        # update this test when we get them working.
-
         queries = [
             sum_1(),
             sum_2(),
@@ -3157,30 +3154,40 @@ digraph "graph" {
   N08[label=1.0];
   N09[label=Normal];
   N10[label=Sample];
-  N11[label=ToReal];
-  N12[label=3.0];
-  N13[label="+"];
-  N14[label=Query];
-  N15[label=4.0];
-  N16[label="+"];
+  N11[label=3];
+  N12[label=1];
+  N13[label=ToReal];
+  N14[label=3.0];
+  N15[label=ToMatrix];
+  N16[label=MatrixSum];
   N17[label=Query];
+  N18[label=4.0];
+  N19[label=ToMatrix];
+  N20[label=MatrixSum];
+  N21[label=Query];
   N00 -> N01;
   N02 -> N03;
   N04 -> N05;
   N04 -> N05;
   N05 -> N06;
-  N06 -> N11;
+  N06 -> N13;
   N07 -> N09;
   N08 -> N09;
   N09 -> N10;
-  N10 -> N13;
-  N10 -> N16;
-  N11 -> N13;
-  N11 -> N16;
-  N12 -> N13;
-  N13 -> N14;
+  N10 -> N15;
+  N10 -> N19;
+  N11 -> N15;
+  N11 -> N19;
+  N12 -> N15;
+  N12 -> N19;
+  N13 -> N15;
+  N13 -> N19;
+  N14 -> N15;
   N15 -> N16;
   N16 -> N17;
+  N18 -> N19;
+  N19 -> N20;
+  N20 -> N21;
 }
 """
         observed = BMGInference().to_dot(queries, {})

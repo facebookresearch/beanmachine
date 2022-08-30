@@ -339,9 +339,30 @@ class Sizer(TyperBase[Size]):
         if len(node.inputs.inputs) != 3:
             return Unsized
         tensor_being_summed = node.inputs.inputs[0]
-        # TODO: we can't compute the size at compile time but we don't have a way to represent dynamic sizes in Size right now
-        # For now, just return original size
-        return self[tensor_being_summed]
+        dim_to_sum_node = node.inputs.inputs[1]
+        dim_to_sum = -1
+        if isinstance(dim_to_sum_node, bn.ConstantNode):
+            dim_to_sum = dim_to_sum_node.value
+
+        keep_dim_node = node.inputs.inputs[2]
+        keep_dim = None
+        if isinstance(keep_dim_node, bn.ConstantNode):
+            keep_dim = keep_dim_node.value
+        operand_size = self[tensor_being_summed]
+        if keep_dim is False:
+            if dim_to_sum != -1:
+                new_size = []
+                for j, dim in enumerate(operand_size):
+                    if j != dim_to_sum:
+                        new_size.append(dim)
+                return Size(new_size)
+            else:
+                return Unsized
+        elif keep_dim is True:
+            return operand_size
+        else:
+            # TODO: we can't compute the size at compile time but we don't have a way to represent dynamic sizes in Size right now
+            return Unsized
 
     # This implements the abstract base type method.
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> Size:
