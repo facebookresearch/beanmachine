@@ -17,7 +17,7 @@ REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
 
 INSTALL_REQUIRES = [
-    "arviz>=0.11.0",
+    "arviz>=0.12.1",
     "astor>=0.7.1",
     "black==22.3.0",
     "botorch>=0.5.1",
