@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.world.variable import Variable
@@ -18,8 +19,10 @@ def test_log_prob():
     var3 = var1.replace(distribution=dist.Normal(0.0, 1.0))
     assert var1.log_prob.sum() < var3.log_prob.sum()
 
+    # Expects an error here because support doesn't match
     var4 = var1.replace(distribution=dist.Categorical(logits=torch.rand(2, 4)))
-    assert torch.all(torch.isinf(var4.log_prob))
+    with pytest.raises(RuntimeError):
+        var4.log_prob
 
     var5 = Variable(
         value=torch.tensor(10).double(),
