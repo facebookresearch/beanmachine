@@ -4,7 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 """Marginal 1D diagnostic tool types for a Bean Machine model."""
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Union
+
+from beanmachine.ppl.diagnostics.tools.typing import TypedDict
 
 from bokeh.models.annotations import Band, LabelSet
 from bokeh.models.glyphs import Circle, Line
@@ -26,7 +28,7 @@ Figures = Dict[Any, Any]
 Glyphs = Dict[Any, Any]
 Annotations = Dict[Any, Any]
 Tooltips = Dict[Any, Any]
-Widgets = Dict[str, Div | Select | Slider]
+Widgets = Dict[str, Union[Div, Select, Slider]]
 
 # NOTE: TypedDict objects are for reference only. Due to the way pyre accesses keys in
 #       dictionaries, and how NumPy casts arrays when using tolist(), we are unable to

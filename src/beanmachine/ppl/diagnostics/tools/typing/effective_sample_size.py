@@ -4,7 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 """Effective Sample Size diagnostic tool types for a Bean Machine model."""
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List
+
+from beanmachine.ppl.diagnostics.tools.typing import TypedDict
 
 from bokeh.models.annotations import Legend
 from bokeh.models.glyphs import Circle, Line

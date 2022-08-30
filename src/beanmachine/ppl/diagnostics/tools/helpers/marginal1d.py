@@ -58,11 +58,11 @@ def compute_stats(
         The y-axis KDE estimate of the random variable data.
     hdi_probability : float
         The HDI probability to use when calculating the HDI bounds.
-    text_align : List[str] | None, optional default is ``None``
+    text_align : Optional[List[str]], optional default is ``None``
         How to display label justifications for the statistics in Bokeh.
-    x_offset : List[int] | None, optional default is ``None``
+    x_offset : Optional[List[int]], optional default is ``None``
         x-axis offsets for the labels.
-    y_offset : List[int] | None, optional default is ``None``
+    y_offset : Optional[List[int]], optional default is ``None``
         y-axis offsets for the labels.
     return_labels : bool, optional default is ``False``
         ``True`` returns labels to be used in the Bokeh figure.

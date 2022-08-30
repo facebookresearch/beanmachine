@@ -4,7 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 """Autocorrelation diagnostic tool types for a Bean Machine model."""
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Union
+
+from beanmachine.ppl.diagnostics.tools.typing import TypedDict
 
 from bokeh.models.annotations import BoxAnnotation
 from bokeh.models.glyphs import Quad
@@ -15,7 +17,7 @@ from bokeh.models.widgets.sliders import RangeSlider
 from bokeh.plotting.figure import Figure
 
 
-Figure_names = None | List[str]
+Figure_names = Union[None, List[str]]
 
 # NOTE: These are the types pyre gives us when using `reveal_type(...)` on the outputs
 # of the methods.
@@ -25,7 +27,7 @@ Figures = Dict[Any, Any]
 Glyphs = Dict[Any, Any]
 Annotations = Dict[Any, Any]
 Tooltips = Dict[Any, Any]
-Widgets = Dict[str, RangeSlider | Select]
+Widgets = Dict[str, Union[RangeSlider, Select]]
 
 # NOTE: TypedDict objects are for reference only. Due to the way pyre accesses keys in
 #       dictionaries, and how NumPy casts arrays when using tolist(), we are unable to

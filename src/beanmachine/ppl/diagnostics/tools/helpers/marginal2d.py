@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """Methods used to generate the diagnostic tool."""
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import arviz as az
 import beanmachine.ppl.diagnostics.tools.typing.marginal2d as typing
@@ -917,7 +917,7 @@ def update(
     x_hdi_probability: float,
     y_hdi_probability: float,
     bw_factor: float,
-) -> tuple[float, float]:
+) -> Tuple[float, float]:
     """Update the tool based on user interaction.
 
     Parameters
@@ -949,8 +949,8 @@ def update(
 
     Returns
     -------
-    None
-        Updates Bokeh ColumnDataSource objects.
+    Tuple[float, float]
+        Returns the bandwidth for both the axes.
     """
     computed_data = compute_data(
         x_rv_data,
