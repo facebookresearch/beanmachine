@@ -72,6 +72,7 @@ PYBIND11_MODULE(graph, module) {
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
       .value("LOG", OperatorType::LOG)
+      .value("LOG1P", OperatorType::LOG1P)
       .value("POW", OperatorType::POW)
       .value("TRANSPOSE", OperatorType::TRANSPOSE)
       .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
@@ -91,7 +92,8 @@ PYBIND11_MODULE(graph, module) {
       .value("CHOLESKY", OperatorType::CHOLESKY)
       .value("MATRIX_EXP", OperatorType::MATRIX_EXP)
       .value("MATRIX_SUM", OperatorType::MATRIX_SUM)
-      .value("MATRIX_LOG", OperatorType::MATRIX_LOG);
+      .value("MATRIX_LOG", OperatorType::MATRIX_LOG)
+      .value("MATRIX_LOG1P", OperatorType::MATRIX_LOG1P);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

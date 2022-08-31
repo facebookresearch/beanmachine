@@ -169,6 +169,8 @@ class DOT {
         return "LogSumExp";
       case OperatorType::LOG:
         return "Log";
+      case OperatorType::LOG1P:
+        return "Log1p";
       case OperatorType::POW:
         return "^";
       case OperatorType::LOG1MEXP:
@@ -203,6 +205,8 @@ class DOT {
         return "MatrixSum";
       case OperatorType::MATRIX_LOG:
         return "MatrixLog";
+      case OperatorType::MATRIX_LOG1P:
+        return "MatrixLog1p";
       default:
         throw std::invalid_argument(
             "internal error: missing case for OperatorType");

@@ -600,5 +600,32 @@ void MatrixSum::compute_gradients() {
   grad2 = in_nodes[0]->Grad2.sum();
 }
 
+void Log1p::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // f(x) = log(g(x) + 1)
+  // f'(x) = g'(x) / (g(x) + 1)
+  // f''(x) = ((g(x) + 1) g''(x) - g'(x)^2)/(g(x) + 1)^2
+  auto g = in_nodes[0]->value._double;
+  auto gp1 = g + 1;
+  auto g1 = in_nodes[0]->grad1;
+  auto g2 = in_nodes[0]->grad2;
+  grad1 = g1 / gp1;
+  grad2 = (gp1 * g2 - g1 * g1) / (gp1 * gp1);
+}
+
+void MatrixLog1p::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // f(x) = log(g(x) + 1)
+  // f'(x) = g'(x) / (g(x) + 1)
+  // f''(x) = ((g(x) + 1) g''(x) - g'(x)^2)/(g(x) + 1)^2
+  auto g = in_nodes[0]->value._matrix;
+  auto gp1 = (g.array() + 1).matrix();
+  auto g1 = in_nodes[0]->Grad1;
+  auto g2 = in_nodes[0]->Grad2;
+  Grad1 = g1.cwiseQuotient(gp1);
+  Grad2 = (gp1.cwiseProduct(g2) - g1.cwiseProduct(g1))
+              .cwiseQuotient(gp1.cwiseProduct(gp1));
+}
+
 } // namespace oper
 } // namespace beanmachine

@@ -290,5 +290,20 @@ class LogSumExpVector : public UnaryOperator {
   }
 };
 
+class Log1p : public UnaryOperator {
+ public:
+  explicit Log1p(const std::vector<graph::Node*>& in_nodes);
+  ~Log1p() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+  void backward() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<Log1p>(in_nodes);
+  }
+};
+
 } // namespace oper
 } // namespace beanmachine
