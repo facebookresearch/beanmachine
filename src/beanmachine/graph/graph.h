@@ -344,6 +344,8 @@ enum class OperatorType {
   LOG_PROB,
   MATRIX_SUM,
   MATRIX_LOG,
+  LOG1P,
+  MATRIX_LOG1P,
 };
 
 enum class DistributionType {

@@ -107,6 +107,10 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
 
     OperatorFactory::register_op(graph::OperatorType::LOG, &(Log::new_op)) &&
 
+    OperatorFactory::register_op(
+        graph::OperatorType::LOG1P,
+        &(Log1p::new_op)) &&
+
     // linear algebra op
     OperatorFactory::register_op(
         graph::OperatorType::TRANSPOSE,
@@ -139,6 +143,10 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
     OperatorFactory::register_op(
         graph::OperatorType::MATRIX_LOG,
         &(MatrixLog::new_op)) &&
+
+    OperatorFactory::register_op(
+        graph::OperatorType::MATRIX_LOG1P,
+        &(MatrixLog1p::new_op)) &&
 
     // matrix index
     OperatorFactory::register_op(

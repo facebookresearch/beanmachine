@@ -1126,7 +1126,7 @@ TEST(testgradient, matrix_log_grad_backward) {
 # backwards gradients as PyTorch.
 
 import torch
-hn = torch.distributions.HalfNormal(0, 1)
+hn = torch.distributions.HalfNormal(1)
 s0 = torch.tensor(1.0, requires_grad=True)
 s1 = torch.tensor(0.5, requires_grad=True)
 mlog0 = s0.log()
@@ -1563,4 +1563,66 @@ TEST(testgradient, matrix_sum) {
   EXPECT_EQ(grad1.size(), 2);
   EXPECT_NEAR((*grad1[0]), 2.0, 1e-3);
   EXPECT_NEAR((*grad1[1]), -1.25, 1e-3);
+}
+
+TEST(testgradient, matrix_log1p_grad_backward) {
+  /*
+# Test backward differentiation
+#
+# Build the same model in PyTorch and BMG; we should get the same
+# backwards gradients as PyTorch.
+
+import torch
+hn = torch.distributions.HalfNormal(1)
+s0 = torch.tensor(1.0, requires_grad=True)
+s1 = torch.tensor(0.5, requires_grad=True)
+mlog0 = s0.log1p()
+mlog1 = s1.log1p()
+n0 = torch.distributions.Normal(mlog0, 1.0)
+n1 = torch.distributions.Normal(mlog1, 1.0)
+sn0 = torch.tensor(2.5, requires_grad=True)
+sn1 = torch.tensor(1.5, requires_grad=True)
+log_prob = (n0.log_prob(sn0) + n1.log_prob(sn1) +
+  hn.log_prob(s0) + hn.log_prob(s1))
+print(torch.autograd.grad(log_prob, s0, retain_graph=True)) # -0.0966
+print(torch.autograd.grad(log_prob, s1, retain_graph=True)) # 0.2297
+print(torch.autograd.grad(log_prob, sn0, retain_graph=True)) # -1.8069
+print(torch.autograd.grad(log_prob, sn1, retain_graph=True)) # -1.0945
+  */
+
+  Graph g;
+  auto one = g.add_constant_pos_real(1.0);
+  auto hn = g.add_distribution(
+      DistributionType::HALF_NORMAL, AtomicType::POS_REAL, {one});
+  auto two = g.add_constant((natural_t)2);
+  auto hn_sample =
+      g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{hn, two});
+  Eigen::MatrixXd hn_observed(2, 1);
+  hn_observed << 1.0, 0.5;
+  g.observe(hn_sample, hn_observed);
+
+  auto mlog_pos = g.add_operator(OperatorType::MATRIX_LOG1P, {hn_sample});
+  auto mlog = g.add_operator(OperatorType::TO_REAL_MATRIX, {mlog_pos});
+  auto index_zero = g.add_constant((natural_t)0);
+  auto mlog0 = g.add_operator(OperatorType::INDEX, {mlog, index_zero});
+  auto index_one = g.add_constant((natural_t)1);
+  auto mlog1 = g.add_operator(OperatorType::INDEX, {mlog, index_one});
+
+  auto n0 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {mlog0, one});
+  auto n1 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {mlog1, one});
+
+  auto ns0 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n0});
+  g.observe(ns0, 2.5);
+  auto ns1 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n1});
+  g.observe(ns1, 1.5);
+
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 3);
+  EXPECT_NEAR((*grad1[0])(0), -0.0966, 1e-3);
+  EXPECT_NEAR((*grad1[0])(1), 0.2297, 1e-3);
+  EXPECT_NEAR((*grad1[1]), -1.8069, 1e-3);
+  EXPECT_NEAR((*grad1[2]), -1.0945, 1e-3);
 }

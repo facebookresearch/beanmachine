@@ -560,5 +560,27 @@ void LogSumExpVector::eval(std::mt19937& /* gen */) {
   }
 }
 
+Log1p::Log1p(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::LOG1P, in_nodes) {
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if (type0 != graph::AtomicType::POS_REAL &&
+      type0 != graph::AtomicType::REAL) {
+    throw std::invalid_argument(
+        "operator LOG1P requires a real or pos_real parent");
+  }
+  value = graph::NodeValue(graph::AtomicType::REAL);
+
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("LOG1P requires one parent node");
+  }
+  value = graph::NodeValue(graph::AtomicType::REAL);
+}
+
+void Log1p::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::NodeValue& parent = in_nodes[0]->value;
+  value = graph::NodeValue(graph::AtomicType::REAL, std::log1p(parent._double));
+}
+
 } // namespace oper
 } // namespace beanmachine

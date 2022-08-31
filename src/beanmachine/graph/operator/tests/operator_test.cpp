@@ -1933,3 +1933,103 @@ TEST(testoperator, matrix_sum) {
   g.get_node(sum3)->eval(gen);
   EXPECT_NEAR(g.get_node(sum3)->value._double, m3.sum(), 1e-5);
 }
+
+TEST(testoperator, log1p) {
+  Graph g;
+  // negative tests: exactly one real or pos_real should be the input.
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG1P, std::vector<uint>{}),
+      std::invalid_argument);
+  auto prob1 = g.add_constant_probability(0.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG1P, std::vector<uint>{prob1}),
+      std::invalid_argument);
+  auto real1 = g.add_constant(-0.5);
+  /* ok */ g.add_operator(OperatorType::LOG1P, std::vector<uint>{real1});
+  auto pos1 = g.add_constant_pos_real(1.0);
+  /* ok */ g.add_operator(OperatorType::LOG1P, std::vector<uint>{pos1});
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG1P, std::vector<uint>{pos1, pos1}),
+      std::invalid_argument);
+
+  // y ~ Normal(log1p(x^2), 1)
+  // If we observe x = 0.5 then the mean should be log1p(0.25) = 0.223.
+  auto prior = g.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
+  auto log1p_x_sq =
+      g.add_operator(OperatorType::LOG1P, std::vector<uint>{x_sq});
+  auto likelihood = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{log1p_x_sq, pos1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
+  g.query(y);
+  g.observe(x, 0.5);
+  const auto& means = g.infer_mean(10000, InferenceType::NMC);
+  EXPECT_NEAR(means[0], 0.223, 0.01);
+  g.observe(y, 0.0);
+
+  // check forward gradient:
+  // Verified in PyTorch using the following code:
+  //
+  // x = tensor(0.5, requires_grad=True)
+  // fx = Normal((x * x).log1p(), tensor(1.0)).log_prob(tensor(0.0))
+  // f1x = grad(fx, x, create_graph=True)
+  // f2x = grad(f1x, x)
+  //
+  // f1x -> -0.1785 and f2x -> -0.8542
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, -0.1785, 1e-3);
+  EXPECT_NEAR(grad2, -0.8542, 1e-3);
+
+  // test the reverse gradient
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR((*grad[0]), -0.1785, 1e-3);
+}
+
+TEST(testoperator, matrix_log1p) {
+  Graph g;
+
+  // negative tests
+  // MATRIX_LOG1P requires matrix parent
+  auto real_number = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG1P, {real_number}),
+      std::invalid_argument);
+  // must be pos real or prob
+  Eigen::MatrixXb bools(2, 1);
+  bools << false, true;
+  auto bools_matrix = g.add_constant_bool_matrix(bools);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG1P, {bools_matrix}),
+      std::invalid_argument);
+  // can only have one parent
+  Eigen::MatrixXd m1(3, 1);
+  m1 << 2.0, 1.0, 3.0;
+  auto m1_matrix = g.add_constant_pos_matrix(m1);
+  Eigen::MatrixXd m2(1, 2);
+  m2 << 0.5, 20.0;
+  auto m2_matrix = g.add_constant_pos_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG1P, {m1_matrix, m2_matrix}),
+      std::invalid_argument);
+
+  auto mlog1p = g.add_operator(OperatorType::MATRIX_LOG1P, {m1_matrix});
+  g.query(mlog1p);
+
+  auto mlog1p_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  Eigen::MatrixXd mlog1p_expected(3, 1);
+  mlog1p_expected << 2.0, 1.0, 3.0;
+  mlog1p_expected = Eigen::log1p(mlog1p_expected.array());
+  for (uint i = 0; i < mlog1p_infer.type.rows; i++) {
+    for (uint j = 0; j < mlog1p_infer.type.cols; j++) {
+      EXPECT_NEAR(mlog1p_expected(i, j), mlog1p_infer._matrix(i, j), 1e-4);
+    }
+  }
+}

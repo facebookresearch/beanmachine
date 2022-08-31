@@ -369,5 +369,21 @@ void MatrixSum::backward() {
   }
 }
 
+void Log1p::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    double jacob = 1 / (1 + in_nodes[0]->value._double);
+    in_nodes[0]->back_grad1 += back_grad1 * jacob;
+  }
+}
+
+void MatrixLog1p::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1 += back_grad1.as_matrix().cwiseQuotient(
+        (in_nodes[0]->value._matrix.array() + 1).matrix());
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine
