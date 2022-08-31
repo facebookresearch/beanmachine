@@ -24,6 +24,8 @@ filterwarnings = [
     "default:pandas.Int64Index is deprecated *:FutureWarning",
     # functorch 0.1.0 imports deprecated _stateless module
     "default:The `torch.nn.utils._stateless` code is deprecated*:DeprecationWarning",
+    # BM warns against using torch tensors as arguments of random variables
+    "default:PyTorch tensors are hashed by memory address instead of value.*:UserWarning",
 ]
 
 [tool.usort]

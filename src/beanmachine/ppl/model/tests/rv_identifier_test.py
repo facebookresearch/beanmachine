@@ -5,6 +5,7 @@
 
 import pickle
 import unittest
+import warnings
 
 import beanmachine.ppl as bm
 import torch
@@ -38,6 +39,28 @@ class RVIdentifierTest(unittest.TestCase):
 
         def __eq__(self, other):
             return isinstance(other, RVIdentifierTest.SampleModelWithEq)
+
+    class SampleModelWithIndex:
+        @bm.random_variable
+        def foo(self, u: int):
+            return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
+
+    def test_indexed_model_rv_identifier(self):
+        model = self.SampleModelWithIndex()
+
+        # RVs indexed using primitives should not show a user warning
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            model.foo(1)
+
+        with self.assertWarns(UserWarning) as context:
+            model.foo(torch.tensor(1))
+        self.assertEqual(
+            "PyTorch tensors are hashed by memory address instead of value. "
+            "Therefore, it is not recommended to use tensors as indices of random variables.",
+            str(context.warning),
+            msg="RVs indexed using tensor should show the correct user warning",
+        )
 
     def test_pickle_unbound_rv_identifier(self):
         original_foo_key = foo()

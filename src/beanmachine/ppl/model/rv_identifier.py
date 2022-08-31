@@ -3,8 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Tuple
+
+import torch
 
 
 @dataclass(eq=True, frozen=True)
@@ -16,6 +19,15 @@ class RVIdentifier:
 
     wrapper: Callable
     arguments: Tuple
+
+    def __post_init__(self):
+        for arg in self.arguments:
+            if torch.is_tensor(arg):
+                warnings.warn(
+                    "PyTorch tensors are hashed by memory address instead of value. "
+                    "Therefore, it is not recommended to use tensors as indices of random variables.",
+                    stacklevel=3,
+                )
 
     def __str__(self):
         return str(self.function.__name__) + str(self.arguments)
