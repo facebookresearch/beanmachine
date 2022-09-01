@@ -23,7 +23,7 @@ class HME:
         self.posterior_samples = None
         self.posterior_diagnostics = None
 
-    def infer(self, infer_config: InferConfig) -> Tuple[pd.DataFrame]:
+    def infer(self, infer_config: InferConfig) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Performs MCMC posterior inference on HME model parameters and
         returns MCMC samples for those parameters registered in the query.
 

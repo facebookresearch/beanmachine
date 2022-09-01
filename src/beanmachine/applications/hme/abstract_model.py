@@ -198,7 +198,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         else:
             query_map[str(prev_key)] = self.g.query(queries)
 
-    def infer(self, infer_config: InferConfig) -> Tuple[pd.DataFrame]:
+    def infer(self, infer_config: InferConfig) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Performs MCMC posterior inference on model parameters.
 
         :param infer_config: configuration settings of posterior inference
