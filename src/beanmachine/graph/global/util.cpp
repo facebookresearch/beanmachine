@@ -16,7 +16,7 @@ void set_default_transforms(Graph& g) {
   // add default transforms based on constraints
   // to transform all variables to the unconstrained space
   // POS_REAL variables -> LOG transform
-  // TODO: add simplex transform
+  // PROBABILITY variables -> SIGMOID transform
   for (uint node_id : g.compute_ordered_support_node_ids()) {
     // @lint-ignore CLANGTIDY
     auto node = g.nodes[node_id].get();
@@ -25,6 +25,11 @@ void set_default_transforms(Graph& g) {
       if (sto_node->transform_type == TransformType::NONE) {
         if (node->value.type.atomic_type == AtomicType::POS_REAL) {
           g.customize_transformation(TransformType::LOG, {node_id});
+          // initialize the type of the unconstrained value
+          // TODO: rename method to be more clear
+          sto_node->get_unconstrained_value(true);
+        } else if (node->value.type.atomic_type == AtomicType::PROBABILITY) {
+          g.customize_transformation(TransformType::SIGMOID, {node_id});
           // initialize the type of the unconstrained value
           // TODO: rename method to be more clear
           sto_node->get_unconstrained_value(true);

@@ -6,15 +6,13 @@
  */
 
 #define _USE_MATH_DEFINES
-#include <cmath>
-
-#include <boost/math/special_functions/polygamma.hpp>
-
-#include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/util.h"
+#include <boost/math/special_functions/polygamma.hpp>
+#include <Eigen/Core>
+#include <cmath>
+#include "beanmachine/graph/graph.h"
 
-namespace beanmachine {
-namespace util {
+namespace beanmachine::util {
 
 // see https://core.ac.uk/download/pdf/41787448.pdf
 const double PHI_APPROX_GAMMA = 1.702;
@@ -114,6 +112,10 @@ double log1pexp(double x) {
   }
 }
 
+Eigen::MatrixXd log1pexp(const Eigen::MatrixXd& x) {
+  return x.unaryExpr([](double x) { return log1pexp(x); });
+}
+
 double log1mexp(double x) {
   assert(x <= 0);
   if (x < -0.693) {
@@ -123,5 +125,4 @@ double log1mexp(double x) {
   }
 }
 
-} // namespace util
-} // namespace beanmachine
+} // namespace beanmachine::util

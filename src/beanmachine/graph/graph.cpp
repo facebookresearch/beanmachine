@@ -873,6 +873,8 @@ void Graph::customize_transformation(
   if (common_transformations.empty()) {
     common_transformations[TransformType::LOG] =
         std::make_unique<transform::Log>();
+    common_transformations[TransformType::SIGMOID] =
+        std::make_unique<transform::Sigmoid>();
   }
   auto iter = common_transformations.find(customized_type);
   if (iter == common_transformations.end()) {
@@ -892,6 +894,12 @@ void Graph::customize_transformation(
         if (sto_node->value.type.atomic_type != AtomicType::POS_REAL) {
           throw std::invalid_argument(
               "Log transformation requires POS_REAL value.");
+        }
+        break;
+      case TransformType::SIGMOID:
+        if (sto_node->value.type.atomic_type != AtomicType::PROBABILITY) {
+          throw std::invalid_argument(
+              "Sigmoid transformation requires PROBABILITY value.");
         }
         break;
       default:

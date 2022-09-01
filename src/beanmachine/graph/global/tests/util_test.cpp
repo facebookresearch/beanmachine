@@ -35,8 +35,8 @@ TEST(testglobal, global_default_transform) {
       g.add_operator(OperatorType::SAMPLE, {probability_dist});
   g.query(probability_sample);
 
-  // TODO: add support for simplex distributions
-  EXPECT_THROW(set_default_transforms(g), std::runtime_error);
+  // test support for simplex distributions
+  set_default_transforms(g); // should run with no issues
 
   Graph g1;
   uint natural_dist =
