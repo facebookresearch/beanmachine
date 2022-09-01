@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <Eigen/Dense>
 #include <algorithm>
 #include <random>
 
@@ -115,6 +116,8 @@ See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 :returns: log(1 + exp(x))
 */
 double log1pexp(double x);
+
+Eigen::MatrixXd log1pexp(const Eigen::MatrixXd& x);
 
 /*
 Compute `log(1 - exp(x))` with numerical stability.

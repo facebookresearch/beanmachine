@@ -12,7 +12,7 @@ namespace beanmachine::graph {
 class NodeValue;
 struct DoubleMatrix;
 
-enum class TransformType { NONE = 0, LOG = 1 };
+enum class TransformType { NONE = 0, LOG = 1, SIGMOID = 2 };
 
 class Transformation {
  public:
@@ -62,9 +62,13 @@ class Transformation {
     return 0;
   }
   /*
-  Given the gradient of the joint log prob w.r.t x, update the value so
-  that it is taken w.r.t y:
+  Given the gradient of the joint log prob of the untransformed distribution
+  w.r.t x (the constrained value), update the value so that it is the gradient
+  of the joint log prob of the transformed distribution taken w.r.t y (the
+  unconstrained value):
+
     back_grad = back_grad * dx / dy + d(log |det(d x / d y)|) / dy
+
   :param back_grad: the gradient w.r.t x
   :param constrained: the node value x in constrained space
   :param unconstrained: the node value y in unconstrained space
