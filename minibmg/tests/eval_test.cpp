@@ -77,7 +77,7 @@ TEST(eval_test, sample1) {
 // the function f
 template <class T>
 requires Number<T> T f(T x) {
-  return 1.1 * x.pow(2);
+  return 1.1 * pow(x, 2);
 }
 
 // f's first derivative
@@ -119,9 +119,8 @@ TEST(eval_test, derivative_dual) {
     data.clear();
     data.assign(graph_size, 0);
     eval_graph<Dual>(graph, gen, read_variable, data);
-    EXPECT_CLOSE(f<Real>(input).as_double(), data[s].primal().as_double());
-    EXPECT_CLOSE(
-        fp<Real>(input).as_double(), data[s].derivative1().as_double());
+    EXPECT_CLOSE(f<Real>(input).as_double(), data[s].primal.as_double());
+    EXPECT_CLOSE(fp<Real>(input).as_double(), data[s].derivative1.as_double());
   }
 }
 
@@ -152,10 +151,8 @@ TEST(eval_test, derivatives_triune) {
     data.clear();
     data.assign(graph_size, 0);
     eval_graph<Triune>(graph, gen, read_variable, data);
-    EXPECT_CLOSE(f<Real>(input).as_double(), data[s].primal().as_double());
-    EXPECT_CLOSE(
-        fp<Real>(input).as_double(), data[s].derivative1().as_double());
-    EXPECT_CLOSE(
-        fpp<Real>(input).as_double(), data[s].derivative2().as_double());
+    EXPECT_CLOSE(f<Real>(input).as_double(), data[s].primal.as_double());
+    EXPECT_CLOSE(fp<Real>(input).as_double(), data[s].derivative1.as_double());
+    EXPECT_CLOSE(fpp<Real>(input).as_double(), data[s].derivative2.as_double());
   }
 }

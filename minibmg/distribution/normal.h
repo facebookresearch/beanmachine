@@ -28,10 +28,10 @@ class Normal : public Distribution<Underlying> {
     // log[PDF[NormalDistribution[m, s], v]]
     // = -(v-m)^2 / 2s^2 - log(s * sqrt(2 * PI))
     // = -(v-m)^2 / 2s^2 - log(s) - log(sqrt(2 * PI))
-    static const auto ls2pi = std::log(std::sqrt(2 * M_PI));
+    static const double ls2pi = std::log(std::sqrt(2 * M_PI));
     auto vmm = value - mean;
     auto t2 = vmm * vmm;
-    return -t2 / (2 * stddev * stddev) - stddev.log() - ls2pi;
+    return -t2 / (2 * stddev * stddev) - log(stddev) - ls2pi;
   }
 };
 

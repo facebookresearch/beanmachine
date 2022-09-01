@@ -37,18 +37,18 @@ eval_operator(Operator op, std::function<N(uint)> get_value) {
     case Operator::DIVIDE:
       return get_value(0) / get_value(1);
     case Operator::POW:
-      return get_value(0).pow(get_value(1));
+      return pow(get_value(0), get_value(1));
     case Operator::EXP:
-      return get_value(0).exp();
+      return exp(get_value(0));
     case Operator::LOG:
-      return get_value(0).log();
+      return log(get_value(0));
     case Operator::ATAN:
-      return get_value(0).atan();
+      return atan(get_value(0));
     case Operator::LGAMMA:
-      return get_value(0).lgamma();
+      return lgamma(get_value(0));
     case Operator::POLYGAMMA: {
       // Note that we discard the gradients of n and require it be a constant.
-      return get_value(0).polygamma(get_value(1).as_double());
+      return polygamma((int)get_value(0).as_double(), get_value(1));
     }
     default:
       throw EvalError(

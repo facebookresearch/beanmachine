@@ -26,8 +26,8 @@ class Bernoulli : public Distribution<Underlying> {
     auto probability_of_zero = 1 - probability_of_one;
     return value.if_equal(
         1,
-        probability_of_one.log(),
-        value.if_equal(0, probability_of_zero.log(), -INFINITY));
+        log(probability_of_one),
+        value.if_equal(0, log(probability_of_zero), -INFINITY));
   }
 };
 

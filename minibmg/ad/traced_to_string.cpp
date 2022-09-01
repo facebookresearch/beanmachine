@@ -91,7 +91,7 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
           std::static_pointer_cast<const TracedConstant, const TracedBody>(
               traced.ptr())
               .get();
-      return PrintedForm{b->value.to_string(), Precedence::Term};
+      return PrintedForm{to_string(b->value), Precedence::Term};
     }
     case Operator::VARIABLE: {
       const TracedVariable* b =
@@ -142,14 +142,12 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
               traced.ptr())
               .get();
       auto left = cache[b->args[0]];
-      auto ls = (left.precedence > Precedence::Term)
-          ? fmt::format("({0})", left.string)
-          : left.string;
+      auto ls = left.string;
       auto right = cache[b->args[1]];
       auto rs = right.string;
       auto this_string = string_for_operator(op);
       return PrintedForm{
-          fmt::format("{0}.{1}({2})", ls, this_string, rs), Precedence::Term};
+          fmt::format("{1}({0}, {2})", ls, this_string, rs), Precedence::Term};
     }
     case Operator::EXP:
     case Operator::LOG:
@@ -161,11 +159,9 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
               .get();
       auto this_string = string_for_operator(op);
       auto left = cache[b->args[0]];
-      auto ls = (left.precedence > Precedence::Term)
-          ? fmt::format("({0})", left.string)
-          : left.string;
+      auto ls = left.string;
       return PrintedForm{
-          fmt::format("{0}.{1}()", ls, this_string), Precedence::Term};
+          fmt::format("{1}({0})", ls, this_string), Precedence::Term};
     }
     case Operator::IF_LESS:
     case Operator::IF_EQUAL: {
@@ -175,12 +171,10 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
               .get();
       auto this_string = string_for_operator(op);
       auto left = cache[b->args[0]];
-      auto ls = (left.precedence > Precedence::Term)
-          ? fmt::format("({0})", left.string)
-          : left.string;
+      auto ls = left.string;
       return PrintedForm{
           fmt::format(
-              "{0}.{1}({2}, {3}, {4})",
+              "{1}({0}, {2}, {3}, {4})",
               ls,
               this_string,
               cache[b->args[1]].string,
@@ -204,6 +198,9 @@ PrintedForm to_printed_form(
   cache[t] = p;
   return p;
 }
+} // namespace
+
+namespace beanmachine::minibmg {
 
 std::string to_string(const Traced& traced) {
   auto successors = [](const Traced& t) {
@@ -233,9 +230,4 @@ std::string to_string(const Traced& traced) {
   return cache[traced].string;
 }
 
-} // namespace
-
-std::string beanmachine::minibmg::Traced::to_string() const {
-  const Traced& self = *this;
-  return ::to_string(self);
-}
+} // namespace beanmachine::minibmg

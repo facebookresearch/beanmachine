@@ -43,7 +43,7 @@ TEST(log_prob, normal_dual) {
   // ReplaceAll[D[log(PDF[NormalDistribution[4.223, 6.221], x]), {x, 1}], {x
   // -> 1.234}]
   double expected_derivative1 = 0.0772335;
-  EXPECT_CLOSE(expected_derivative1, result.derivative1().as_double());
+  EXPECT_CLOSE(expected_derivative1, result.derivative1.as_double());
 }
 
 using Triune = Num3<Real>;
@@ -56,9 +56,9 @@ TEST(log_prob, normal_triune) {
   auto result = Normal<Triune>{mean, stdev}.log_prob(v);
   EXPECT_CLOSE(expected, result.as_double());
   double expected_derivative1 = 0.0772335;
-  EXPECT_CLOSE(expected_derivative1, result.derivative1().as_double());
+  EXPECT_CLOSE(expected_derivative1, result.derivative1.as_double());
   // ReplaceAll[D[log(PDF[NormalDistribution[4.223, 6.221], x]), {x, 2}], {x
   // -> 1.234}]
   double expected_derivative2 = -0.0258392;
-  EXPECT_CLOSE(expected_derivative2, result.derivative2().as_double());
+  EXPECT_CLOSE(expected_derivative2, result.derivative2.as_double());
 }

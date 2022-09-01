@@ -29,9 +29,9 @@ TEST(num3_test, division_denominator) {
   double k2 = 7.0;
   const Triune x{k1, 1, 0};
   const Triune& y = k2 / x;
-  EXPECT_CLOSE(k2 / k1, y.primal().as_double());
-  EXPECT_CLOSE(-(k2 / (k1 * k1)), y.derivative1().as_double());
-  EXPECT_CLOSE(2 * k2 / (k1 * k1 * k1), y.derivative2().as_double());
+  EXPECT_CLOSE(k2 / k1, y.primal.as_double());
+  EXPECT_CLOSE(-(k2 / (k1 * k1)), y.derivative1.as_double());
+  EXPECT_CLOSE(2 * k2 / (k1 * k1 * k1), y.derivative2.as_double());
 }
 
 template <class N>
@@ -47,20 +47,20 @@ requires Number<T> std::vector<BinaryFunction<T>> functions() {
       [](T a, T b) { return a - b; },
       [](T a, T b) { return a * b; },
       [](T a, T b) { return a / b; },
-      [](T a, T b) { return a.pow(b); },
-      [](T a, T b) { return (a + b).exp(); },
-      [](T a, T b) { return (a + b + 4).log(); },
-      [](T a, T b) { return (a + b).atan(); },
-      [](T a, T b) { return (a + b).lgamma(); },
-      [](T a, T b) { return (a + b).polygamma(0); },
-      [](T a, T b) { return (a + b).polygamma(1); },
-      [](T a, T b) { return (a + b).polygamma(2); },
-      [](T a, T b) { return (a + b).polygamma(3); },
-      [](T a, T b) { return a.if_equal(a, b, a); },
-      [](T a, T b) { return a.if_equal(b, b, a); },
-      [](T a, T b) { return a.if_less(b, a, b); },
-      [](T a, T b) { return b.if_less(a, b, a); },
-      [](T a, T b) { return (a.exp() + b.exp()).log(); },
+      [](T a, T b) { return pow(a, b); },
+      [](T a, T b) { return exp(a + b); },
+      [](T a, T b) { return log(a + b + 4); },
+      [](T a, T b) { return atan(a + b); },
+      [](T a, T b) { return lgamma(a + b); },
+      [](T a, T b) { return polygamma(0, a + b); },
+      [](T a, T b) { return polygamma(1, a + b); },
+      [](T a, T b) { return polygamma(2, a + b); },
+      [](T a, T b) { return polygamma(3, a + b); },
+      [](T a, T b) { return if_equal(a, a, b, a); },
+      [](T a, T b) { return if_equal(a, b, b, a); },
+      [](T a, T b) { return if_less(a, b, a, b); },
+      [](T a, T b) { return if_less(b, a, b, a); },
+      [](T a, T b) { return log(exp(a) + exp(b)); },
       [](T a, T b) {
         return 1.2 * a * a * a + 2.6 * a * a * b + 3.14 * a * b * b +
             4.41 * b * b * b;
@@ -108,12 +108,11 @@ TEST(num3_test, compare_to_num2) {
       const auto& d3 = f2(d1, d2);
 
       EXPECT_CLOSE(t3.as_double(), d3.as_double());
-      EXPECT_CLOSE(t3.derivative1().as_double(), d3.derivative1().as_double());
+      EXPECT_CLOSE(t3.derivative1.as_double(), d3.derivative1.as_double());
       EXPECT_CLOSE(
-          t3.derivative1().as_double(), d3.primal().derivative1().as_double());
+          t3.derivative1.as_double(), d3.primal.derivative1.as_double());
       EXPECT_CLOSE(
-          t3.derivative2().as_double(),
-          d3.derivative1().derivative1().as_double());
+          t3.derivative2.as_double(), d3.derivative1.derivative1.as_double());
     }
   }
 }

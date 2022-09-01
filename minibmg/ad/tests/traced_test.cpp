@@ -14,28 +14,27 @@ using namespace ::beanmachine::minibmg;
 
 TEST(traced_test, simple1) {
   Traced x = Traced::variable("x", 0);
-  auto r = 100 * x.pow(3) + 10 * x.pow(2) + 1 * x - 5;
-  ASSERT_EQ("100 * x.pow(3) + 10 * x.pow(2) + x - 5", r.to_string());
+  auto r = 100 * pow(x, 3) + 10 * pow(x, 2) + 1 * x - 5;
+  ASSERT_EQ("100 * pow(x, 3) + 10 * pow(x, 2) + x - 5", to_string(r));
 }
 
 TEST(traced_test, simple2) {
   Traced x = Traced::variable("x", 0);
-  auto r = x.pow(-x);
-  ASSERT_EQ("x.pow(-x)", r.to_string());
+  auto r = pow(x, -x);
+  ASSERT_EQ("pow(x, -x)", to_string(r));
 }
 
 TEST(traced_test, simple3) {
   Traced x = Traced::variable("x", 0);
   auto r = (x + 1) / (x + 2);
-  ASSERT_EQ("(x + 1) / (x + 2)", r.to_string());
+  ASSERT_EQ("(x + 1) / (x + 2)", to_string(r));
 }
 
 TEST(traced_test, simple4) {
   Traced x = Traced::variable("x", 0);
-  auto r = x.exp() + x.log() + x.atan() + x.lgamma() + x.polygamma(5);
+  auto r = exp(x) + log(x) + atan(x) + lgamma(x) + polygamma(5, x);
   ASSERT_EQ(
-      "x.exp() + x.log() + x.atan() + x.lgamma() + x.polygamma(5)",
-      r.to_string());
+      "exp(x) + log(x) + atan(x) + lgamma(x) + polygamma(5, x)", to_string(r));
 }
 
 TEST(traced_test, simple5) {
@@ -43,8 +42,8 @@ TEST(traced_test, simple5) {
   Traced y = Traced::variable("y", 1);
   Traced z = Traced::variable("z", 2);
   Traced w = Traced::variable("w", 3);
-  auto r = x.if_equal(y, z, w);
-  ASSERT_EQ("x.if_equal(y, z, w)", r.to_string());
+  auto r = if_equal(x, y, z, w);
+  ASSERT_EQ("if_equal(x, y, z, w)", to_string(r));
 }
 
 TEST(traced_test, simple6) {
@@ -52,8 +51,8 @@ TEST(traced_test, simple6) {
   Traced y = Traced::variable("y", 1);
   Traced z = Traced::variable("z", 2);
   Traced w = Traced::variable("w", 3);
-  auto r = x.if_less(y, z, w);
-  ASSERT_EQ("x.if_less(y, z, w)", r.to_string());
+  auto r = if_less(x, y, z, w);
+  ASSERT_EQ("if_less(x, y, z, w)", to_string(r));
 }
 
 // Show what happens when the computation graph is a dag instead of a tree.
@@ -66,13 +65,13 @@ TEST(traced_test, dag) {
   auto t3 = t2 + t2;
   // As a small consolation, at least it is minimally parenthesized to preserve
   // order of operations.
-  ASSERT_EQ("x + x + (x + x) + (x + x + (x + x))", t3.to_string());
+  ASSERT_EQ("x + x + (x + x) + (x + x + (x + x))", to_string(t3));
 }
 
 TEST(traced_test, derivative1) {
   Traced tx = Traced::variable("x", 0);
   Num2<Traced> x{tx, 1};
-  auto r = x.pow(2) + 10 * x + 100;
-  auto rp = r.derivative1();
-  ASSERT_EQ("2 * x + 10", rp.to_string());
+  auto r = pow(x, 2) + 10 * x + 100;
+  auto rp = r.derivative1;
+  ASSERT_EQ("2 * x + 10", to_string(rp));
 }
