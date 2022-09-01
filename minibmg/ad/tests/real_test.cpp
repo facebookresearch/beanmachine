@@ -45,23 +45,23 @@ TEST(real_test, computations) {
     EXPECT_RSAME(-r1, -d1);
     EXPECT_RSAME(r1 * r2, d1 * d2);
     EXPECT_RSAME(r1 / r2, d1 / d2);
-    EXPECT_RSAME((r1 + 2).pow(r2), std::pow(d1 + 2, d2));
-    EXPECT_RSAME(r1.exp(), std::exp(d1));
-    EXPECT_RSAME((r1 + 2).log(), std::log(d1 + 2));
-    EXPECT_RSAME(r1.atan(), std::atan(d1));
-    EXPECT_RSAME(r1.polygamma(0), boost::math::polygamma(0, d1));
-    EXPECT_RSAME(r1.polygamma(1), boost::math::polygamma(1, d1));
-    EXPECT_RSAME(r1.polygamma(2), boost::math::polygamma(2, d1));
-    EXPECT_RSAME(r1.if_equal(r1, r2, r3), d2);
-    EXPECT_RSAME(r1.if_equal(r2, r3, r4), d4);
-    EXPECT_RSAME(r1.if_less(r2, r3, r4), (d1 < d2) ? d3 : d4);
-    EXPECT_RSAME(r2.if_less(r1, r3, r4), (d2 < d1) ? d3 : d4);
+    EXPECT_RSAME(pow(r1 + 2, r2), std::pow(d1 + 2, d2));
+    EXPECT_RSAME(exp(r1), std::exp(d1));
+    EXPECT_RSAME(log(r1 + 2), std::log(d1 + 2));
+    EXPECT_RSAME(atan(r1), std::atan(d1));
+    EXPECT_RSAME(polygamma(0, r1), boost::math::polygamma(0, d1));
+    EXPECT_RSAME(polygamma(1, r1), boost::math::polygamma(1, d1));
+    EXPECT_RSAME(polygamma(2, r1), boost::math::polygamma(2, d1));
+    EXPECT_RSAME(if_equal(r1, r1, r2, r3), d2);
+    EXPECT_RSAME(if_equal(r1, r2, r3, r4), d4);
+    EXPECT_RSAME(if_less(r1, r2, r3, r4), (d1 < d2) ? d3 : d4);
+    EXPECT_RSAME(if_less(r2, r1, r3, r4), (d2 < d1) ? d3 : d4);
   }
 }
 
 TEST(real_test, definite) {
-  EXPECT_TRUE(Real(0).is_constant(0));
-  EXPECT_FALSE(Real(0.001).is_constant(0));
-  EXPECT_TRUE(Real(1).is_constant(1));
-  EXPECT_FALSE(Real(1.001).is_constant(1));
+  EXPECT_TRUE(is_constant(Real(0), 0));
+  EXPECT_FALSE(is_constant(Real(0.001), 0));
+  EXPECT_TRUE(is_constant(Real(1), 1));
+  EXPECT_FALSE(is_constant(Real(1.001), 1));
 }

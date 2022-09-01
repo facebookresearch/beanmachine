@@ -27,11 +27,10 @@ An implementation of the Number concept that simply builds an expression tree
 performed.
  */
 class Traced {
- private:
+ public:
   Operator m_op;
   shared_ptr<const TracedBody> m_ptr;
 
- public:
   /* implicit */ Traced(double d);
   static Traced variable(const std::string& name, const uint sequence);
   inline Operator op() const {
@@ -42,32 +41,34 @@ class Traced {
   }
 
   double as_double() const;
-  Traced operator+(const Traced& other) const;
-  Traced operator-(const Traced& other) const;
-  Traced operator-() const;
-  Traced operator*(const Traced& other) const;
-  Traced operator/(const Traced& other) const;
-  Traced pow(const Traced& other) const;
-  Traced exp() const;
-  Traced log() const;
-  Traced atan() const;
-  Traced lgamma() const;
-  Traced polygamma(const Traced& other) const;
-  Traced if_equal(
-      const Traced& comparand,
-      const Traced& when_equal,
-      const Traced& when_not_equal) const;
-  Traced if_less(
-      const Traced& comparand,
-      const Traced& when_less,
-      const Traced& when_not_less) const;
-  bool is_constant(double& value) const;
-  bool is_constant(const double& value) const;
-  std::string to_string() const;
 
- protected:
   Traced(const Operator op, shared_ptr<const TracedBody> p);
 };
+
+Traced operator+(const Traced& left, const Traced& right);
+Traced operator-(const Traced& left, const Traced& right);
+Traced operator-(const Traced& x);
+Traced operator*(const Traced& left, const Traced& right);
+Traced operator/(const Traced& left, const Traced& right);
+Traced pow(const Traced& base, const Traced& exponent);
+Traced exp(const Traced& x);
+Traced log(const Traced& x);
+Traced atan(const Traced& x);
+Traced lgamma(const Traced& x);
+Traced polygamma(int n, const Traced& other);
+Traced if_equal(
+    const Traced& value,
+    const Traced& comparand,
+    const Traced& when_equal,
+    const Traced& when_not_equal);
+Traced if_less(
+    const Traced& value,
+    const Traced& comparand,
+    const Traced& when_less,
+    const Traced& when_not_less);
+bool is_constant(const Traced& x, double& value);
+bool is_constant(const Traced& x, const double& value);
+std::string to_string(const Traced& x);
 
 class TracedBody {
  public:

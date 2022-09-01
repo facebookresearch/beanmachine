@@ -25,147 +25,99 @@ namespace beanmachine::minibmg {
 template <class Underlying>
 requires Number<Underlying>
 class Num2 {
- private:
-  Underlying m_primal, m_derivative1;
-
  public:
+  Underlying primal, derivative1;
+
   /* implicit */ Num2(double primal);
   /* implicit */ Num2(Underlying primal);
   Num2(Underlying primal, Underlying derivative1);
   Num2(const Num2<Underlying>& other);
-  Num2<Underlying>& operator=(const Num2<Underlying>& other);
-  Underlying primal() const;
-  Underlying derivative1() const;
+  Num2<Underlying>& operator=(const Num2<Underlying>& other) = default;
   double as_double() const;
-  Num2<Underlying> operator+(const Num2<Underlying>& other) const;
-  Num2<Underlying> operator-(const Num2<Underlying>& other) const;
-  Num2<Underlying> operator-() const;
-  Num2<Underlying> operator*(const Num2<Underlying>& other) const;
-  Num2<Underlying> operator/(const Num2<Underlying>& other) const;
-  Num2<Underlying> pow(const Num2<Underlying>& other) const;
-  Num2<Underlying> exp() const;
-  Num2<Underlying> log() const;
-  Num2<Underlying> atan() const;
-  Num2<Underlying> lgamma() const;
-  Num2<Underlying> polygamma(double n) const;
-  Num2<Underlying> if_equal(
-      const Num2<Underlying>& comparand,
-      const Num2<Underlying>& when_equal,
-      const Num2<Underlying>& when_not_equal) const;
-  Num2<Underlying> if_less(
-      const Num2<Underlying>& comparand,
-      const Num2<Underlying>& when_less,
-      const Num2<Underlying>& when_not_less) const;
-  bool is_constant(double& value) const;
-  bool is_constant(const double& value) const;
-  std::string to_string() const;
 };
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(double primal)
-    : m_primal(primal), m_derivative1(0.0) {}
+    : primal(primal), derivative1(0.0) {}
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(Underlying primal)
-    : m_primal(primal), m_derivative1(0.0) {}
+    : primal(primal), derivative1(0.0) {}
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(
     Underlying primal,
     Underlying derivative1)
-    : m_primal(primal), m_derivative1(derivative1) {}
+    : primal(primal), derivative1(derivative1) {}
 
 template <class Underlying>
 requires Number<Underlying> Num2<Underlying>::Num2(
     const Num2<Underlying>& other)
-    : m_primal(other.m_primal), m_derivative1(other.m_derivative1) {}
-
-template <class Underlying>
-requires Number<Underlying> Num2<Underlying>
-&Num2<Underlying>::operator=(const Num2<Underlying>& other) {
-  this->m_primal = other.m_primal;
-  this->m_derivative1 = other.m_derivative1;
-  return *this;
-}
-
-template <class Underlying>
-requires Number<Underlying> Underlying Num2<Underlying>::primal()
-const {
-  return m_primal;
-}
-
-template <class Underlying>
-requires Number<Underlying> Underlying Num2<Underlying>::derivative1()
-const {
-  return m_derivative1;
-}
+    : primal(other.primal), derivative1(other.derivative1) {}
 
 template <class Underlying>
 requires Number<Underlying>
 double Num2<Underlying>::as_double() const {
-  return m_primal.as_double();
+  return primal.as_double();
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator+(
-    const Num2<Underlying>& other) const {
+requires Number<Underlying> Num2<Underlying>
+operator+(const Num2<Underlying>& left, const Num2<Underlying>& right) {
   return Num2<Underlying>{
-      this->m_primal + other.m_primal,
-      this->m_derivative1 + other.m_derivative1};
+      left.primal + right.primal, left.derivative1 + right.derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator-(
-    const Num2<Underlying>& other) const {
+requires Number<Underlying> Num2<Underlying>
+operator-(const Num2<Underlying>& left, const Num2<Underlying>& right) {
   return Num2<Underlying>{
-      this->m_primal - other.m_primal,
-      this->m_derivative1 - other.m_derivative1};
+      left.primal - right.primal, left.derivative1 - right.derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator-()
-    const {
-  return Num2<Underlying>{-this->m_primal, -this->m_derivative1};
+requires Number<Underlying> Num2<Underlying>
+operator-(const Num2<Underlying>& x) {
+  return Num2<Underlying>{-x.primal, -x.derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator*(
-    const Num2<Underlying>& other) const {
+requires Number<Underlying> Num2<Underlying>
+operator*(const Num2<Underlying>& left, const Num2<Underlying>& right) {
   return Num2<Underlying>{
-      this->m_primal * other.m_primal,
-      this->m_primal * other.m_derivative1 +
-          this->m_derivative1 * other.m_primal};
+      left.primal * right.primal,
+      left.primal * right.derivative1 + left.derivative1 * right.primal};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::operator/(
-    const Num2<Underlying>& other) const {
+requires Number<Underlying> Num2<Underlying>
+operator/(const Num2<Underlying>& left, const Num2<Underlying>& right) {
   // a / b
-  Underlying new_primal = this->m_primal / other.m_primal;
+  Underlying new_primal = left.primal / right.primal;
 
   // Using https://www.wolframalpha.com/
   // D[a(x) / b(x), x] -> (b[x] a'[x] - a[x] b'[x])/b[x]^2
-  auto other2 = other.m_primal * other.m_primal;
-  Underlying new_derivative1 = (other.m_primal * this->m_derivative1 -
-                                this->m_primal * other.m_derivative1) /
+  auto other2 = right.primal * right.primal;
+  Underlying new_derivative1 =
+      (right.primal * left.derivative1 - left.primal * right.derivative1) /
       other2;
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::pow(
-    const Num2<Underlying>& other)
-const {
+requires Number<Underlying> Num2<Underlying> pow(
+    const Num2<Underlying>& base,
+    const Num2<Underlying>& exponent) {
   double power;
   // shortcut some cases.
-  if (other.is_constant(power)) {
+  if (is_constant(exponent, power)) {
     if (power == 0)
       return 1;
     if (power == 1)
-      return *this;
+      return base;
   }
 
-  const Underlying new_primal = this->m_primal.pow(other.m_primal);
+  const Underlying new_primal = pow(base.primal, exponent.primal);
 
   // From https://www.wolframalpha.com/
   // D[a(x) ^ (b(x)), x] ->
@@ -175,116 +127,110 @@ const {
   // We avoid using the log (e.g. of a negative number) when not needed.
   // t0 = a[x] Log[a[x]] b'[x]
   const Underlying t0 =
-      other.m_derivative1.is_constant(0) || this->m_primal.is_constant(0)
+      is_constant(exponent.derivative1, 0) || is_constant(base.primal, 0)
       ? 0
-      : this->m_primal * this->m_primal.log() * other.m_derivative1;
+      : base.primal * log(base.primal) * exponent.derivative1;
 
   // b[x] * a'[x] + a[x] Log[a[x]] b'[x]
-  const Underlying x0 = other.m_primal * this->m_derivative1 + t0;
+  const Underlying x0 = exponent.primal * base.derivative1 + t0;
 
   // a[x]^(b[x] - 1) (b[x] a'[x] + a[x] Log[a[x]] b'[x])
-  Underlying new_derivative1 = x0 * this->m_primal.pow(other.m_primal - 1);
+  Underlying new_derivative1 = x0 * pow(base.primal, exponent.primal - 1);
 
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::exp()
-const {
-  Underlying new_primal = this->m_primal.exp();
-  Underlying new_derivative1 = new_primal * this->m_derivative1;
+requires Number<Underlying> Num2<Underlying> exp(const Num2<Underlying>& x) {
+  Underlying new_primal = exp(x.primal);
+  Underlying new_derivative1 = new_primal * x.derivative1;
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::log()
-const {
-  Underlying new_primal = this->m_primal.log();
-  Underlying new_derivative1 = this->m_derivative1 / this->m_primal;
+requires Number<Underlying> Num2<Underlying> log(const Num2<Underlying>& x) {
+  Underlying new_primal = log(x.primal);
+  Underlying new_derivative1 = x.derivative1 / x.primal;
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::atan()
-const {
-  Underlying new_primal = this->m_primal.atan();
-  Underlying new_derivative1 =
-      this->m_derivative1 / (this->m_primal * this->m_primal + 1.0f);
+requires Number<Underlying> Num2<Underlying> atan(const Num2<Underlying>& x) {
+  Underlying new_primal = atan(x.primal);
+  Underlying new_derivative1 = x.derivative1 / (x.primal * x.primal + 1.0f);
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::lgamma()
-const {
-  Underlying new_primal = this->m_primal.lgamma();
-  Underlying new_derivative1 =
-      this->m_derivative1 * this->m_primal.polygamma(0);
+requires Number<Underlying> Num2<Underlying> lgamma(const Num2<Underlying>& x) {
+  Underlying new_primal = lgamma(x.primal);
+  Underlying new_derivative1 = x.derivative1 * polygamma(0, x.primal);
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::polygamma(
-    double n)
-const {
-  Underlying new_primal = this->m_primal.polygamma(n);
-  Underlying new_derivative1 =
-      this->m_derivative1 * this->m_primal.polygamma(n + 1);
+requires Number<Underlying> Num2<Underlying> polygamma(
+    int n,
+    const Num2<Underlying>& x) {
+  Underlying new_primal = polygamma(n, x.primal);
+  Underlying new_derivative1 = x.derivative1 * polygamma(n + 1, x.primal);
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::if_equal(
+requires Number<Underlying> Num2<Underlying> if_equal(
+    const Num2<Underlying>& value,
     const Num2<Underlying>& comparand,
     const Num2<Underlying>& when_equal,
-    const Num2<Underlying>& when_not_equal)
-const {
-  // Note: we discard and ignore this->m_derivative1 and
-  // comparand->m_derivative1
-  Underlying new_primal = this->m_primal.if_equal(
-      comparand.m_primal, when_equal.m_primal, when_not_equal.m_primal);
-  Underlying new_derivative1 = this->m_primal.if_equal(
-      comparand.m_primal,
-      when_equal.m_derivative1,
-      when_not_equal.m_derivative1);
+    const Num2<Underlying>& when_not_equal) {
+  // Note: we discard and ignore left.derivative1 and
+  // comparand->derivative1
+  Underlying new_primal = if_equal(
+      value.primal, comparand.primal, when_equal.primal, when_not_equal.primal);
+  Underlying new_derivative1 = if_equal(
+      value.primal,
+      comparand.primal,
+      when_equal.derivative1,
+      when_not_equal.derivative1);
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
-requires Number<Underlying> Num2<Underlying> Num2<Underlying>::if_less(
+requires Number<Underlying> Num2<Underlying> if_less(
+    const Num2<Underlying>& value,
     const Num2<Underlying>& comparand,
     const Num2<Underlying>& when_less,
-    const Num2<Underlying>& when_not_less)
-const {
-  // Note: we discard and ignore this->m_derivative1 and
-  // comparand->m_derivative1
-  Underlying new_primal = this->m_primal.if_less(
-      comparand.m_primal, when_less.m_primal, when_not_less.m_primal);
-  Underlying new_derivative1 = this->m_primal.if_less(
-      comparand.m_primal, when_less.m_derivative1, when_not_less.m_derivative1);
+    const Num2<Underlying>& when_not_less) {
+  // Note: we discard and ignore left.derivative1 and
+  // comparand->derivative1
+  Underlying new_primal = if_less(
+      value.primal, comparand.primal, when_less.primal, when_not_less.primal);
+  Underlying new_derivative1 = if_less(
+      value.primal,
+      comparand.primal,
+      when_less.derivative1,
+      when_not_less.derivative1);
   return Num2<Underlying>{new_primal, new_derivative1};
 }
 
 template <class Underlying>
 requires Number<Underlying>
-bool Num2<Underlying>::is_constant(double& value) const {
-  return this->m_derivative1.is_constant(0) &&
-      this->m_primal.is_constant(value);
+bool is_constant(const Num2<Underlying>& x, double& value) {
+  return is_constant(x.derivative1, 0) && is_constant(x.primal, value);
 }
 
 template <class Underlying>
 requires Number<Underlying>
-bool Num2<Underlying>::is_constant(const double& value) const {
-  return this->m_derivative1.is_constant(0) &&
-      this->m_primal.is_constant(value);
+bool is_constant(const Num2<Underlying>& x, const double& value) {
+  return is_constant(x.derivative1, 0) && is_constant(x.primal, value);
 }
 
 template <class Underlying>
-requires Number<Underlying> std::string Num2<Underlying>::to_string()
-const {
+requires Number<Underlying> std::string to_string(const Num2<Underlying>& x) {
   return fmt::format(
       "[primal={0}, derivative={1}]",
-      this->m_primal.to_string(),
-      this->m_derivative1.to_string);
+      to_string(x.primal),
+      to_string(x.derivative1));
 }
 
 static_assert(Number<Num2<Real>>);

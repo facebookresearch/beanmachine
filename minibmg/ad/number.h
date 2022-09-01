@@ -16,7 +16,13 @@ namespace beanmachine::minibmg {
 // a Number.  A type T satisfies the concept Number<T> if it supports
 // all of the following operations.
 template <typename T>
-concept Number = requires(T a, T b, T c, T d, double n) {
+concept Number = requires(
+    const T& a,
+    const T& b,
+    const T& c,
+    const T& d,
+    int n,
+    double dbl) {
   // there should be a conversion from double to T.
   std::convertible_to<double, T>;
   // it should support the arithmetic oeprators.
@@ -26,52 +32,70 @@ concept Number = requires(T a, T b, T c, T d, double n) {
   { (a * b) } -> std::convertible_to<T>;
   { a / b } -> std::convertible_to<T>;
   // it should support the following transcendental operations.
-  { a.pow(b) } -> std::convertible_to<T>;
-  { a.exp() } -> std::convertible_to<T>;
-  { a.log() } -> std::convertible_to<T>;
-  { a.atan() } -> std::convertible_to<T>;
-  { a.lgamma() } -> std::convertible_to<T>;
-  { a.polygamma(n) } -> std::convertible_to<T>;
+  { pow(a, b) } -> std::convertible_to<T>;
+  { exp(a) } -> std::convertible_to<T>;
+  { log(a) } -> std::convertible_to<T>;
+  { atan(a) } -> std::convertible_to<T>;
+  { lgamma(a) } -> std::convertible_to<T>;
+  { polygamma(n, a) } -> std::convertible_to<T>;
   // conditional for equality, less-than.
-  { a.if_equal(b, c, d) } -> std::convertible_to<T>;
-  { a.if_less(b, c, d) } -> std::convertible_to<T>;
+  { if_equal(a, b, c, d) } -> std::convertible_to<T>;
+  { if_less(a, b, c, d) } -> std::convertible_to<T>;
   // There should be a conservative (meaning it may return false even when
   // a number satisfies the test) way to sometimes know if a value is exactly
   // a constant.
-  { a.is_constant(n) } -> std::same_as<bool>;
-  { a.to_string() } -> std::same_as<std::string>;
+  { is_constant(a, dbl) } -> std::same_as<bool>;
+  { to_string(a) } -> std::same_as<std::string>;
 };
 
-// Support binary operators with double on the left.
-
 template <typename T>
-requires Number<T>
-inline T operator+(double a, T b) {
-  return T(a) + b;
+requires Number<T> T operator+(double l, const T& r) {
+  return T{l} + r;
 }
 
 template <typename T>
-requires Number<T>
-inline T operator-(double a, T b) {
-  return T(a) - b;
+requires Number<T> T operator+(const T& l, double r) {
+  return l + T{r};
 }
 
 template <typename T>
-requires Number<T>
-inline T operator*(double a, T b) {
-  return T(a) * b;
+requires Number<T> T operator-(double l, const T& r) {
+  return T{l} - r;
 }
 
 template <typename T>
-requires Number<T>
-inline T operator/(double a, T b) {
-  return T(a) / b;
+requires Number<T> T operator-(const T& l, double r) {
+  return l - T{r};
 }
 
 template <typename T>
-requires Number<T>
-inline T pow(double a, T b) {
-  return T(a).pow(b);
+requires Number<T> T operator*(double l, const T& r) {
+  return T{l} * r;
+}
+
+template <typename T>
+requires Number<T> T operator*(const T& l, double r) {
+  return l * T{r};
+}
+
+template <typename T>
+requires Number<T> T operator/(double l, const T& r) {
+  return T{l} / r;
+}
+
+template <typename T>
+requires Number<T> T operator/(const T& l, double r) {
+  return l / T{r};
+}
+
+template <typename T>
+requires Number<T> T pow(double l, const T& r) {
+  return pow(T{l}, r);
+}
+
+template <typename T>
+requires Number<T> T pow(const T& l, double r) {
+  return pow(l, T{r});
 }
 
 } // namespace beanmachine::minibmg

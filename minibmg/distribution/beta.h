@@ -33,8 +33,8 @@ class Beta : public Distribution<Underlying> {
     return p;
   }
   Underlying log_prob(const Underlying& value) const override {
-    return (a - 1) * value.log() + (b - 1) * (1 - value).log() +
-        (a + b).lgamma() - a.lgamma() - b.lgamma();
+    return (a - 1) * log(value) + (b - 1) * log(1 - value) + lgamma(a + b) -
+        lgamma(a) - lgamma(b);
   }
 };
 
