@@ -76,13 +76,10 @@ double Phi_approx_inv(double z) {
 }
 
 double log_sum_exp(const std::vector<double>& values) {
-  // find the max and subtract it out
-  double max = values[0];
-  for (std::vector<double>::size_type idx = 1; idx < values.size(); idx++) {
-    if (values[idx] > max) {
-      max = values[idx];
-    }
-  }
+  // See "log-sum-exp trick for log-domain calculations" in
+  // https://en.wikipedia.org/wiki/LogSumExp
+  assert(values.size() != 0);
+  double max = *std::max_element(values.begin(), values.end());
   double sum = 0;
   for (auto value : values) {
     sum += std::exp(value - max);
@@ -94,6 +91,21 @@ double log_sum_exp(double a, double b) {
   double max_val = a > b ? a : b;
   double sum = std::exp(a - max_val) + std::exp(b - max_val);
   return std::log(sum) + max_val;
+}
+
+std::vector<double> probs_given_log_potentials(std::vector<double> log_pot) {
+  // p_i = pot_i/Z
+  // where Z is the normalization constant sum_i exp(log pot_i).
+  // = exp(log(pot_i/Z))
+  // = exp(log pot_i - logZ)
+  // logZ is log(sum_i exp(log pot_i))
+  auto logZ = log_sum_exp(log_pot);
+  std::vector<double> probs;
+  probs.reserve(log_pot.size());
+  for (size_t i = 0; i != log_pot.size(); i++) {
+    probs.push_back(std::exp(log_pot[i] - logZ));
+  }
+  return probs;
 }
 
 double polygamma(int n, double x) {

@@ -124,6 +124,9 @@ struct ValueType {
 
 typedef NATURAL_TYPE natural_t;
 
+extern NATURAL_TYPE NATURAL_ZERO;
+extern NATURAL_TYPE NATURAL_ONE;
+
 class NodeValue {
  public:
   ValueType type;
@@ -374,6 +377,9 @@ enum class DistributionType {
   LKJ_CHOLESKY
 };
 
+// TODO: do we really need DistributionType? Can't we know the type of a
+// Distribution from its class alone?
+
 enum class FactorType {
   UNKNOWN,
   EXP_PRODUCT,
@@ -449,9 +455,17 @@ class Node {
   virtual bool needs_gradient() const {
     return true;
   }
-  // gradient_log_prob is also only valid for stochastic nodes
-  // TODO: shouldn't we then restrict them to those classes? See above.
-  // this function adds the gradients to the passed in gradients
+  // gradient_log_prob is also only valid for stochastic nodes.
+  // (TODO: shouldn't we then restrict them to those classes? See above.)
+  // It computes the first and second gradients of the log prob
+  // of this node with respect to a given target node and
+  // adds them to the passed-in gradient parameters.
+  // Note that for this computation to be correct,
+  // gradients (the grad1 and grad2 properties of nodes)
+  // must have been updated all the way from the
+  // target node to this node.
+  // This is because this method only performs a local computation
+  // and relies on the grad1 and grad2 attributes of nodes.
   virtual void gradient_log_prob(
       const graph::Node* target_node,
       double& /* grad1 */,

@@ -42,7 +42,8 @@ void StochasticOperator::gradient_log_prob(
   //   but it is not represented as an in-node.
   //
   // This makes the computation of this derivative less uniform
-  // and less directly corresponding to the typical use of the chain rule.
+  // and less directly corresponding to the typical use of the chain rule
+  // for the operations explicitly represented as nodes.
   //
   // Still, it should be possible to simply apply the chain rule
   // and find an expression involving the gradient of this stochastic node's

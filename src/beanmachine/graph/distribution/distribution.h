@@ -112,11 +112,13 @@ class Distribution : public graph::Node {
   the log prob of the distribution w.r.t. the sampled value.
   :param value: value of the child Sample operator, a single draw from the
   distribution
-  :param back_grad: back_grad1 of the child Sample operator, to be incremented
-  :param adjunct: a multiplier that represents the gradient of the target
-  function w.r.t the log prob of this distribution. It uses the default value
-  1.0 if the direct child is a StochasticOperator, but requires input if the
-  direct child is a mixture distribution.
+  :param back_grad: variable to which the gradient will be added.
+  :param adjunct: if we are interested in df(log_prob)/dvalue, then
+  adjunct must be df(log_prob)/dlog_prob.
+  If we are interested in dlog_prob/dvalue then the adjunct is 1,
+  which is the default.
+  For other cases (such as this distribution being a component of a
+  mixture distribution), the appropriate adjunct must be provided.
   */
   virtual void backward_value(
       const graph::NodeValue& /* value */,
@@ -134,14 +136,8 @@ class Distribution : public graph::Node {
       graph::DoubleMatrix& /* back_grad */,
       Eigen::MatrixXd& /* adjunct */) const {}
   /*
-  In backward gradient propagation, increments the back_grad1 of each parent
-  node w.r.t. the log prob of the distribution, evaluated at the given value.
-  :param value: value of the child Sample operator, a single draw from the
-  distribution
-  :param adjunct: a multiplier that represents the gradient of the
-  target function w.r.t the log prob of this distribution. It uses the default
-  value 1.0 if the direct child is a StochasticOperator, but requires input if
-  the direct child is a mixture distribution.
+  Analogous to backward_value, but computes the gradient
+  wrt to each parameter, and adds results to their back_grad1 field.
   */
   virtual void backward_param(
       const graph::NodeValue& /* value */,
