@@ -63,13 +63,13 @@ all of the nodes required to compute the MarginalDistribution
 4. the stochastic children nodes of the discrete sample
 5. the parents (a node not in 1-4 that has a child in 1-4)
 
-The original graph will contain
+The original graph will be modified to contain
 1. the MarginalDistribution node (to replace #1-3 from the
    subgraph above)
-2. the children of the MarginalDistribution are the
+2. the children of the MarginalDistribution, which are the
    stochastic children nodes of the discrete node
    (the same as #4 from the subgraph)
-3. the parents of the MarginalDistribution are the parents
+3. the parents of the MarginalDistribution, which are the parents
    of the subgraph (same as #5 from the subgraph)
 
 In order to keep the original graph and the subgraph completely
@@ -87,7 +87,8 @@ same as the parent node in the graph.
 CHILDREN:
 The children of the MarginalDistribution are the stochastic children of
 the discrete sample node.
-The stochastic children are needed to compute the MarginalDistribution,
+The stochastic children are needed to compute the
+log prob of the MarginalDistribution,
 so they are part of the subgraph.
 However, a "copy" of these children also needs to be added to the graph.
 This "copy" node is a SAMPLE node of MarginalDistribution whose value
@@ -104,11 +105,13 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
   std::vector<uint> sto_node_ids;
   std::tie(det_node_ids, sto_node_ids) =
       compute_children(graph, discrete_sample->index);
+  // TODO: do we need to rename the above compute_affected_nodes,
+  // or even use Graph's methods for that instead of computing it ourselves?
 
   // create MarginalDistribution
   std::unique_ptr<distribution::DummyMarginal> marginal_distribution_ptr =
       std::make_unique<distribution::DummyMarginal>(std::move(subgraph_ptr));
-  // TODO: support the correct sample type for multiple children
+  // TODO: support multiple children
   if (sto_node_ids.size() > 0) {
     // @lint-ignore
     marginal_distribution_ptr->sample_type =
@@ -119,7 +122,6 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
       marginal_distribution_ptr.get();
   SubGraph* subgraph = marginal_distribution->subgraph_ptr.get();
 
-  // add nodes to subgraph
   add_nodes_to_subgraph(
       subgraph,
       discrete_distribution,
@@ -127,9 +129,8 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
       det_node_ids,
       sto_node_ids);
 
-  // connect parents to MarginalDistribution in graph
   connect_parents_to_marginal_distribution(graph, marginal_distribution);
-  // add copy of parents to subgraph
+
   add_copy_of_parent_nodes_to_subgraph(subgraph, marginal_distribution);
 
   // create and connect children to MarginalDistribution
@@ -139,6 +140,7 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
 
   // list of all created nodes to add to `nodes` of current graph
   std::vector<std::unique_ptr<Node>> created_graph_nodes;
+
   // add MarginalDistribution to list of created nodes
   created_graph_nodes.push_back(std::move(marginal_distribution_ptr));
   // add created nodes to list of created_graph_nodes
@@ -154,6 +156,7 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
   // the created nodes should be inserted right after the largest parent index
   uint marginal_distribution_index =
       compute_largest_parent_index(marginal_distribution) + 1;
+
   // insert created nodes into graph at "marginalized_node_index"
   for (uint i = 0; i < created_graph_nodes.size(); i++) {
     graph.nodes.insert(
@@ -164,7 +167,7 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
 }
 
 /*
-returns <determinisitc_node_ids, stochastic_node_ids>
+returns <deterministic_node_ids, stochastic_node_ids>
 1. deterministic_node_ids are all of the deterministic nodes up until the
 2. stochastic_node_ids children are reached
 */

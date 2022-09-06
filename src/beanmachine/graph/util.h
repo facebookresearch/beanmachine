@@ -89,12 +89,22 @@ std::vector<T> percentiles(
 }
 
 /*
-Compute log of the sum of the exponentiation of all the values in the vector
+Equivalent to log of sum of exponentiations of values,
+but more numerically stable.
 :param values: vector of log values
 :returns: log sum exp of values
 */
 double log_sum_exp(const std::vector<double>& values);
 double log_sum_exp(double a, double b);
+
+/*
+  Given log potentials log pot_i
+  where potentials pot_i are an unnormalized probability distribution,
+  return the normalized probability distribution p_i.
+  p_i = pot_i/Z
+  where Z is the normalization constant sum_i exp(log pot_i).
+*/
+std::vector<double> probs_given_log_potentials(std::vector<double> log_pot);
 
 struct BinaryLogSumExp {
   double operator()(double a, double b) const {

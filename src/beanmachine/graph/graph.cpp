@@ -23,6 +23,9 @@
 namespace beanmachine {
 namespace graph {
 
+NATURAL_TYPE NATURAL_ZERO = 0ull;
+NATURAL_TYPE NATURAL_ONE = 1ull;
+
 std::string ValueType::to_string() const {
   std::string vtype;
   std::string atype;
