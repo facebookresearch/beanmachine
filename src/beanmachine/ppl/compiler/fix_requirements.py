@@ -36,6 +36,16 @@ def _is_real_matrix(t: bt.BMGLatticeType) -> bool:
     )
 
 
+def _is_pos_real_matrix(t: bt.BMGLatticeType) -> bool:
+    return any(
+        isinstance(t, m)
+        for m in {
+            bt.PositiveRealMatrix,
+            bt.ProbabilityMatrix,
+        }
+    )
+
+
 class RequirementsFixer:
     """This class takes a Bean Machine Graph builder and attempts to
     fix violations of BMG type system requirements.
@@ -64,6 +74,8 @@ class RequirementsFixer:
             return True
         if r is bt.any_real_matrix:
             return _is_real_matrix(t)
+        if r is bt.any_pos_real_matrix:
+            return _is_pos_real_matrix(t)
         if r == bt.RealMatrix:
             return isinstance(t, bt.RealMatrix)
         if isinstance(r, bt.UpperBound):
@@ -79,7 +91,7 @@ class RequirementsFixer:
             return self._typer.is_matrix(node) and self._type_meets_requirement(
                 lattice_type, r.bound
             )
-        if r is bt.any_real_matrix:
+        if r is bt.any_real_matrix or r is bt.any_pos_real_matrix:
             return self._typer.is_matrix(node) and self._type_meets_requirement(
                 lattice_type, r
             )
@@ -116,6 +128,13 @@ class RequirementsFixer:
                 # It's some other type, such as Boolean or Natural matrix.
                 # Emit the value as the equivalent real matrix:
                 return self.bmg.add_real_matrix(node.value)
+
+        if requirement is bt.any_pos_real_matrix:
+            if _is_pos_real_matrix(it):
+                assert isinstance(it, bt.BMGMatrixType)
+                return self.bmg.add_constant_of_matrix_type(node.value, it)
+            else:
+                return self.bmg.add_pos_real_matrix(node.value)
 
         if requirement == bt.RealMatrix:
             if isinstance(it, bt.RealMatrix):
@@ -365,6 +384,8 @@ class RequirementsFixer:
             return self._meet_real_matrix_requirement_type(node, (rows, columns))
         elif requirement is bt.any_real_matrix:
             result = self.bmg.add_to_real_matrix(node)
+        elif requirement is bt.any_pos_real_matrix:
+            result = self.bmg.add_to_positive_real_matrix(node)
         elif self._type_meets_requirement(node_type, bt.upper_bound(requirement)):
             # If we got here then the node did NOT meet the requirement,
             # but its type DID meet an upper bound requirement, which

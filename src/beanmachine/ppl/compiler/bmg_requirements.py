@@ -56,6 +56,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],
     bn.MatrixAddNode: [bt.RealMatrix, bt.RealMatrix],
     bn.MatrixExpNode: [bt.any_real_matrix],
+    bn.MatrixLogNode: [bt.any_pos_real_matrix],
     bn.MatrixSumNode: [bt.any_real_matrix],
     bn.PhiNode: [bt.Real],
     bn.ToIntNode: [bt.upper_bound(bt.Real)],

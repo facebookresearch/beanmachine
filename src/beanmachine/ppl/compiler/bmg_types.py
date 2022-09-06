@@ -756,6 +756,16 @@ class AnyRealMatrix(BaseRequirement):
 any_real_matrix = AnyRealMatrix()
 
 
+class AnyPosRealMatrix(BaseRequirement):
+    # BMG's matrix log node requires that its input be a R+ or P matrix.
+    # This singleton represents that requirement.
+    def __init__(self) -> None:
+        BaseRequirement.__init__(self, "APRM", "any positive real matrix")
+
+
+any_pos_real_matrix = AnyPosRealMatrix()
+
+
 # TODO: Memoize these, remove memoization of construction functions below.
 class UpperBound(BaseRequirement):
     bound: BMGLatticeType

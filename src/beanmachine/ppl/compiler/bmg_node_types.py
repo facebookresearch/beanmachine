@@ -81,6 +81,7 @@ _operator_types = {
     bn.LogSumExpVectorNode: OperatorType.LOGSUMEXP_VECTOR,
     bn.MatrixAddNode: OperatorType.MATRIX_ADD,
     bn.MatrixExpNode: OperatorType.MATRIX_EXP,
+    bn.MatrixLogNode: OperatorType.MATRIX_LOG,
     bn.MatrixMultiplicationNode: OperatorType.MATRIX_MULTIPLY,
     bn.MatrixScaleNode: OperatorType.MATRIX_SCALE,
     bn.MatrixSumNode: OperatorType.MATRIX_SUM,
