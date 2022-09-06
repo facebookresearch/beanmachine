@@ -26,6 +26,10 @@ class ElementType(Enum):
     UNKNOWN = 4
 
 
+def _always(node):
+    return True
+
+
 class Tensorizer(NodeTransformer):
     def __init__(self, cloner: Cloner, sizer: Sizer):
         self.cloner = cloner
@@ -34,11 +38,12 @@ class Tensorizer(NodeTransformer):
         self.transform_cache = {}
 
         self.can_be_transformed_map = {
-            bn.AdditionNode: lambda node: True,
+            bn.AdditionNode: _always,
             bn.MultiplicationNode: self.mult_can_be_tensorized,
             bn.DivisionNode: self.div_can_be_tensorized,
-            bn.ExpNode: lambda node: True,
-            bn.SumNode: lambda node: True,
+            bn.ExpNode: _always,
+            bn.LogNode: _always,
+            bn.SumNode: _always,
         }
         self.transform_map = {
             bn.AdditionNode: lambda node, inputs: self._tensorize_binary_elementwise(
@@ -48,6 +53,9 @@ class Tensorizer(NodeTransformer):
             bn.DivisionNode: self._tensorize_div,
             bn.ExpNode: lambda node, inputs: self._tensorize_unary_elementwise(
                 node, inputs, self.cloner.bmg.add_matrix_exp
+            ),
+            bn.LogNode: lambda node, inputs: self._tensorize_unary_elementwise(
+                node, inputs, self.cloner.bmg.add_matrix_log
             ),
             bn.SumNode: self._tensorize_sum,
         }

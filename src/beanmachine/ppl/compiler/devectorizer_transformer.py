@@ -29,6 +29,7 @@ from beanmachine.ppl.compiler.tensorizer_transformer import Tensorizer
 _unary_tensor_ops = [
     bn.LogSumExpVectorNode,
     bn.MatrixExpNode,
+    bn.MatrixLogNode,
     bn.MatrixSumNode,
     bn.TransposeNode,
     bn.ToPositiveRealMatrixNode,
@@ -53,6 +54,7 @@ _indexable_node_types = [
     bn.ElementwiseMultiplyNode,
     bn.IndexNode,
     bn.MatrixAddNode,
+    bn.MatrixLogNode,
     bn.MatrixExpNode,
     bn.MatrixScaleNode,
     bn.MatrixMultiplicationNode,

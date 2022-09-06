@@ -1044,9 +1044,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
 
 
 class MatrixAddNode(BinaryOperatorNode):
-    """This represents an exponentiation operation; it is generated when
-    a model contains calls to Tensor.exp or math.exp."""
-
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
@@ -1157,6 +1154,17 @@ class LogNode(UnaryOperatorNode):
 
     def __str__(self) -> str:
         return "Log(" + str(self.operand) + ")"
+
+
+class MatrixLogNode(UnaryOperatorNode):
+    """This represents a log operation; it is generated when
+    a model contains calls to Tensor.log or math.log."""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixLog(" + str(self.operand) + ")"
 
 
 class Log10Node(UnaryOperatorNode):
