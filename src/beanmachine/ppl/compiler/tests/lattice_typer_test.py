@@ -134,6 +134,10 @@ class LatticeTyperTest(unittest.TestCase):
         re = bmg.add_sample(d4)
         self.assertEqual(bt.Real, typer[re])
 
+        d5 = bmg.add_poisson(c1)
+        re = bmg.add_sample(d5)
+        self.assertEqual(bt.Natural, typer[nat])
+
         # Lattice type of unsupported distributions and all descendents
         # is "untypable".
 
