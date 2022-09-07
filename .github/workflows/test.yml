@@ -8,7 +8,6 @@ on:
 
 env:
   PYTHONUNBUFFERED: 1
-  PYTEST_ADDOPTS: "--color=yes"
 
 jobs:
   conda-install:
@@ -16,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        os: ["windows-latest"]
+        python-version: ['3.9']
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
@@ -48,7 +47,28 @@ jobs:
       run: pip install -v -e .[dev]
 
     - name: Print out package info to help with debug
-      run: pip list
+      run: |
+        pip list
+        ls
+        cd src
+        cd beanmachine
+        ls -a
+        cd ..
+        cd ..
 
-    - name: Run unit tests with pytest
+    - name: Run unit tests with pytest LINUX MACOS
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+      env:
+        PYTEST_ADDOPTS: '--color=yes -v --ignore=${{ github.workspace }}/src/beanmachine/paic2'
       run: pytest .
+
+    - name: Run unit tests with pytest WINDOWS
+      if: matrix.os == 'windows-latest'
+      env:
+        PYTEST_ADDOPTS: '--color=yes -v'
+      run: |
+        pwd
+        ls
+        cd src
+        ls
+        pytest ppl
