@@ -2,16 +2,18 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
 import os
 import platform
 import re
+import shutil
+import subprocess
 import sys
+from distutils.command.build import build as _build
 from glob import glob
 
 from pybind11.setup_helpers import build_ext, Pybind11Extension
-from setuptools import find_packages, setup
-
+from setuptools import Extension, find_packages, setup
+from setuptools.command.build_py import build_py
 
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
@@ -73,7 +75,6 @@ if platform.system() == "Windows":
 else:
     CPP_COMPILE_ARGS = ["-std=c++2a", "-Werror"]
 
-
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
     error = (
@@ -86,7 +87,6 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
         required_major=REQUIRED_MAJOR,
     )
     sys.exit(error)
-
 
 # get version string from module
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -124,6 +124,113 @@ elif sys.platform.startswith("darwin"):
         glob("/usr/local/Cellar/eigen/*/include/eigen3")
         + glob("/usr/local/Cellar/boost/*/include")
     )
+
+
+# From torch.mlir: "Build phase discovery is unreliable. Just tell it what phases to run."
+class CustomBuild(_build):
+    def run(self):
+        self.run_command("build_py")
+        self.run_command("build_ext")
+        self.run_command("build_scripts")
+
+
+class NoopBuildExtension(build_ext):
+    def build_extension(self, ext):
+        pass
+
+
+class CMakeExtension(Extension):
+    def __init__(self, name, sourcedir=""):
+        Extension.__init__(self, name, sources=[])
+        self.sourcedir = os.path.abspath(sourcedir)
+
+
+class CMakeBuild(build_py):
+    def build_llvm(self, cmake_build_dir: str):
+        if not os.path.isdir(cmake_build_dir):
+            c_compiler = os.getenv("C_COMPILER")
+            cxx_compiler = os.getenv("CXX_COMPILER")
+            print("building LLVM...")
+            os.makedirs(cmake_build_dir, exist_ok=True)
+            src_dir = os.path.abspath(os.path.dirname(__file__))
+            llvm_dir = os.path.join(src_dir, "externals", "llvm-project", "llvm")
+            cmake_args = [
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DLLVM_TARGETS_TO_BUILD=Native",
+                "-DLLVM_ENABLE_PROJECTS=mlir;llvm",
+                f"-B {cmake_build_dir}",
+                "-G Ninja",
+            ]
+            if platform == "darwin":
+                cpp_include_path = os.getenv("CPLUS_INCLUDE_PATH")
+                if not self.c_compiler or not self.cxx_compiler or not cpp_include_path:
+                    raise NotImplementedError(
+                        "If you are running on a mac, please set the environment variables:"
+                        " C_COMPILER, CXX_COMPILER, CPLUS_INCLUDE_PATH. For example,"
+                        "'/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/bin/clang' is a valid path to a c compiler"
+                        " and `/usr/local/compiler/clang+llvm-14.0.0-x86_64-apple-darwin/include/c++/v1:/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include`"
+                        " is a valid path for CPLUS_INCLUDE_PATH"
+                    )
+            if c_compiler:
+                cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
+            if cxx_compiler:
+                cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
+
+            subprocess.check_call(["cmake", llvm_dir] + cmake_args, cwd=cmake_build_dir)
+            subprocess.check_call(
+                ["cmake", "--build", ".", "--target", "check-mlir"], cwd=cmake_build_dir
+            )
+        else:
+            print("skipping LLVM build")
+
+    def build_paic2(self, paic2_src: str, paic2_build_dir: str, cmake_module_path: str):
+        if os.path.isdir(paic2_build_dir):
+            print("Skipping paic2 build")
+            return
+
+        c_compiler = os.getenv("C_COMPILER")
+        cxx_compiler = os.getenv("CXX_COMPILER")
+        os.makedirs(paic2_build_dir, exist_ok=True)
+        paic2_cmake_args = [
+            "-DCMAKE_BUILD_TYPE=Release",
+            f"-DCMAKE_MODULE_PATH={cmake_module_path}",
+            f"-DPYTHON_EXECUTABLE={sys.executable}",
+            f"-B {paic2_build_dir}",
+            "-G Ninja",
+        ]
+        if c_compiler:
+            paic2_cmake_args.append(f"-DCMAKE_C_COMPILER={c_compiler}")
+        if cxx_compiler:
+            paic2_cmake_args.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
+        subprocess.check_call(
+            ["cmake", paic2_src] + paic2_cmake_args, cwd=paic2_build_dir
+        )
+        subprocess.check_call(["cmake", "--build", "."], cwd=paic2_build_dir)
+
+    def run(self):
+        src_dir = os.path.abspath(os.path.dirname(__file__))
+        print("starting cmake build...")
+
+        # build llvm
+        cmake_build_dir = os.path.join(src_dir, "build")
+        self.build_llvm(cmake_build_dir)
+
+        # build PAIC2
+        paic2_dir = os.path.join(src_dir, "src", "beanmachine", "paic2")
+        paic2_build_dir = os.path.join(paic2_dir, "build")
+        self.build_paic2(paic2_dir, paic2_build_dir, f"{cmake_build_dir}")
+
+        # copy paic2 modules into src
+        target_dir = self.build_lib
+        regex = re.compile("(.*so$)")
+        for root, dirs, files in os.walk(paic2_build_dir):
+            for file in files:
+                if regex.match(file):
+                    dest = os.path.join(target_dir, os.path.basename(file))
+                    print("copying " + file.__str__() + " into " + dest.__str__())
+                    full_path = os.path.join(paic2_build_dir, file)
+                    shutil.copyfile(full_path, dest)
+
 
 setup(
     name="beanmachine",
