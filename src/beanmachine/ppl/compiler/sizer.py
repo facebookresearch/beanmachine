@@ -53,8 +53,19 @@
 # ...
 # x = normal(flip_two())
 #
-# then we need to know that there are four samples from normal() and we are stochastically
-# choosing one of them in x.
+# Then we do a stochastic control flow here; we call
+# x00 = normal(tensor([0, 0]))
+# x01 = normal(tensor([0, 1]))
+# x10 = normal(tensor([1, 0]))
+# x11 = normal(tensor([1, 1]))
+# ...
+#
+# Right now this kind of stochastic control flow does not work
+# because we have no ability to generate a BMG graph of the form
+# CHOOSE(flip_two(), {[0, 0]: x00, ... }) but still we need to
+# know that this is the kind of stochastic control flow we're
+# going to attempt *because we need to produce a sensible error
+# message saying that this is not supported*!
 #
 # Second, when doing various rewrites of the graph we need to know what node sizes are
 # so that we can either rewrite operations that cannot be represented in BMG into
