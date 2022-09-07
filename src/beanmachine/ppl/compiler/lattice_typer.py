@@ -145,6 +145,7 @@ _always_matrix_types: Set[type] = {
     bn.ToMatrixNode,
     bn.MatrixAddNode,
     bn.MatrixExpNode,
+    bn.MatrixLogNode,
     bn.MatrixScaleNode,
     bn.TransposeNode,
 }
@@ -175,6 +176,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.MatrixMultiplicationNode: self._type_matrix_multiplication,
             bn.MatrixScaleNode: self._type_matrix_scale,
             bn.MatrixExpNode: self._type_matrix_exp,
+            bn.MatrixLogNode: self._type_matrix_log,
             bn.MatrixSumNode: self._type_matrix_sum,
             bn.MultiplicationNode: self._type_multiplication,
             bn.NegateNode: self._type_negate,
@@ -273,6 +275,15 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         assert op is not bt.Untypable
         assert isinstance(op, bt.BMGMatrixType)
         return bt.PositiveRealMatrix(op.rows, op.columns)
+
+    def _type_matrix_log(self, node: bn.MatrixLogNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 1
+        op = self[node.operand]
+        assert op is not bt.Untypable
+        assert isinstance(op, bt.BMGMatrixType)
+        if isinstance(op, bt.ProbabilityMatrix):
+            return bt.NegativeRealMatrix(op.rows, op.columns)
+        return bt.RealMatrix(op.rows, op.columns)
 
     def _type_matrix_sum(self, node: bn.MatrixSumNode) -> bt.BMGLatticeType:
         operand_type = self[node.operand]

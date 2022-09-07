@@ -12,7 +12,7 @@ from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.tensorizer_transformer import Tensorizer
 from torch import mm, tensor
-from torch.distributions import Normal
+from torch.distributions import Beta, Normal
 
 
 @bm.random_variable
@@ -20,9 +20,19 @@ def norm(n):
     return Normal(tensor(0.0), tensor(1.0))
 
 
+@bm.random_variable
+def beta(n):
+    return Beta(2, 2)
+
+
 @bm.functional
 def make_matrix(n):
     return tensor([[norm(n), norm(n)], [norm(n), 1.25]])
+
+
+@bm.functional
+def make_prob_matrix(n):
+    return tensor([[beta(n), beta(n)], [beta(n), 0.25]])
 
 
 @bm.functional
@@ -35,6 +45,11 @@ def make_tensor(n):
 @bm.functional
 def operators_are_tensorized():
     return (make_matrix(0) + make_matrix(1)).exp().sum()
+
+
+@bm.functional
+def operators_are_tensorized_2():
+    return make_prob_matrix(1).log().sum()
 
 
 @bm.functional
@@ -70,7 +85,9 @@ def mm_mismatch():
 class TensorizeTransformerTest(unittest.TestCase):
     def test_tensor_operators(self) -> None:
         self.maxDiff = None
-        bmg = BMGRuntime().accumulate_graph([operators_are_tensorized()], {})
+        bmg = BMGRuntime().accumulate_graph(
+            [operators_are_tensorized(), operators_are_tensorized_2()], {}
+        )
         transformed_graph, error_report = copy_and_replace(
             bmg, lambda c, s: Tensorizer(c, s)
         )
@@ -90,6 +107,14 @@ class TensorizeTransformerTest(unittest.TestCase):
   N09[label=Exp];
   N10[label=Sum];
   N11[label=Query];
+  N12[label=2.0];
+  N13[label=Beta];
+  N14[label=Sample];
+  N15[label=0.25];
+  N16[label=Tensor];
+  N17[label=Log];
+  N18[label=Sum];
+  N19[label=Query];
   N00 -> N02[label=mu];
   N01 -> N02[label=sigma];
   N02 -> N03[label=operand];
@@ -107,6 +132,16 @@ class TensorizeTransformerTest(unittest.TestCase):
   N08 -> N09[label=operand];
   N09 -> N10[label=operand];
   N10 -> N11[label=operator];
+  N12 -> N13[label=alpha];
+  N12 -> N13[label=beta];
+  N13 -> N14[label=operand];
+  N14 -> N16[label=0];
+  N14 -> N16[label=1];
+  N14 -> N16[label=2];
+  N15 -> N16[label=3];
+  N16 -> N17[label=operand];
+  N17 -> N18[label=operand];
+  N18 -> N19[label=operator];
 }
         """
         expected_after = """
@@ -123,6 +158,14 @@ digraph "graph" {
   N09[label=MatrixExp];
   N10[label=MatrixSum];
   N11[label=Query];
+  N12[label=2.0];
+  N13[label=Beta];
+  N14[label=Sample];
+  N15[label=0.25];
+  N16[label=Tensor];
+  N17[label=MatrixLog];
+  N18[label=MatrixSum];
+  N19[label=Query];
   N00 -> N02[label=mu];
   N01 -> N02[label=sigma];
   N02 -> N03[label=operand];
@@ -140,6 +183,16 @@ digraph "graph" {
   N08 -> N09[label=operand];
   N09 -> N10[label=operand];
   N10 -> N11[label=operator];
+  N12 -> N13[label=alpha];
+  N12 -> N13[label=beta];
+  N13 -> N14[label=operand];
+  N14 -> N16[label=0];
+  N14 -> N16[label=1];
+  N14 -> N16[label=2];
+  N15 -> N16[label=3];
+  N16 -> N17[label=operand];
+  N17 -> N18[label=operand];
+  N18 -> N19[label=operator];
 }
         """
         self.assertEqual(expected_before.strip(), before.strip())
