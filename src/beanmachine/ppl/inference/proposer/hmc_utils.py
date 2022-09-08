@@ -255,7 +255,10 @@ class RealSpaceTransform(DictTransform):
     def __init__(self, world: World, target_rvs: Set[RVIdentifier]):
         transforms = {}
         for node in target_rvs:
-            transforms[node] = get_default_transforms(
-                world.get_variable(node).distribution
-            )
+            node_distribution = world.get_variable(node).distribution
+            if node_distribution.support.is_discrete:
+                raise TypeError(
+                    f"HMC can perform inference only on continuous latent random variables, but node {node} is discrete."
+                )
+            transforms[node] = get_default_transforms(node_distribution)
         super().__init__(transforms)

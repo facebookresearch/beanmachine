@@ -30,6 +30,12 @@ class SampleModel:
         return dist.Normal(self.foo(), 1.0)
 
 
+class DiscreteModel:
+    @bm.random_variable
+    def baz(self):
+        return dist.Poisson(5.0)
+
+
 def test_dual_average_adapter():
     adapter = DualAverageAdapter(torch.tensor(0.1))
     epsilon1 = adapter.step(torch.tensor(1.0))
@@ -149,3 +155,11 @@ def test_welford_exception():
     welford.step(torch.rand(5))
     with pytest.raises(RuntimeError):  # number of samples is too small
         welford.finalize()
+
+
+def test_discrete_rv_exception():
+    model = DiscreteModel()
+    world = World()
+    world.call(model.baz())
+    with pytest.raises(TypeError):
+        RealSpaceTransform(world, world.latent_nodes)(dict(world))
