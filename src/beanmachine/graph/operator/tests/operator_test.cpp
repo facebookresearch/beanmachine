@@ -15,6 +15,7 @@
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/operator/unaryop.h"
+#include "beanmachine/graph/util.h"
 
 using namespace beanmachine;
 using namespace beanmachine::graph;
@@ -1876,6 +1877,45 @@ TEST(testoperator, matrix_log) {
   for (uint i = 0; i < mlog_infer.type.rows; i++) {
     for (uint j = 0; j < mlog_infer.type.cols; j++) {
       EXPECT_NEAR(mlog_expected(i, j), mlog_infer._matrix(i, j), 1e-4);
+    }
+  }
+}
+
+TEST(testoperator, matrix_phi) {
+  Graph g;
+  // negative tests
+  // MATRIX_PHI requires matrix parent
+  auto real_number = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_PHI, {real_number}),
+      std::invalid_argument);
+  // must be real
+  Eigen::MatrixXb bools(2, 1);
+  bools << false, true;
+  auto bools_matrix = g.add_constant_bool_matrix(bools);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_PHI, {bools_matrix}),
+      std::invalid_argument);
+  // can only have one parent
+  Eigen::MatrixXd m1(3, 1);
+  m1 << -2., 1.0, 0.0;
+  auto m1_matrix = g.add_constant_real_matrix(m1);
+  Eigen::MatrixXd m2(1, 2);
+  m2 << 0.5, 20;
+  auto m2_matrix = g.add_constant_real_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_PHI, {m1_matrix, m2_matrix}),
+      std::invalid_argument);
+
+  auto exp = g.add_operator(OperatorType::MATRIX_PHI, {m1_matrix});
+  g.query(exp);
+
+  auto observed = g.infer(2, InferenceType::REJECTION)[0][0];
+  Eigen::MatrixXd expected(3, 1);
+  expected << util::Phi(-2.0), util::Phi(1.0), util::Phi(0.0);
+  for (uint i = 0; i < observed.type.rows; i++) {
+    for (uint j = 0; j < observed.type.cols; j++) {
+      EXPECT_NEAR(expected(i, j), observed._matrix(i, j), 1e-4);
     }
   }
 }

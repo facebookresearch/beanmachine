@@ -403,5 +403,23 @@ void MatrixLog1mexp::backward() {
   }
 }
 
+void MatrixPhi::backward() {
+  // phi(x) is defined as the CDF of the standard normal:
+  //
+  //             1        /  x               2
+  // phi(x) =  --------   |      exp(-0.5 * t ) dt
+  //          sqrt(2pi)   / -inf
+  //
+  // so doing the derivative is easy; its just
+  //
+  // phi'(x) = exp(-0.5 x^2)/sqrt(2pi)
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    auto x = in_nodes[0]->value._matrix.array();
+    auto phi1 = _1_SQRT2PI * (-0.5 * x * x).exp();
+    in_nodes[0]->back_grad1 += back_grad1.array() * phi1;
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine
