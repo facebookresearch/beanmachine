@@ -9,6 +9,7 @@
 #include <beanmachine/graph/graph.h>
 #include <stdexcept>
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/util.h"
 
 /*
 A MACRO that checks the atomic_type of a node to make sure the underlying
@@ -567,6 +568,32 @@ MatrixLog1p::MatrixLog1p(const std::vector<graph::Node*>& in_nodes)
 void MatrixLog1p::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   value._matrix = Eigen::log1p(in_nodes[0]->value._matrix.array());
+}
+
+MatrixLog1mexp::MatrixLog1mexp(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_LOG1MEXP) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_LOG1MEXP requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_LOG1MEXP must be a BROADCAST_MATRIX");
+  }
+  if (type.atomic_type != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "operator MATRIX_LOG1MEXP requires a neg_real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::NEG_REAL,
+      type.rows,
+      type.cols));
+}
+
+void MatrixLog1mexp::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = util::log1mexp(in_nodes[0]->value._matrix);
 }
 
 } // namespace oper

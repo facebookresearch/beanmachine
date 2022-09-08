@@ -393,5 +393,15 @@ void MatrixLog1p::backward() {
   }
 }
 
+// g(x) = log (1 - exp(x))
+// g'(x) = -exp(x) / (1 - exp(x)) = 1 - exp(-g)
+void MatrixLog1mexp::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    auto value = this->value._matrix.array();
+    in_nodes[0]->back_grad1 = back_grad1.array() * (1.0 - (-value).exp());
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

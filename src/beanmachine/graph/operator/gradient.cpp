@@ -110,6 +110,7 @@ void Log1pExp::compute_gradients() {
 
 void Log1mExp::compute_gradients() {
   assert(in_nodes.size() == 1);
+  // [Assuming x <= 0...]
   // f(x) = log (1 - exp(x))
   // f'(x) = -exp(x) / (1 - exp(x)) = 1 - exp(-f)
   // f''(x) = -exp(x) / (1 - exp(x))^2 = f' * (1 - f')
@@ -631,6 +632,20 @@ void MatrixLog1p::compute_gradients() {
   Grad1 = g1.cwiseQuotient(gp1);
   Grad2 = (gp1.cwiseProduct(g2) - g1.cwiseProduct(g1))
               .cwiseQuotient(gp1.cwiseProduct(gp1));
+}
+
+void MatrixLog1mexp::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // f(x) = log (1 - exp(x))
+  // f'(x) = -exp(x) / (1 - exp(x)) = 1 - exp(-f)
+  // f''(x) = -exp(x) / (1 - exp(x))^2 = f' * (1 - f')
+  auto g1 = in_nodes[0]->Grad1.array();
+  auto g2 = in_nodes[0]->Grad2.array();
+  auto f = value._matrix.array();
+  auto f1 = 1.0 - (-f).exp();
+  auto f2 = f1 * (1.0 - f1);
+  Grad1 = f1 * g1;
+  Grad2 = f2 * g1 * g1 + f1 * g2;
 }
 
 } // namespace oper
