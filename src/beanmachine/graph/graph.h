@@ -319,6 +319,7 @@ enum class OperatorType {
   EXPM1,
   MULTIPLY,
   ADD,
+  MATRIX_NEGATE,
   PHI,
   LOGISTIC,
   IF_THEN_ELSE,

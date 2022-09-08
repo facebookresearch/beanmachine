@@ -1353,6 +1353,44 @@ TEST(testoperator, matrix_add) {
   }
 }
 
+TEST(testoperator, matrix_negate) {
+  Graph g;
+
+  // requires one matrix parent
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_NEGATE, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(3, 2), m2(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  m2 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  auto cm2 = g.add_constant_real_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_NEGATE, std::vector<uint>{cm1, cm2}),
+      std::invalid_argument);
+  auto c1 = g.add_constant(1.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_NEGATE, std::vector<uint>{c1}),
+      std::invalid_argument);
+
+  auto neg =
+      g.add_operator(OperatorType::MATRIX_NEGATE, std::vector<uint>{cm1});
+  g.query(neg);
+
+  auto neg_node = g.get_node(neg);
+  std::mt19937 generator(10);
+  neg_node->eval(generator);
+  auto result = neg_node->value;
+
+  EXPECT_EQ(result.type.variable_type, graph::VariableType::BROADCAST_MATRIX);
+  EXPECT_EQ(result._matrix(0, 0), -0.3);
+  EXPECT_EQ(result._matrix(0, 1), 0.1);
+  EXPECT_EQ(result._matrix(1, 0), -1.2);
+  EXPECT_EQ(result._matrix(1, 1), -0.9);
+  EXPECT_EQ(result._matrix(2, 0), 2.6);
+  EXPECT_EQ(result._matrix(2, 1), -0.8);
+}
+
 TEST(testoperator, transpose) {
   Graph g;
   // empty initialization

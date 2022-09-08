@@ -153,6 +153,8 @@ class DOT {
         return "*";
       case OperatorType::ADD:
         return "+";
+      case OperatorType::MATRIX_NEGATE:
+        return "MatrixNegate";
       case OperatorType::PHI:
         return "Phi";
       case OperatorType::LOGISTIC:

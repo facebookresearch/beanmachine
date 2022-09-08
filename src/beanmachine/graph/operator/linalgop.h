@@ -90,6 +90,21 @@ class MatrixAdd : public Operator {
   }
 };
 
+class MatrixNegate : public Operator {
+ public:
+  explicit MatrixNegate(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixNegate() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixNegate>(in_nodes);
+  }
+};
+
 class Index : public Operator {
  public:
   explicit Index(const std::vector<graph::Node*>& in_nodes);

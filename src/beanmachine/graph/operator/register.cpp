@@ -133,6 +133,10 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
         &(MatrixAdd::new_op)) &&
 
     OperatorFactory::register_op(
+        graph::OperatorType::MATRIX_NEGATE,
+        &(MatrixNegate::new_op)) &&
+
+    OperatorFactory::register_op(
         graph::OperatorType::BROADCAST_ADD,
         &(BroadcastAdd::new_op)) &&
 
