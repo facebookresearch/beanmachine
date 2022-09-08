@@ -648,5 +648,11 @@ void MatrixLog1mexp::compute_gradients() {
   Grad2 = f2 * g1 * g1 + f1 * g2;
 }
 
+void MatrixComplement::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  Grad1 = -in_nodes[0]->Grad1.array();
+  Grad2 = -in_nodes[0]->Grad2.array();
+}
+
 } // namespace oper
 } // namespace beanmachine

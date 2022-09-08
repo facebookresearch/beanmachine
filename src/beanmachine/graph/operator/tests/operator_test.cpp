@@ -2110,3 +2110,57 @@ TEST(testoperator, matrix_log1mexp) {
     }
   }
 }
+
+TEST(testoperator, matrix_complement) {
+  Graph g;
+
+  // negative tests
+  // MATRIX_COMPLEMENT requires matrix parent
+  auto real_number = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_COMPLEMENT, {real_number}),
+      std::invalid_argument);
+
+  // requires booleans or probabilities
+  Eigen::MatrixXd reals(2, 1);
+  reals << -0.2, 1.7;
+  auto reals_matrix = g.add_constant_real_matrix(reals);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_COMPLEMENT, {reals_matrix}),
+      std::invalid_argument);
+
+  Eigen::MatrixXb bools(2, 1);
+  bools << false, true;
+  auto bools_matrix = g.add_constant_bool_matrix(bools);
+  auto result1 =
+      g.add_operator(OperatorType::MATRIX_COMPLEMENT, {bools_matrix});
+  g.query(result1);
+
+  Eigen::MatrixXd probs(2, 1);
+  probs << 0.2, 0.7;
+  auto probs_matrix = g.add_constant_probability_matrix(probs);
+  auto result2 =
+      g.add_operator(OperatorType::MATRIX_COMPLEMENT, {probs_matrix});
+  g.query(result2);
+
+  // can only have one parent
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_COMPLEMENT, {bools_matrix, bools_matrix}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_COMPLEMENT, {probs_matrix, probs_matrix}),
+      std::invalid_argument);
+
+  auto infer = g.infer(2, InferenceType::REJECTION)[0];
+  auto binfer = infer[0]._bmatrix;
+  std::cout << binfer;
+  EXPECT_EQ(binfer(0), true);
+  EXPECT_EQ(binfer(1), false);
+
+  auto pinfer = infer[1]._matrix;
+  std::cout << pinfer;
+  EXPECT_NEAR(pinfer(0), 1 - 0.2, 1e-3);
+  EXPECT_NEAR(pinfer(1), 1 - 0.7, 1e-3);
+}

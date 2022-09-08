@@ -596,5 +596,41 @@ void MatrixLog1mexp::eval(std::mt19937& /* gen */) {
   value._matrix = util::log1mexp(in_nodes[0]->value._matrix);
 }
 
+MatrixComplement::MatrixComplement(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_COMPLEMENT) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_COMPLEMENT requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_COMPLEMENT must be a BROADCAST_MATRIX");
+  }
+  if (type.atomic_type != graph::AtomicType::PROBABILITY &&
+      type.atomic_type != graph::AtomicType::BOOLEAN) {
+    throw std::invalid_argument(
+        "operator MATRIX_COMPLEMENT requires a probability or boolean parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      type.atomic_type,
+      type.rows,
+      type.cols));
+}
+
+void MatrixComplement::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  auto atomic_type = in_nodes[0]->value.type.atomic_type;
+  const graph::NodeValue& parent = in_nodes[0]->value;
+  if (atomic_type == graph::AtomicType::BOOLEAN) {
+    value._bmatrix = !parent._bmatrix.array();
+  } else if (atomic_type == graph::AtomicType::PROBABILITY) {
+    value._matrix = 1 - parent._matrix.array();
+  } else {
+    throw std::runtime_error(
+        "operator MATRIX_COMPLEMENT requires a probability or boolean parent");
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

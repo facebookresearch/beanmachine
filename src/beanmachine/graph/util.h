@@ -130,7 +130,7 @@ double log1pexp(double x);
 Eigen::MatrixXd log1pexp(const Eigen::MatrixXd& x);
 
 /*
-Compute `log(1 - exp(x))` with numerical stability.
+Compute `log(1 - exp(x))` with numerical stability for negative x values.
 See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 :param x:
 :returns: log(1 - exp(x))

@@ -403,5 +403,14 @@ void MatrixLog1mexp::backward() {
   }
 }
 
+// g(x) = 1 - x
+// g'(x) = -1
+void MatrixComplement::backward() {
+  assert(in_nodes.size() == 1);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1 = -back_grad1.array();
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

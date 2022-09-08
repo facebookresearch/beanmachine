@@ -211,6 +211,8 @@ class DOT {
         return "MatrixLog1p";
       case OperatorType::MATRIX_LOG1MEXP:
         return "MatrixLog1mexp";
+      case OperatorType::MATRIX_COMPLEMENT:
+        return "MatrixComplement";
       default:
         throw std::invalid_argument(
             "internal error: missing case for OperatorType");

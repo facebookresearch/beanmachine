@@ -1750,3 +1750,113 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
   EXPECT_NEAR((*grad1[1]), -3.4328, 1e-3);
   EXPECT_NEAR((*grad1[2]), -0.1555, 1e-3);
 }
+
+TEST(testgradient, matrix_complement_grad_forward) {
+  Graph g;
+
+  // Test forward differentiation
+
+  Eigen::MatrixXd x0(1, 2);
+  x0 << 0.15, 0.77;
+  auto x = g.add_constant_probability_matrix(x0);
+  Node* x_node = g.get_node(x);
+
+  Eigen::MatrixXd x1(1, 2);
+  x1 << 1.1, 2.2;
+  x_node->Grad1 = x1;
+
+  Eigen::MatrixXd x2(1, 2);
+  x2 << 3.4, 4.5;
+  x_node->Grad2 = x2;
+
+  auto xc = g.add_operator(OperatorType::MATRIX_COMPLEMENT, {x});
+  Node* xc_node = g.get_node(xc);
+
+  std::mt19937 gen;
+  xc_node->eval(gen);
+  xc_node->compute_gradients();
+
+  // f(x) = 1 - g(x)
+  // g(x) = [0.15, 0.77]
+  // but we artificially set
+  // g'(x) = [1.1, 2.2]
+  // g''(x) = [3.4, 4.5]
+  // for testing.
+
+  Eigen::MatrixXd g1 = xc_node->Grad1;
+  Eigen::MatrixXd g2 = xc_node->Grad2;
+
+  Eigen::MatrixXd m1s(1, 2);
+  m1s << -1, -1;
+  auto expected_g1 = m1s.array() * x1.array();
+  auto expected_g2 = m1s.array() * x2.array();
+
+  _expect_near_matrix(g1, expected_g1);
+  _expect_near_matrix(g2, expected_g2);
+}
+
+TEST(testgradient, matrix_complement_grad_backward) {
+  /*
+# Test backward differentiation
+#
+# Build the same model in PyTorch and BMG; we should get the same
+# backwards gradients as PyTorch.
+
+import torch
+beta = torch.distributions.Beta(2, 2)
+beta_sample = torch.tensor([0.1, 0.7], requires_grad=True)
+complement = 1 - beta_sample
+n = torch.distributions.Normal(complement, 1.0)
+ns = torch.tensor([1.1, 2.2], requires_grad=True)
+log_prob = beta.log_prob(beta_sample).sum() + n.log_prob(ns).sum()
+print(torch.autograd.grad(log_prob, beta_sample, retain_graph=True))
+# [ 8.6889, -3.8048]
+print(torch.autograd.grad(log_prob, ns, retain_graph=True))
+# [-0.2000, -1.9000]
+
+  */
+
+  Graph g;
+  auto one = g.add_constant_pos_real(1.0);
+  auto two = g.add_constant_pos_real(2.0);
+  auto beta = g.add_distribution(
+      DistributionType::BETA, AtomicType::PROBABILITY, {two, two});
+
+  // sample 0
+  auto beta_sample = g.add_operator(
+      OperatorType::IID_SAMPLE,
+      std::vector<uint>{beta, g.add_constant((natural_t)2)});
+  Eigen::MatrixXd beta_observed(2, 1);
+  beta_observed << 0.1, 0.7;
+  g.observe(beta_sample, beta_observed);
+
+  auto complement =
+      g.add_operator(OperatorType::MATRIX_COMPLEMENT, {beta_sample});
+
+  // COMPLEMENT takes probability values and returns probability values.
+  auto comp = g.add_operator(OperatorType::TO_REAL_MATRIX, {complement});
+
+  auto index_zero = g.add_constant((natural_t)0);
+  auto comp0 = g.add_operator(OperatorType::INDEX, {comp, index_zero});
+  auto n0 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {comp0, one});
+  // sample 1
+  auto ns0 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n0});
+  g.observe(ns0, 1.1);
+
+  auto index_one = g.add_constant((natural_t)1);
+  auto comp1 = g.add_operator(OperatorType::INDEX, {comp, index_one});
+  auto n1 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {comp1, one});
+  // sample 2
+  auto ns1 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n1});
+  g.observe(ns1, 2.2);
+
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 3);
+  EXPECT_NEAR((*grad1[0])(0), 8.6889, 1e-3);
+  EXPECT_NEAR((*grad1[0])(1), -3.8048, 1e-3);
+  EXPECT_NEAR((*grad1[1]), -0.2000, 1e-3);
+  EXPECT_NEAR((*grad1[2]), -1.9000, 1e-3);
+}

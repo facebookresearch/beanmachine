@@ -351,6 +351,7 @@ enum class OperatorType {
   LOG1P,
   MATRIX_LOG1P,
   MATRIX_LOG1MEXP,
+  MATRIX_COMPLEMENT,
 };
 
 enum class DistributionType {
