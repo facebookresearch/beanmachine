@@ -137,4 +137,8 @@ double log1mexp(double x) {
   }
 }
 
+Eigen::MatrixXd log1mexp(const Eigen::MatrixXd& x) {
+  return x.unaryExpr([](double x) { return log1mexp(x); });
+}
+
 } // namespace beanmachine::util

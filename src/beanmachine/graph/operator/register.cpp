@@ -178,4 +178,8 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
 
     OperatorFactory::register_op(
         graph::OperatorType::MATRIX_SUM,
-        &(MatrixSum::new_op));
+        &(MatrixSum::new_op)) &&
+
+    OperatorFactory::register_op(
+        graph::OperatorType::MATRIX_LOG1MEXP,
+        &(MatrixLog1mexp::new_op));

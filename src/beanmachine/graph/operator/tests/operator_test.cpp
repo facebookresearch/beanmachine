@@ -2071,3 +2071,42 @@ TEST(testoperator, matrix_log1p) {
     }
   }
 }
+
+TEST(testoperator, matrix_log1mexp) {
+  Graph g;
+
+  // negative tests
+  // MATRIX_LOG1P requires matrix parent
+  auto real_number = g.add_constant(2.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG1MEXP, {real_number}),
+      std::invalid_argument);
+  // must be pos real or prob
+  Eigen::MatrixXb bools(2, 1);
+  bools << false, true;
+  auto bools_matrix = g.add_constant_bool_matrix(bools);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG1MEXP, {bools_matrix}),
+      std::invalid_argument);
+  // can only have one parent
+  Eigen::MatrixXd m1(3, 1);
+  m1 << -2.0, -1.0, -3.0;
+  auto m1_matrix = g.add_constant_neg_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_LOG1MEXP, {m1_matrix, m1_matrix}),
+      std::invalid_argument);
+
+  auto mlog1p = g.add_operator(OperatorType::MATRIX_LOG1MEXP, {m1_matrix});
+  g.query(mlog1p);
+
+  auto mlog1mexp_infer = g.infer(2, InferenceType::REJECTION)[0][0];
+  Eigen::MatrixXd mlog1mexp_expected(3, 1);
+  mlog1mexp_expected << 2.0, 1.0, 3.0;
+  mlog1mexp_expected = (1 - (-mlog1mexp_expected.array().abs()).exp()).log();
+  for (uint i = 0; i < mlog1mexp_infer.type.rows; i++) {
+    for (uint j = 0; j < mlog1mexp_infer.type.cols; j++) {
+      EXPECT_NEAR(
+          mlog1mexp_expected(i, j), mlog1mexp_infer._matrix(i, j), 1e-4);
+    }
+  }
+}
