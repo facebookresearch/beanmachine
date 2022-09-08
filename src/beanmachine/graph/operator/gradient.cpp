@@ -633,5 +633,28 @@ void MatrixLog1p::compute_gradients() {
               .cwiseQuotient(gp1.cwiseProduct(gp1));
 }
 
+void MatrixPhi::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  // phi is defined as the CDF of the standard normal:
+  //
+  //             1        /g(x)             2
+  // f(x) =    --------   |     exp(-0.5 * t ) dt
+  //          sqrt(2pi)   /-inf
+  //
+  // define helper function h(x) as:
+  //
+  // h(x)   = exp(-0.5 g(x)^2) / sqrt(2pi)
+  // h'(x)  = -g'(x) g(x) h(x)
+  // f'(x)  = g'(x) h(x)
+  // f''(x) = g''(x) h(x) + g'(x) h'(x)
+  auto g = in_nodes[0]->value._matrix.array();
+  auto g1 = in_nodes[0]->Grad1.array();
+  auto g2 = in_nodes[0]->Grad2.array();
+  auto h = _1_SQRT2PI * (-0.5 * g * g).exp();
+  auto h1 = -g1 * g * h;
+  Grad1 = g1 * h;
+  Grad2 = g2 * h + g1 * h1;
+}
+
 } // namespace oper
 } // namespace beanmachine

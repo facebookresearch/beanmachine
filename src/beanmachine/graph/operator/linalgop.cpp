@@ -5,9 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
 #include "beanmachine/graph/operator/linalgop.h"
-#include <beanmachine/graph/graph.h>
+#include <cmath>
 #include <stdexcept>
+#include <unsupported/Eigen/SpecialFunctions>
 #include "beanmachine/graph/graph.h"
 
 /*
@@ -567,6 +569,34 @@ MatrixLog1p::MatrixLog1p(const std::vector<graph::Node*>& in_nodes)
 void MatrixLog1p::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   value._matrix = Eigen::log1p(in_nodes[0]->value._matrix.array());
+}
+
+MatrixPhi::MatrixPhi(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_PHI) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_PHI requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_PHI must be a BROADCAST_MATRIX");
+  }
+  if (type.atomic_type != graph::AtomicType::REAL) {
+    throw std::invalid_argument("operator MATRIX_PHI requires a real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::PROBABILITY,
+      type.rows,
+      type.cols));
+}
+
+void MatrixPhi::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  // Eigen does not implement a phi function, but we have
+  // this handy identity relating erf and phi:
+  auto x = in_nodes[0]->value._matrix.array();
+  value._matrix = (1.0 + (x * M_SQRT1_2).erf()) / 2.0;
 }
 
 } // namespace oper

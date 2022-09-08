@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <beanmachine/graph/graph.h>
+#include <beanmachine/graph/operator/linalgop.h>
 
 using namespace beanmachine::graph;
 
@@ -1232,6 +1233,57 @@ torch.autograd.grad(log_prob, sn1, retain_graph=True) # -2.1931
   EXPECT_NEAR((*grad1[2]), -2.1931, 1e-3);
 }
 
+TEST(testgradient, matrix_phi_grad_forward) {
+  Graph g;
+
+  // Test forward differentiation
+
+  Eigen::MatrixXd m1(1, 2);
+  m1 << 2.0, 3.0;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  auto c = g.add_constant(2.0);
+  auto cm = g.add_operator(OperatorType::MATRIX_SCALE, {c, cm1});
+  auto mphi = g.add_operator(OperatorType::MATRIX_PHI, {cm});
+  // f(x) = phi(2 * g(x))
+  // g(x) = [2, 3]
+  // but we artificially set
+  // g'(x) = [1, 1]
+  // g''(x) = [0, 0]
+  // for testing.
+
+  Node* cm1_node = g.get_node(cm1);
+  cm1_node->Grad1 = Eigen::MatrixXd::Ones(1, 2);
+  cm1_node->Grad2 = Eigen::MatrixXd::Zero(1, 2);
+  Node* cm_node = g.get_node(cm);
+  Node* mphi_node = g.get_node(mphi);
+  std::mt19937 gen;
+  cm_node->eval(gen);
+  cm_node->compute_gradients();
+  mphi_node->eval(gen);
+  mphi_node->compute_gradients();
+
+  // First derivative:
+  Eigen::MatrixXd first_grad = mphi_node->Grad1;
+  Eigen::MatrixXd h(1, 2);
+  Eigen::MatrixXd expected_first_grad(1, 2);
+  // h(x) = 2 * exp(-2 g(x)^2) / sqrt(2pi)
+  // f'(x) = g'(x) * h(x)
+  // But g'(x) = [1, 1], so f'(x) == h(x)
+  double h0 = beanmachine::oper::_1_SQRT2PI * 2.0 * std::exp(-8.0);
+  double h1 = beanmachine::oper::_1_SQRT2PI * 2.0 * std::exp(-18.0);
+  expected_first_grad << h0, h1;
+  _expect_near_matrix(first_grad, expected_first_grad);
+
+  // Second derivative:
+  // Turns out that in this case where g' is [1, 1]
+  // and g'' is [0, 0]:
+  // f''(x) = - 4 g(x) f'(x)
+  Eigen::MatrixXd second_grad = mphi_node->Grad2;
+  Eigen::MatrixXd expected_second_grad(1, 2);
+  expected_second_grad << -h0 * 8.0, -h1 * 12.0;
+  _expect_near_matrix(second_grad, expected_second_grad);
+}
+
 TEST(testgradient, matrix_elementwise_mult_forward) {
   Graph g;
 
@@ -1257,6 +1309,70 @@ TEST(testgradient, matrix_elementwise_mult_forward) {
   Eigen::MatrixXd expected_second_grad_x(3, 2);
   expected_second_grad_x << 2.6, 1.8, 4.4, 3.8, -3.2, 3.6;
   _expect_near_matrix(second_grad_x, expected_second_grad_x);
+}
+
+TEST(testgradient, matrix_phi_grad_backward) {
+  /*
+# Test backward differentiation
+#
+# Build the same model in PyTorch and BMG; we should get the same
+# backwards gradients as PyTorch.
+
+import torch
+phi = torch.distributions.Normal(0.0, 1.0).cdf
+hn = torch.distributions.HalfNormal(1)
+s0 = torch.tensor(1.0, requires_grad=True)
+s1 = torch.tensor(0.5, requires_grad=True)
+mphi0 = phi(s0)
+mphi1 = phi(s1)
+n0 = torch.distributions.Normal(mphi0, 1.0)
+n1 = torch.distributions.Normal(mphi1, 1.0)
+sn0 = torch.tensor(2.5, requires_grad=True)
+sn1 = torch.tensor(1.5, requires_grad=True)
+log_prob = (n0.log_prob(sn0) + n1.log_prob(sn1) +
+  hn.log_prob(s0) + hn.log_prob(s1))
+torch.autograd.grad(log_prob, s0, retain_graph=True) # -0.5987
+torch.autograd.grad(log_prob, s1, retain_graph=True) # -0.2153
+torch.autograd.grad(log_prob, sn0, retain_graph=True) # -1.6587
+torch.autograd.grad(log_prob, sn1, retain_graph=True) # -0.8085
+  */
+
+  Graph g;
+  auto one = g.add_constant_pos_real(1.0);
+  auto hn = g.add_distribution(
+      DistributionType::HALF_NORMAL, AtomicType::POS_REAL, {one});
+  auto two = g.add_constant((natural_t)2);
+  auto hn_sample =
+      g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{hn, two});
+  Eigen::MatrixXd hn_observed(2, 1);
+  hn_observed << 1.0, 0.5;
+  g.observe(hn_sample, hn_observed);
+
+  auto to_real = g.add_operator(OperatorType::TO_REAL_MATRIX, {hn_sample});
+  auto mlog_pos = g.add_operator(OperatorType::MATRIX_PHI, {to_real});
+  auto mlog = g.add_operator(OperatorType::TO_REAL_MATRIX, {mlog_pos});
+  auto index_zero = g.add_constant((natural_t)0);
+  auto mlog0 = g.add_operator(OperatorType::INDEX, {mlog, index_zero});
+  auto index_one = g.add_constant((natural_t)1);
+  auto mlog1 = g.add_operator(OperatorType::INDEX, {mlog, index_one});
+
+  auto n0 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {mlog0, one});
+  auto n1 = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {mlog1, one});
+
+  auto ns0 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n0});
+  g.observe(ns0, 2.5);
+  auto ns1 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n1});
+  g.observe(ns1, 1.5);
+
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 3);
+  EXPECT_NEAR((*grad1[0])(0), -0.5987, 1e-3);
+  EXPECT_NEAR((*grad1[0])(1), -0.2153, 1e-3);
+  EXPECT_NEAR((*grad1[1]), -1.6587, 1e-3);
+  EXPECT_NEAR((*grad1[2]), -0.8085, 1e-3);
 }
 
 TEST(testgradient, matrix_elementwise_mult_backward) {

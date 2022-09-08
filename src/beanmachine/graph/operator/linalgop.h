@@ -228,5 +228,22 @@ class MatrixLog1p : public Operator {
   }
 };
 
+class MatrixPhi : public Operator {
+ public:
+  explicit MatrixPhi(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixPhi() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixPhi>(in_nodes);
+  }
+};
+
+const double _1_SQRT2PI = 0.39894228040143267;
+
 } // namespace oper
 } // namespace beanmachine
