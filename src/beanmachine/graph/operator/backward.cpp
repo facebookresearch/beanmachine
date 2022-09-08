@@ -258,6 +258,14 @@ void MatrixAdd::backward() {
   }
 }
 
+void MatrixNegate::backward() {
+  assert(in_nodes.size() == 1);
+  auto node_a = in_nodes[0];
+  if (node_a->needs_gradient()) {
+    node_a->back_grad1 -= back_grad1;
+  }
+}
+
 void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];

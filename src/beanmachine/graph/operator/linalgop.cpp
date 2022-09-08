@@ -264,6 +264,42 @@ void MatrixAdd::eval(std::mt19937& /* gen */) {
   value._matrix = in_nodes[0]->value._matrix + in_nodes[1]->value._matrix;
 }
 
+MatrixNegate::MatrixNegate(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::MATRIX_NEGATE) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("MATRIX_NEGATE requires one parent node");
+  }
+  auto type = in_nodes[0]->value.type;
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "the parent of MATRIX_NEGATE must be a BROADCAST_MATRIX");
+  }
+  graph::AtomicType new_type;
+  switch (type.atomic_type) {
+    case graph::AtomicType::POS_REAL:
+      // fallthrough
+    case graph::AtomicType::PROBABILITY:
+      new_type = graph::AtomicType::NEG_REAL;
+      break;
+    case graph::AtomicType::NEG_REAL:
+      new_type = graph::AtomicType::POS_REAL;
+      break;
+    case graph::AtomicType::REAL:
+      new_type = graph::AtomicType::REAL;
+      break;
+    default:
+      throw std::invalid_argument(
+          "operator MATRIX_NEGATE requires a real parent");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX, new_type, type.rows, type.cols));
+}
+
+void MatrixNegate::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  value._matrix = -in_nodes[0]->value._matrix.array();
+}
+
 Index::Index(const std::vector<graph::Node*>& in_nodes)
     : Operator(graph::OperatorType::INDEX) {
   if (in_nodes.size() != 2) {
