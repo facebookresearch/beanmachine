@@ -4,143 +4,143 @@
     "sidebar_label": "Coin flipping",
     "path": "overview/tutorials/Coin_flipping/CoinFlipping",
     "nb_path": "tutorials/Coin_flipping.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Coin_flipping.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Coin_flipping.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Coin_flipping.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Coin_flipping.ipynb"
   },
   "Robust_Linear_Regression": {
     "title": "Robust linear regression",
     "sidebar_label": "Robust linear regression",
     "path": "overview/tutorials/Robust_Linear_Regression/RobustLinearRegression",
     "nb_path": "tutorials/Robust_Linear_Regression.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Robust_Linear_Regression.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Robust_Linear_Regression.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Robust_Linear_Regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Robust_Linear_Regression.ipynb"
   },
   "Bayesian_Logistic_Regression": {
     "title": "Logistic regression",
     "sidebar_label": "Logistic regression",
     "path": "overview/tutorials/Bayesian_Logistic_Regression/BayesianLogisticRegression",
     "nb_path": "tutorials/Bayesian_Logistic_Regression.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Bayesian_Logistic_Regression.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Bayesian_Logistic_Regression.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Logistic_Regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Logistic_Regression.ipynb"
   },
   "Sparse_Logistic_Regression": {
     "title": "Sparse logistic regression",
     "sidebar_label": "Sparse logistic regression",
     "path": "overview/tutorials/Sparse_Logistic_Regression/SparseLogisticRegression",
     "nb_path": "tutorials/Sparse_Logistic_Regression.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Sparse_Logistic_Regression.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Sparse_Logistic_Regression.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Sparse_Logistic_Regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Sparse_Logistic_Regression.ipynb"
   },
   "Hierarchical_regression": {
     "title": "Hierarchical regression",
     "sidebar_label": "Hierarchical regression",
     "path": "overview/tutorials/Hierarchical_regression/HierarchicalRegression",
     "nb_path": "tutorials/Hierarchical_regression.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Hierarchical_regression.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Hierarchical_regression.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_regression.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_regression.ipynb"
   },
   "Hierarchical_modeling": {
     "title": "Hierarchical modeling",
     "sidebar_label": "Hierarchical modeling",
     "path": "overview/tutorials/Hierarchical_modeling/HierarchicalModeling",
     "nb_path": "tutorials/Hierarchical_modeling.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Hierarchical_modeling.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Hierarchical_modeling.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_modeling.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_modeling.ipynb"
   },
   "Item_Response_Theory": {
     "title": "Item Response Theory",
     "sidebar_label": "Item Response Theory",
     "path": "overview/tutorials/Item_Response_Theory/ItemResponseTheory",
     "nb_path": "tutorials/Item_Response_Theory.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Item_Response_Theory.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Item_Response_Theory.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Item_Response_Theory.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Item_Response_Theory.ipynb"
   },
   "Zero_inflated_count_data": {
     "title": "Zero inflated count data",
     "sidebar_label": "Zero inflated count data",
     "path": "overview/tutorials/Zero_inflated_count_data/ZeroInflatedCountData",
     "nb_path": "tutorials/Zero_inflated_count_data.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Zero_inflated_count_data.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Zero_inflated_count_data.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Zero_inflated_count_data.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Zero_inflated_count_data.ipynb"
   },
   "Hidden_Markov_model": {
     "title": "Hidden Markov Model",
     "sidebar_label": "Hidden Markov Model",
     "path": "overview/tutorials/Hidden_Markov_model/HiddenMarkovModel",
     "nb_path": "tutorials/Hidden_Markov_model.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Hidden_Markov_model.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Hidden_Markov_model.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hidden_Markov_model.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hidden_Markov_model.ipynb"
   },
   "Bayesian_Structural_Time_Series": {
     "title": "Bayesian Structural Time Series",
     "sidebar_label": "Bayesian Structural Time Series",
     "path": "overview/tutorials/Bayesian_Structural_Time_Series/BayesianStructuralTimeSeries",
     "nb_path": "tutorials/Bayesian_Structural_Time_Series.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Bayesian_Structural_Time_Series.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Bayesian_Structural_Time_Series.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Structural_Time_Series.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Structural_Time_Series.ipynb"
   },
   "GMM_with_2_dimensions_and_4_components": {
     "title": "Gaussian mixture model",
     "sidebar_label": "Gaussian mixture model",
     "path": "overview/tutorials/GMM_with_2_dimensions_and_4_components/GmmWith2DimensionsAnd4Components",
     "nb_path": "tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/GMM_with_2_dimensions_and_4_components.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
   },
   "Neals_funnel": {
     "title": "Neal's funnel",
     "sidebar_label": "Neal's funnel",
     "path": "overview/tutorials/Neals_funnel/NealsFunnel",
     "nb_path": "tutorials/Neals_funnel.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Neals_funnel.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Neals_funnel.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Neals_funnel.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Neals_funnel.ipynb"
   },
   "Gaussian_Process_Gpytorch": {
     "title": "Gaussian process",
     "sidebar_label": "Gaussian process",
     "path": "overview/tutorials/Gaussian_Process_Gpytorch/GaussianProcessGpytorch",
     "nb_path": "tutorials/Gaussian_Process_Gpytorch.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Gaussian_Process_Gpytorch.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Gaussian_Process_Gpytorch.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Gaussian_Process_Gpytorch.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Gaussian_Process_Gpytorch.ipynb"
   },
   "MLE_and_MAP_point_estimation": {
     "title": "Maximum likelihood estimation and maximum a priori inference",
     "sidebar_label": "MLE and MAP",
     "path": "overview/tutorials/MLE_and_MAP_point_estimation/MleAndMapPointEstimation",
     "nb_path": "tutorials/MLE_and_MAP_point_estimation.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/MLE_and_MAP_point_estimation.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/MLE_and_MAP_point_estimation.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/MLE_and_MAP_point_estimation.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/MLE_and_MAP_point_estimation.ipynb"
   },
   "Automatic_differentiation_variational_inference": {
     "title": "Automatic differentiation variational inference",
     "sidebar_label": "ADVI",
     "path": "overview/tutorials/Automatic_differentiation_variational_inference/AutomaticDifferentiationVariationalInference",
     "nb_path": "tutorials/Automatic_differentiation_variational_inference.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Automatic_differentiation_variational_inference.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Automatic_differentiation_variational_inference.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Automatic_differentiation_variational_inference.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Automatic_differentiation_variational_inference.ipynb"
   },
   "Bayesian_NNs_with_ADVI": {
     "title": "Bayesian Neural Networks with ADVI",
     "sidebar_label": "BNNs with ADVI",
     "path": "overview/tutorials/Bayesian_NNs_with_ADVI/BayesianNnsWithAdvi",
     "nb_path": "tutorials/Bayesian_NNs_with_ADVI.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Bayesian_NNs_with_ADVI.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Bayesian_NNs_with_ADVI.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_NNs_with_ADVI.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_NNs_with_ADVI.ipynb"
   },
   "VI_generalized_linear_mixed_model": {
     "title": "Variational inference in a generalized linear mixed model",
     "sidebar_label": "VI in GLMM",
     "path": "overview/tutorials/VI_generalized_linear_mixed_model/ViGeneralizedLinearMixedModel",
     "nb_path": "tutorials/VI_generalized_linear_mixed_model.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/VI_generalized_linear_mixed_model.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/VI_generalized_linear_mixed_model.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/VI_generalized_linear_mixed_model.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/VI_generalized_linear_mixed_model.ipynb"
   },
   "Probabilistic_PCA": {
     "title": "Probabilistic principal components analysis",
     "sidebar_label": "Probabilistic PCA",
     "path": "overview/tutorials/Probabilistic_PCA/ProbabilisticPca",
     "nb_path": "tutorials/Probabilistic_PCA.ipynb",
-    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Probabilistic_PCA.ipynb",
-    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.1.2/tutorials/Probabilistic_PCA.ipynb"
+    "github": "https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Probabilistic_PCA.ipynb",
+    "colab": "https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Probabilistic_PCA.ipynb"
   }
 }
