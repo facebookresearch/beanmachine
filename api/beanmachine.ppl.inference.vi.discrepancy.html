@@ -46,13 +46,13 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-beanmachine.ppl.inference.vi">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -86,8 +86,35 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="beanmachine-ppl-inference-vi-discrepancy-module">
-<h1>beanmachine.ppl.inference.vi.discrepancy module<a class="headerlink" href="#beanmachine-ppl-inference-vi-discrepancy-module" title="Permalink to this headline"></a></h1>
+  <section id="module-beanmachine.ppl.inference.vi.discrepancy">
+<span id="beanmachine-ppl-inference-vi-discrepancy-module"></span><h1>beanmachine.ppl.inference.vi.discrepancy module<a class="headerlink" href="#module-beanmachine.ppl.inference.vi.discrepancy" title="Permalink to this headline"></a></h1>
+<p>Csiszar f-functions in log-space.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.discrepancy.kl_forward">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.discrepancy.</span></span><span class="sig-name descname"><span class="pre">kl_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logu</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.discrepancy.kl_forward" title="Permalink to this definition"></a></dt>
+<dd><p>Log-space Csiszar function for forward KL-divergence D_f(p,q) = KL(p||q).</p>
+<p>Also known as the inclusive KL-divergence, minimizing results in
+zero-avoiding / mass-covering behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logu</strong> (<em>torch.Tensor</em>) – <a href="#id1"><span class="problematic" id="id2">``</span></a>p.log_prob``s evaluated at samples from q.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.discrepancy.kl_reverse">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.discrepancy.</span></span><span class="sig-name descname"><span class="pre">kl_reverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logu</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.discrepancy.kl_reverse" title="Permalink to this definition"></a></dt>
+<dd><p>Log-space Csiszar function for reverse KL-divergence D_f(p,q) = KL(q||p).</p>
+<p>Also known as the exclusive KL-divergence and negative ELBO, minimizing
+results in zero-forcing / mode-seeking behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logu</strong> (<em>torch.Tensor</em>) – <a href="#id3"><span class="problematic" id="id4">``</span></a>p.log_prob``s evaluated at samples from q.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

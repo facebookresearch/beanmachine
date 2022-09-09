@@ -46,14 +46,14 @@
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-beanmachine.ppl.inference.proposer">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -87,8 +87,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="beanmachine-ppl-inference-proposer-sequential-proposer-module">
-<h1>beanmachine.ppl.inference.proposer.sequential_proposer module<a class="headerlink" href="#beanmachine-ppl-inference-proposer-sequential-proposer-module" title="Permalink to this headline"></a></h1>
+  <section id="module-beanmachine.ppl.inference.proposer.sequential_proposer">
+<span id="beanmachine-ppl-inference-proposer-sequential-proposer-module"></span><h1>beanmachine.ppl.inference.proposer.sequential_proposer module<a class="headerlink" href="#module-beanmachine.ppl.inference.proposer.sequential_proposer" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.sequential_proposer.</span></span><span class="sig-name descname"><span class="pre">SequentialProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proposers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.do_adaptation">
+<span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.do_adaptation" title="Permalink to this definition"></a></dt>
+<dd><p>Run <cite>do_adaptation</cite> for all of the proposers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.finish_adaptation">
+<span class="sig-name descname"><span class="pre">finish_adaptation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.finish_adaptation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.propose">
+<span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.sequential_proposer.SequentialProposer.propose" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the joint log prob of all the proposers
+for the world.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>world</strong> – World to compute joint log prob of</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

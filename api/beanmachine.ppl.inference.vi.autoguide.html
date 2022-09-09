@@ -46,13 +46,13 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-beanmachine.ppl.inference.vi">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -86,8 +86,49 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="beanmachine-ppl-inference-vi-autoguide-module">
-<h1>beanmachine.ppl.inference.vi.autoguide module<a class="headerlink" href="#beanmachine-ppl-inference-vi-autoguide-module" title="Permalink to this headline"></a></h1>
+  <section id="module-beanmachine.ppl.inference.vi.autoguide">
+<span id="beanmachine-ppl-inference-vi-autoguide-module"></span><h1>beanmachine.ppl.inference.vi.autoguide module<a class="headerlink" href="#module-beanmachine.ppl.inference.vi.autoguide" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.autoguide.ADVI">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.autoguide.</span></span><span class="sig-name descname"><span class="pre">ADVI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.autoguide.ADVI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.inference.vi.autoguide.AutoGuideVI" title="beanmachine.ppl.inference.vi.autoguide.AutoGuideVI"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.vi.autoguide.AutoGuideVI</span></code></a></p>
+<p>Automatic Differentiation Variational Inference (ADVI).</p>
+<p>ADVI automates construction of guides by initializing variational distributions
+as Gaussians and possibly bijecting them so the supports match.</p>
+<p>See <a class="reference external" href="https://arxiv.org/abs/1506.03431">https://arxiv.org/abs/1506.03431</a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.autoguide.ADVI.get_guide">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_guide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distrib</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.autoguide.ADVI.get_guide" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.autoguide.AutoGuideVI">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.autoguide.</span></span><span class="sig-name descname"><span class="pre">AutoGuideVI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.autoguide.AutoGuideVI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.vi.variational_infer.html#beanmachine.ppl.inference.vi.variational_infer.VariationalInfer" title="beanmachine.ppl.inference.vi.variational_infer.VariationalInfer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.vi.variational_infer.VariationalInfer</span></code></a></p>
+<p>VI with guide distributions automatically generated.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.autoguide.AutoGuideVI.get_guide">
+<em class="property"><span class="pre">abstract</span> <span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_guide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distrib</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.autoguide.AutoGuideVI.get_guide" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.autoguide.MAP">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.autoguide.</span></span><span class="sig-name descname"><span class="pre">MAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.autoguide.MAP" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.inference.vi.autoguide.AutoGuideVI" title="beanmachine.ppl.inference.vi.autoguide.AutoGuideVI"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.vi.autoguide.AutoGuideVI</span></code></a></p>
+<p>Maximum A Posteriori (MAP) Inference.</p>
+<p>Uses <code class="docutils literal notranslate"><span class="pre">Delta</span></code> distributions to perform a point estimate
+of the posterior mode.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.autoguide.MAP.get_guide">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">get_guide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distrib</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.autoguide.MAP.get_guide" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 
 

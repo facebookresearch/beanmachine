@@ -85,8 +85,56 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="beanmachine-ppl-compiler-testlib-conjugate-models-module">
-<h1>beanmachine.ppl.compiler.testlib.conjugate_models module<a class="headerlink" href="#beanmachine-ppl-compiler-testlib-conjugate-models-module" title="Permalink to this headline"></a></h1>
+  <section id="module-beanmachine.ppl.compiler.testlib.conjugate_models">
+<span id="beanmachine-ppl-compiler-testlib-conjugate-models-module"></span><h1>beanmachine.ppl.compiler.testlib.conjugate_models module<a class="headerlink" href="#module-beanmachine.ppl.compiler.testlib.conjugate_models" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.testlib.conjugate_models.</span></span><span class="sig-name descname"><span class="pre">BetaBernoulliBasicModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel.gen_obs">
+<span class="sig-name descname"><span class="pre">gen_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel.gen_obs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel.theta">
+<span class="sig-name descname"><span class="pre">theta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel.theta" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel.y">
+<span class="sig-name descname"><span class="pre">y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel.y" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliOpsModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.testlib.conjugate_models.</span></span><span class="sig-name descname"><span class="pre">BetaBernoulliOpsModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliOpsModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel" title="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliOpsModel.sum_y">
+<span class="sig-name descname"><span class="pre">sum_y</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliOpsModel.sum_y" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliScaleHyperParameters">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.testlib.conjugate_models.</span></span><span class="sig-name descname"><span class="pre">BetaBernoulliScaleHyperParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliScaleHyperParameters" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel" title="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliBasicModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliScaleHyperParameters.scale_alpha">
+<span class="sig-name descname"><span class="pre">scale_alpha</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliScaleHyperParameters.scale_alpha" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliScaleHyperParameters.theta">
+<span class="sig-name descname"><span class="pre">theta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.testlib.conjugate_models.BetaBernoulliScaleHyperParameters.theta" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 
 

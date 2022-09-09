@@ -52,7 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.world.html">beanmachine.ppl.world.world module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.html#module-beanmachine.ppl.world">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -83,8 +83,107 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="beanmachine-ppl-world-utils-module">
-<h1>beanmachine.ppl.world.utils module<a class="headerlink" href="#beanmachine-ppl-world-utils-module" title="Permalink to this headline"></a></h1>
+  <section id="module-beanmachine.ppl.world.utils">
+<span id="beanmachine-ppl-world-utils-module"></span><h1>beanmachine.ppl.world.utils module<a class="headerlink" href="#module-beanmachine.ppl.world.utils" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">BetaDimensionTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.transforms.Transform</span></code></p>
+<p>Volume preserving transformation to the Beta distribution support.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.bijective">
+<span class="sig-name descname"><span class="pre">bijective</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.bijective" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.codomain">
+<span class="sig-name descname"><span class="pre">codomain</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.distributions.constraints.Constraint</span></em><em class="property"> <span class="pre">=</span> <span class="pre">IndependentConstraint(Real(),</span> <span class="pre">1)</span></em><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.codomain" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.domain">
+<span class="sig-name descname"><span class="pre">domain</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.distributions.constraints.Constraint</span></em><em class="property"> <span class="pre">=</span> <span class="pre">Real()</span></em><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.domain" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.forward_shape">
+<span class="sig-name descname"><span class="pre">forward_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.forward_shape" title="Permalink to this definition"></a></dt>
+<dd><p>Infers the shape of the forward computation, given the input shape.
+Defaults to preserving shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.inverse_shape">
+<span class="sig-name descname"><span class="pre">inverse_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.inverse_shape" title="Permalink to this definition"></a></dt>
+<dd><p>Infers the shapes of the inverse computation, given the output shape.
+Defaults to preserving shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.log_abs_det_jacobian">
+<span class="sig-name descname"><span class="pre">log_abs_det_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.log_abs_det_jacobian" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the log det jacobian <cite>log |dy/dx|</cite> given input and output.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.get_default_transforms">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">get_default_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.transforms.Transform</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.utils.get_default_transforms" title="Permalink to this definition"></a></dt>
+<dd><p>Get transforms of a distribution to transform it from constrained space
+into unconstrained space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>distribution</strong> – the distribution to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a Transform that need to be applied to the distribution
+to transform it from constrained space into unconstrained space</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.initialize_value">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">initialize_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize_from_prior</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.initialize_value" title="Permalink to this definition"></a></dt>
+<dd><p>Initialized the Variable value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>initialize_from_prior</strong> – if true, returns sample from prior</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value to the set the Variable value to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.is_constraint_eq">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">is_constraint_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_constraints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.utils.is_constraint_eq" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">is_constraint_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_constraints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>This provides an equality check that works for different constraints
+specified in <code class="xref py py-mod docutils literal notranslate"><span class="pre">torch.distributions.constraints</span></code>. If <cite>constraint</cite> is
+<cite>constraints.Independent</cite>, then the <cite>base_constraint</cite> is checked. If
+<cite>check_constraints</cite> is a single <cite>Constraint</cite> type or instance this
+returns a <cite>True</cite> if the given <cite>constraint</cite> matches <cite>check_constraints</cite>.
+Otherwise, if <cite>check_constraints</cite> is an iterable, this returns a <cite>bool</cite>
+list that represents an element-wise check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraint</strong> – A constraint class or instance.</p></li>
+<li><p><strong>check_constraints</strong> – A constraint class or instance or an iterable
+containing constraint classes or instances to check against.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>bool (or a list of bool) values indicating if the given constraint
+equals the constraint in <cite>check_constraints</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
