@@ -671,5 +671,11 @@ void MatrixPhi::compute_gradients() {
   Grad2 = g2 * h + g1 * h1;
 }
 
+void MatrixComplement::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  Grad1 = -in_nodes[0]->Grad1.array();
+  Grad2 = -in_nodes[0]->Grad2.array();
+}
+
 } // namespace oper
 } // namespace beanmachine
