@@ -43,6 +43,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.BernoulliNode: [bt.Probability],
     bn.BetaNode: [bt.PositiveReal, bt.PositiveReal],
     bn.BinomialNode: [bt.Natural, bt.Probability],
+    bn.PoissonNode: [bt.PositiveReal],
     # TODO: We don't enforce squareness or positive-definite-ness for Cholesky
     bn.CholeskyNode: [bt.any_real_matrix],
     bn.GammaNode: [bt.PositiveReal, bt.PositiveReal],

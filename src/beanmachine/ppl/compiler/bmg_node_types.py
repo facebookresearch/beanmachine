@@ -45,6 +45,7 @@ _dist_types = {
     bn.NormalNode: (dt.NORMAL, AtomicType.REAL),
     bn.HalfNormalNode: (dt.HALF_NORMAL, AtomicType.POS_REAL),
     bn.StudentTNode: (dt.STUDENT_T, AtomicType.REAL),
+    bn.PoissonNode: (dt.POISSON, AtomicType.NATURAL),
 }
 
 

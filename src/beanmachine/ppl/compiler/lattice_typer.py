@@ -88,6 +88,7 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     bn.NormalNode: bt.Real,
     bn.HalfNormalNode: bt.PositiveReal,
     bn.StudentTNode: bt.Real,
+    bn.PoissonNode: bt.Natural,
     # Factors
     bn.ExpProductFactorNode: bt.Real,
     # Operators
