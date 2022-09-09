@@ -132,39 +132,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.compiler.gen_bmg_graph">
-<span id="beanmachine-ppl-compiler-gen-bmg-graph-module"></span><h1>beanmachine.ppl.compiler.gen_bmg_graph module<a class="headerlink" href="#module-beanmachine.ppl.compiler.gen_bmg_graph" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.gen_bmg_graph.</span></span><span class="sig-name descname"><span class="pre">GeneratedGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bmg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder" title="beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder"><span class="pre">beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.bmg">
-<span class="sig-name descname"><span class="pre">bmg</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder" title="beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder"><span class="pre">beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.bmg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.graph">
-<span class="sig-name descname"><span class="pre">graph</span></span><em class="property"><span class="pre">:</span> <span class="pre">beanmachine.graph.Graph</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.graph" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.node_to_graph_id">
-<span class="sig-name descname"><span class="pre">node_to_graph_id</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.node_to_graph_id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.query_to_query_id">
-<span class="sig-name descname"><span class="pre">query_to_query_id</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.Query" title="beanmachine.ppl.compiler.bmg_nodes.Query"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.Query</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph.query_to_query_id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.gen_bmg_graph.to_bmg_graph">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.gen_bmg_graph.</span></span><span class="sig-name descname"><span class="pre">to_bmg_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bmg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder" title="beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder"><span class="pre">beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_optimizations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{'beta_bernoulli_conjugate_fixer',</span> <span class="pre">'beta_binomial_conjugate_fixer',</span> <span class="pre">'normal_normal_conjugate_fixer'}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph" title="beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph"><span class="pre">beanmachine.ppl.compiler.gen_bmg_graph.GeneratedGraph</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.gen_bmg_graph.to_bmg_graph" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+  <section id="beanmachine-ppl-compiler-gen-bmg-graph-module">
+<h1>beanmachine.ppl.compiler.gen_bmg_graph module<a class="headerlink" href="#beanmachine-ppl-compiler-gen-bmg-graph-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

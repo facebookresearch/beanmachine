@@ -60,7 +60,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.inference.utils module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -93,66 +93,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.inference.utils">
-<span id="beanmachine-ppl-inference-utils-module"></span><h1>beanmachine.ppl.inference.utils module<a class="headerlink" href="#module-beanmachine.ppl.inference.utils" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.VerboseLevel">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">VerboseLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.utils.VerboseLevel" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
-<p>Enum class which is used to set how much output is printed during inference.
-LOAD_BAR enables tqdm for full inference loop.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.VerboseLevel.LOAD_BAR">
-<span class="sig-name descname"><span class="pre">LOAD_BAR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#beanmachine.ppl.inference.utils.VerboseLevel.LOAD_BAR" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.VerboseLevel.OFF">
-<span class="sig-name descname"><span class="pre">OFF</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#beanmachine.ppl.inference.utils.VerboseLevel.OFF" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.detach_samples">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">detach_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.utils.detach_samples" title="Permalink to this definition"></a></dt>
-<dd><p>Detach pytorch tensors.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>samples</strong> (<em>Dict</em><em>[</em><a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier"><em>RVIdentifier</em></a><em>, </em><em>torch.Tensor</em><em>]</em>) – Dictionary of RVIdentifiers with
-original torch tensors.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Dictionary of RVIdentifiers with converted</dt><dd><p>NumPy arrays.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dict[<a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier">RVIdentifier</a>, np.ndarray]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.merge_dicts">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">merge_dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_not_cat</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.utils.merge_dicts" title="Permalink to this definition"></a></dt>
-<dd><p>A helper function that merge multiple dicts of samples into a single dictionary,
-stacking across a new dimension</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.safe_log_prob_sum">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">safe_log_prob_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distrib</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.utils.safe_log_prob_sum" title="Permalink to this definition"></a></dt>
-<dd><p>Computes log_prob, converting out of support exceptions to -Infinity.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.utils.seed">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.utils.</span></span><span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.utils.seed" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+  <section id="beanmachine-ppl-inference-utils-module">
+<h1>beanmachine.ppl.inference.utils module<a class="headerlink" href="#beanmachine-ppl-inference-utils-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

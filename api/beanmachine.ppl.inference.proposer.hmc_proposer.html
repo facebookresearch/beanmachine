@@ -46,14 +46,14 @@
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-beanmachine.ppl.inference.proposer">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -87,59 +87,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.inference.proposer.hmc_proposer">
-<span id="beanmachine-ppl-inference-proposer-hmc-proposer-module"></span><h1>beanmachine.ppl.inference.proposer.hmc_proposer module<a class="headerlink" href="#module-beanmachine.ppl.inference.proposer.hmc_proposer" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_proposer.</span></span><span class="sig-name descname"><span class="pre">HMCProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_length</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_mass_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_accept_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nnc_compile</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.proposer.base_proposer.html#beanmachine.ppl.inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.inference.proposer.base_proposer.BaseProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.base_proposer.BaseProposer</span></code></a></p>
-<p>The basic Hamiltonian Monte Carlo (HMC) algorithm as described in [1] plus a
-dual-averaging mechanism for dynamically adjusting the step size [2].</p>
-<dl class="simple">
-<dt>Reference:</dt><dd><dl class="simple">
-<dt>[1] Radford Neal. “MCMC Using Hamiltonian Dynamics” (2011).</dt><dd><p><a class="reference external" href="https://arxiv.org/abs/1206.1901">https://arxiv.org/abs/1206.1901</a></p>
-</dd>
-<dt>[2] Matthew Hoffman and Andrew Gelman. “The No-U-Turn Sampler: Adaptively</dt><dd><p>Setting Path Lengths in Hamiltonian Monte Carlo” (2014).
-<a class="reference external" href="https://arxiv.org/abs/1111.4246">https://arxiv.org/abs/1111.4246</a></p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p>The current implementation does not use nor adapt a mass matrix – which is
-equivalent to setting the matrix M to I.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>initial_world</strong> – Initial world to propose from.</p></li>
-<li><p><strong>target_rvs</strong> – Set of RVIdentifiers to indicate which variables to propose.</p></li>
-<li><p><strong>num_adaptive_samples</strong> – Number of adaptive samples to run.</p></li>
-<li><p><strong>trajectory_length</strong> – Length of single trajectory.</p></li>
-<li><p><strong>initial_step_size</strong> – Initial step size.</p></li>
-<li><p><strong>adapt_step_size</strong> – Flag whether to adapt step size, defaults to True.</p></li>
-<li><p><strong>adapt_mass_matrix</strong> – Flat whether to adapt mass matrix, defaults to True.</p></li>
-<li><p><strong>target_accept_prob</strong> – Target accept prob, defaults to 0.8.</p></li>
-<li><p><strong>nnc_compile</strong> – If True, NNC compiler will be used to accelerate the
-inference.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.do_adaptation">
-<span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.do_adaptation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.finish_adaptation">
-<span class="sig-name descname"><span class="pre">finish_adaptation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.finish_adaptation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.propose">
-<span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer.propose" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="beanmachine-ppl-inference-proposer-hmc-proposer-module">
+<h1>beanmachine.ppl.inference.proposer.hmc_proposer module<a class="headerlink" href="#beanmachine-ppl-inference-proposer-hmc-proposer-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

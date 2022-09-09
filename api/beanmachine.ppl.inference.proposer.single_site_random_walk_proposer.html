@@ -46,14 +46,14 @@
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-beanmachine.ppl.inference.proposer">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -87,80 +87,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.inference.proposer.single_site_random_walk_proposer">
-<span id="beanmachine-ppl-inference-proposer-single-site-random-walk-proposer-module"></span><h1>beanmachine.ppl.inference.proposer.single_site_random_walk_proposer module<a class="headerlink" href="#module-beanmachine.ppl.inference.proposer.single_site_random_walk_proposer" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteRandomWalkProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.html#beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer" title="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.beta_dist_from_moments">
-<span class="sig-name descname"><span class="pre">beta_dist_from_moments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.beta_dist_from_moments" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a Beta distribution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mu</strong> – mu value</p></li>
-<li><p><strong>sigma</strong> – sigma value</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>returns the Beta distribution given mu and sigma.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.dirichlet_dist_from_moments">
-<span class="sig-name descname"><span class="pre">dirichlet_dist_from_moments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.dirichlet_dist_from_moments" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a Dirichlet distribution. The variances of a Dirichlet
-distribution are inversely proportional to the norm of the concentration
-vector. However, variance is only set as a scalar, not as a vector.
-So the individual variances of the Dirichlet are not tuned, only the
-magnitude of the entire vector.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mu</strong> – mu value</p></li>
-<li><p><strong>sigma</strong> – sigma value</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>returns the Dirichlet distribution given mu and sigma.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.do_adaptation">
-<span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accept_log_prob</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.do_adaptation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.gamma_dist_from_moments">
-<span class="sig-name descname"><span class="pre">gamma_dist_from_moments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expectation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.gamma_dist_from_moments" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a Gamma distribution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>expectation</strong> – expectation value</p></li>
-<li><p><strong>sigma</strong> – sigma value</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>returns the Beta distribution given mu and sigma.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.get_proposal_distribution">
-<span class="sig-name descname"><span class="pre">get_proposal_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.distribution.Distribution</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.SingleSiteRandomWalkProposer.get_proposal_distribution" title="Permalink to this definition"></a></dt>
-<dd><p>Propose a new value for self.node using the prior distribution.</p>
-</dd></dl>
-
-</dd></dl>
-
+  <section id="beanmachine-ppl-inference-proposer-single-site-random-walk-proposer-module">
+<h1>beanmachine.ppl.inference.proposer.single_site_random_walk_proposer module<a class="headerlink" href="#beanmachine-ppl-inference-proposer-single-site-random-walk-proposer-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

@@ -46,14 +46,14 @@
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-beanmachine.ppl.inference.proposer">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -87,52 +87,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.inference.proposer.nuts_proposer">
-<span id="beanmachine-ppl-inference-proposer-nuts-proposer-module"></span><h1>beanmachine.ppl.inference.proposer.nuts_proposer module<a class="headerlink" href="#module-beanmachine.ppl.inference.proposer.nuts_proposer" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.nuts_proposer.NUTSProposer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.nuts_proposer.</span></span><span class="sig-name descname"><span class="pre">NUTSProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_tree_depth</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_delta_energy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_mass_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multinomial_sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_accept_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nnc_compile</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.nuts_proposer.NUTSProposer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.proposer.hmc_proposer.html#beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer" title="beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.hmc_proposer.HMCProposer</span></code></a></p>
-<p>The No-U-Turn Sampler (NUTS) as described in [1]. Unlike vanilla HMC, it does not
-require users to specify a trajectory length. The current implementation roughly
-follows Algorithm 6 of [1]. If multinomial_sampling is True, then the next state
-will be drawn from a multinomial distribution (weighted by acceptance probability,
-as introduced in Appendix 2 of [2]) instead of drawn uniformly.</p>
-<dl class="simple">
-<dt>Reference:</dt><dd><dl class="simple">
-<dt>[1] Matthew Hoffman and Andrew Gelman. “The No-U-Turn Sampler: Adaptively</dt><dd><p>Setting Path Lengths in Hamiltonian Monte Carlo” (2014).
-<a class="reference external" href="https://arxiv.org/abs/1111.4246">https://arxiv.org/abs/1111.4246</a></p>
-</dd>
-<dt>[2] Michael Betancourt. “A Conceptual Introduction to Hamiltonian Monte Carlo”</dt><dd><p>(2017). <a class="reference external" href="https://arxiv.org/abs/1701.02434">https://arxiv.org/abs/1701.02434</a></p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>initial_world</strong> – Initial world to propose from.</p></li>
-<li><p><strong>target_rvs</strong> – Set of RVIdentifiers to indicate which variables to propose.</p></li>
-<li><p><strong>num_adaptive_samples</strong> – Number of adaptive samples to run.</p></li>
-<li><p><strong>max_tree_depth</strong> – Maximum tree depth, defaults to 10.</p></li>
-<li><p><strong>max_delta_energy</strong> – Maximum delta energy (for numerical stability), defaults to 1000.</p></li>
-<li><p><strong>initial_step_size</strong> – Defaults to 1.0.</p></li>
-<li><p><strong>adapt_step_size</strong> – Whether to adapt step size with Dual averaging as suggested in [1], defaults to True.</p></li>
-<li><p><strong>adapt_mass_matrix</strong> – Whether to adapt mass matrix using Welford Scheme, defaults to True.</p></li>
-<li><p><strong>multinomial_sampling</strong> – Whether to use multinomial sampling as in [2], defaults to True.</p></li>
-<li><p><strong>target_accept_prob</strong> – Target accept probability. Increasing this would lead to smaller step size. Defaults to 0.8.</p></li>
-<li><p><strong>nnc_compile</strong> – If True, NNC compiler will be used to accelerate the
-inference.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.nuts_proposer.NUTSProposer.propose">
-<span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.nuts_proposer.NUTSProposer.propose" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="beanmachine-ppl-inference-proposer-nuts-proposer-module">
+<h1>beanmachine.ppl.inference.proposer.nuts_proposer module<a class="headerlink" href="#beanmachine-ppl-inference-proposer-nuts-proposer-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

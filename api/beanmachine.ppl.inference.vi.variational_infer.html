@@ -46,13 +46,13 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-beanmachine.ppl.inference.vi">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -86,77 +86,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.inference.vi.variational_infer">
-<span id="beanmachine-ppl-inference-vi-variational-infer-module"></span><h1>beanmachine.ppl.inference.vi.variational_infer module<a class="headerlink" href="#module-beanmachine.ppl.inference.vi.variational_infer" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_infer.VariationalInfer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.variational_infer.</span></span><span class="sig-name descname"><span class="pre">VariationalInfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries_to_guides:</span> <span class="pre">Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor],</span> <span class="pre">optimizer:</span> <span class="pre">Callable[[torch.Tensor],</span> <span class="pre">torch.optim.optimizer.Optimizer]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">VariationalInfer.&lt;lambda&gt;&gt;,</span> <span class="pre">device:</span> <span class="pre">torch.device</span> <span class="pre">=</span> <span class="pre">device(type='cpu')</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_infer.VariationalInfer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_infer.VariationalInfer.infer">
-<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">num_steps:</span> <span class="pre">int,</span> <span class="pre">num_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1,</span> <span class="pre">discrepancy_fn=&lt;function</span> <span class="pre">kl_reverse&gt;,</span> <span class="pre">mc_approx=&lt;function</span> <span class="pre">monte_carlo_approximate_reparam&gt;,</span> <span class="pre">step_callback:</span> <span class="pre">Optional[Callable[[int,</span> <span class="pre">torch.Tensor,</span> <span class="pre">beanmachine.ppl.inference.vi.variational_infer.VariationalInfer],</span> <span class="pre">None]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">subsample_factor:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_world.html#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="beanmachine.ppl.inference.vi.variational_world.VariationalWorld"><span class="pre">beanmachine.ppl.inference.vi.variational_world.VariationalWorld</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_infer.VariationalInfer.infer" title="Permalink to this definition"></a></dt>
-<dd><p>Perform variatonal inference.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>num_steps</strong> – number of optimizer steps</p></li>
-<li><p><strong>num_samples</strong> – number of samples per Monte-Carlo gradient estimate of E[f(logp - logq)]</p></li>
-<li><p><strong>discrepancy_fn</strong> – discrepancy function f, use <code class="docutils literal notranslate"><span class="pre">kl_reverse</span></code> to minimize negative ELBO</p></li>
-<li><p><strong>mc_approx</strong> – Monte-Carlo gradient estimator to use</p></li>
-<li><p><strong>step_callback</strong> – callback function invoked each optimizer step</p></li>
-<li><p><strong>subsample_factor</strong> – subsampling factor used for subsampling, helps scale the observations to avoid overshrinking towards the prior</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A world with variational guide distributions
-initialized with optimized parameters</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_world.html#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="beanmachine.ppl.inference.vi.variational_world.VariationalWorld">VariationalWorld</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_infer.VariationalInfer.initialize_world">
-<span class="sig-name descname"><span class="pre">initialize_world</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_world.html#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="beanmachine.ppl.inference.vi.variational_world.VariationalWorld"><span class="pre">beanmachine.ppl.inference.vi.variational_world.VariationalWorld</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_infer.VariationalInfer.initialize_world" title="Permalink to this definition"></a></dt>
-<dd><p>Initializes a <cite>VariationalWorld</cite> using samples from guide distributions
-evaluated at the current parameter values.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a <cite>World</cite> where guide samples and distributions
-have replaced their corresponding queries</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="beanmachine.ppl.inference.vi.variational_world.html#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="beanmachine.ppl.inference.vi.variational_world.VariationalWorld">VariationalWorld</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_infer.VariationalInfer.step">
-<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">num_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></em>, <em class="sig-param"><span class="pre">discrepancy_fn=&lt;function</span> <span class="pre">kl_reverse&gt;</span></em>, <em class="sig-param"><span class="pre">mc_approx=&lt;function</span> <span class="pre">monte_carlo_approximate_reparam&gt;</span></em>, <em class="sig-param"><span class="pre">subsample_factor:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_infer.VariationalInfer.step" title="Permalink to this definition"></a></dt>
-<dd><p>Perform one step of variatonal inference.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>num_samples</strong> – number of samples per Monte-Carlo gradient estimate of E[f(logp - logq)]</p></li>
-<li><p><strong>discrepancy_fn</strong> – discrepancy function f, use <code class="docutils literal notranslate"><span class="pre">kl_reverse</span></code> to minimize negative ELBO</p></li>
-<li><p><strong>mc_approx</strong> – Monte-Carlo gradient estimator to use</p></li>
-<li><p><strong>subsample_factor</strong> – subsampling factor used for subsampling, helps scale the observations to avoid overshrinking towards the prior</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the loss value (before the step)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>torch.Tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+  <section id="beanmachine-ppl-inference-vi-variational-infer-module">
+<h1>beanmachine.ppl.inference.vi.variational_infer module<a class="headerlink" href="#beanmachine-ppl-inference-vi-variational-infer-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

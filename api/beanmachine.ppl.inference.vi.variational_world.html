@@ -46,13 +46,13 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer package</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html">beanmachine.ppl.inference.vi package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-beanmachine.ppl.inference.vi">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.vi.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model package</a></li>
@@ -86,57 +86,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.inference.vi.variational_world">
-<span id="beanmachine-ppl-inference-vi-variational-world-module"></span><h1>beanmachine.ppl.inference.vi.variational_world module<a class="headerlink" href="#module-beanmachine.ppl.inference.vi.variational_world" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_world.VariationalWorld">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.vi.variational_world.</span></span><span class="sig-name descname"><span class="pre">VariationalWorld</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">observations:</span> <span class="pre">Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_from_prior&gt;,</span> <span class="pre">params:</span> <span class="pre">Optional[MutableMapping[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">queries_to_guides:</span> <span class="pre">Optional[Mapping[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier]]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_world.VariationalWorld" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.world.base_world.html#beanmachine.ppl.world.base_world.BaseWorld" title="beanmachine.ppl.world.base_world.BaseWorld"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.world.base_world.BaseWorld</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code>[<a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>]</p>
-<p>A World which also contains (variational) parameters.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_world.VariationalWorld.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_world.VariationalWorld.copy" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Shallow copy of the current world.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_world.VariationalWorld.get_guide_distribution">
-<span class="sig-name descname"><span class="pre">get_guide_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rv</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.distribution.Distribution</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_world.VariationalWorld.get_guide_distribution" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_world.VariationalWorld.get_param">
-<span class="sig-name descname"><span class="pre">get_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_world.VariationalWorld.get_param" title="Permalink to this definition"></a></dt>
-<dd><p>Gets a parameter or initializes it if not found.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_world.VariationalWorld.set_params">
-<span class="sig-name descname"><span class="pre">set_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">MutableMapping</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_world.VariationalWorld.set_params" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the parameters in this World to specified values.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.vi.variational_world.VariationalWorld.update_graph">
-<span class="sig-name descname"><span class="pre">update_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.vi.variational_world.VariationalWorld.update_graph" title="Permalink to this definition"></a></dt>
-<dd><p>Initialize a new node using its guide if available and
-the prior otherwise.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>node</strong> (<a class="reference internal" href="beanmachine.ppl.html#beanmachine.ppl.RVIdentifier" title="beanmachine.ppl.RVIdentifier"><em>RVIdentifier</em></a>) – RVIdentifier of node to update in the graph.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The value of the node stored in world (in original space).</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+  <section id="beanmachine-ppl-inference-vi-variational-world-module">
+<h1>beanmachine.ppl.inference.vi.variational_world module<a class="headerlink" href="#beanmachine-ppl-inference-vi-variational-world-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

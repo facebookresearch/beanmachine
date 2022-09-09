@@ -132,66 +132,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.compiler.tensorizer_transformer">
-<span id="beanmachine-ppl-compiler-tensorizer-transformer-module"></span><h1>beanmachine.ppl.compiler.tensorizer_transformer module<a class="headerlink" href="#module-beanmachine.ppl.compiler.tensorizer_transformer" title="Permalink to this headline"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.ElementType">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.tensorizer_transformer.</span></span><span class="sig-name descname"><span class="pre">ElementType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.ElementType" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
-<p>An enumeration.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.ElementType.MATRIX">
-<span class="sig-name descname"><span class="pre">MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">3</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.ElementType.MATRIX" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.ElementType.SCALAR">
-<span class="sig-name descname"><span class="pre">SCALAR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.ElementType.SCALAR" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.ElementType.TENSOR">
-<span class="sig-name descname"><span class="pre">TENSOR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.ElementType.TENSOR" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.ElementType.UNKNOWN">
-<span class="sig-name descname"><span class="pre">UNKNOWN</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.ElementType.UNKNOWN" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.tensorizer_transformer.</span></span><span class="sig-name descname"><span class="pre">Tensorizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cloner</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.copy_and_replace.html#beanmachine.ppl.compiler.copy_and_replace.Cloner" title="beanmachine.ppl.compiler.copy_and_replace.Cloner"><span class="pre">beanmachine.ppl.compiler.copy_and_replace.Cloner</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.sizer.html#beanmachine.ppl.compiler.sizer.Sizer" title="beanmachine.ppl.compiler.sizer.Sizer"><span class="pre">beanmachine.ppl.compiler.sizer.Sizer</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.compiler.copy_and_replace.html#beanmachine.ppl.compiler.copy_and_replace.NodeTransformer" title="beanmachine.ppl.compiler.copy_and_replace.NodeTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.copy_and_replace.NodeTransformer</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.assess_node">
-<span class="sig-name descname"><span class="pre">assess_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">original</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder" title="beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder"><span class="pre">beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.copy_and_replace.html#beanmachine.ppl.compiler.copy_and_replace.TransformAssessment" title="beanmachine.ppl.compiler.copy_and_replace.TransformAssessment"><span class="pre">beanmachine.ppl.compiler.copy_and_replace.TransformAssessment</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.assess_node" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.can_be_tensorized">
-<span class="sig-name descname"><span class="pre">can_be_tensorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.can_be_tensorized" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.div_can_be_tensorized">
-<span class="sig-name descname"><span class="pre">div_can_be_tensorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.DivisionNode" title="beanmachine.ppl.compiler.bmg_nodes.DivisionNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.DivisionNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.div_can_be_tensorized" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.mult_can_be_tensorized">
-<span class="sig-name descname"><span class="pre">mult_can_be_tensorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MultiplicationNode" title="beanmachine.ppl.compiler.bmg_nodes.MultiplicationNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.MultiplicationNode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.mult_can_be_tensorized" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.transform_node">
-<span class="sig-name descname"><span class="pre">transform_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.transform_node" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="beanmachine-ppl-compiler-tensorizer-transformer-module">
+<h1>beanmachine.ppl.compiler.tensorizer_transformer module<a class="headerlink" href="#beanmachine-ppl-compiler-tensorizer-transformer-module" title="Permalink to this headline"></a></h1>
 </section>
 
 

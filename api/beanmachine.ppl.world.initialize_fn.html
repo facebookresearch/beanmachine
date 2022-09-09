@@ -52,7 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.world.html">beanmachine.ppl.world.world module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.html#module-beanmachine.ppl.world">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -83,37 +83,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-beanmachine.ppl.world.initialize_fn">
-<span id="beanmachine-ppl-world-initialize-fn-module"></span><h1>beanmachine.ppl.world.initialize_fn module<a class="headerlink" href="#module-beanmachine.ppl.world.initialize_fn" title="Permalink to this headline"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.initialize_fn.init_from_prior">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.initialize_fn.</span></span><span class="sig-name descname"><span class="pre">init_from_prior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.initialize_fn.init_from_prior" title="Permalink to this definition"></a></dt>
-<dd><p>Samples from the distribution.</p>
-<p>Used as an arg for <code class="docutils literal notranslate"><span class="pre">World</span></code></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">torch.distribution.Distribution</span></code> corresponding to
-the distribution to sample from</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.initialize_fn.init_to_uniform">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.initialize_fn.</span></span><span class="sig-name descname"><span class="pre">init_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.initialize_fn.init_to_uniform" title="Permalink to this definition"></a></dt>
-<dd><p>Initializes a uniform distribution to sample from transformed to the
-support of <code class="docutils literal notranslate"><span class="pre">distribution</span></code>.  A Categorical is used for discrete distributions,
-a bijective transform is used for constrained continuous distributions, and
-<code class="docutils literal notranslate"><span class="pre">distribution</span></code> is used otherwise.</p>
-<p>Used as an arg for <code class="docutils literal notranslate"><span class="pre">World</span></code></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">torch.distribution.Distribution</span></code> of the RV, usually
-the prior distribution.</p>
-</dd>
-</dl>
-</dd></dl>
-
+  <section id="beanmachine-ppl-world-initialize-fn-module">
+<h1>beanmachine.ppl.world.initialize_fn module<a class="headerlink" href="#beanmachine-ppl-world-initialize-fn-module" title="Permalink to this headline"></a></h1>
 </section>
 
 
