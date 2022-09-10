@@ -118,6 +118,8 @@ class DOT {
         return "Categorical";
       case DistributionType::HALF_NORMAL:
         return "HalfNormal";
+      case DistributionType::PRODUCT:
+        return "Product";
       default:
         throw std::invalid_argument(
             "internal error: missing case for DistributionType");

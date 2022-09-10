@@ -15,10 +15,12 @@
 
 #include <Eigen/Core>
 #include <iostream>
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/util.h"
 
-namespace beanmachine::util {
+namespace beanmachine {
+namespace util {
 
 // see https://core.ac.uk/download/pdf/41787448.pdf
 const double PHI_APPROX_GAMMA = 1.702;
@@ -213,4 +215,5 @@ void test_nmc_against_nuts(
        << endl;
 }
 
-} // namespace beanmachine::util
+} // namespace util
+} // namespace beanmachine

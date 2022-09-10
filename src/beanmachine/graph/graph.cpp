@@ -297,6 +297,12 @@ void Node::to_scalar() {
   }
 }
 
+Eigen::MatrixXd Node::log_prob_iid(const graph::NodeValue& value) const {
+  Eigen::MatrixXd temp;
+  log_prob_iid(value, temp);
+  return temp; // fine because of move semantics
+}
+
 std::string Graph::to_string() const {
   std::ostringstream os;
   for (auto const& node : nodes) {

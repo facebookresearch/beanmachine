@@ -25,6 +25,7 @@
 #include "beanmachine/graph/distribution/multivariate_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
 #include "beanmachine/graph/distribution/poisson.h"
+#include "beanmachine/graph/distribution/product.h"
 #include "beanmachine/graph/distribution/student_t.h"
 #include "beanmachine/graph/distribution/tabular.h"
 
@@ -92,6 +93,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::CAUCHY: {
         return std::make_unique<Cauchy>(atype, in_nodes);
+      }
+      case graph::DistributionType::PRODUCT: {
+        return std::make_unique<Product>(atype, in_nodes);
       }
       default: {
         throw std::invalid_argument(

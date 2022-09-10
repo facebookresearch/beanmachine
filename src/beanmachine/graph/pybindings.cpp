@@ -119,6 +119,7 @@ PYBIND11_MODULE(graph, module) {
       .value("DIRICHLET", DistributionType::DIRICHLET)
       .value("CATEGORICAL", DistributionType::CATEGORICAL)
       .value("POISSON", DistributionType::POISSON)
+      .value("PRODUCT", DistributionType::PRODUCT)
       .value("GEOMETRIC", DistributionType::GEOMETRIC);
 
   py::enum_<FactorType>(module, "FactorType")
