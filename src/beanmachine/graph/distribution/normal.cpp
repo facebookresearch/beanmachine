@@ -7,10 +7,12 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+
 #include <random>
 #include <string>
 
 #include "beanmachine/graph/distribution/normal.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -74,8 +76,7 @@ double Normal::log_prob(const NodeValue& value) const {
     throw std::runtime_error(
         "Normal::log_prob applied to invalid variable type");
   }
-  result = (-std::log(s) - 0.5 * std::log(2 * M_PI)) * size -
-      0.5 * (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s);
+  result = util::log_normal_density(sum_x, sum_xsq, m, s, size);
   return result;
 }
 

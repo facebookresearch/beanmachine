@@ -6,6 +6,10 @@
  */
 
 #pragma once
+
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <Eigen/Dense>
 #include <algorithm>
 #include <random>
@@ -144,6 +148,40 @@ std::vector<T> make_reserved_vector(size_t n) {
   std::vector<T> result;
   result.reserve(n);
   return result;
+}
+
+/*
+Computes the log normal density for n idd samples.
+Takes the sum of samples as well as the sum of sample squares,
+as well as mu (mean) and sigma (standard deviation).
+*/
+inline double log_normal_density(
+    double sum_x,
+    double sum_xsq,
+    double mu,
+    double sigma,
+    unsigned n) {
+  static const double half_of_log_2_pi = 0.5 * std::log(2 * M_PI);
+  return (-std::log(sigma) - half_of_log_2_pi) * n -
+      0.5 * (sum_xsq - 2 * mu * sum_x + mu * mu * n) / (sigma * sigma);
+}
+
+/*
+Computes the log normal density for a sample.
+Takes the sampled value
+as well as mu (mean) and sigma (standard deviation).
+*/
+inline double log_normal_density(double x, double mu, double sigma) {
+  return log_normal_density(x, x * x, mu, sigma, 1);
+}
+
+/*
+Computes the log poisson probability for a sample.
+Takes the sampled value k
+as well as lambda (rate).
+*/
+inline auto log_poisson_probability(unsigned k, double lambda) {
+  return k * std::log(lambda) - lambda - std::lgamma(k + 1);
 }
 
 } // namespace util
