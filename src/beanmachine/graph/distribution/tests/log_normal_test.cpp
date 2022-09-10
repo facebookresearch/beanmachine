@@ -6,9 +6,10 @@
  */
 
 #define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <gtest/gtest.h>
 #include <Eigen/Core>
-#include <cmath>
 
 #include "beanmachine/graph/graph.h"
 

@@ -5,8 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <array>
+#define _USE_MATH_DEFINES
 #include <cmath>
+
+#include <array>
 #include <tuple>
 
 #include <gtest/gtest.h>

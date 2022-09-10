@@ -5,9 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <boost/iostreams/stream.hpp>
 #include <boost/progress.hpp>
-#include <cmath>
 #include <random>
 #include <string>
 #include <vector>

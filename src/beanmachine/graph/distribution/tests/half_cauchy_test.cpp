@@ -5,8 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <gtest/gtest.h>
+#define _USE_MATH_DEFINES
 #include <cmath>
+
+#include <gtest/gtest.h>
 
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/util.h"
