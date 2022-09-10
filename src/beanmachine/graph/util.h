@@ -13,6 +13,7 @@
 #include <Eigen/Dense>
 #include <algorithm>
 #include <random>
+#include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace util {
@@ -183,6 +184,19 @@ as well as lambda (rate).
 inline auto log_poisson_probability(unsigned k, double lambda) {
   return k * std::log(lambda) - lambda - std::lgamma(k + 1);
 }
+
+/*
+Returns the mean of the index-th dimension in samples.
+*/
+double compute_mean_at_index(
+    std::vector<std::vector<graph::NodeValue>> samples,
+    std::size_t index);
+
+/*
+Returns the means of samples.
+*/
+std::vector<double> compute_means(
+    std::vector<std::vector<graph::NodeValue>> samples);
 
 } // namespace util
 } // namespace beanmachine
