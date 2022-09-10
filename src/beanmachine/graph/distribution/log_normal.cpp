@@ -6,8 +6,9 @@
  */
 
 #define _USE_MATH_DEFINES
-#include <Eigen/Core>
 #include <cmath>
+
+#include <Eigen/Core>
 #include <random>
 
 #include "beanmachine/graph/distribution/log_normal.h"

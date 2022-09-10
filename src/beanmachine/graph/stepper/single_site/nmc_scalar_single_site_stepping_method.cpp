@@ -5,8 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <algorithm>
+#define _USE_MATH_DEFINES
 #include <cmath>
+
+#include <algorithm>
 #include <random>
 #include <string>
 #include <vector>

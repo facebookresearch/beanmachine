@@ -6,9 +6,10 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "beanmachine/graph/distribution/multivariate_normal.h"
-#include <beanmachine/graph/graph.h>
 #include <cmath>
+
+#include <beanmachine/graph/distribution/multivariate_normal.h>
+#include <beanmachine/graph/graph.h>
 
 namespace beanmachine {
 namespace distribution {

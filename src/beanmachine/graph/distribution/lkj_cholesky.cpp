@@ -6,8 +6,9 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "beanmachine/graph/distribution/lkj_cholesky.h"
 #include <cmath>
+
+#include "beanmachine/graph/distribution/lkj_cholesky.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
