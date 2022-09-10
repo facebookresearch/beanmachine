@@ -5,6 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+// We must include cmath first thing with macro _USE_MATH_DEFINES
+// to ensure the definition of math constants in Windows,
+// before any other header files have the chance of including cmath
+// without the macro.
+
 #include <algorithm>
 #include <iomanip>
 #include <random>

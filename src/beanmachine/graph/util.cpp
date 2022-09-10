@@ -6,11 +6,12 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "beanmachine/graph/util.h"
+#include <cmath>
+
 #include <boost/math/special_functions/polygamma.hpp>
 #include <Eigen/Core>
-#include <cmath>
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine::util {
 
