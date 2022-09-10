@@ -5,9 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <gtest/gtest.h>
 #include <Eigen/Core>
-#include <cmath>
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/distribution/lkj_cholesky.h"

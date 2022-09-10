@@ -5,10 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <beanmachine/graph/distribution/distribution.h>
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/util.h>
-#include <cmath>
 #include <unordered_set>
 
 namespace beanmachine {
