@@ -8,20 +8,10 @@
 #include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include <gtest/gtest.h>
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace graph {
-
-double _compute_mean_at_index(
-    std::vector<std::vector<NodeValue>> samples,
-    int index) {
-  double mean = 0;
-  for (int i = 0; i < samples.size(); i++) {
-    mean += samples[i][index]._double;
-  }
-  mean /= samples.size();
-  return mean;
-}
 
 void add_gamma_gamma_conjugate_(
     Graph& g,
@@ -386,7 +376,8 @@ void test_conjugate_model_moments(
       mh.infer(num_samples, seed, num_warmup_samples);
   EXPECT_EQ(samples.size(), num_samples);
   for (uint i = 0; i < expected_moments.size(); i++) {
-    EXPECT_NEAR(_compute_mean_at_index(samples, i), expected_moments[i], delta);
+    EXPECT_NEAR(
+        util::compute_mean_at_index(samples, i), expected_moments[i], delta);
   }
 }
 
