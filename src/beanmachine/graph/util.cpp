@@ -142,4 +142,30 @@ Eigen::MatrixXd log1mexp(const Eigen::MatrixXd& x) {
   return x.unaryExpr([](double x) { return log1mexp(x); });
 }
 
+double compute_mean_at_index(
+    std::vector<std::vector<graph::NodeValue>> samples,
+    std::size_t index) {
+  double mean = 0;
+  for (size_t i = 0; i < samples.size(); i++) {
+    assert(samples[i].size() > index);
+    // NOLINTNEXTLINE(facebook-hte-ParameterUncheckedArrayBounds)
+    mean += samples[i][index]._double;
+  }
+  mean /= samples.size();
+  return mean;
+}
+
+std::vector<double> compute_means(
+    std::vector<std::vector<graph::NodeValue>> samples) {
+  if (samples.empty()) {
+    return std::vector<double>();
+  }
+  auto num_dims = samples[0].size();
+  auto means = std::vector<double>(num_dims);
+  for (size_t i = 0; i != num_dims; i++) {
+    means[i] = compute_mean_at_index(samples, i);
+  }
+  return means;
+}
+
 } // namespace beanmachine::util
