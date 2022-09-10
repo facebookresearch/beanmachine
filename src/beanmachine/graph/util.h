@@ -10,9 +10,14 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <boost/iterator/transform_iterator.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
+#include <map>
+#include <numeric>
 #include <random>
+#include <stdexcept>
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
@@ -151,6 +156,73 @@ std::vector<T> make_reserved_vector(size_t n) {
   return result;
 }
 
+// Given a non-empty range,
+// returns (first, first) if all elements in range are equal to first,
+// and (first, other) for other != first otherwise.
+template <typename InputIterator>
+auto all_equal_in_non_empty_range(InputIterator beg, InputIterator end) {
+  auto first = *beg;
+  for (; beg != end; beg++) {
+    if (*beg != first) {
+      return std::make_pair(first, *beg);
+    }
+  }
+  return std::make_pair(first, first);
+}
+
+// Returns the unique element if all elements in range are equal,
+// or throw the result of 'make_exception_if_empty()' if range is empty,
+// or throw the result of 'make_exception_if_not_unique(e1, e2)'
+// if range contains at least two distinct elements e1, e2.
+template <typename Iterator, typename F1, typename F2>
+auto get_unique_element_if_any_or_throw_exceptions(
+    Iterator begin,
+    Iterator end,
+    F1 make_exception_if_empty,
+    F2 make_exception_if_not_unique) {
+  if (begin == end) {
+    throw make_exception_if_empty();
+  }
+
+  auto pair = all_equal_in_non_empty_range(begin, end);
+
+  if (pair.first == pair.second) {
+    return pair.first;
+  } else {
+    throw make_exception_if_not_unique(pair.first, pair.second);
+  }
+}
+
+// Dynamically casts elements in a vector<T2*> to
+// a vector<T1*> where T1 is a subclass of T2.
+template <typename T1, typename T2>
+std::vector<T1*> vector_dynamic_cast(const std::vector<T2*>& t2s) {
+  std::vector<T1*> result(t2s.size());
+  for (size_t i = 0; i != t2s.size(); i++) {
+    result[i] = dynamic_cast<T1*>(t2s[i]);
+  }
+  return result;
+}
+
+template <typename Iterator, typename Function>
+auto map(Iterator b, Iterator e, Function f) {
+  return std::make_pair(
+      boost::make_transform_iterator(b, f),
+      boost::make_transform_iterator(e, f));
+}
+
+template <typename Container, typename Function>
+auto map(const Container& c, Function f) {
+  return std::make_pair(
+      boost::make_transform_iterator(c.begin(), f),
+      boost::make_transform_iterator(c.end(), f));
+}
+
+template <typename Iterator>
+auto sum(const std::pair<Iterator, Iterator>& range) {
+  return std::accumulate(range.first, range.second, 0.0);
+}
+
 /*
 Computes the log normal density for n idd samples.
 Takes the sum of samples as well as the sum of sample squares,
@@ -214,6 +286,42 @@ void test_nmc_against_nuts(
     int warmup_samples,
     std::function<unsigned()> seed_getter,
     std::function<void(double, double)> tester);
+
+/*
+ * Returns a runtime_error exception
+ * indicating that the feature of given name is
+ * unsupported.
+ */
+inline std::runtime_error unsupported(const char* name) {
+  return std::runtime_error(std::string(name) + " is unsupported");
+}
+
+/* Returns a function (distribution::Distribution* d) -> d->log_prob(value). */
+inline auto log_prob_getter(const graph::NodeValue& value) {
+  return [&](distribution::Distribution* d) { return d->log_prob(value); };
+}
+
+/* Downcasts node pointer to distribution::Distribution* d and returns
+ * d->sample_type.
+ */
+inline graph::ValueType get_sample_type(graph::Node* node) {
+  return dynamic_cast<distribution::Distribution*>(node)->sample_type;
+}
+
+/*
+ * Takes iterator over Node pointers to distributions
+ * and returns iterator over their sample types.
+ */
+template <typename Iterator>
+inline auto sample_type_iterator(Iterator it) {
+  return boost::make_transform_iterator(it, get_sample_type);
+}
+
+inline bool atomic_type_unknown_or_equal_to(
+    graph::AtomicType a,
+    graph::ValueType v) {
+  return a == graph::AtomicType::UNKNOWN or graph::ValueType(a) == v;
+}
 
 } // namespace util
 } // namespace beanmachine

@@ -557,3 +557,69 @@ Edge statistics:
 
 """
         self.assertEqual(stats.strip(), expected.strip())
+
+
+class TestContinuousModels(unittest.TestCase):
+    def test_product_distribution(self):
+        g = graph.Graph()
+
+        MEAN0 = -5.0
+        STD0 = 1.0
+        real0 = g.add_constant(MEAN0)
+        pos0 = g.add_constant_pos_real(STD0)
+
+        normal_dist0 = g.add_distribution(
+            graph.DistributionType.NORMAL, graph.AtomicType.REAL, [real0, pos0]
+        )
+
+        real1 = g.add_operator(graph.OperatorType.SAMPLE, [normal_dist0])
+
+        STD1 = 2.0
+        pos1 = g.add_constant_pos_real(STD1)
+
+        normal_dist1 = g.add_distribution(
+            graph.DistributionType.NORMAL, graph.AtomicType.REAL, [real1, pos1]
+        )
+
+        MEAN2 = 5.0
+        STD2 = 2.0
+        real2 = g.add_constant(MEAN2)
+        pos2 = g.add_constant_pos_real(STD2)
+
+        normal_dist2 = g.add_distribution(
+            graph.DistributionType.NORMAL, graph.AtomicType.REAL, [real2, pos2]
+        )
+
+        product_dist1 = g.add_distribution(
+            graph.DistributionType.PRODUCT,
+            graph.AtomicType.REAL,
+            [normal_dist1, normal_dist2],
+        )
+
+        product_sample1 = g.add_operator(graph.OperatorType.SAMPLE, [product_dist1])
+
+        product_sample2 = g.add_operator(graph.OperatorType.SAMPLE, [product_dist1])
+
+        product_sample3 = g.add_operator(graph.OperatorType.SAMPLE, [product_dist1])
+
+        g.observe(product_sample1, -1.0)
+        g.observe(product_sample2, 0.0)
+        g.observe(product_sample3, 1.0)
+
+        g.query(real1)
+
+        default_config = graph.InferConfig()
+        samples = g.infer(
+            num_samples=10000,
+            algorithm=graph.InferenceType.NMC,
+            seed=5123401,
+            n_chains=1,
+            infer_config=default_config,
+        )
+        chain = 0
+        variable = 0
+        values = [sample_tuple[variable] for sample_tuple in samples[chain]]
+        mean = sum(values) / len(values)
+        print(mean)
+        expected = -2.848  # obtained from the same test ran in C++
+        self.assertAlmostEqual(mean, expected, delta=0.1)

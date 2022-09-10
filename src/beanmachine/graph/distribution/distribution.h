@@ -42,10 +42,6 @@ class Distribution : public graph::Node {
   // preserves the base class method as available.
   using graph::Node::log_prob;
 
-  virtual void log_prob_iid(
-      const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* log_probs */) const {}
-
   // Computes the first and second gradients of the log probability
   // with respect to given value and *adds* them to the
   // passed-by-reference parameters grad1 and grad2.
