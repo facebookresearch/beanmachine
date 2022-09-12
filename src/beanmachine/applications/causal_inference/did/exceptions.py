@@ -22,3 +22,15 @@ class PostPeriodException(DataException):
 
 class DataColumnException(DataException):
     pass
+
+
+class ModelException(Exception):
+    pass
+
+
+class ModelNotFitException(ModelException):
+    pass
+
+
+class PriorConfigException(Exception):
+    pass
