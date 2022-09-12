@@ -12,6 +12,17 @@
 
 using namespace beanmachine::graph;
 
+// TODO: These test helpers should be moved into a test utility header.
+bool MatrixEquality(const Eigen::MatrixXd& lhs, const Eigen::MatrixXd& rhs) {
+  return lhs.isApprox(rhs, 1e-4);
+}
+
+#define EXPECT_NEAR_MATRIX(lhs, rhs) ASSERT_PRED2(MatrixEquality, lhs, rhs)
+
+#define EXPECT_NEAR_MATRIX_EPS(lhs, rhs, eps) \
+  ASSERT_PRED2(                               \
+      [=](auto& lhs, auto& rhs) { return lhs.isApprox(rhs, eps); }, lhs, rhs)
+
 TEST(testgradient, operators) {
   Graph g;
   NodeValue value;
@@ -717,19 +728,6 @@ TEST(testgradient, backward_broadcast_add) {
   EXPECT_NEAR((*grad1[1]), 3.0, 1e-3);
 }
 
-void _expect_near_matrix(
-    Eigen::MatrixXd matrix1,
-    Eigen::MatrixXd matrix2,
-    double delta = 1e-4) {
-  EXPECT_EQ(matrix1.rows(), matrix2.rows());
-  EXPECT_EQ(matrix1.cols(), matrix2.cols());
-  for (uint i = 0; i < matrix1.rows(); i++) {
-    for (uint j = 0; j < matrix1.cols(); j++) {
-      EXPECT_NEAR(matrix1(i, j), matrix2(i, j), delta);
-    }
-  }
-}
-
 TEST(testgradient, matrix_add_grad) {
   Graph g;
 
@@ -755,11 +753,11 @@ TEST(testgradient, matrix_add_grad) {
 
   auto grad1 = rn->Grad1;
   auto expected_grad1 = m1_grad1 + m2_grad1;
-  _expect_near_matrix(grad1, expected_grad1);
+  EXPECT_NEAR_MATRIX(grad1, expected_grad1);
 
   auto grad2 = rn->Grad2;
   auto expected_grad2 = m1_grad2 + m2_grad2;
-  _expect_near_matrix(grad2, expected_grad2);
+  EXPECT_NEAR_MATRIX(grad2, expected_grad2);
 
   // test where constant matrices don't have gradient initialized
   Graph g1;
@@ -791,9 +789,9 @@ TEST(testgradient, matrix_add_grad) {
   Eigen::MatrixXd expected_Grad1 = Eigen::MatrixXd::Ones(2, 1);
   Eigen::MatrixXd expected_Grad2 = Eigen::MatrixXd::Zero(2, 1);
   Eigen::MatrixXd Grad1 = add_node->Grad1;
-  _expect_near_matrix(Grad1, expected_Grad1);
+  EXPECT_NEAR_MATRIX(Grad1, expected_Grad1);
   Eigen::MatrixXd Grad2 = add_node->Grad2;
-  _expect_near_matrix(Grad2, expected_Grad2);
+  EXPECT_NEAR_MATRIX(Grad2, expected_Grad2);
 }
 
 TEST(testgradient, matrix_add_back_grad1) {
@@ -809,17 +807,17 @@ TEST(testgradient, matrix_add_back_grad1) {
   auto result = g.add_operator(OperatorType::MATRIX_ADD, {r1, r1});
   Node* rn = g.get_node(result);
   rn->eval(gen);
-  _expect_near_matrix(rn->value._matrix, m1 * 4.0);
+  EXPECT_NEAR_MATRIX(rn->value._matrix, m1 * 4.0);
 
   a->reset_backgrad();
   rn->reset_backgrad();
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Random(3, 2);
   rn->back_grad1 += grad;
-  _expect_near_matrix(rn->back_grad1.as_matrix(), grad);
+  EXPECT_NEAR_MATRIX(rn->back_grad1.as_matrix(), grad);
 
   rn->backward();
-  _expect_near_matrix(a->back_grad1.as_matrix(), grad * 2.0);
+  EXPECT_NEAR_MATRIX(a->back_grad1.as_matrix(), grad * 2.0);
 }
 
 TEST(testgradient, matrix_negate_grad) {
@@ -840,11 +838,11 @@ TEST(testgradient, matrix_negate_grad) {
 
   auto grad1 = result_node->Grad1;
   auto expected_grad1 = -m1_grad1;
-  _expect_near_matrix(grad1, expected_grad1);
+  EXPECT_NEAR_MATRIX(grad1, expected_grad1);
 
   auto grad2 = result_node->Grad2;
   auto expected_grad2 = -m1_grad2;
-  _expect_near_matrix(grad2, expected_grad2);
+  EXPECT_NEAR_MATRIX(grad2, expected_grad2);
 }
 
 TEST(testgradient, matrix_negate_back_grad) {
@@ -861,17 +859,17 @@ TEST(testgradient, matrix_negate_back_grad) {
   auto result = g.add_operator(OperatorType::MATRIX_NEGATE, {r1});
   Node* result_node = g.get_node(result);
   result_node->eval(gen);
-  _expect_near_matrix(result_node->value._matrix, -2 * m1);
+  EXPECT_NEAR_MATRIX(result_node->value._matrix, -2 * m1);
 
   rn1->reset_backgrad();
   result_node->reset_backgrad();
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Random(3, 2);
   result_node->back_grad1 += grad;
-  _expect_near_matrix(result_node->back_grad1.as_matrix(), grad);
+  EXPECT_NEAR_MATRIX(result_node->back_grad1.as_matrix(), grad);
 
   result_node->backward();
-  _expect_near_matrix(rn1->back_grad1.as_matrix(), -grad);
+  EXPECT_NEAR_MATRIX(rn1->back_grad1.as_matrix(), -grad);
 }
 
 TEST(testgradient, forward_cholesky) {
@@ -910,11 +908,11 @@ TEST(testgradient, forward_cholesky) {
   Eigen::MatrixXd expected_first_grad(2, 2);
   expected_first_grad << 0.5, 0.0, 0.51, 0.001;
   Eigen::MatrixXd first_grad = l_node->Grad1;
-  _expect_near_matrix(first_grad, expected_first_grad);
+  EXPECT_NEAR_MATRIX(first_grad, expected_first_grad);
   Eigen::MatrixXd expected_second_grad(2, 2);
   expected_second_grad << -0.25, 0.0, -0.265, -0.002;
   Eigen::MatrixXd second_grad = l_node->Grad2;
-  _expect_near_matrix(second_grad, expected_second_grad);
+  EXPECT_NEAR_MATRIX(second_grad, expected_second_grad);
 
   // Sigma = torch.tensor([
   //     [1.0, 0.35, -0.25],
@@ -961,12 +959,12 @@ TEST(testgradient, forward_cholesky) {
   expected_first_grad1 << 0.5, 0.0, 0.0, 0.825, 0.1774, 0.0, 1.125, 0.6264,
       2.3018;
   Eigen::MatrixXd first_grad1 = l1_node->Grad1;
-  _expect_near_matrix(first_grad1, expected_first_grad1);
+  EXPECT_NEAR_MATRIX(first_grad1, expected_first_grad1);
   Eigen::MatrixXd expected_second_grad1(3, 3);
   expected_second_grad1 << -0.25, 0.0, 0.0, -0.7375, -0.3813, 0.0, -1.1875,
       -1.4312, -28.32;
   Eigen::MatrixXd second_grad1 = l1_node->Grad2;
-  _expect_near_matrix(second_grad1, expected_second_grad1);
+  EXPECT_NEAR_MATRIX(second_grad1, expected_second_grad1);
 }
 
 TEST(testgradient, backward_cholesky) {
@@ -1034,7 +1032,7 @@ TEST(testgradient, backward_cholesky) {
 
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 4);
-  _expect_near_matrix(grad[0]->as_matrix(), expected_grad);
+  EXPECT_NEAR_MATRIX(grad[0]->as_matrix(), expected_grad);
 }
 
 TEST(testgradient, matrix_exp_grad) {
@@ -1062,12 +1060,12 @@ TEST(testgradient, matrix_exp_grad) {
   exp_node->compute_gradients();
   Eigen::MatrixXd first_grad = exp_node->Grad1;
   Eigen::MatrixXd expected_first_grad(1, 2);
-  expected_first_grad << 0.0366, 0.0050;
-  _expect_near_matrix(first_grad, expected_first_grad);
+  expected_first_grad << 0.0366313, 0.0049575;
+  EXPECT_NEAR_MATRIX(first_grad, expected_first_grad);
   Eigen::MatrixXd second_grad = exp_node->Grad2;
   Eigen::MatrixXd expected_second_grad(1, 2);
-  expected_second_grad << 0.0733, 0.0099;
-  _expect_near_matrix(second_grad, expected_second_grad);
+  expected_second_grad << 0.0732626, 0.00991501;
+  EXPECT_NEAR_MATRIX(second_grad, expected_second_grad);
 
   // test backward
   Graph g1;
@@ -1161,14 +1159,14 @@ TEST(testgradient, matrix_log_grad_forward) {
   Eigen::MatrixXd expected_first_grad(1, 2);
   // By chain rule, f'(x) should be 2 * g'(x) / 2 * g(x) = [0.5, 0.33]
   expected_first_grad << 0.5, 1.0 / 3.0;
-  _expect_near_matrix(first_grad, expected_first_grad);
+  EXPECT_NEAR_MATRIX(first_grad, expected_first_grad);
   Eigen::MatrixXd second_grad = mlog_node->Grad2;
   Eigen::MatrixXd expected_second_grad(1, 2);
   // f''(x) = (g''(x) * g'(x) + g'(x) * g'(x)) / (g(x) * g(x))
   // = ([0, 0] * [1, 1] + [1, 1] * [1, 1]) / ([2, 3] * [2, 3])
   // = [0.25, 0.11]
   expected_second_grad << 0.25, 1.0 / 9.0;
-  _expect_near_matrix(second_grad, expected_second_grad);
+  EXPECT_NEAR_MATRIX(second_grad, expected_second_grad);
 }
 
 TEST(testgradient, matrix_log_grad_backward) {
@@ -1272,7 +1270,7 @@ TEST(testgradient, matrix_phi_grad_forward) {
   double h0 = beanmachine::oper::_1_SQRT2PI * 2.0 * std::exp(-8.0);
   double h1 = beanmachine::oper::_1_SQRT2PI * 2.0 * std::exp(-18.0);
   expected_first_grad << h0, h1;
-  _expect_near_matrix(first_grad, expected_first_grad);
+  EXPECT_NEAR_MATRIX(first_grad, expected_first_grad);
 
   // Second derivative:
   // Turns out that in this case where g' is [1, 1]
@@ -1281,7 +1279,7 @@ TEST(testgradient, matrix_phi_grad_forward) {
   Eigen::MatrixXd second_grad = mphi_node->Grad2;
   Eigen::MatrixXd expected_second_grad(1, 2);
   expected_second_grad << -h0 * 8.0, -h1 * 12.0;
-  _expect_near_matrix(second_grad, expected_second_grad);
+  EXPECT_NEAR_MATRIX(second_grad, expected_second_grad);
 }
 
 TEST(testgradient, matrix_elementwise_mult_forward) {
@@ -1304,11 +1302,11 @@ TEST(testgradient, matrix_elementwise_mult_forward) {
   Eigen::MatrixXd first_grad_x = cm_node->Grad1;
   Eigen::MatrixXd expected_first_grad_x(3, 2);
   expected_first_grad_x << 0.6, -0.2, 2.4, 1.8, -5.2, 1.6;
-  _expect_near_matrix(first_grad_x, expected_first_grad_x);
+  EXPECT_NEAR_MATRIX(first_grad_x, expected_first_grad_x);
   Eigen::MatrixXd second_grad_x = cm_node->Grad2;
   Eigen::MatrixXd expected_second_grad_x(3, 2);
   expected_second_grad_x << 2.6, 1.8, 4.4, 3.8, -3.2, 3.6;
-  _expect_near_matrix(second_grad_x, expected_second_grad_x);
+  EXPECT_NEAR_MATRIX(second_grad_x, expected_second_grad_x);
 }
 
 TEST(testgradient, matrix_phi_grad_backward) {
@@ -1495,11 +1493,11 @@ TEST(testgradient, matrix_mult_forward) {
   Eigen::MatrixXd first_grad_x = cm_node->Grad1;
   Eigen::MatrixXd expected_first_grad_x(2, 2);
   expected_first_grad_x << 3.6, 7.6, 1.3, 5.3;
-  _expect_near_matrix(first_grad_x, expected_first_grad_x);
+  EXPECT_NEAR_MATRIX(first_grad_x, expected_first_grad_x);
   Eigen::MatrixXd second_grad_x = cm_node->Grad2;
   Eigen::MatrixXd expected_second_grad_x(2, 2);
   expected_second_grad_x << 8.9, 12.9, 7.75, 11.75;
-  _expect_near_matrix(second_grad_x, expected_second_grad_x);
+  EXPECT_NEAR_MATRIX(second_grad_x, expected_second_grad_x);
 
   // node does not have Grad initialized
   Graph g1;
@@ -1521,11 +1519,11 @@ TEST(testgradient, matrix_mult_forward) {
   Eigen::MatrixXd first_grad = mult_node->Grad1;
   Eigen::MatrixXd expected_first_grad(2, 2);
   expected_first_grad << 2.5, 2.5, -1.2, -1.2;
-  _expect_near_matrix(first_grad, expected_first_grad);
+  EXPECT_NEAR_MATRIX(first_grad, expected_first_grad);
   Eigen::MatrixXd second_grad = mult_node->Grad2;
   Eigen::MatrixXd expected_second_grad(2, 2);
   expected_second_grad << 7.5, 7.5, -3.6, -3.6;
-  _expect_near_matrix(second_grad, expected_second_grad);
+  EXPECT_NEAR_MATRIX(second_grad, expected_second_grad);
 }
 
 TEST(testgradient, log_prob) {
@@ -1733,6 +1731,64 @@ TEST(testgradient, matrix_sum) {
   EXPECT_NEAR((*grad1[1]), -1.25, 1e-3);
 }
 
+TEST(testgradient, matrix_log1p_grad_forward) {
+  Graph g;
+
+  // Test forward differentiation
+
+  Eigen::MatrixXd g0(1, 2);
+  g0 << 2.0, 3.0;
+  auto cm1 = g.add_constant_pos_matrix(g0);
+  auto c = g.add_constant_pos_real(2.0);
+  auto cm = g.add_operator(OperatorType::MATRIX_SCALE, {c, cm1});
+  auto mlog1p = g.add_operator(OperatorType::MATRIX_LOG1P, {cm});
+  // f(x) = log1p(2 * g(x))
+  // g(x) = [2, 3]
+  // but we artificially set
+  // g'(x) = [1.1, 1.1]
+  // g''(x) = [2.3, 2.3]
+  // for testing.
+
+  Node* cm1_node = g.get_node(cm1);
+  cm1_node->Grad1 = Eigen::MatrixXd::Ones(1, 2) * 1.1;
+  auto g1 = cm1_node->Grad1.array();
+  cm1_node->Grad2 = Eigen::MatrixXd::Ones(1, 2) * 2.3;
+  auto g2 = cm1_node->Grad2.array();
+  Node* cm_node = g.get_node(cm);
+  Node* mlog1p_node = g.get_node(mlog1p);
+  std::mt19937 gen;
+  cm_node->eval(gen);
+  cm_node->compute_gradients();
+  mlog1p_node->eval(gen);
+  mlog1p_node->compute_gradients();
+
+  // For debugging, check the gradients of cm_node
+  EXPECT_NEAR_MATRIX(g1 * 2, cm_node->Grad1.array());
+  EXPECT_NEAR_MATRIX(g2 * 2, cm_node->Grad2.array());
+
+  // First derivative:
+  auto first_grad = mlog1p_node->Grad1.array();
+  // f = log1p(2 * g) = log(1 + 2 * g)
+  // f' = (2 g') / (1 + 2 * g)
+  auto f1top = 2 * g1;
+  auto f1bot = 1 + 2 * g0.array();
+  auto expected_f1 = f1top / f1bot;
+  EXPECT_NEAR_MATRIX(expected_f1, first_grad);
+
+  // Second derivative:
+  auto second_grad = mlog1p_node->Grad2.array();
+  // f' = (2 g') / (1 + 2 g) = f1top / f1bot
+  // where f1top = 2 g'
+  //       f1bot = 1 + 2 g
+  // f'' = (f1bot f1top' - f1top f1bot') / f1bot^2
+  // where f1top' = 2 g''
+  //       f1bot' = 2 g' = f1top
+  auto f1top1 = 2 * g2;
+  auto f1bot1 = f1top;
+  auto expected_f2 = (f1bot * f1top1 - f1top * f1bot1) / f1bot.pow(2);
+  EXPECT_NEAR_MATRIX(expected_f2, second_grad);
+}
+
 TEST(testgradient, matrix_log1p_grad_backward) {
   /*
 # Test backward differentiation
@@ -1793,6 +1849,70 @@ print(torch.autograd.grad(log_prob, sn1, retain_graph=True)) # -1.0945
   EXPECT_NEAR((*grad1[0])(1), 0.2297, 1e-3);
   EXPECT_NEAR((*grad1[1]), -1.8069, 1e-3);
   EXPECT_NEAR((*grad1[2]), -1.0945, 1e-3);
+}
+
+TEST(testgradient, matrix_log1mexp_grad_forward) {
+  Graph g;
+
+  // Test forward differentiation
+
+  Eigen::MatrixXd _g0(1, 2);
+  _g0 << 2.0, 3.0;
+  auto cm1 = g.add_constant_pos_matrix(_g0);
+  auto g0 = _g0.array();
+  auto c = g.add_constant_pos_real(2.0);
+  auto cm = g.add_operator(OperatorType::MATRIX_SCALE, {c, cm1});
+  auto cm2 = g.add_operator(OperatorType::MATRIX_NEGATE, {cm});
+  auto mlog1p = g.add_operator(OperatorType::MATRIX_LOG1MEXP, {cm2});
+
+  // f(x) = log1mexp(-2 * g(x))
+  // g(x) = [0.12, 0.34]
+  // but we artificially set
+  // g'(x) = [1.1, 1.1]
+  // g''(x) = [2.3, 2.3]
+  // for testing.
+
+  Node* cm1_node = g.get_node(cm1);
+  cm1_node->Grad1 = Eigen::MatrixXd::Ones(1, 2) * 1.1;
+  auto g1 = cm1_node->Grad1.array();
+  cm1_node->Grad2 = Eigen::MatrixXd::Ones(1, 2) * 2.3;
+  auto g2 = cm1_node->Grad2.array();
+  Node* cm_node = g.get_node(cm);
+  Node* cm2_node = g.get_node(cm2);
+  Node* mlog1p_node = g.get_node(mlog1p);
+  std::mt19937 gen;
+  cm_node->eval(gen);
+  cm_node->compute_gradients();
+  cm2_node->eval(gen);
+  cm2_node->compute_gradients();
+  mlog1p_node->eval(gen);
+  mlog1p_node->compute_gradients();
+
+  // For debugging, check the gradients of cm_node
+  EXPECT_NEAR_MATRIX(-g0 * 2, cm2_node->value._matrix.array());
+  EXPECT_NEAR_MATRIX(-g1 * 2, cm2_node->Grad1.array());
+  EXPECT_NEAR_MATRIX(-g2 * 2, cm2_node->Grad2.array());
+
+  // First derivative:
+  auto first_grad = mlog1p_node->Grad1.array();
+  // f(x) = log1mexp(-2 * g(x)) = log(1 - exp(-2 * g(x)))
+  // f' = (2 g'(x))/(e^(2 g(x)) - 1) = f1top / f1bot
+  // where f1top = 2 g'(x)
+  //       f1bot = e^(2 g(x)) - 1
+  auto f1top = 2 * g1;
+  auto e2g = (2 * g0).exp();
+  auto f1bot = e2g - 1;
+  auto expected_f1 = f1top / f1bot;
+  EXPECT_NEAR_MATRIX(expected_f1, first_grad);
+
+  // f'' = (f1bot f1top' - f1top f1bot') / f1bot^2
+  auto second_grad = mlog1p_node->Grad2.array();
+  // where f1top' = 2 g''(x)
+  //       f1bot' = 2 e^(2 g(x)) g'(x)
+  auto f1top1 = 2 * g2;
+  auto f1bot1 = 2 * e2g * g1;
+  auto expected_f2 = (f1bot * f1top1 - f1top * f1bot1) / f1bot.pow(2);
+  EXPECT_NEAR_MATRIX(expected_f2, second_grad);
 }
 
 TEST(testgradient, matrix_log1mexp_grad_backward) {
@@ -1907,8 +2027,8 @@ TEST(testgradient, matrix_complement_grad_forward) {
   auto expected_g1 = m1s.array() * x1.array();
   auto expected_g2 = m1s.array() * x2.array();
 
-  _expect_near_matrix(g1, expected_g1);
-  _expect_near_matrix(g2, expected_g2);
+  EXPECT_NEAR_MATRIX(g1, expected_g1);
+  EXPECT_NEAR_MATRIX(g2, expected_g2);
 }
 
 TEST(testgradient, matrix_complement_grad_backward) {
