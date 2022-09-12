@@ -7,9 +7,11 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+
 #include <random>
 
 #include "beanmachine/graph/proposer/normal.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace proposer {
@@ -20,8 +22,7 @@ graph::NodeValue Normal::sample(std::mt19937& gen) const {
 }
 
 double Normal::log_prob(graph::NodeValue& value) const {
-  return -std::log(sigma) - 0.5 * std::log(2 * M_PI) -
-      0.5 * (value._double - mu) * (value._double - mu) / (sigma * sigma);
+  return util::log_normal_density(value._double, mu, sigma);
 }
 
 } // namespace proposer

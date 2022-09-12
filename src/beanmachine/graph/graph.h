@@ -6,6 +6,9 @@
  */
 
 #pragma once
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <Eigen/Dense>
 #include <algorithm>
 #include <list>
@@ -378,6 +381,7 @@ enum class DistributionType {
   GEOMETRIC,
   CAUCHY,
   DUMMY,
+  PRODUCT,
   LKJ_CHOLESKY
 };
 
@@ -456,6 +460,20 @@ class Node {
   virtual double log_prob() const {
     return 0;
   }
+  // only valid for stochastic nodes
+  // TODO: shouldn't we then restrict them to those classes? See below.
+  virtual void log_prob_iid(
+      const graph::NodeValue& /* value */,
+      Eigen::MatrixXd& /* log_probs */) const {}
+  // only valid for stochastic nodes
+  // TODO: shouldn't we then restrict them to those classes? See below.
+  /*
+   * Convenience creating a matrix for passing to log_prob_iid(value, matrix)
+   * and returning it.
+   * Returning this large object is fine because Eigen supports move semantics.
+   */
+  virtual Eigen::MatrixXd log_prob_iid(
+      const graph::NodeValue& /* value */) const;
   virtual bool needs_gradient() const {
     return true;
   }

@@ -14,6 +14,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+from pandas.api.types import (
+    is_bool_dtype,
+    is_datetime64_any_dtype,
+    is_int64_dtype,
+    is_integer_dtype,
+    is_numeric_dtype,
+    is_string_dtype,
+)
+
 from .exceptions import (
     DataColumnException,
     InterventionException,
@@ -93,32 +102,22 @@ class DiDData:
 
     def _check_if_valid_df(self, df: pd.DataFrame) -> None:
         necessary_columns_and_types = {
-            "response": ["float", "int", "double"],
-            "timestamp": [
-                "str",
-                "object",
-                "int",
-                "double",
-                "float",
-                "datetime64[ns]",
-            ],
-            "is_after_intervention": ["int", "bool"],
-            "is_treatment_group": ["int", "bool"],
-            "interaction": ["int", "bool"],
+            "response": [is_numeric_dtype],
+            "timestamp": [is_numeric_dtype, is_string_dtype, is_datetime64_any_dtype],
+            "is_after_intervention": [is_bool_dtype, is_integer_dtype, is_int64_dtype],
+            "is_treatment_group": [is_bool_dtype, is_integer_dtype, is_int64_dtype],
+            "interaction": [is_bool_dtype, is_integer_dtype, is_int64_dtype],
         }
         necessary_cols = set(necessary_columns_and_types.keys())
-        if missing_cols := necessary_cols - set(df.columns):
+        missing_cols = necessary_cols - set(df.columns)
+        if missing_cols:
             raise DataColumnException(
                 f"Dataframe does not contain the necessary columns: [{', '.join(missing_cols)}]"
             )
-        # This is to accomodate the case of converting type 'String' (often the output of PVC and bb queries) to python-readable str type
-        if str(df.timestamp.dtype) == "string":
-            df.timestamp = df.timestamp.astype(str)
-        dtypes = df.dtypes.to_dict()
-        for col_name, typ in dtypes.items():
-            if typ not in necessary_columns_and_types[col_name]:
+        for col, func_list in necessary_columns_and_types.items():
+            if not any([func(df[col]) for func in func_list]):
                 raise DataColumnException(
-                    f"Dataframe column {col_name} is type {typ} when type {necessary_columns_and_types[col_name]} is required."
+                    f"Dataframe column '{col}' is type {df[col].dtype} when one of {func_list} types is required."
                 )
         unique_dummy_tuples = list(
             df.groupby(["is_after_intervention", "is_treatment_group"]).groups
@@ -155,7 +154,8 @@ class DiDData:
             }
         else:
             pre_period_stamps = set(pre_period_keys)
-        if missing_cols := pre_period_stamps - set(self.df.timestamp.values):
+        missing_cols = pre_period_stamps - set(self.df.timestamp.values)
+        if missing_cols:
             raise PrePeriodException(
                 f"Pre-period key(s) {missing_cols} not found in dataset provided."
             )
@@ -171,13 +171,13 @@ class DiDData:
             }
         else:
             post_period_stamps = set(post_period_keys)
-        if missing_cols := post_period_stamps - set(self.df.timestamp.values):
+        missing_cols = post_period_stamps - set(self.df.timestamp.values)
+        if missing_cols:
             raise PostPeriodException(
                 f"Post-period key(s) {missing_cols} not found in dataset provided."
             )
-        if overlapped_keys := post_period_stamps.intersection(
-            set(self.pre_period_keys)
-        ):
+        overlapped_keys = post_period_stamps.intersection(set(self.pre_period_keys))
+        if overlapped_keys:
             raise PostPeriodException(
                 f"Post-period key(s) {overlapped_keys} found in pre-period key selection."
             )

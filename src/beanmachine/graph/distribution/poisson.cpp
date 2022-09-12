@@ -5,10 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
 #include <cmath>
+
 #include <unsupported/Eigen/SpecialFunctions>
 
 #include "beanmachine/graph/distribution/poisson.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -52,8 +55,7 @@ double Poisson::log_prob(const graph::NodeValue& value) const {
     if (k < 0) {
       return -std::numeric_limits<double>::infinity();
     }
-
-    ret_val += k * log(lambda) - lambda - std::lgamma(k + 1);
+    ret_val += util::log_poisson_probability(static_cast<unsigned>(k), lambda);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
     if ((value._nmatrix.array() < 0).any()) {

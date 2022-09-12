@@ -5,7 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
 #include <cmath>
+
 #include <unsupported/Eigen/SpecialFunctions>
 
 #include "beanmachine/graph/distribution/binomial.h"

@@ -5,6 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+// We must include cmath first thing with macro _USE_MATH_DEFINES
+// to ensure the definition of math constants in Windows,
+// before any other header files have the chance of including cmath
+// without the macro.
+
 #include <algorithm>
 #include <iomanip>
 #include <random>
@@ -288,6 +295,12 @@ void Node::to_scalar() {
     default:
       throw std::runtime_error("unsupported AtomicType to cast to scalar");
   }
+}
+
+Eigen::MatrixXd Node::log_prob_iid(const graph::NodeValue& value) const {
+  Eigen::MatrixXd temp;
+  log_prob_iid(value, temp);
+  return temp; // fine because of move semantics
 }
 
 std::string Graph::to_string() const {

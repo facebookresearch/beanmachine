@@ -95,7 +95,6 @@ PYBIND11_MODULE(graph, module) {
       .value("MATRIX_SUM", OperatorType::MATRIX_SUM)
       .value("MATRIX_LOG", OperatorType::MATRIX_LOG)
       .value("MATRIX_LOG1P", OperatorType::MATRIX_LOG1P)
-      .value("MATRIX_LOG1MEXP", OperatorType::MATRIX_LOG1MEXP)
       .value("MATRIX_PHI", OperatorType::MATRIX_PHI)
       .value("MATRIX_LOG1MEXP", OperatorType::MATRIX_LOG1MEXP)
       .value("MATRIX_COMPLEMENT", OperatorType::MATRIX_COMPLEMENT);
@@ -120,6 +119,7 @@ PYBIND11_MODULE(graph, module) {
       .value("DIRICHLET", DistributionType::DIRICHLET)
       .value("CATEGORICAL", DistributionType::CATEGORICAL)
       .value("POISSON", DistributionType::POISSON)
+      .value("PRODUCT", DistributionType::PRODUCT)
       .value("GEOMETRIC", DistributionType::GEOMETRIC);
 
   py::enum_<FactorType>(module, "FactorType")
