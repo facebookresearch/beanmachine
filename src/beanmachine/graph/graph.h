@@ -443,8 +443,6 @@ class Node {
   uint index; // index in Graph::nodes
   std::vector<Node*> in_nodes;
   std::vector<Node*> out_nodes;
-  std::vector<uint> det_anc; // deterministic (operator) ancestors
-  std::vector<uint> sto_anc; // stochastic ancestors
   NodeValue value;
   double grad1;
   double grad2;
@@ -802,9 +800,6 @@ struct Graph {
       const std::set<uint>& ordered_support_node_ids,
       bool affected_only,
       bool include_root_node);
-
-  std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
-      uint node_id);
 
   void eval_and_update_backgrad(std::vector<Node*>& ordered_supp);
   /*

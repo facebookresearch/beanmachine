@@ -8,10 +8,13 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <stdexcept>
+#include <unordered_set>
+
 #include <beanmachine/graph/distribution/distribution.h>
 #include <beanmachine/graph/graph.h>
+#include <beanmachine/graph/support.h>
 #include <beanmachine/graph/util.h>
-#include <unordered_set>
 
 namespace beanmachine {
 namespace graph {
@@ -21,6 +24,10 @@ void Graph::cavi(
     uint steps_per_iter,
     std::mt19937& gen,
     uint elbo_samples) {
+  DeterministicAncestors det_anc;
+  StochasticAncestors sto_anc;
+  std::tie(det_anc, sto_anc) =
+      collect_deterministic_and_stochastic_ancestors(*this);
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
   std::vector<Node*> node_ptrs;
@@ -75,10 +82,12 @@ void Graph::cavi(
       // the deterministic nodes have to be evaluated in topological order
       std::set<uint> det_set;
       for (auto id : logprob_nodes) {
-        for (auto id2 : node_ptrs[id]->det_anc) {
+        assert(id < det_anc.size());
+        for (auto id2 : det_anc[id]) {
           det_set.insert(id2);
         }
-        for (auto id2 : node_ptrs[id]->sto_anc) {
+        assert(id < sto_anc.size());
+        for (auto id2 : sto_anc[id]) {
           if (id2 != node_id and observed.find(id2) == observed.end()) {
             sample_set.insert(id2);
           }

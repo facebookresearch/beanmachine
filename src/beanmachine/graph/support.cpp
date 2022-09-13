@@ -9,9 +9,12 @@
 
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/support.h"
 
 namespace beanmachine {
 namespace graph {
+
+using namespace std;
 
 // the support of a graph is the set of operator and factor nodes that are
 // needed to determine the value of query and observed variables.
@@ -153,21 +156,33 @@ Graph::_compute_nodes_until_stochastic(
   return std::make_tuple(det_desc, sto_desc);
 }
 
-// compute the ancestors of the current node
-// returns vector of deterministic nodes and vector of stochastic nodes
-// that are operators and ancestors of the current node
-// NOTE: we don't return ancestors of stochastic ancestors
-// NOTE: current node is not returned
-std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_ancestors(
-    uint root_id) {
-  // check for the validity of root_id since this method is not private
-  if (root_id >= nodes.size()) {
-    throw std::out_of_range(
-        "node_id (" + std::to_string(root_id) + ") must be less than " +
-        std::to_string(nodes.size()));
+std::tuple<DeterministicAncestors, StochasticAncestors>
+collect_deterministic_and_stochastic_ancestors(Graph& graph) {
+  graph.ensure_evaluation_and_inference_readiness();
+  std::vector<std::vector<uint>> det_anc(graph.node_ptrs.size());
+  std::vector<std::vector<uint>> sto_anc(graph.node_ptrs.size());
+  for (Node* node : graph.node_ptrs) {
+    std::set<uint> det_set;
+    std::set<uint> sto_set;
+    for (Node* parent : node->in_nodes) {
+      if (parent->is_stochastic()) {
+        sto_set.insert(parent->index);
+      } else {
+        auto parent_det_anc = det_anc[parent->index]; // NOLINT
+        det_set.insert(parent_det_anc.begin(), parent_det_anc.end());
+        if (parent->node_type == NodeType::OPERATOR) {
+          det_set.insert(parent->index);
+        }
+        auto parent_sto_anc = sto_anc[parent->index]; // NOLINT
+        sto_set.insert(parent_sto_anc.begin(), parent_sto_anc.end());
+      }
+    }
+    std::vector<uint>& node_det_anc = det_anc[node->index]; // NOLINT
+    std::vector<uint>& node_sto_anc = sto_anc[node->index]; // NOLINT
+    node_det_anc.insert(node_det_anc.end(), det_set.begin(), det_set.end());
+    node_sto_anc.insert(node_sto_anc.end(), sto_set.begin(), sto_set.end());
   }
-  const Node* root = nodes[root_id].get();
-  return std::make_tuple(root->det_anc, root->sto_anc);
+  return {det_anc, sto_anc};
 }
 
 } // namespace graph
