@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <beanmachine/graph/graph.h>
+#include <beanmachine/graph/support.h>
 
 using namespace beanmachine;
 using namespace graph;
@@ -73,21 +74,30 @@ TEST(testgraph, support) {
   EXPECT_EQ(det_nodes.front(), o3);
   EXPECT_EQ(sto_nodes.size(), 1);
   EXPECT_EQ(sto_nodes.front(), o4);
-  std::vector<uint> det_anc;
-  std::vector<uint> sto_anc;
-  std::tie(det_anc, sto_anc) = g.compute_ancestors(o4);
+
+  DeterministicAncestors det_anc;
+  StochasticAncestors sto_anc;
+  std::tie(det_anc, sto_anc) =
+      collect_deterministic_and_stochastic_ancestors(g);
   // o4 -ancestors-> det: c3, c4, o3, d2 sto:
   // restricting to operators: det: o3 sto:
-  EXPECT_EQ(det_anc.size(), 1);
-  EXPECT_EQ(det_anc.front(), o3);
-  EXPECT_EQ(sto_anc.size(), 0);
-  std::tie(det_anc, sto_anc) = g.compute_ancestors(o8);
+  EXPECT_EQ(det_anc[o4].size(), 1);
+  EXPECT_EQ(det_anc[o4].front(), o3);
+  EXPECT_EQ(sto_anc[o4].size(), 0);
   // restricting to operators, ancestors(o8) = det: o3, o7 sto: o6
-  EXPECT_EQ(det_anc.size(), 2);
-  EXPECT_EQ(det_anc.front(), o3);
-  EXPECT_EQ(det_anc.back(), o7);
-  EXPECT_EQ(sto_anc.size(), 1);
-  EXPECT_EQ(sto_anc.front(), o6);
+  EXPECT_EQ(det_anc[o8].size(), 2);
+  EXPECT_EQ(det_anc[o8].front(), o3);
+  EXPECT_EQ(det_anc[o8].back(), o7);
+  EXPECT_EQ(sto_anc[o8].size(), 1);
+  EXPECT_EQ(sto_anc[o8].front(), o6);
+  // ancestors(o5) = det: ro2, ro4, sto: o2 o4
+  EXPECT_EQ(det_anc[o5].size(), 2);
+  EXPECT_EQ(det_anc[o5].front(), ro2);
+  EXPECT_EQ(det_anc[o5].back(), ro4);
+  EXPECT_EQ(sto_anc[o5].size(), 2);
+  EXPECT_EQ(sto_anc[o5].front(), o2);
+  EXPECT_EQ(sto_anc[o5].back(), o4);
+
   // query o5 so support is now 13 nodes:
   //   c1, c2, o1, d1, o2, ro2, c3, c4, o3, d2, o4, ro5, o5
   // but we only include operators o1, o2, ro2, o3, o4, ro4, and o5
@@ -106,14 +116,6 @@ TEST(testgraph, support) {
   EXPECT_EQ(det_nodes.back(), o5);
   EXPECT_EQ(sto_nodes.size(), 1);
   EXPECT_EQ(sto_nodes.front(), o4);
-  std::tie(det_anc, sto_anc) = g.compute_ancestors(o5);
-  // ancestors(o5) = det: ro2, ro4, sto: o2 o4
-  EXPECT_EQ(det_anc.size(), 2);
-  EXPECT_EQ(det_anc.front(), ro2);
-  EXPECT_EQ(det_anc.back(), ro4);
-  EXPECT_EQ(sto_anc.size(), 2);
-  EXPECT_EQ(sto_anc.front(), o2);
-  EXPECT_EQ(sto_anc.back(), o4);
 }
 
 TEST(testgraph, full_support) {
