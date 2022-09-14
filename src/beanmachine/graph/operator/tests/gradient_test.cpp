@@ -9,6 +9,7 @@
 
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/operator/linalgop.h>
+#include <cstdlib>
 
 using namespace beanmachine::graph;
 
@@ -574,68 +575,39 @@ TEST(testgradient, backward_to_matrix) {
 }
 
 TEST(testgradient, forward_matrix_scale) {
-  // This is a minimal test following forward_to_matrix above
-  // as a template. The immediate purpose is to test that we
-  // have the types (including matrix dimensions) right in this
-  // diff. TODO[Walid]: Add test cases when scalar has non-zero
-  // first and second gradients.
-
-  // We will reuse essentially the same test for to_matrix
-  // (see forward_to_matrix above), adding a simple use
-  // of matrix scale in between operators to check that they
-  // are providing values of the right type/shape.
-  // To recapitulate, that model is:
-  /* p ~ Normal(0, 1)
-     p2 ~ Normal(p, 1)
-     p2 = 0.6
-     posterior: Normal(0.5 * 0.6, 0.5) = N(0.3, 0.5)
-     grad  w.r.t. m : (x - m) / s^2 = 0.6
-     grad2 w.r.t. m : -1 / s^2 = -2
-  */
-  // That code that follows will also be essentially
-  // the same as that test, with the exception of the
-  // new variable sample_scaled_matrix which scales
-  // sample_matrix by 1, and we also use that new
-  // variable in place of the old one in the rest of
-  // computation.
-
   Graph g;
-  uint zero = g.add_constant(0.0);
-  uint one = g.add_constant_pos_real(1.0);
-  uint two = g.add_constant_pos_real(2.0);
-  uint five = g.add_constant_pos_real(5.0);
-  uint real_one = g.add_constant(1.0);
-  uint nat_one = g.add_constant((natural_t)1);
-  uint nat_two = g.add_constant((natural_t)2);
+  std::mt19937 gen;
+  std::uniform_real_distribution<> uniform{-10, 10};
+  Eigen::MatrixXd m0 = Eigen::MatrixXd::Random(3, 2).array();
+  Eigen::MatrixXd m1 = Eigen::MatrixXd::Random(3, 2).array();
+  Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(3, 2).array();
+  auto m = g.add_constant_real_matrix(m0);
+  g.get_node(m)->Grad1 = m1;
+  g.get_node(m)->Grad2 = m2;
 
-  uint norm_dist = g.add_distribution(
-      DistributionType::NORMAL, AtomicType::REAL, {zero, one});
-  uint norm_sample = g.add_operator(OperatorType::SAMPLE, {norm_dist});
+  double s0 = uniform(gen);
+  double s1 = uniform(gen);
+  double s2 = uniform(gen);
+  auto s = g.add_constant(s0);
+  g.get_node(s)->grad1 = s1;
+  g.get_node(s)->grad2 = s2;
 
-  uint stu_dist = g.add_distribution(
-      DistributionType::STUDENT_T, AtomicType::REAL, {five, zero, two});
-  uint stu_sample = g.add_operator(OperatorType::SAMPLE, {stu_dist});
-  g.observe(stu_sample, 0.1);
+  auto scale = g.add_operator(OperatorType::MATRIX_SCALE, {s, m});
+  g.get_node(scale)->eval(gen);
+  g.get_node(scale)->compute_gradients();
 
-  uint sample_matrix = g.add_operator(
-      OperatorType::TO_MATRIX, {nat_two, nat_one, norm_sample, stu_sample});
+  auto r0 = g.get_node(scale)->value._matrix;
+  auto r1 = g.get_node(scale)->Grad1;
+  auto r2 = g.get_node(scale)->Grad2;
 
-  uint sample_scaled_matrix =
-      g.add_operator(OperatorType::MATRIX_SCALE, {real_one, sample_matrix});
+  auto expected_r0 = s0 * m0;
+  EXPECT_NEAR_MATRIX(expected_r0, r0);
 
-  uint zero_nat = g.add_constant((natural_t)0);
-  uint sample_index =
-      g.add_operator(OperatorType::INDEX, {sample_scaled_matrix, zero_nat});
-  uint new_norm_dist = g.add_distribution(
-      DistributionType::NORMAL, AtomicType::REAL, {sample_index, one});
-  uint new_norm_sample = g.add_operator(OperatorType::SAMPLE, {new_norm_dist});
-  g.observe(new_norm_sample, 0.6);
+  auto expected_r1 = s1 * m0 + s0 * m1;
+  EXPECT_NEAR_MATRIX(expected_r1, r1);
 
-  double grad1 = 0.0;
-  double grad2 = 0.0;
-  g.gradient_log_prob(norm_sample, grad1, grad2);
-  EXPECT_NEAR(grad1, 0.6, 1e-3);
-  EXPECT_NEAR(grad2, -2, 1e-3);
+  auto expected_r2 = s2 * m0 + 2 * s1 * m1 + s0 * m2;
+  EXPECT_NEAR_MATRIX(expected_r2, r2);
 }
 
 TEST(testgradient, forward_broadcast_add) {
