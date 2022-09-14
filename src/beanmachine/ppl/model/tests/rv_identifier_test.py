@@ -10,6 +10,7 @@ import warnings
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+import torch.utils._pytree as pytree
 
 
 @bm.random_variable
@@ -151,3 +152,14 @@ class RVIdentifierTest(unittest.TestCase):
         self.assertIn(model2.baz(), rv_set)
         self.assertNotIn(model1.bar(1.5), rv_set)
         self.assertIn(model2.bar(1.5), rv_set)
+
+    def test_sorting_rv_identifier(self):
+        model = self.SampleModel()
+        observations = {
+            model.foo(): torch.tensor(1.0),
+            model.bar(0.5): torch.tensor(1.0),
+            model.baz(): torch.tensor(1.0),
+        }
+        # make sure the following doesn't raise
+        sorted(observations.keys())
+        pytree.tree_flatten(observations)

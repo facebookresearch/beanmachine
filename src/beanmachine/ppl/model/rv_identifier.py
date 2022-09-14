@@ -5,7 +5,7 @@
 
 import warnings
 from dataclasses import dataclass
-from typing import Callable, Tuple
+from typing import Any, Callable, Tuple
 
 import torch
 
@@ -31,6 +31,14 @@ class RVIdentifier:
 
     def __str__(self):
         return str(self.function.__name__) + str(self.arguments)
+
+    def __lt__(self, other: Any) -> bool:
+        # define comparison so that functorch doesn't raise when it tries to
+        # sort dictionary keys (https://fburl.com/0gomiv80). This can be
+        # removed with the v0.2.1+ release of functorch.
+        if isinstance(other, RVIdentifier):
+            return str(self) < str(other)
+        return NotImplemented
 
     @property
     def function(self):
