@@ -313,7 +313,7 @@ def plot_no_pooling_diagnostics(
     names = df["Name"].values
     keys = [f"θ[{name}]" for name in names]
     values = np.dsplit(samples.get(query).numpy(), 18)
-    values = [value.reshape(4, 5000) for value in values]
+    values = [value.reshape(samples.num_chains, -1) for value in values]
     diagnostics_data = dict(zip(keys, values))
 
     # Cycle through each query and create the diagnostics plots using arviz.
@@ -419,7 +419,7 @@ def plot_no_pooling_model(
     names = df["Name"].values
     keys = [f"θ[{name}]" for name in names]
     values = np.dsplit(samples.get(query).numpy(), 18)
-    values = [value.reshape(4, 5000) for value in values]
+    values = [value.reshape(samples.num_chains, -1) for value in values]
     data = dict(zip(keys, values))
 
     hdi_df = az.hdi(data, hdi_prob=0.89).to_dataframe()
