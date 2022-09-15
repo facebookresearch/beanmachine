@@ -1013,35 +1013,41 @@ struct Graph {
 
   // We define getters for these properties that ensure they are up-to-date.
  public:
-#define CACHE_PROPERTY(type, property)            \
- private:                                         \
-  type _##property;                               \
-                                                  \
- public:                                          \
-  const type& property() {                        \
-    _ensure_evaluation_and_inference_readiness(); \
-    return _##property;                           \
+#define CACHED_PROPERTY(type, property, private_or_public) \
+ private:                                                  \
+  type _##property;                                        \
+                                                           \
+  private_or_public:                                       \
+  const type& property() {                                 \
+    _ensure_evaluation_and_inference_readiness();          \
+    return _##property;                                    \
   }
+
+#define CACHED_PUBLIC_PROPERTY(type, property) \
+  CACHED_PROPERTY(type, property, public)
+
+#define CACHED_PRIVATE_PROPERTY(type, property) \
+  CACHED_PROPERTY(type, property, private)
 
   // A graph maintains of a vector of nodes; the index into that vector is
   // the id of the node. We often need to translate from node ids into node
   // pointers; to do so quickly we obtain the address of
   // every node in the graph up front and then look it up when we need it.
-  CACHE_PROPERTY(std::vector<Node*>, node_ptrs)
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, node_ptrs)
 
   // The support is the set of all nodes in the graph that are queried or
   // observed, directly or indirectly. We keep both node ids and node pointer
   // forms.
-  CACHE_PROPERTY(std::set<uint>, supp_ids)
-  CACHE_PROPERTY(std::vector<Node*>, supp)
+  CACHED_PUBLIC_PROPERTY(std::set<uint>, supp_ids)
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, supp)
 
   // Nodes in support that are not directly observed. Note that
   // the order of nodes in this vector matters! We must enumerate
   // them in order from lowest node identifier to highest.
-  CACHE_PROPERTY(std::vector<Node*>, unobserved_supp)
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_supp)
 
   // Nodes in unobserved_supp that are stochastic; similarly, order matters.
-  CACHE_PROPERTY(std::vector<Node*>, unobserved_sto_supp)
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_sto_supp)
 
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
@@ -1052,9 +1058,14 @@ struct Graph {
   // In other words, these are the cached results of
   // invoking graph::compute_affected_nodes
   // for each node.
+
  private:
-  std::vector<std::vector<Node*>> _sto_affected_nodes;
-  std::vector<std::vector<Node*>> _det_affected_nodes;
+  CACHED_PRIVATE_PROPERTY(std::vector<std::vector<Node*>>, det_affected_nodes)
+  CACHED_PRIVATE_PROPERTY(std::vector<std::vector<Node*>>, sto_affected_nodes)
+
+#undef CACHED_PROPERTY
+#undef CACHED_PUBLIC_PROPERTY
+#undef CACHED_PRIVATE_PROPERTY
 
   // Because unobserved_supp and unobserved_sto_supp do not contain
   // all nodes in the graph, it does not hold that a node id

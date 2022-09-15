@@ -1384,14 +1384,12 @@ void Graph::_compute_affected_nodes() {
 }
 
 const std::vector<Node*>& Graph::get_det_affected_nodes(Node* node) {
-  _ensure_evaluation_and_inference_readiness();
-  return _det_affected_nodes
+  return det_affected_nodes()
       [unobserved_sto_support_index_by_node_id[node->index]];
 }
 
 const std::vector<Node*>& Graph::get_sto_affected_nodes(Node* node) {
-  _ensure_evaluation_and_inference_readiness();
-  return _sto_affected_nodes
+  return sto_affected_nodes()
       [unobserved_sto_support_index_by_node_id[node->index]];
 }
 
