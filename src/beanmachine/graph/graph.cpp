@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include <stdexcept>
 #define _USE_MATH_DEFINES
 #include <cmath>
 // We must include cmath first thing with macro _USE_MATH_DEFINES
@@ -29,6 +30,8 @@
 
 namespace beanmachine {
 namespace graph {
+
+using namespace util;
 
 NATURAL_TYPE NATURAL_ZERO = 0ull;
 NATURAL_TYPE NATURAL_ONE = 1ull;
@@ -579,6 +582,58 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
   uint index = node->index = static_cast<uint>(nodes.size());
   nodes.push_back(std::move(node));
   return index;
+}
+
+std::function<uint(uint)> Graph::remove_node(uint node_id) {
+  return remove_node(nodes[node_id]);
+}
+
+std::function<uint(uint)> Graph::remove_node(std::unique_ptr<Node>& node) {
+  if (!node->out_nodes.empty()) {
+    throw std::invalid_argument(
+        "Attempt to remove node with out-nodes. Node id = " +
+        std::to_string(node->index));
+  }
+
+  auto equal_to_node = [&](Node* node2) { return node2->index == node->index; };
+  for (auto& other_node : nodes) {
+    if (other_node != node) {
+      std::erase_if(other_node->out_nodes, equal_to_node);
+    }
+  }
+
+  // Record node id because it will be destructed when we remove it from `nodes`
+  // (since `nodes` is a vector of `unique_ptr`).
+  auto node_id = node->index;
+  auto max_id = nodes.size() - 1;
+
+  // Remove it from everywhere
+  erase(queries, node_id);
+  observed.erase(node_id);
+  erase_position(nodes, node_id);
+
+  // Node ids no longer coincide with their positions, fix that.
+  reindex_nodes();
+
+  // auxiliary inference caches are invalidated
+  ready_for_evaluation_and_inference = false;
+
+  // Map from old to new ids reflects that fact that
+  // nodes with greater ids were shifted down one position:
+  auto from_old_to_new_id = [removed_index{node_id}, max_id](uint id) {
+    if (id == removed_index) {
+      throw std::invalid_argument(
+          "Looking up new id for old id after removed graph node "
+          "but given id is the one for the removed node");
+    }
+    if (id > max_id) {
+      throw std::invalid_argument(
+          "Looking up new id for old id that is actually greater than maximum old id.");
+    }
+    return id > removed_index ? id - 1 : id;
+  };
+
+  return from_old_to_new_id;
 }
 
 void Graph::check_node_id(uint node_id) {
@@ -1178,8 +1233,8 @@ std::vector<std::vector<double>>& Graph::variational(
   elbo_vals.clear();
   std::mt19937 generator(seed);
   cavi(num_iters, steps_per_iter, generator, elbo_samples);
-  return variational_params; // TODO: this should have been defined as a field,
-                             // but a value returned by cavi.
+  return variational_params; // TODO: this should have been defined as a
+                             // field, but a value returned by cavi.
 }
 
 std::vector<uint> Graph::get_parent_ids(
@@ -1272,20 +1327,22 @@ void Graph::compute_support() {
     supp.push_back(node_ptrs[node_id]);
   }
 
-  unobserved_sto_support_index_by_node_id = std::vector<uint>(nodes.size(), 0);
+  unobserved_support_index_by_node_id = std::vector<size_t>(nodes.size(), 0);
+  unobserved_sto_support_index_by_node_id =
+      std::vector<size_t>(nodes.size(), 0);
 
   for (auto node : supp) {
+    uint node_id = node->index;
     bool node_is_not_observed = observed.find(node->index) == observed.end();
     if (node_is_not_observed) {
+      // NOLINTNEXTLINE
+      unobserved_support_index_by_node_id[node_id] = unobserved_supp.size();
       unobserved_supp.push_back(node);
       if (node->is_stochastic()) {
-        uint index_of_next_unobserved_sto_supp_node =
-            static_cast<uint>(unobserved_sto_supp.size());
-        unobserved_sto_supp.push_back(node);
-        uint node_id = node->index;
-        assert(unobserved_sto_support_index_by_node_id.size() != 0);
+        // NOLINTNEXTLINE
         unobserved_sto_support_index_by_node_id[node_id] =
-            index_of_next_unobserved_sto_supp_node;
+            unobserved_sto_supp.size();
+        unobserved_sto_supp.push_back(node);
       }
     }
   }
