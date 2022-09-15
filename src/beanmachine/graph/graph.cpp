@@ -323,7 +323,7 @@ std::string Graph::to_string() const {
   return os.str();
 }
 
-void Graph::eval_and_update_backgrad(std::vector<Node*>& ordered_supp) {
+void Graph::eval_and_update_backgrad(const std::vector<Node*>& ordered_supp) {
   // generator doesn't matter for det nodes
   // TODO: add default generator
   std::mt19937 generator(12131);
@@ -516,10 +516,10 @@ double Graph::log_prob(uint src_idx) {
 }
 
 double Graph::full_log_prob() {
-  ensure_evaluation_and_inference_readiness();
+  _ensure_evaluation_and_inference_readiness();
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
-  for (auto node : supp) {
+  for (auto node : supp()) {
     if (node->is_stochastic()) {
       sum_log_prob += node->log_prob();
       if (node->node_type == NodeType::OPERATOR) {
@@ -617,6 +617,8 @@ std::function<uint(uint)> Graph::remove_node(std::unique_ptr<Node>& node) {
 
   // auxiliary inference caches are invalidated
   ready_for_evaluation_and_inference = false;
+  // Stored old values no longer valid
+  _old_values_vector_has_the_right_size = false;
 
   // Map from old to new ids reflects that fact that
   // nodes with greater ids were shifted down one position:
@@ -1298,51 +1300,56 @@ Graph::Graph(const Graph& other) {
   agg_samples = other.agg_samples;
 }
 
-void Graph::ensure_evaluation_and_inference_readiness() {
-  if (not ready_for_evaluation_and_inference) {
-    pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
-    collect_node_ptrs();
-    compute_support();
-    compute_affected_nodes();
-    old_values = std::vector<NodeValue>(nodes.size());
-    pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
-    ready_for_evaluation_and_inference = true;
-  }
+void Graph::_compute_evaluation_and_inference_readiness_data() {
+  pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
+  _clear_evaluation_and_inference_readiness_data();
+  _collect_node_ptrs();
+  _compute_support();
+  _compute_affected_nodes();
+  pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
 }
 
-void Graph::collect_node_ptrs() {
+void Graph::_clear_evaluation_and_inference_readiness_data() {
+  _node_ptrs.clear();
+  _supp_ids.clear();
+  _supp.clear();
+  _unobserved_supp.clear();
+  _unobserved_sto_supp.clear();
+  _sto_affected_nodes.clear();
+  _det_affected_nodes.clear();
+  unobserved_support_index_by_node_id.clear();
+  unobserved_sto_support_index_by_node_id.clear();
+}
+
+void Graph::_collect_node_ptrs() {
   for (uint node_id = 0; node_id < static_cast<uint>(nodes.size()); node_id++) {
-    node_ptrs.push_back(nodes[node_id].get());
+    _node_ptrs.push_back(nodes[node_id].get());
   }
 }
 
-void Graph::compute_support() {
-  if (supp.size() != 0) {
-    return;
-  }
-
-  supp.reserve(nodes.size());
-  supp_ids = compute_ordered_support_node_ids();
-  for (uint node_id : supp_ids) {
-    supp.push_back(node_ptrs[node_id]);
+void Graph::_compute_support() {
+  _supp.reserve(nodes.size());
+  _supp_ids = compute_ordered_support_node_ids();
+  for (uint node_id : _supp_ids) {
+    _supp.push_back(_node_ptrs[node_id]);
   }
 
   unobserved_support_index_by_node_id = std::vector<size_t>(nodes.size(), 0);
   unobserved_sto_support_index_by_node_id =
       std::vector<size_t>(nodes.size(), 0);
 
-  for (auto node : supp) {
+  for (auto node : _supp) {
     uint node_id = node->index;
     bool node_is_not_observed = observed.find(node->index) == observed.end();
     if (node_is_not_observed) {
       // NOLINTNEXTLINE
-      unobserved_support_index_by_node_id[node_id] = unobserved_supp.size();
-      unobserved_supp.push_back(node);
+      unobserved_support_index_by_node_id[node_id] = _unobserved_supp.size();
+      _unobserved_supp.push_back(node);
       if (node->is_stochastic()) {
         // NOLINTNEXTLINE
         unobserved_sto_support_index_by_node_id[node_id] =
-            unobserved_sto_supp.size();
-        unobserved_sto_supp.push_back(node);
+            _unobserved_sto_supp.size();
+        _unobserved_sto_supp.push_back(node);
       }
     }
   }
@@ -1352,23 +1359,23 @@ void Graph::compute_support() {
 // repeatedly know the set of immediate stochastic descendants
 // and intervening deterministic nodes.
 // Because this can be expensive, we compute those sets once and cache them.
-void Graph::compute_affected_nodes() {
-  for (Node* node : unobserved_sto_supp) {
+void Graph::_compute_affected_nodes() {
+  for (Node* node : _unobserved_sto_supp) {
     auto det_node_ids = util::make_reserved_vector<uint>(nodes.size());
     auto sto_node_ids = util::make_reserved_vector<uint>(nodes.size());
     auto det_nodes = util::make_reserved_vector<Node*>(nodes.size());
     auto sto_nodes = util::make_reserved_vector<Node*>(nodes.size());
 
     std::tie(det_node_ids, sto_node_ids) =
-        compute_affected_nodes(node->index, supp_ids);
+        compute_affected_nodes(node->index, _supp_ids);
     for (uint id : det_node_ids) {
-      det_nodes.push_back(node_ptrs[id]);
+      det_nodes.push_back(_node_ptrs[id]);
     }
     for (uint id : sto_node_ids) {
-      sto_nodes.push_back(node_ptrs[id]);
+      sto_nodes.push_back(_node_ptrs[id]);
     }
-    det_affected_nodes.push_back(det_nodes);
-    sto_affected_nodes.push_back(sto_nodes);
+    _det_affected_nodes.push_back(det_nodes);
+    _sto_affected_nodes.push_back(sto_nodes);
     if (_collect_performance_data) {
       profiler_data.det_supp_count[static_cast<uint>(node->index)] =
           static_cast<int>(det_nodes.size());
@@ -1377,19 +1384,21 @@ void Graph::compute_affected_nodes() {
 }
 
 const std::vector<Node*>& Graph::get_det_affected_nodes(Node* node) {
-  return det_affected_nodes
+  _ensure_evaluation_and_inference_readiness();
+  return _det_affected_nodes
       [unobserved_sto_support_index_by_node_id[node->index]];
 }
 
 const std::vector<Node*>& Graph::get_sto_affected_nodes(Node* node) {
-  return sto_affected_nodes
+  _ensure_evaluation_and_inference_readiness();
+  return _sto_affected_nodes
       [unobserved_sto_support_index_by_node_id[node->index]];
 }
 
 void Graph::revertibly_set_and_propagate(Node* node, const NodeValue& value) {
   save_old_value(node);
   save_old_values(get_det_affected_nodes(node));
-  old_sto_affected_nodes_log_prob =
+  _old_sto_affected_nodes_log_prob =
       compute_log_prob_of(get_sto_affected_nodes(node));
   node->value = value;
   eval(get_det_affected_nodes(node));
@@ -1401,29 +1410,34 @@ void Graph::revert_set_and_propagate(Node* node) {
 }
 
 void Graph::save_old_value(const Node* node) {
-  old_values[node->index] = node->value;
+  _ensure_old_values_has_the_right_size();
+  _old_values[node->index] = node->value;
 }
 
 void Graph::save_old_values(const std::vector<Node*>& nodes) {
   pd_begin(ProfilerEvent::NMC_SAVE_OLD);
+  _ensure_old_values_has_the_right_size();
   for (Node* node : nodes) {
-    old_values[node->index] = node->value;
+    _old_values[node->index] = node->value;
   }
   pd_finish(ProfilerEvent::NMC_SAVE_OLD);
 }
 
 NodeValue& Graph::get_old_value(const Node* node) {
-  return old_values[node->index];
+  _check_old_values_are_valid();
+  return _old_values[node->index];
 }
 
 void Graph::restore_old_value(Node* node) {
-  node->value = old_values[node->index];
+  _check_old_values_are_valid();
+  node->value = _old_values[node->index];
 }
 
 void Graph::restore_old_values(const std::vector<Node*>& det_nodes) {
   pd_begin(ProfilerEvent::NMC_RESTORE_OLD);
+  _check_old_values_are_valid();
   for (Node* node : det_nodes) {
-    node->value = old_values[node->index];
+    node->value = _old_values[node->index];
   }
   pd_finish(ProfilerEvent::NMC_RESTORE_OLD);
 }

@@ -39,13 +39,12 @@ void MH::infer(uint num_samples, InferConfig infer_config) {
 // need during inference, and verifies that the MH algorithm can
 // compute gradients of every node we need to.
 void MH::initialize() {
-  graph->ensure_evaluation_and_inference_readiness();
   ensure_all_nodes_are_supported();
   compute_initial_values();
 }
 
 void MH::ensure_all_nodes_are_supported() {
-  for (Node* node : graph->unobserved_sto_supp) {
+  for (Node* node : graph->unobserved_sto_supp()) {
     std::string error_message = is_not_supported(node);
     if (error_message != "") {
       throw std::runtime_error(error_message);
@@ -58,10 +57,10 @@ void MH::ensure_all_nodes_are_supported() {
 // Unobserved stochastic nodes are assigned a value by the uniform
 // initializer. Deterministic nodes are computed from their inputs.
 // Note that we only need a single pass because parent nodes always have
-// indices less than those of their children, and unobserved_supp
+// indices less than those of their children, and unobserved_supp()
 // respects index order.
 void MH::compute_initial_values() {
-  for (Node* unobs_node : graph->unobserved_supp) {
+  for (Node* unobs_node : graph->unobserved_supp()) {
     if (unobs_node->is_stochastic()) {
       proposer::default_initializer(gen, unobs_node);
     } else { // non-stochastic operator node, so just evaluate

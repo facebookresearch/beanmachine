@@ -578,8 +578,7 @@ TEST(testgraph, eval_and_update_backgrad) {
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{dist1});
   g.observe(y, 100.0);
   g.query(x_sq);
-  g.ensure_evaluation_and_inference_readiness();
   g.nodes[x]->value._double = 2.0;
-  g.eval_and_update_backgrad(g.supp);
+  g.eval_and_update_backgrad(g.supp());
   EXPECT_NEAR(g.nodes[x]->back_grad1, 3.76, 1e-5);
 }

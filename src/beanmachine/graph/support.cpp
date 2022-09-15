@@ -158,10 +158,9 @@ Graph::_compute_nodes_until_stochastic(
 
 std::tuple<DeterministicAncestors, StochasticAncestors>
 collect_deterministic_and_stochastic_ancestors(Graph& graph) {
-  graph.ensure_evaluation_and_inference_readiness();
-  std::vector<std::vector<uint>> det_anc(graph.node_ptrs.size());
-  std::vector<std::vector<uint>> sto_anc(graph.node_ptrs.size());
-  for (Node* node : graph.node_ptrs) {
+  std::vector<std::vector<uint>> det_anc(graph.node_ptrs().size());
+  std::vector<std::vector<uint>> sto_anc(graph.node_ptrs().size());
+  for (Node* node : graph.node_ptrs()) {
     std::set<uint> det_set;
     std::set<uint> sto_set;
     for (Node* parent : node->in_nodes) {
