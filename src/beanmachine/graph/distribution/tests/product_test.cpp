@@ -96,20 +96,18 @@ TEST(testdistrib, product_construction_and_log_prob) {
       AtomicType::NATURAL,
       std::vector<uint>{poisson_dist1, poisson_dist2});
 
-  g.ensure_evaluation_and_inference_readiness();
-
-  auto dist_obj1 = static_cast<Distribution*>(g.node_ptrs[product_dist1]);
+  auto dist_obj1 = static_cast<Distribution*>(g.node_ptrs()[product_dist1]);
   auto x = MEAN1;
   auto expected = log_normal_density(x, MEAN1, STD1);
   EXPECT_NEAR(dist_obj1->log_prob(NodeValue(x)), expected, 1e-6);
 
-  auto dist_obj2 = static_cast<Distribution*>(g.node_ptrs[product_dist2]);
+  auto dist_obj2 = static_cast<Distribution*>(g.node_ptrs()[product_dist2]);
   x = MEAN1;
   expected =
       log_normal_density(x, MEAN1, STD1) + log_normal_density(x, MEAN2, STD2);
   EXPECT_NEAR(dist_obj2->log_prob(NodeValue(x)), expected, 1e-6);
 
-  auto dist_obj3 = static_cast<Distribution*>(g.node_ptrs[product_dist3]);
+  auto dist_obj3 = static_cast<Distribution*>(g.node_ptrs()[product_dist3]);
   natural_t k = 4;
   expected =
       log_poisson_probability(k, RATE1) + log_poisson_probability(k, RATE2);

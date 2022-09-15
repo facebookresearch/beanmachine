@@ -22,11 +22,10 @@ namespace graph {
 
 GlobalState::GlobalState(Graph& g) : graph(g) {
   flat_size = 0;
-  graph.ensure_evaluation_and_inference_readiness();
 
   // initialize unconstrained value types
   // TODO: rename to initialize_unconstrained_value_types
-  for (auto node : graph.supp) {
+  for (auto node : graph.supp()) {
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
       sto_node->get_unconstrained_value(true);
@@ -34,7 +33,7 @@ GlobalState::GlobalState(Graph& g) : graph(g) {
   }
 
   // save stochastic and deterministic nodes
-  for (auto node : graph.supp) {
+  for (auto node : graph.supp()) {
     if (node->is_stochastic() and !node->is_observed) {
       stochastic_nodes.push_back(node);
       // initialize vals_backup and grads_backup to correct size
@@ -217,7 +216,7 @@ void GlobalState::update_log_prob() {
 }
 
 void GlobalState::update_backgrad() {
-  graph.eval_and_update_backgrad(graph.supp);
+  graph.eval_and_update_backgrad(graph.supp());
 }
 
 } // namespace graph

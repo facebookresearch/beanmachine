@@ -37,8 +37,6 @@ ProfilerEvent NMCScalarSingleSiteSteppingMethod::get_step_profiler_event() {
 
 // Returns the NMC proposal distribution conditioned on the
 // target node's current value.
-// NOTE: assumes that det_affected_nodes's values are already
-// evaluated according to the target node's value.
 std::unique_ptr<proposer::Proposer>
 NMCScalarSingleSiteSteppingMethod::get_proposal_distribution(Node* tgt_node) {
   auto graph = mh->graph;

@@ -801,7 +801,7 @@ struct Graph {
       bool affected_only,
       bool include_root_node);
 
-  void eval_and_update_backgrad(std::vector<Node*>& ordered_supp);
+  void eval_and_update_backgrad(const std::vector<Node*>& ordered_supp);
   /*
   Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
@@ -982,14 +982,6 @@ struct Graph {
 
   void reindex_nodes();
 
-  // members brought in from MH class since they are really Graph properties
- public:
-  // A graph maintains of a vector of nodes; the index into that vector is
-  // the id of the node. We often need to translate from node ids into node
-  // pointers; to do so quickly we obtain the address of
-  // every node in the graph up front and then look it up when we need it.
-  std::vector<Node*> node_ptrs;
-
   // Every node in the graph has a value; when we propose a new graph state,
   // we update the values. If we then reject the proposed new state, we need
   // to restore the values. This vector stores the original values of the
@@ -997,22 +989,59 @@ struct Graph {
   // We do the same for the log probability of the stochastic nodes
   // affected by the last revertible set and propagate operation
   // see (revertibly_set_and_propagate method).
-  std::vector<NodeValue> old_values;
-  double old_sto_affected_nodes_log_prob;
+ private:
+  bool _old_values_vector_has_the_right_size = false;
+  std::vector<NodeValue> _old_values;
+  double _old_sto_affected_nodes_log_prob = 0;
+
+  inline void _ensure_old_values_has_the_right_size() {
+    if (not _old_values_vector_has_the_right_size) {
+      _old_values = std::vector<NodeValue>(nodes.size());
+      _old_values_vector_has_the_right_size = true;
+    }
+  }
+
+  inline void _check_old_values_are_valid() {
+    if (not _old_values_vector_has_the_right_size) {
+      throw std::invalid_argument(
+          "Old value requested but old values are invalid right now");
+    }
+  }
+
+  // Members keeping graph structure information useful for evaluation
+  // and inference.
+
+  // We define getters for these properties that ensure they are up-to-date.
+ public:
+#define CACHE_PROPERTY(type, property)            \
+ private:                                         \
+  type _##property;                               \
+                                                  \
+ public:                                          \
+  const type& property() {                        \
+    _ensure_evaluation_and_inference_readiness(); \
+    return _##property;                           \
+  }
+
+  // A graph maintains of a vector of nodes; the index into that vector is
+  // the id of the node. We often need to translate from node ids into node
+  // pointers; to do so quickly we obtain the address of
+  // every node in the graph up front and then look it up when we need it.
+  CACHE_PROPERTY(std::vector<Node*>, node_ptrs)
 
   // The support is the set of all nodes in the graph that are queried or
   // observed, directly or indirectly. We keep both node ids and node pointer
   // forms.
-  std::set<uint> supp_ids;
-  std::vector<Node*> supp;
+  CACHE_PROPERTY(std::set<uint>, supp_ids)
+  CACHE_PROPERTY(std::vector<Node*>, supp)
 
   // Nodes in support that are not directly observed. Note that
   // the order of nodes in this vector matters! We must enumerate
   // them in order from lowest node identifier to highest.
-  std::vector<Node*> unobserved_supp;
+  CACHE_PROPERTY(std::vector<Node*>, unobserved_supp)
 
   // Nodes in unobserved_supp that are stochastic; similarly, order matters.
-  std::vector<Node*> unobserved_sto_supp;
+  CACHE_PROPERTY(std::vector<Node*>, unobserved_sto_supp)
 
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
@@ -1023,8 +1052,9 @@ struct Graph {
   // In other words, these are the cached results of
   // invoking graph::compute_affected_nodes
   // for each node.
-  std::vector<std::vector<Node*>> sto_affected_nodes;
-  std::vector<std::vector<Node*>> det_affected_nodes;
+ private:
+  std::vector<std::vector<Node*>> _sto_affected_nodes;
+  std::vector<std::vector<Node*>> _det_affected_nodes;
 
   // Because unobserved_supp and unobserved_sto_supp do not contain
   // all nodes in the graph, it does not hold that a node id
@@ -1039,9 +1069,11 @@ struct Graph {
   // before using the values in
   // unobserved_support_index_by_node_id
   // (unobserved_sto_support_index_by_node_id respectively).
+ private:
   std::vector<size_t> unobserved_support_index_by_node_id;
   std::vector<size_t> unobserved_sto_support_index_by_node_id;
 
+ private:
   bool ready_for_evaluation_and_inference = false;
 
   // Methods
@@ -1053,24 +1085,31 @@ struct Graph {
   // Note that this assumes the graph has not changed since the last invocation.
   // If the graph does change, client code can set field "ready" to false
   // and then invoke this method.
-  void ensure_evaluation_and_inference_readiness();
+  void _ensure_evaluation_and_inference_readiness() {
+    if (not ready_for_evaluation_and_inference) {
+      _compute_evaluation_and_inference_readiness_data();
+      ready_for_evaluation_and_inference = true;
+    }
+  }
 
-  void collect_node_ptrs();
+  void _compute_evaluation_and_inference_readiness_data();
 
-  void compute_support();
+  void _clear_evaluation_and_inference_readiness_data();
 
-  void ensure_all_nodes_are_supported();
+  void _collect_node_ptrs();
 
-  void compute_initial_values();
+  void _compute_support();
 
-  void compute_affected_nodes();
+  void _compute_affected_nodes();
 
+ public:
   void generate_sample();
 
   void collect_samples(uint num_samples, InferConfig infer_config);
 
   void collect_sample(InferConfig infer_config);
 
+ public:
   const std::vector<Node*>& get_det_affected_nodes(Node* node);
 
   const std::vector<Node*>& get_sto_affected_nodes(Node* node);
@@ -1093,7 +1132,7 @@ struct Graph {
   NodeValue& get_old_value(const Node* node);
 
   double get_old_sto_affected_nodes_log_prob() {
-    return old_sto_affected_nodes_log_prob;
+    return _old_sto_affected_nodes_log_prob;
   }
 
   void restore_old_value(Node* node);
