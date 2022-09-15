@@ -4,10 +4,13 @@
 # LICENSE file in the root directory of this source tree.
 
 """Module defining a data extract, transform, and load API."""
+import logging
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class Extract:
@@ -55,12 +58,16 @@ class Load:
             return pd.read_csv(str(self.data_dir.joinpath(self.filename)))
         self.transformed_data = self.transformer().transform()
         # Cache to disk
-        if not self.data_dir.exists():
-            self.data_dir.mkdir()
-        self.transformed_data.to_csv(
-            str(self.data_dir.joinpath(self.filename)),
-            index=False,
-        )
+        try:
+            if not self.data_dir.exists():
+                self.data_dir.mkdir()
+            self.transformed_data.to_csv(
+                str(self.data_dir.joinpath(self.filename)),
+                index=False,
+            )
+        except Exception as e:
+            logger.warn(f"Fail to cache data due to {e}")
+
         return self._load()
 
     def _load(self) -> Any:
