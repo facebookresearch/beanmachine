@@ -8,6 +8,7 @@
 #pragma once
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/third-party/nameof.h"
 
 namespace beanmachine {
 namespace oper {
@@ -21,7 +22,7 @@ class UnaryOperator : public Operator {
     if (in_nodes.size() != 1) {
       throw std::invalid_argument(
           "expecting exactly a single parent for unary operator " +
-          std::to_string(static_cast<int>(op_type)));
+          std::string(NAMEOF_ENUM(op_type)));
     }
     // if the parent node's value type has not been initialized then we
     // can't define an operator here

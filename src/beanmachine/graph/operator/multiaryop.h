@@ -8,6 +8,7 @@
 #pragma once
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/third-party/nameof.h"
 
 namespace beanmachine {
 namespace oper {
@@ -28,8 +29,7 @@ class MultiaryOperator : public Operator {
     for (const graph::Node* node : in_nodes) {
       if (node->value.type.atomic_type != type0) {
         throw std::invalid_argument(
-            "all parents of operator " +
-            std::to_string(static_cast<int>(op_type)) +
+            "all parents of operator " + std::string(NAMEOF_ENUM(op_type)) +
             " should have the same atomic type");
       }
     }
