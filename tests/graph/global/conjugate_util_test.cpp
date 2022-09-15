@@ -7,10 +7,10 @@
 
 #include <gtest/gtest.h>
 
-#include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/util.h"
+#include "graph/testing_util_test.h"
+#include "graph/global/conjugate_util_test.h"
 
 namespace beanmachine {
 namespace graph {

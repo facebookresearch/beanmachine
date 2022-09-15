@@ -8,8 +8,8 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include "beanmachine/graph/global/nuts.h"
-#include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include "beanmachine/graph/graph.h"
+#include "graph/global/conjugate_util_test.h"
 
 using namespace beanmachine;
 using namespace graph;
