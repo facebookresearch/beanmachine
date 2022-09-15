@@ -14,37 +14,61 @@
 #include "beanmachine/graph/graph.h"
 
 using namespace beanmachine;
+using namespace std;
+using namespace graph;
 
-TEST(testgraph, infer_arithmetic) {
-  graph::Graph g;
-  uint c1 = g.add_constant_probability(0.1);
-  uint d1 = g.add_distribution(
+void populate_arithmetic_graph(unique_ptr<Graph>& g) {
+  /*
+   o1 ~ Bernoulli(0.1)
+   o2 = (positive real) o1
+   o3 = 0.8 * o2
+   o4 = 0.1 + o3
+   o5 ~ Noisy_or(o4)
+
+   or more simply:
+
+   o1 ~ Bernoulli(0.1)
+   o5 ~ Noisy_or(0.1 + 0.8 * o1)
+   Observe o5 to be true
+   Query o1.
+  */
+  uint c1 = g->add_constant_probability(0.1);
+  uint d1 = g->add_distribution(
       graph::DistributionType::BERNOULLI,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({c1}));
   uint o1 =
-      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
-  uint o2 =
-      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o1}));
-  uint c2 = g.add_constant_pos_real(0.8);
-  uint o3 = g.add_operator(
+      g->add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
+  uint o2 = g->add_operator(
+      graph::OperatorType::TO_POS_REAL, std::vector<uint>({o1}));
+  uint c2 = g->add_constant_pos_real(0.8);
+  uint o3 = g->add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({c2, o2}));
-  uint c3 = g.add_constant_pos_real(0.1);
+  uint c3 = g->add_constant_pos_real(0.1);
   uint o4 =
-      g.add_operator(graph::OperatorType::ADD, std::vector<uint>({c3, o3}));
-  uint d2 = g.add_distribution(
+      g->add_operator(graph::OperatorType::ADD, std::vector<uint>({c3, o3}));
+  uint d2 = g->add_distribution(
       graph::DistributionType::BERNOULLI_NOISY_OR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({o4}));
   uint o5 =
-      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
+      g->add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
   // P(o5|o1=T) = 1 - exp(-.9)=0.5934 and P(o5|o1=F) = 1-exp(-.1)=0.09516
   // Since P(o1=T)=0.1 and P(o1=F)=0.9. Therefore P(o5=T,o1=T) = 0.05934,
   // P(o5=T,o1=F) = 0.08564 and P(o1=T | o5=T) = 0.4093
-  g.observe(o5, true);
-  g.query(o1);
+  g->observe(o5, true);
+  g->query(o1);
+}
+
+unique_ptr<Graph> make_arithmetic_graph() {
+  unique_ptr<Graph> g = make_unique<Graph>();
+  populate_arithmetic_graph(g);
+  return g;
+}
+
+void test_arithmetic_network(unique_ptr<Graph>& g) {
   std::vector<std::vector<graph::NodeValue>> samples =
-      g.infer(100, graph::InferenceType::GIBBS);
+      g->infer(100, graph::InferenceType::GIBBS);
   int sum = 0;
   for (const auto& sample : samples) {
     const auto& s = sample.front();
@@ -55,11 +79,11 @@ TEST(testgraph, infer_arithmetic) {
   EXPECT_LT(sum, 65);
   EXPECT_GT(sum, 15);
   // infer_mean should give almost exactly the same answer
-  std::vector<double> means = g.infer_mean(100, graph::InferenceType::GIBBS);
+  std::vector<double> means = g->infer_mean(100, graph::InferenceType::GIBBS);
   EXPECT_TRUE(std::abs(sum - int(means[0] * 100)) <= 1);
   // repeat the test with rejection sampling
   std::vector<std::vector<graph::NodeValue>> samples2 =
-      g.infer(100, graph::InferenceType::REJECTION);
+      g->infer(100, graph::InferenceType::REJECTION);
   sum = 0;
   for (const auto& sample : samples2) {
     const auto& s = sample.front();
@@ -70,8 +94,79 @@ TEST(testgraph, infer_arithmetic) {
   EXPECT_GT(sum, 15);
   // infer_mean should give the same answer
   std::vector<double> means2 =
-      g.infer_mean(100, graph::InferenceType::REJECTION);
+      g->infer_mean(100, graph::InferenceType::REJECTION);
   EXPECT_TRUE(std::abs(sum - int(means2[0] * 100)) <= 1);
+}
+
+TEST(testgraph, infer_arithmetic) {
+  unique_ptr<Graph> g = make_arithmetic_graph();
+  test_arithmetic_network(g);
+}
+
+TEST(testgraph, remove_node) {
+  unique_ptr<Graph> g = make_arithmetic_graph();
+
+  size_t original_number_of_nodes = g->nodes.size();
+
+  // Let's recover some of the nodes since we know where they are
+  uint o1 = 2;
+  uint o5 = g->nodes.size() - 1;
+  uint d2 = g->nodes.size() - 2;
+  uint o4 = g->nodes.size() - 3;
+
+  // Let's make some new ones that are topologically later
+  uint c4 = g->add_constant(0.7);
+  uint o6 =
+      g->add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o1}));
+  uint o7 = g->add_operator(
+      graph::OperatorType::MULTIPLY, std::vector<uint>({c4, o6}));
+  uint o8 =
+      g->add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o5}));
+  uint o9 = g->add_operator(
+      graph::OperatorType::MULTIPLY, std::vector<uint>({c4, o8}));
+
+  // Cannot remove a node with out-nodes
+  ASSERT_THROW(g->remove_node(c4), std::invalid_argument);
+
+  // Need to remove them in reverse topological order
+  // (that is, only nodes without out-nodes)
+
+  // Ok to remove o7 and o6 first even though o8 and o9 were
+  // added later, because o8 and o9 do not depend on o6 and o7
+  auto from_old_to_new_id1 = g->remove_node(o7);
+  auto from_old_to_new_id2 = g->remove_node(o6);
+
+  // Cannot look up out-of-bounds old id
+  auto out_of_bounds_id = o9 + 1;
+  ASSERT_THROW(
+      from_old_to_new_id2(from_old_to_new_id1(out_of_bounds_id)),
+      invalid_argument);
+
+  // However, removing o6 and o7 first means g->nodes got compacted
+  // and since o8 and o9 had greater indices than o6 and o7,
+  // they have new ids:
+  o8 = from_old_to_new_id2(from_old_to_new_id1(o8));
+  o9 = from_old_to_new_id2(from_old_to_new_id1(o9));
+
+  // c4 did not change
+  ASSERT_EQ(from_old_to_new_id2(from_old_to_new_id1(c4)), c4);
+
+  g->remove_node(o9);
+  g->remove_node(o8);
+  g->remove_node(c4);
+
+  test_arithmetic_network(g);
+
+  // At this point the graph should be as originally.
+  ASSERT_EQ(g->nodes.size(), original_number_of_nodes);
+
+  // Now let's remove all nodes and put them back to see if nothing breaks.
+  auto node_id = original_number_of_nodes;
+  do {
+    g->remove_node(--node_id);
+  } while (node_id != 0);
+  populate_arithmetic_graph(g);
+  test_arithmetic_network(g);
 }
 
 TEST(testgraph, infer_bn) {

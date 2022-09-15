@@ -892,6 +892,17 @@ struct Graph {
   void check_node_id(uint node_id);
 
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
+
+  /*
+  Remove node from the graph.
+  This forces compacting of internal vectors in Graph which alter
+  node ids, so the method returns a function mapping
+  original node ids to new node ids.
+  If the node is observed or in query, it stops being so.
+  */
+  std::function<uint(uint)> remove_node(uint node_id);
+  std::function<uint(uint)> remove_node(std::unique_ptr<Node>& node);
+
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
   std::vector<uint> get_parent_ids(
       const std::vector<Node*>& parent_nodes) const;
@@ -1003,11 +1014,6 @@ struct Graph {
   // Nodes in unobserved_supp that are stochastic; similarly, order matters.
   std::vector<Node*> unobserved_sto_supp;
 
-  // A vector containing the index of a node in vector unobserved_sto_supp for
-  // each node_id. Since not all nodes are in unobserved_sto_support, some
-  // elements of this vector should never be accessed.
-  std::vector<uint> unobserved_sto_support_index_by_node_id;
-
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
   // respectively the vector of
@@ -1019,6 +1025,22 @@ struct Graph {
   // for each node.
   std::vector<std::vector<Node*>> sto_affected_nodes;
   std::vector<std::vector<Node*>> det_affected_nodes;
+
+  // Because unobserved_supp and unobserved_sto_supp do not contain
+  // all nodes in the graph, it does not hold that a node id
+  // is the same as its index in these vectors.
+  // The vectors below map node ids to indices in
+  // unobserved_supp and unobserved_sto_supp respectively.
+  //
+  // Note that, since not all nodes are in these vectors, some
+  // elements of these index-mapping vectors should never be accessed.
+  // That is, client code must be sure a node is
+  // a support node (a stochastic support node, respectively)
+  // before using the values in
+  // unobserved_support_index_by_node_id
+  // (unobserved_sto_support_index_by_node_id respectively).
+  std::vector<size_t> unobserved_support_index_by_node_id;
+  std::vector<size_t> unobserved_sto_support_index_by_node_id;
 
   bool ready_for_evaluation_and_inference = false;
 

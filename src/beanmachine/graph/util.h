@@ -323,5 +323,10 @@ inline bool atomic_type_unknown_or_equal_to(
   return a == graph::AtomicType::UNKNOWN or graph::ValueType(a) == v;
 }
 
+template <typename T>
+void erase_position(std::vector<T>& vector, std::size_t index) {
+  vector.erase(vector.begin() + index);
+}
+
 } // namespace util
 } // namespace beanmachine
