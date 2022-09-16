@@ -438,7 +438,9 @@ digraph "graph" {
         observations = {}
         num_samples = 10
 
-        results = BMGInference().infer(queries, observations, num_samples, 1, nmc)
+        results = BMGInference().infer(
+            queries, observations, num_samples, 1, inference_type=nmc
+        )
         samples = results[d2a()]
         self.assertEqual(Size([1, num_samples, 2]), samples.size())
 
@@ -456,7 +458,9 @@ digraph "graph" {
         observations = {}
         num_samples = 20
 
-        results = BMGInference().infer(queries, observations, num_samples, 1, rejection)
+        results = BMGInference().infer(
+            queries, observations, num_samples, 1, inference_type=rejection
+        )
         samples = results[d3()]
         self.assertEqual(Size([1, num_samples, 3]), samples.size())
 
@@ -467,7 +471,9 @@ digraph "graph" {
         observations = {d3(): tensor([0.5, 0.25, 0.25])}
         num_samples = 1
 
-        results = BMGInference().infer(queries, observations, num_samples, 1, nmc)
+        results = BMGInference().infer(
+            queries, observations, num_samples, 1, inference_type=nmc
+        )
         samples = results[d3()]
         expected = "tensor([[[0.5000, 0.2500, 0.2500]]], dtype=torch.float64)"
         self.assertEqual(expected, str(samples))
