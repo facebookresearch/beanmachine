@@ -13,8 +13,8 @@ using namespace beanmachine::graph;
 
 TEST(testdistrib, backward_binomial) {
   Graph g;
-  uint two = g.add_constant((natural_t)2);
-  uint ten = g.add_constant((natural_t)10);
+  uint two = g.add_constant_natural(2);
+  uint ten = g.add_constant_natural(10);
 
   uint flat_dist = g.add_distribution(
       DistributionType::FLAT, AtomicType::PROBABILITY, std::vector<uint>{});
@@ -73,8 +73,8 @@ TEST(testdistrib, backward_binomial) {
   uint prob2 =
       g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
 
-  two = g2.add_constant((natural_t)2);
-  ten = g2.add_constant((natural_t)10);
+  two = g2.add_constant_natural(2);
+  ten = g2.add_constant_natural(10);
   uint d1 = g2.add_distribution(
       DistributionType::BINOMIAL,
       AtomicType::NATURAL,

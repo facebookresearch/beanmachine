@@ -22,7 +22,7 @@ TEST(testglobal, rw_normal_normal) {
   posterior is Normal(0.25, 0.5)
   */
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint one = g.add_constant_pos_real(1.0);
 
   uint norm_dist = g.add_distribution(
@@ -57,7 +57,7 @@ TEST(testglobal, rw_distant_normal_normal) {
   posterior is Normal(50.5, 0.5)
   */
   Graph g;
-  uint hundred = g.add_constant(100.0);
+  uint hundred = g.add_constant_real(100.0);
   uint one = g.add_constant_pos_real(1.0);
 
   uint norm_dist = g.add_distribution(

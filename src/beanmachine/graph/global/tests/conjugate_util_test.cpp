@@ -124,7 +124,7 @@ void add_normal_normal_conjugate_(
   x ~ Normal(mu, sigma)
   x is observed
   */
-  uint mu_0_node = g.add_constant(mu_0);
+  uint mu_0_node = g.add_constant_real(mu_0);
   uint sigma_0_node = g.add_constant_pos_real(sigma_0);
   uint sigma_node = g.add_constant_pos_real(sigma);
 
@@ -235,15 +235,15 @@ void add_gamma_normal_conjugate_(
   uint sample = g.add_operator(OperatorType::SAMPLE, {gamma_dist});
 
   // 1 / sqrt(sample)
-  uint point_five = g.add_constant(0.5);
+  uint point_five = g.add_constant_real(0.5);
   uint sqrt_sample = g.add_operator(OperatorType::POW, {sample, point_five});
-  uint neg_one = g.add_constant(-1.0);
+  uint neg_one = g.add_constant_real(-1.0);
   uint inv_sqrt_sample =
       g.add_operator(OperatorType::POW, {sqrt_sample, neg_one});
   inv_sqrt_sample =
       g.add_operator(OperatorType::TO_POS_REAL, {inv_sqrt_sample});
 
-  uint mu_node = g.add_constant(mu);
+  uint mu_node = g.add_constant_real(mu);
   uint gamma_norm_dist = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {mu_node, inv_sqrt_sample});
   for (uint i = 0; i < x_observed.size(); i++) {
@@ -311,7 +311,7 @@ void add_beta_binomial_model_(
       DistributionType::BETA, AtomicType::PROBABILITY, {alpha_node, beta_node});
   uint p = g.add_operator(OperatorType::SAMPLE, {beta_dist});
 
-  uint n_node = g.add_constant((natural_t)n);
+  uint n_node = g.add_constant_natural(n);
   uint beta_binomial_dist = g.add_distribution(
       DistributionType::BINOMIAL, AtomicType::NATURAL, {n_node, p});
   uint obs = g.add_operator(OperatorType::SAMPLE, {beta_binomial_dist});

@@ -232,7 +232,7 @@ TEST(testmarginals, DISABLED_parent_and_children) {
 }
   */
   Graph g;
-  uint binomial_n = g.add_constant((natural_t)10);
+  uint binomial_n = g.add_constant_natural(10);
   uint p = g.add_constant_probability(0.3);
   uint binomial = g.add_distribution(
       DistributionType::BINOMIAL, AtomicType::NATURAL, {binomial_n, p});
@@ -245,7 +245,7 @@ TEST(testmarginals, DISABLED_parent_and_children) {
   uint n1 = g.add_operator(OperatorType::SAMPLE, {normal_1});
   g.query(n1);
 
-  uint five = g.add_constant(5.0);
+  uint five = g.add_constant_real(5.0);
   uint binomial_plus_five =
       g.add_operator(OperatorType::ADD, {binomial_real, five});
   uint normal_2 = g.add_distribution(

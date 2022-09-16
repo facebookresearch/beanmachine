@@ -13,8 +13,8 @@ using namespace beanmachine::graph;
 
 TEST(testdistrib, bimixture) {
   Graph g1;
-  auto real1 = g1.add_constant(-0.5);
-  auto real2 = g1.add_constant(0.5);
+  auto real1 = g1.add_constant_real(-0.5);
+  auto real2 = g1.add_constant_real(0.5);
   auto pos1 = g1.add_constant_pos_real(1.5);
   auto pos2 = g1.add_constant_pos_real(2.5);
   auto prob1 = g1.add_constant_probability(0.3);
@@ -123,7 +123,7 @@ TEST(testdistrib, bimixture) {
       g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos_real});
   auto p = g2.add_operator(OperatorType::LOGISTIC, std::vector<uint>{a});
   g2.observe(a, -1.5);
-  auto zero = g2.add_constant(0.0);
+  auto zero = g2.add_constant_real(0.0);
   auto b_sq = g2.add_operator(OperatorType::MULTIPLY, std::vector<uint>{b, b});
   g2.observe(b, 1.8);
   auto c_sq = g2.add_operator(OperatorType::MULTIPLY, std::vector<uint>{c, c});
@@ -193,7 +193,7 @@ TEST(testdistrib, bimixture) {
 TEST(testdistrib, bimixture_of_mixture) {
   // mixture of normals
   Graph g;
-  auto size = g.add_constant((natural_t)2);
+  auto size = g.add_constant_natural(2);
   auto flat_real = g.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
   auto flat_pos = g.add_distribution(

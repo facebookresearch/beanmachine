@@ -17,7 +17,7 @@ TEST(testdistrib, student_t) {
   const double LOC = -11.0;
   const double SCALE = 4.0;
   auto dof = g.add_constant_pos_real(DOF);
-  auto loc = g.add_constant(LOC);
+  auto loc = g.add_constant_real(LOC);
   auto scale = g.add_constant_pos_real(SCALE);
   // negative tests: student-t has three parents
   EXPECT_THROW(
@@ -158,7 +158,7 @@ TEST(testdistrib, student_t) {
   EXPECT_NEAR((*grad[3]), 0.6213, 1e-3); // scale
 
   // test log_prob, backward_param_iid, backward_value_iid:
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto y = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{x_dist, two, two});
   Eigen::MatrixXd m(2, 2);
@@ -178,7 +178,7 @@ TEST(testdistrib, student_t) {
 
   // test sample/iid_sample from a mixture of t-dist
   Graph g2;
-  auto size = g2.add_constant((natural_t)2);
+  auto size = g2.add_constant_natural(2);
   auto flat_real = g2.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
   auto flat_pos = g2.add_distribution(

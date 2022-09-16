@@ -581,6 +581,9 @@ struct Graph {
   uint add_constant(double value);
   uint add_constant(natural_t value);
   uint add_constant(NodeValue value);
+  uint add_constant_bool(bool value);
+  uint add_constant_real(double value);
+  uint add_constant_natural(natural_t value);
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
   uint add_constant_neg_real(double value);

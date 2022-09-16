@@ -30,8 +30,8 @@ TEST(testgradient, operators) {
   double grad1;
   double grad2;
   // test operators on real numbers
-  auto a = g.add_constant(3.0);
-  auto b = g.add_constant(10.0);
+  auto a = g.add_constant_real(3.0);
+  auto b = g.add_constant_real(10.0);
   auto c = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>({a, b}));
   auto d = g.add_operator(OperatorType::ADD, std::vector<uint>({a, a, c}));
   auto e =
@@ -180,7 +180,7 @@ TEST(testgradient, beta_binomial) {
   Graph g;
   uint a = g.add_constant_pos_real(5.0);
   uint b = g.add_constant_pos_real(3.0);
-  uint n = g.add_constant((natural_t)3);
+  uint n = g.add_constant_natural(3);
   uint beta = g.add_distribution(
       DistributionType::BETA,
       AtomicType::PROBABILITY,
@@ -238,7 +238,7 @@ TEST(testgradient, backward_scalar_linearmodel) {
   // prior: coeff_x, intercept ~ Normal(0, 1)
   // likelihood: y_i ~ Normal(x_i * coeff_x + intercept, 1)
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint pos_one = g.add_constant_pos_real(1.0);
 
   uint normal_dist = g.add_distribution(
@@ -252,7 +252,7 @@ TEST(testgradient, backward_scalar_linearmodel) {
 
   std::vector<double> X{0.5, -1.5, 2.1};
   for (double x : X) {
-    uint x_i = g.add_constant(x);
+    uint x_i = g.add_constant_real(x);
     uint xb_i =
         g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x_i, coeff_x});
     uint mu_i =
@@ -291,9 +291,9 @@ TEST(testgradient, backward_vector_linearmodel) {
   // prior vector(2 by 1): betas ~ iid Normal(0, 1)
   // likelihood: y_i ~ Normal((X @ betas)[i], 1)
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint pos_one = g.add_constant_pos_real(1.0);
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
 
   uint normal_dist = g.add_distribution(
       DistributionType::NORMAL,
@@ -388,7 +388,7 @@ TEST(testgradient, backward_matrix_index) {
   Eigen::MatrixXd m1(3, 1);
   m1 << 2.0, 0.5, 3.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
-  uint one = g.add_constant((natural_t)1);
+  uint one = g.add_constant_natural(1);
   uint half = g.add_constant_probability(0.5);
 
   uint diri_dist = g.add_distribution(
@@ -435,11 +435,11 @@ TEST(testgradient, backward_column_index) {
   Eigen::MatrixXd m1(3, 2);
   m1 << 2.0, 1.0, 0.5, 3.0, 3.0, 2.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
-  uint zero = g.add_constant((natural_t)0);
+  uint zero = g.add_constant_natural(0);
 
   uint first_column = g.add_operator(OperatorType::COLUMN_INDEX, {cm1, zero});
 
-  uint one = g.add_constant((natural_t)1);
+  uint one = g.add_constant_natural(1);
   uint half = g.add_constant_probability(0.5);
 
   uint diri_dist = g.add_distribution(
@@ -482,12 +482,12 @@ TEST(testgradient, backward_column_index) {
 
 TEST(testgradient, forward_to_matrix) {
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint one = g.add_constant_pos_real(1.0);
   uint two = g.add_constant_pos_real(2.0);
   uint five = g.add_constant_pos_real(5.0);
-  uint nat_one = g.add_constant((natural_t)1);
-  uint nat_two = g.add_constant((natural_t)2);
+  uint nat_one = g.add_constant_natural(1);
+  uint nat_two = g.add_constant_natural(2);
 
   uint norm_dist = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {zero, one});
@@ -501,7 +501,7 @@ TEST(testgradient, forward_to_matrix) {
   uint sample_matrix = g.add_operator(
       OperatorType::TO_MATRIX, {nat_two, nat_one, norm_sample, stu_sample});
 
-  uint zero_nat = g.add_constant((natural_t)0);
+  uint zero_nat = g.add_constant_natural(0);
   uint sample_index =
       g.add_operator(OperatorType::INDEX, {sample_matrix, zero_nat});
   uint new_norm_dist = g.add_distribution(
@@ -525,12 +525,12 @@ TEST(testgradient, forward_to_matrix) {
 
 TEST(testgradient, backward_to_matrix) {
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint one = g.add_constant_pos_real(1.0);
   uint two = g.add_constant_pos_real(2.0);
   uint five = g.add_constant_pos_real(5.0);
-  uint nat_two = g.add_constant((natural_t)2);
-  uint nat_one = g.add_constant((natural_t)1);
+  uint nat_two = g.add_constant_natural(2);
+  uint nat_one = g.add_constant_natural(1);
 
   uint norm_dist = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {zero, one});
@@ -545,7 +545,7 @@ TEST(testgradient, backward_to_matrix) {
   uint sample_matrix = g.add_operator(
       OperatorType::TO_MATRIX, {nat_two, nat_one, norm_sample, stu_sample});
 
-  uint zero_nat = g.add_constant((natural_t)0);
+  uint zero_nat = g.add_constant_natural(0);
   uint sample_index =
       g.add_operator(OperatorType::INDEX, {sample_matrix, zero_nat});
   uint new_norm_dist = g.add_distribution(
@@ -588,7 +588,7 @@ TEST(testgradient, forward_matrix_scale) {
   double s0 = uniform(gen);
   double s1 = uniform(gen);
   double s2 = uniform(gen);
-  auto s = g.add_constant(s0);
+  auto s = g.add_constant_real(s0);
   g.get_node(s)->grad1 = s1;
   g.get_node(s)->grad2 = s2;
 
@@ -612,14 +612,14 @@ TEST(testgradient, forward_matrix_scale) {
 
 TEST(testgradient, forward_broadcast_add) {
   Graph g;
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto one = g.add_constant_pos_real(1.0);
   auto norm_dist = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {zero, one});
   auto norm_sample = g.add_operator(OperatorType::SAMPLE, {norm_dist});
 
-  auto nat_zero = g.add_constant((natural_t)0);
-  auto nat_one = g.add_constant((natural_t)1);
+  auto nat_zero = g.add_constant_natural(0);
+  auto nat_one = g.add_constant_natural(1);
   Eigen::MatrixXd m(2, 1);
   m << 1.0, 2.0;
   auto matrix = g.add_constant_real_matrix(m);
@@ -654,7 +654,7 @@ TEST(testgradient, forward_broadcast_add) {
 
 TEST(testgradient, backward_broadcast_add) {
   Graph g;
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto one = g.add_constant_pos_real(1.0);
   auto two = g.add_constant_pos_real(2.0);
   auto five = g.add_constant_pos_real(5.0);
@@ -669,8 +669,8 @@ TEST(testgradient, backward_broadcast_add) {
   auto matrix = g.add_constant_real_matrix(m);
   auto sum_matrix =
       g.add_operator(OperatorType::BROADCAST_ADD, {stu_sample, matrix});
-  auto nat_zero = g.add_constant((natural_t)0);
-  auto nat_one = g.add_constant((natural_t)1);
+  auto nat_zero = g.add_constant_natural(0);
+  auto nat_one = g.add_constant_natural(1);
   auto first_entry =
       g.add_operator(OperatorType::INDEX, {sum_matrix, nat_zero});
   auto second_entry =
@@ -733,7 +733,7 @@ TEST(testgradient, matrix_add_grad) {
 
   // test where constant matrices don't have gradient initialized
   Graph g1;
-  auto zero = g1.add_constant(0.0);
+  auto zero = g1.add_constant_real(0.0);
   auto one = g1.add_constant_pos_real(1.0);
   Eigen::MatrixXd constant(2, 1);
   constant << -2.0, 1.0;
@@ -741,7 +741,7 @@ TEST(testgradient, matrix_add_grad) {
 
   auto normal_dist = g1.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {zero, one});
-  auto two_natural = g1.add_constant((natural_t)2);
+  auto two_natural = g1.add_constant_natural(2);
   auto sample = g1.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two_natural});
   auto add = g1.add_operator(OperatorType::MATRIX_ADD, {cm, sample});
@@ -954,10 +954,10 @@ TEST(testgradient, backward_cholesky) {
     autograd.grad(log_p, x)
   */
   Graph g;
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos1 = g.add_constant_pos_real(1.0);
-  auto one = g.add_constant((natural_t)1);
-  auto three = g.add_constant((natural_t)3);
+  auto one = g.add_constant_natural(1);
+  auto three = g.add_constant_natural(3);
   auto normal_dist = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
@@ -1014,7 +1014,7 @@ TEST(testgradient, matrix_exp_grad) {
   m1 << -2., -3.0;
   auto cm1 = g.add_constant_real_matrix(m1);
 
-  auto c = g.add_constant(2.0);
+  auto c = g.add_constant_real(2.0);
   auto cm = g.add_operator(OperatorType::MATRIX_SCALE, {c, cm1});
   auto exp = g.add_operator(OperatorType::MATRIX_EXP, {cm});
 
@@ -1041,11 +1041,11 @@ TEST(testgradient, matrix_exp_grad) {
 
   // test backward
   Graph g1;
-  auto zero = g1.add_constant(0.0);
+  auto zero = g1.add_constant_real(0.0);
   auto one = g1.add_constant_pos_real(1.0);
   auto x_dist = g1.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {zero, one});
-  auto two = g1.add_constant((natural_t)2);
+  auto two = g1.add_constant_natural(2);
   auto x_sample =
       g1.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{x_dist, two});
   Eigen::MatrixXd x_value(2, 1);
@@ -1054,7 +1054,7 @@ TEST(testgradient, matrix_exp_grad) {
   auto exp_x_pos = g1.add_operator(OperatorType::MATRIX_EXP, {x_sample});
   auto exp_x = g1.add_operator(OperatorType::TO_REAL_MATRIX, {exp_x_pos});
 
-  auto index_zero = g1.add_constant((natural_t)0);
+  auto index_zero = g1.add_constant_natural(0);
   auto exp_x1 = g1.add_operator(OperatorType::INDEX, {exp_x, index_zero});
   auto y1_dist = g1.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {exp_x1, one});
@@ -1062,7 +1062,7 @@ TEST(testgradient, matrix_exp_grad) {
       g1.add_operator(OperatorType::SAMPLE, std::vector<uint>{y1_dist});
   g1.observe(y1_sample, 2.5);
 
-  auto index_one = g1.add_constant((natural_t)1);
+  auto index_one = g1.add_constant_natural(1);
   auto exp_x2 = g1.add_operator(OperatorType::INDEX, {exp_x, index_one});
   auto y2_dist = g1.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {exp_x2, one});
@@ -1170,7 +1170,7 @@ torch.autograd.grad(log_prob, sn1, retain_graph=True) # -2.1931
   auto one = g.add_constant_pos_real(1.0);
   auto hn = g.add_distribution(
       DistributionType::HALF_NORMAL, AtomicType::POS_REAL, {one});
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto hn_sample =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{hn, two});
   Eigen::MatrixXd hn_observed(2, 1);
@@ -1179,9 +1179,9 @@ torch.autograd.grad(log_prob, sn1, retain_graph=True) # -2.1931
 
   auto mlog_pos = g.add_operator(OperatorType::MATRIX_LOG, {hn_sample});
   auto mlog = g.add_operator(OperatorType::TO_REAL_MATRIX, {mlog_pos});
-  auto index_zero = g.add_constant((natural_t)0);
+  auto index_zero = g.add_constant_natural(0);
   auto mlog0 = g.add_operator(OperatorType::INDEX, {mlog, index_zero});
-  auto index_one = g.add_constant((natural_t)1);
+  auto index_one = g.add_constant_natural(1);
   auto mlog1 = g.add_operator(OperatorType::INDEX, {mlog, index_one});
 
   auto n0 = g.add_distribution(
@@ -1211,7 +1211,7 @@ TEST(testgradient, matrix_phi_grad_forward) {
   Eigen::MatrixXd m1(1, 2);
   m1 << 2.0, 3.0;
   auto cm1 = g.add_constant_real_matrix(m1);
-  auto c = g.add_constant(2.0);
+  auto c = g.add_constant_real(2.0);
   auto cm = g.add_operator(OperatorType::MATRIX_SCALE, {c, cm1});
   auto mphi = g.add_operator(OperatorType::MATRIX_PHI, {cm});
   // f(x) = phi(2 * g(x))
@@ -1311,7 +1311,7 @@ torch.autograd.grad(log_prob, sn1, retain_graph=True) # -0.8085
   auto one = g.add_constant_pos_real(1.0);
   auto hn = g.add_distribution(
       DistributionType::HALF_NORMAL, AtomicType::POS_REAL, {one});
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto hn_sample =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{hn, two});
   Eigen::MatrixXd hn_observed(2, 1);
@@ -1321,9 +1321,9 @@ torch.autograd.grad(log_prob, sn1, retain_graph=True) # -0.8085
   auto to_real = g.add_operator(OperatorType::TO_REAL_MATRIX, {hn_sample});
   auto mlog_pos = g.add_operator(OperatorType::MATRIX_PHI, {to_real});
   auto mlog = g.add_operator(OperatorType::TO_REAL_MATRIX, {mlog_pos});
-  auto index_zero = g.add_constant((natural_t)0);
+  auto index_zero = g.add_constant_natural(0);
   auto mlog0 = g.add_operator(OperatorType::INDEX, {mlog, index_zero});
-  auto index_one = g.add_constant((natural_t)1);
+  auto index_one = g.add_constant_natural(1);
   auto mlog1 = g.add_operator(OperatorType::INDEX, {mlog, index_one});
 
   auto n0 = g.add_distribution(
@@ -1347,15 +1347,15 @@ torch.autograd.grad(log_prob, sn1, retain_graph=True) # -0.8085
 
 TEST(testgradient, matrix_elementwise_mult_backward) {
   Graph g;
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos1 = g.add_constant_pos_real(1.0);
   auto normal_dist = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
       std::vector<uint>{zero, pos1});
-  auto one = g.add_constant((natural_t)1);
-  auto two = g.add_constant((natural_t)2);
-  auto three = g.add_constant((natural_t)3);
+  auto one = g.add_constant_natural(1);
+  auto two = g.add_constant_natural(2);
+  auto three = g.add_constant_natural(3);
 
   Eigen::MatrixXd m1(3, 2);
   Eigen::MatrixXd m2(3, 2);
@@ -1502,11 +1502,11 @@ TEST(testgradient, log_prob) {
   std::mt19937 gen;
   Graph g;
   double epsilon = 0.0000001;
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos_zero = g.add_constant_pos_real(0.0);
 
   auto makeConst = [&](double value) {
-    auto v = g.add_constant(value);
+    auto v = g.add_constant_real(value);
     auto plus = g.add_operator(OperatorType::ADD, {zero, v});
     g.get_node(plus)->eval(gen);
     return plus;
@@ -1675,7 +1675,7 @@ TEST(testgradient, matrix_sum) {
   // grad(log_p, y) -> -1.25
 
   Graph g1;
-  auto zero = g1.add_constant(0.0);
+  auto zero = g1.add_constant_real(0.0);
   auto pos_one = g1.add_constant_pos_real(1.0);
   auto x_dist = g1.add_distribution(
       DistributionType::NORMAL,
@@ -1684,8 +1684,8 @@ TEST(testgradient, matrix_sum) {
   auto x = g1.add_operator(OperatorType::SAMPLE, {x_dist});
   g1.observe(x, 0.5);
   auto x_squared = g1.add_operator(OperatorType::MULTIPLY, {x, x});
-  auto one = g1.add_constant((natural_t)1);
-  auto two = g1.add_constant((natural_t)2);
+  auto one = g1.add_constant_natural(1);
+  auto two = g1.add_constant_natural(2);
   auto x_matrix =
       g1.add_operator(OperatorType::TO_MATRIX, {two, one, x, x_squared});
   auto x_sum = g1.add_operator(OperatorType::MATRIX_SUM, {x_matrix});
@@ -1790,7 +1790,7 @@ print(torch.autograd.grad(log_prob, sn1, retain_graph=True)) # -1.0945
   auto one = g.add_constant_pos_real(1.0);
   auto hn = g.add_distribution(
       DistributionType::HALF_NORMAL, AtomicType::POS_REAL, {one});
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto hn_sample =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{hn, two});
   Eigen::MatrixXd hn_observed(2, 1);
@@ -1799,9 +1799,9 @@ print(torch.autograd.grad(log_prob, sn1, retain_graph=True)) # -1.0945
 
   auto mlog_pos = g.add_operator(OperatorType::MATRIX_LOG1P, {hn_sample});
   auto mlog = g.add_operator(OperatorType::TO_REAL_MATRIX, {mlog_pos});
-  auto index_zero = g.add_constant((natural_t)0);
+  auto index_zero = g.add_constant_natural(0);
   auto mlog0 = g.add_operator(OperatorType::INDEX, {mlog, index_zero});
-  auto index_one = g.add_constant((natural_t)1);
+  auto index_one = g.add_constant_natural(1);
   auto mlog1 = g.add_operator(OperatorType::INDEX, {mlog, index_one});
 
   auto n0 = g.add_distribution(
@@ -1920,7 +1920,7 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
   auto one = g.add_constant_pos_real(1.0);
   auto hn = g.add_distribution(
       DistributionType::HALF_NORMAL, AtomicType::POS_REAL, {one});
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   // sample 0
   auto hn_sample =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{hn, two});
@@ -1934,7 +1934,7 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
       g.add_operator(OperatorType::MATRIX_LOG1MEXP, {hn_sample_neg});
   auto mlog = g.add_operator(OperatorType::TO_REAL_MATRIX, {mlog_neg});
 
-  auto index_zero = g.add_constant((natural_t)0);
+  auto index_zero = g.add_constant_natural(0);
   auto mlog0 = g.add_operator(OperatorType::INDEX, {mlog, index_zero});
   auto n0 = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {mlog0, one});
@@ -1942,7 +1942,7 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
   auto ns0 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n0});
   g.observe(ns0, 2.5);
 
-  auto index_one = g.add_constant((natural_t)1);
+  auto index_one = g.add_constant_natural(1);
   auto mlog1 = g.add_operator(OperatorType::INDEX, {mlog, index_one});
   auto n1 = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {mlog1, one});
@@ -2033,7 +2033,7 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
   // sample 0
   auto beta_sample = g.add_operator(
       OperatorType::IID_SAMPLE,
-      std::vector<uint>{beta, g.add_constant((natural_t)2)});
+      std::vector<uint>{beta, g.add_constant_natural(2)});
   Eigen::MatrixXd beta_observed(2, 1);
   beta_observed << 0.1, 0.7;
   g.observe(beta_sample, beta_observed);
@@ -2044,7 +2044,7 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
   // COMPLEMENT takes probability values and returns probability values.
   auto comp = g.add_operator(OperatorType::TO_REAL_MATRIX, {complement});
 
-  auto index_zero = g.add_constant((natural_t)0);
+  auto index_zero = g.add_constant_natural(0);
   auto comp0 = g.add_operator(OperatorType::INDEX, {comp, index_zero});
   auto n0 = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {comp0, one});
@@ -2052,7 +2052,7 @@ print(torch.autograd.grad(log_prob, ns, retain_graph=True))
   auto ns0 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{n0});
   g.observe(ns0, 1.1);
 
-  auto index_one = g.add_constant((natural_t)1);
+  auto index_one = g.add_constant_natural(1);
   auto comp1 = g.add_operator(OperatorType::INDEX, {comp, index_one});
   auto n1 = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {comp1, one});

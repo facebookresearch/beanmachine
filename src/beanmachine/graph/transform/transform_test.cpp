@@ -20,7 +20,7 @@ TEST(test_transform, log) {
   std::mt19937 generator(1234);
   Graph g1;
   NodeValue *x, *y;
-  auto size = g1.add_constant((natural_t)2);
+  auto size = g1.add_constant_natural(2);
   auto flat_real = g1.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
   auto real1 =
@@ -72,7 +72,7 @@ TEST(test_transform, log) {
 
   // test log_abs_jacobian_determinant and unconstrained_gradient
   Graph g2;
-  size = g2.add_constant((natural_t)2);
+  size = g2.add_constant_natural(2);
   flat_pos = g2.add_distribution(
       DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   auto rate1 =
@@ -142,7 +142,7 @@ TEST(test_transform, sigmoid_flat) {
   std::mt19937 generator(1234);
   Graph g1;
   NodeValue *x, *y;
-  auto size = g1.add_constant((natural_t)2);
+  auto size = g1.add_constant_natural(2);
   auto flat_real =
       g1.add_distribution(DistributionType::FLAT, AtomicType::REAL, {});
   auto real1 = g1.add_operator(OperatorType::SAMPLE, {flat_real});
@@ -191,7 +191,7 @@ TEST(test_transform, sigmoid_flat) {
   EXPECT_NEAR(x->_matrix.coeff(1), expit(0.0), 0.001);
 
   Graph g2;
-  size = g2.add_constant((natural_t)2);
+  size = g2.add_constant_natural(2);
   auto dist =
       g2.add_distribution(DistributionType::FLAT, AtomicType::PROBABILITY, {});
   auto x1 = g2.add_operator(OperatorType::SAMPLE, {dist});
@@ -207,7 +207,7 @@ TEST(test_transform, sigmoid_beta) {
   std::mt19937 generator(1234);
   Graph g1;
   NodeValue *x, *y;
-  auto size = g1.add_constant((natural_t)2);
+  auto size = g1.add_constant_natural(2);
   auto two = g1.add_constant_pos_real(2.0);
   auto beta = g1.add_distribution(
       DistributionType::BETA, AtomicType::PROBABILITY, {two, two});
@@ -259,8 +259,8 @@ TEST(test_transform, sigmoid_beta_2) {
   g2.customize_transformation(TransformType::SIGMOID, {x1});
   g2.observe(x1, 0.5);
 
-  auto x2 = g2.add_operator(
-      OperatorType::IID_SAMPLE, {dist, g2.add_constant((natural_t)2)});
+  auto c2 = g2.add_constant_natural(2);
+  auto x2 = g2.add_operator(OperatorType::IID_SAMPLE, {dist, c2});
   g2.customize_transformation(TransformType::SIGMOID, {x2});
   Eigen::MatrixXd xobs(2, 1);
   xobs << 0.2, 0.3;
@@ -304,7 +304,7 @@ print("full_log_prob", full_log_prob)
 
 TEST(test_transform, log_unconstrained_type) {
   Graph g1;
-  auto size = g1.add_constant((natural_t)2);
+  auto size = g1.add_constant_natural(2);
 
   // test transform types
   auto flat_pos = g1.add_distribution(
@@ -333,7 +333,7 @@ TEST(test_transform, log_unconstrained_type) {
 
 TEST(test_transform, sigmoid_unconstrained_type) {
   Graph g1;
-  auto size = g1.add_constant((natural_t)2);
+  auto size = g1.add_constant_natural(2);
 
   // test transform types
   auto flat_pos =

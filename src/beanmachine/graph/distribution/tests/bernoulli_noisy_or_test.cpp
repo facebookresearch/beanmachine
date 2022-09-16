@@ -14,7 +14,7 @@ using namespace beanmachine::graph;
 TEST(testdistrib, backward_bernoulli_noisy_or) {
   Graph g;
 
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
   uint flat_pos = g.add_distribution(
       DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   uint y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
@@ -56,7 +56,7 @@ TEST(testdistrib, backward_bernoulli_noisy_or) {
   uint y1 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
   uint y2 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
 
-  two = g2.add_constant((natural_t)2);
+  two = g2.add_constant_natural(2);
   uint d1 = g2.add_distribution(
       DistributionType::BERNOULLI_NOISY_OR,
       AtomicType::BOOLEAN,

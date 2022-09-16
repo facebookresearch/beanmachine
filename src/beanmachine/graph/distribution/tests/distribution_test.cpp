@@ -53,7 +53,7 @@ TEST(testdistrib, bernoulli) {
       std::invalid_argument);
 
   graph::Graph g;
-  auto two = g.add_constant((graph::natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto flat_dist = g.add_distribution(
       graph::DistributionType::FLAT,
       graph::AtomicType::PROBABILITY,
@@ -88,7 +88,7 @@ TEST(testdistrib, bernoulli) {
 
   // mixture of Bernoulli-Logit
   graph::Graph g2;
-  auto size = g2.add_constant((graph::natural_t)2);
+  auto size = g2.add_constant_natural(2);
   auto flat_prob = g2.add_distribution(
       graph::DistributionType::FLAT,
       graph::AtomicType::PROBABILITY,

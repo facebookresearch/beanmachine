@@ -115,7 +115,7 @@ TEST(testgraph, remove_node) {
   uint o4 = g->nodes.size() - 3;
 
   // Let's make some new ones that are topologically later
-  uint c4 = g->add_constant(0.7);
+  uint c4 = g->add_constant_real(0.7);
   uint o6 =
       g->add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o1}));
   uint o7 = g->add_operator(
@@ -246,10 +246,10 @@ TEST(testgraph, clone_graph) {
   // types of nodes to test the copy constructor.
   graph::Graph g;
   // constants
-  uint c_bool = g.add_constant(true);
-  uint c_real = g.add_constant(-2.5);
-  uint c_natural_1 = g.add_constant((graph::natural_t)1);
-  uint c_natural_2 = g.add_constant((graph::natural_t)2);
+  uint c_bool = g.add_constant_bool(true);
+  uint c_real = g.add_constant_real(-2.5);
+  uint c_natural_1 = g.add_constant_natural(1);
+  uint c_natural_2 = g.add_constant_natural(2);
   uint c_prob = g.add_constant_probability(0.5);
   uint c_pos = g.add_constant_pos_real(2.5);
   uint c_neg = g.add_constant_neg_real(-1.5);
@@ -398,7 +398,7 @@ TEST(testgraph, full_log_prob) {
   graph::Graph g;
   uint a = g.add_constant_pos_real(5.0);
   uint b = g.add_constant_pos_real(3.0);
-  uint n = g.add_constant((graph::natural_t)10);
+  uint n = g.add_constant_natural(10);
   uint beta = g.add_distribution(
       graph::DistributionType::BETA,
       graph::AtomicType::PROBABILITY,
@@ -463,8 +463,8 @@ TEST(testgraph, bad_observations) {
   EXPECT_THROW(g.observe(o_sample_bool, real_matrix), std::invalid_argument);
 
   // Observe a bool(2, 1) to be a bool, double, natural, and (1, 2) matrices
-  uint c_natural_1 = g.add_constant((graph::natural_t)1);
-  uint c_natural_2 = g.add_constant((graph::natural_t)2);
+  uint c_natural_1 = g.add_constant_natural(1);
+  uint c_natural_2 = g.add_constant_natural(2);
   uint o_iid_bool = g.add_operator(
       graph::OperatorType::IID_SAMPLE,
       std::vector<uint>{d_bernoulli, c_natural_2, c_natural_1});
@@ -500,7 +500,7 @@ TEST(testgraph, bad_observations) {
   EXPECT_THROW(g.observe(o_iid_nat, real_matrix), std::invalid_argument);
 
   // Observe a real to be bool, natural, matrix:
-  uint c_real = g.add_constant(-2.5);
+  uint c_real = g.add_constant_real(-2.5);
   uint c_pos = g.add_constant_pos_real(2.5);
   uint d_normal = g.add_distribution(
       graph::DistributionType::NORMAL,
@@ -528,7 +528,7 @@ TEST(testgraph, bad_observations) {
 
 TEST(testgraph, infer_runtime_error) {
   graph::Graph g;
-  auto two = g.add_constant((graph::natural_t)2);
+  auto two = g.add_constant_natural(2);
   Eigen::MatrixXd real_matrix(1, 1);
   real_matrix << 1.0;
   auto matrix = g.add_constant_real_matrix(real_matrix);
@@ -559,7 +559,7 @@ TEST(testgraph, eval_and_update_backgrad) {
   torch.autograd.grad(log_prob, x)
   */
   graph::Graph g;
-  auto mean0 = g.add_constant(0.0);
+  auto mean0 = g.add_constant_real(0.0);
   auto sigma0 = g.add_constant_pos_real(5.0);
   auto dist0 = g.add_distribution(
       graph::DistributionType::NORMAL,

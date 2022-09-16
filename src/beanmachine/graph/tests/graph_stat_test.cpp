@@ -126,14 +126,14 @@ TEST(testgraph_stats, all_stats) {
   // the stats package against all possible node types
   graph::Graph g;
   // constants
-  g.add_constant(true);
-  uint c_natural_1 = g.add_constant((graph::natural_t)1);
-  uint c_natural_2 = g.add_constant((graph::natural_t)2);
-  g.add_constant((graph::natural_t)42);
+  g.add_constant_bool(true);
+  uint c_natural_1 = g.add_constant_natural(1);
+  uint c_natural_2 = g.add_constant_natural(2);
+  g.add_constant_natural(42);
   uint c_prob = g.add_constant_probability(0.5);
-  uint c_real0 = g.add_constant(-2.5);
-  uint c_real1 = g.add_constant(-42.01);
-  g.add_constant(42.42);
+  uint c_real0 = g.add_constant_real(-2.5);
+  uint c_real1 = g.add_constant_real(-42.01);
+  g.add_constant_real(42.42);
   uint c_neg = g.add_constant_neg_real(-1.5);
   uint c_pos = g.add_constant_pos_real(2.5);
   uint c_pos1 = g.add_constant_pos_real(1.42);

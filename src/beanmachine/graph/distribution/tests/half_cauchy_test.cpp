@@ -18,7 +18,7 @@ using namespace beanmachine::graph;
 
 TEST(testdistrib, half_cauchy) {
   Graph g;
-  auto real1 = g.add_constant(4.5);
+  auto real1 = g.add_constant_real(4.5);
   const double SCALE = 3.5;
   auto pos1 = g.add_constant_pos_real(SCALE);
   // negative tests: half cauchy has one parent which is positive real
@@ -109,7 +109,7 @@ TEST(testdistrib, half_cauchy) {
   // torch.autograd.grad(log_p, X) -> -4.8711
   // torch.autograd.grad(log_p, Y) -> [[-0.3077, -0.5882], [-0.8219, -1.0000]]
   Graph g2;
-  auto two = g2.add_constant((natural_t)2);
+  auto two = g2.add_constant_natural(2);
   auto pos2 = g2.add_constant_pos_real(1.1);
   auto hc_dist = g2.add_distribution(
       DistributionType::HALF_CAUCHY,
@@ -139,7 +139,7 @@ TEST(testdistrib, half_cauchy) {
 
   // mixture of half_cauchy
   Graph g3;
-  auto size = g3.add_constant((natural_t)2);
+  auto size = g3.add_constant_natural(2);
   auto flat_pos = g3.add_distribution(
       DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   auto flat_prob = g3.add_distribution(

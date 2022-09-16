@@ -23,7 +23,7 @@ TEST(testdistrib, lognormal) {
   const double LOG_STD = 3.0;
   const double LOG_STD_SQ = 9.0;
   const double MEAN = std::exp(LOG_MEAN + LOG_STD * LOG_STD / 2);
-  auto real1 = g.add_constant(LOG_MEAN);
+  auto real1 = g.add_constant_real(LOG_MEAN);
   auto pos1 = g.add_constant_pos_real(LOG_STD);
 
   // negative tests that log normal has two parents
@@ -117,9 +117,9 @@ TEST(testdistrib, lognormal) {
 
 TEST(testdistrib, backward_lognormal_lognormal) {
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint pos_one = g.add_constant_pos_real(1.0);
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
 
   uint lognormal_dist = g.add_distribution(
       DistributionType::LOG_NORMAL,

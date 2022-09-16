@@ -14,7 +14,7 @@ using namespace beanmachine::graph;
 TEST(testdistrib, bernoulli_logit) {
   Graph g;
   const double LOGIT = -1.5;
-  auto logit = g.add_constant(LOGIT);
+  auto logit = g.add_constant_real(LOGIT);
   auto pos1 = g.add_constant_pos_real(1.0);
   // negative tests: BernoulliLogit has one parent
   EXPECT_THROW(
@@ -106,7 +106,7 @@ TEST(testdistrib, bernoulli_logit) {
   EXPECT_EQ(grad.size(), 5);
   EXPECT_NEAR((*grad[2]), -3.0420, 1e-3);
 
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto var3 = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{dist2, two, two});
   Eigen::MatrixXb m1(2, 2);
@@ -119,7 +119,7 @@ TEST(testdistrib, bernoulli_logit) {
 
   // mixture of Bernoulli-Logit
   Graph g2;
-  auto size = g2.add_constant((natural_t)2);
+  auto size = g2.add_constant_natural(2);
   auto flat_real = g2.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
   auto flat_prob = g2.add_distribution(

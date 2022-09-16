@@ -15,7 +15,7 @@ TEST(testdistrib, normal) {
   Graph g;
   const double MEAN = -11.0;
   const double STD = 3.0;
-  auto real1 = g.add_constant(MEAN);
+  auto real1 = g.add_constant_real(MEAN);
   auto pos1 = g.add_constant_pos_real(STD);
   // negative tests normal has two parents
   EXPECT_THROW(
@@ -106,9 +106,9 @@ TEST(testdistrib, normal) {
 
 TEST(testdistrib, backward_normal_normal) {
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint pos_one = g.add_constant_pos_real(1.0);
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
 
   uint normal_dist = g.add_distribution(
       DistributionType::NORMAL,
@@ -151,7 +151,7 @@ TEST(testdistrib, backward_normal_normal) {
 
   // mixture of normals
   Graph g2;
-  auto size = g2.add_constant((natural_t)2);
+  auto size = g2.add_constant_natural(2);
   auto flat_real = g2.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
   auto flat_pos = g2.add_distribution(

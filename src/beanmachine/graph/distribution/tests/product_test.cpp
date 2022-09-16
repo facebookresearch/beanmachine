@@ -35,7 +35,7 @@ TEST(testdistrib, product_construction_and_log_prob) {
 
   const double MEAN1 = -11.0;
   const double STD1 = 3.0;
-  auto real1 = g.add_constant(MEAN1);
+  auto real1 = g.add_constant_real(MEAN1);
   auto pos1 = g.add_constant_pos_real(STD1);
 
   auto normal_dist1 = g.add_distribution(
@@ -45,7 +45,7 @@ TEST(testdistrib, product_construction_and_log_prob) {
 
   const double MEAN2 = 0.0;
   const double STD2 = 2.0;
-  auto real2 = g.add_constant(MEAN2);
+  auto real2 = g.add_constant_real(MEAN2);
   auto pos2 = g.add_constant_pos_real(STD2);
 
   auto normal_dist2 = g.add_distribution(
@@ -141,7 +141,7 @@ TEST(testdistrib, product_inference_downstream) {
 
   const double MEAN1 = -5.0;
   const double STD1 = 2.0;
-  auto real1 = g.add_constant(MEAN1);
+  auto real1 = g.add_constant_real(MEAN1);
   auto pos1 = g.add_constant_pos_real(STD1);
 
   auto normal_dist1 = g.add_distribution(
@@ -151,7 +151,7 @@ TEST(testdistrib, product_inference_downstream) {
 
   const double MEAN2 = 5.0;
   const double STD2 = 2.0;
-  auto real2 = g.add_constant(MEAN2);
+  auto real2 = g.add_constant_real(MEAN2);
   auto pos2 = g.add_constant_pos_real(STD2);
 
   auto normal_dist2 = g.add_distribution(
@@ -179,7 +179,7 @@ TEST(testdistrib, product_inference_upstream) {
 
   const double MEAN0 = -5.0;
   const double STD0 = 1.0;
-  auto real0 = g.add_constant(MEAN0);
+  auto real0 = g.add_constant_real(MEAN0);
   auto pos0 = g.add_constant_pos_real(STD0);
 
   auto normal_dist0 = g.add_distribution(
@@ -200,7 +200,7 @@ TEST(testdistrib, product_inference_upstream) {
 
   const double MEAN2 = 5.0;
   const double STD2 = 2.0;
-  auto real2 = g.add_constant(MEAN2);
+  auto real2 = g.add_constant_real(MEAN2);
   auto pos2 = g.add_constant_pos_real(STD2);
 
   auto normal_dist2 = g.add_distribution(
@@ -240,7 +240,7 @@ TEST(testdistrib, product_inference_upstream_iid) {
 
   const double MEAN0 = -5.0;
   const double STD0 = 1.0;
-  auto real0 = g.add_constant(MEAN0);
+  auto real0 = g.add_constant_real(MEAN0);
   auto pos0 = g.add_constant_pos_real(STD0);
 
   auto normal_dist0 = g.add_distribution(
@@ -261,7 +261,7 @@ TEST(testdistrib, product_inference_upstream_iid) {
 
   const double MEAN2 = 5.0;
   const double STD2 = 2.0;
-  auto real2 = g.add_constant(MEAN2);
+  auto real2 = g.add_constant_real(MEAN2);
   auto pos2 = g.add_constant_pos_real(STD2);
 
   auto normal_dist2 = g.add_distribution(
@@ -275,7 +275,7 @@ TEST(testdistrib, product_inference_upstream_iid) {
       std::vector<uint>{normal_dist1, normal_dist2});
 
   natural_t sample_size = 3;
-  auto sample_size_node = g.add_constant((natural_t)sample_size);
+  auto sample_size_node = g.add_constant_natural((natural_t)sample_size);
   auto product_sample_idd = g.add_operator(
       OperatorType::IID_SAMPLE,
       std::vector<uint>{product_dist1, sample_size_node});
@@ -315,7 +315,7 @@ TEST(testdistrib, product_inference_upstream_larger) {
 
   const double MEAN0 = -5.0;
   const double STD0 = 1.0;
-  auto real0 = g.add_constant(MEAN0);
+  auto real0 = g.add_constant_real(MEAN0);
   auto pos0 = g.add_constant_pos_real(STD0);
 
   auto normal_dist0 = g.add_distribution(
@@ -336,7 +336,7 @@ TEST(testdistrib, product_inference_upstream_larger) {
 
   const double MEAN2 = 5.0;
   const double STD2 = 2.0;
-  auto real2 = g.add_constant(MEAN2);
+  auto real2 = g.add_constant_real(MEAN2);
   auto pos2 = g.add_constant_pos_real(STD2);
 
   auto normal_dist2 = g.add_distribution(
@@ -353,7 +353,7 @@ TEST(testdistrib, product_inference_upstream_larger) {
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{product_dist1});
 
   const double STD3 = 3.0;
-  auto two = g.add_constant(2.0);
+  auto two = g.add_constant_real(2.0);
   auto mean3 =
       g.add_operator(OperatorType::ADD, std::vector<uint>{product_sample, two});
   auto pos3 = g.add_constant_pos_real(STD3);
