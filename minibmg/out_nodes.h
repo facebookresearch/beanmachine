@@ -9,7 +9,8 @@
 
 #include <list>
 #include <set>
-#include "beanmachine/minibmg/minibmg.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
