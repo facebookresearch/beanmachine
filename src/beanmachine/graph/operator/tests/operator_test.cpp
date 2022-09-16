@@ -63,7 +63,7 @@ TEST(testoperator, multiply) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{pos1}),
       std::invalid_argument);
-  auto real1 = g.add_constant(0.0);
+  auto real1 = g.add_constant_real(0.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{real1, pos1}),
       std::invalid_argument);
@@ -140,7 +140,7 @@ TEST(testoperator, phi) {
   EXPECT_THROW(
       g.add_operator(OperatorType::PHI, std::vector<uint>{pos1}),
       std::invalid_argument);
-  auto real1 = g.add_constant(0.0);
+  auto real1 = g.add_constant_real(0.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::PHI, std::vector<uint>{real1, real1}),
       std::invalid_argument);
@@ -189,7 +189,7 @@ TEST(testoperator, logistic) {
   EXPECT_THROW(
       g.add_operator(OperatorType::LOGISTIC, std::vector<uint>{pos1}),
       std::invalid_argument);
-  auto real1 = g.add_constant(0.0);
+  auto real1 = g.add_constant_real(0.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::LOGISTIC, std::vector<uint>{real1, real1}),
       std::invalid_argument);
@@ -231,9 +231,9 @@ TEST(testoperator, logistic) {
 
 TEST(testoperator, if_then_else) {
   Graph g;
-  auto bool1 = g.add_constant(true);
-  auto real1 = g.add_constant(10.0);
-  auto real2 = g.add_constant(100.0);
+  auto bool1 = g.add_constant_bool(true);
+  auto real1 = g.add_constant_real(10.0);
+  auto real2 = g.add_constant_real(100.0);
   // negative tests: arg1.type==bool, arg2.type == arg3.type
   EXPECT_THROW(
       g.add_operator(OperatorType::IF_THEN_ELSE, std::vector<uint>{}),
@@ -274,7 +274,7 @@ TEST(testoperator, if_then_else) {
       g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x, x});
   auto y = g.add_operator(
       OperatorType::IF_THEN_ELSE, std::vector<uint>{bool1, x_sq, x_cube});
-  auto bool3 = g.add_constant(false);
+  auto bool3 = g.add_constant_bool(false);
   auto z = g.add_operator(
       OperatorType::IF_THEN_ELSE, std::vector<uint>{bool3, x_sq, x_cube});
   g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{real1, y});
@@ -303,10 +303,10 @@ TEST(testoperator, choice) {
       std::vector<uint>{simplex});
   auto natural = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{cat});
 
-  auto boolean = g.add_constant(true);
-  auto real1 = g.add_constant(10.0);
-  auto real2 = g.add_constant(20.0);
-  auto real3 = g.add_constant(30.0);
+  auto boolean = g.add_constant_bool(true);
+  auto real1 = g.add_constant_real(10.0);
+  auto real2 = g.add_constant_real(20.0);
+  auto real3 = g.add_constant_real(30.0);
 
   // We need at least two parents:
   EXPECT_THROW(
@@ -400,7 +400,7 @@ TEST(testoperator, log1mexp) {
   EXPECT_THROW(
       g.add_operator(OperatorType::LOG1MEXP, std::vector<uint>{}),
       std::invalid_argument);
-  auto real1 = g.add_constant(0.5);
+  auto real1 = g.add_constant_real(0.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::LOG1MEXP, std::vector<uint>{real1}),
       std::invalid_argument);
@@ -543,8 +543,8 @@ TEST(testoperator, logsumexp_vector) {
           OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{prob1, prob1}),
       std::invalid_argument);
   auto neg1 = g.add_constant_neg_real(-1.0);
-  auto two = g.add_constant((natural_t)2);
-  auto one = g.add_constant((natural_t)1);
+  auto two = g.add_constant_natural(2);
+  auto one = g.add_constant_natural(1);
   auto pospos = g.add_operator(OperatorType::TO_MATRIX, {two, one, pos1, pos1});
   auto negneg = g.add_operator(OperatorType::TO_MATRIX, {two, one, neg1, neg1});
   g.add_operator(OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{pospos});
@@ -605,7 +605,7 @@ TEST(testoperator, log) {
       std::invalid_argument);
   auto prob1 = g.add_constant_probability(0.5);
   g.add_operator(OperatorType::LOG, std::vector<uint>{prob1});
-  auto real1 = g.add_constant(-0.5);
+  auto real1 = g.add_constant_real(-0.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::LOG, std::vector<uint>{real1}),
       std::invalid_argument);
@@ -729,7 +729,7 @@ TEST(testoperator, pow) {
   // f1x -> 0.25 and f2x -> -1.5
   Graph g1;
   uint one = g1.add_constant_pos_real(1.0);
-  y = g1.add_constant(2.0);
+  y = g1.add_constant_real(2.0);
   uint flat_dist =
       g1.add_distribution(DistributionType::FLAT, AtomicType::REAL, {});
   x = g1.add_operator(OperatorType::SAMPLE, {flat_dist});
@@ -756,8 +756,8 @@ TEST(testoperator, pow) {
   // f1x -> nan and f2x -> nan
   Graph g2;
   one = g2.add_constant_pos_real(1.0);
-  uint two = g2.add_constant(2.0);
-  y = g1.add_constant(2.0);
+  uint two = g2.add_constant_real(2.0);
+  y = g1.add_constant_real(2.0);
   flat_dist = g2.add_distribution(DistributionType::FLAT, AtomicType::REAL, {});
   x = g2.add_operator(OperatorType::SAMPLE, {flat_dist});
   y = g2.add_operator(OperatorType::MULTIPLY, {x, two});
@@ -896,7 +896,7 @@ TEST(testoperator, matrix_multiply) {
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm0}),
       std::invalid_argument);
   // requires matrix parents
-  auto c1 = g.add_constant(1.5);
+  auto c1 = g.add_constant_real(1.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1, c1}),
       std::invalid_argument);
@@ -923,15 +923,15 @@ TEST(testoperator, matrix_multiply) {
       std::invalid_argument);
 
   // test eval()
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos1 = g.add_constant_pos_real(1.0);
   auto normal_dist = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
       std::vector<uint>{zero, pos1});
-  auto one = g.add_constant((natural_t)1);
-  auto two = g.add_constant((natural_t)2);
-  auto three = g.add_constant((natural_t)3);
+  auto one = g.add_constant_natural(1);
+  auto two = g.add_constant_natural(2);
+  auto three = g.add_constant_natural(3);
 
   auto x = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, one, three});
@@ -1048,7 +1048,7 @@ TEST(testoperator, matrix_elementwise_mult) {
           OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{cm0}),
       std::invalid_argument);
   // requires matrix parents
-  auto c1 = g.add_constant(1.5);
+  auto c1 = g.add_constant_real(1.5);
   EXPECT_THROW(
       g.add_operator(
           OperatorType::ELEMENTWISE_MULTIPLY, std::vector<uint>{c1, c1}),
@@ -1081,14 +1081,14 @@ TEST(testoperator, matrix_elementwise_mult) {
       std::invalid_argument);
 
   // test eval()
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos1 = g.add_constant_pos_real(1.0);
   auto normal_dist = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
       std::vector<uint>{zero, pos1});
-  auto two = g.add_constant((natural_t)2);
-  auto three = g.add_constant((natural_t)3);
+  auto two = g.add_constant_natural(2);
+  auto three = g.add_constant_natural(3);
 
   auto x = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
@@ -1122,7 +1122,7 @@ TEST(testoperator, matrix_scale) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{}),
       std::invalid_argument);
-  auto c1 = g.add_constant(1.5);
+  auto c1 = g.add_constant_real(1.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{c1}),
       std::invalid_argument);
@@ -1149,7 +1149,7 @@ TEST(testoperator, matrix_scale) {
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{c1, cmp1}),
       std::invalid_argument);
   // requires real/pos_real/probability types
-  auto cb2 = g.add_constant(false);
+  auto cb2 = g.add_constant_bool(false);
   Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
   auto cmb2 = g.add_constant_bool_matrix(m2);
   EXPECT_THROW(
@@ -1157,15 +1157,15 @@ TEST(testoperator, matrix_scale) {
       std::invalid_argument);
 
   // test eval()
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos1 = g.add_constant_pos_real(1.0);
   auto normal_dist = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
       std::vector<uint>{zero, pos1});
-  auto one = g.add_constant((natural_t)1);
-  auto two = g.add_constant((natural_t)2);
-  auto three = g.add_constant((natural_t)3);
+  auto one = g.add_constant_natural(1);
+  auto two = g.add_constant_natural(2);
+  auto three = g.add_constant_natural(3);
 
   auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
   auto y = g.add_operator(
@@ -1317,7 +1317,7 @@ TEST(testoperator, matrix_add) {
       g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{cm1}),
       std::invalid_argument);
   // requires two matrices matrix parent
-  auto c1 = g.add_constant(1.5);
+  auto c1 = g.add_constant_real(1.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_ADD, std::vector<uint>{c1, c1}),
       std::invalid_argument);
@@ -1369,7 +1369,7 @@ TEST(testoperator, matrix_negate) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_NEGATE, std::vector<uint>{cm1, cm2}),
       std::invalid_argument);
-  auto c1 = g.add_constant(1.5);
+  auto c1 = g.add_constant_real(1.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_NEGATE, std::vector<uint>{c1}),
       std::invalid_argument);
@@ -1399,7 +1399,7 @@ TEST(testoperator, transpose) {
       g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{}),
       std::invalid_argument);
   // incorrect types
-  auto b1 = g.add_constant(true);
+  auto b1 = g.add_constant_bool(true);
   EXPECT_THROW(
       g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{b1}),
       std::invalid_argument);
@@ -1439,17 +1439,17 @@ TEST(testoperator, index) {
       g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1}),
       std::invalid_argument);
   // requires matrix and natural number
-  uint real = g.add_constant(0.5);
+  uint real = g.add_constant_real(0.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1, real}),
       std::invalid_argument);
 
-  uint zero = g.add_constant((natural_t)0);
+  uint zero = g.add_constant_natural(0);
   uint first_element =
       g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1, zero});
   g.query(first_element);
 
-  uint real_three = g.add_constant(3.0);
+  uint real_three = g.add_constant_real(3.0);
   uint times_three = g.add_operator(
       OperatorType::MULTIPLY, std::vector<uint>{first_element, real_three});
   g.query(times_three);
@@ -1472,7 +1472,7 @@ TEST(testoperator, column_index) {
       g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm1}),
       std::invalid_argument);
   // requires matrix and natural number
-  uint real = g.add_constant(0.5);
+  uint real = g.add_constant_real(0.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm1, real}),
       std::invalid_argument);
@@ -1480,7 +1480,7 @@ TEST(testoperator, column_index) {
   Eigen::MatrixXd m2(2, 2);
   m2 << 1.0, 2.0, 3.0, 4.0;
   uint cm2 = g.add_constant_real_matrix(m2);
-  uint zero = g.add_constant((natural_t)0);
+  uint zero = g.add_constant_natural(0);
   uint first_column =
       g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm2, zero});
   g.query(first_column);
@@ -1512,7 +1512,7 @@ TEST(testoperator, to_real_matrix) {
   uint b2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
   uint b3 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
   uint b4 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
   uint tm = g.add_operator(
       OperatorType::TO_MATRIX, std::vector<uint>{two, two, b1, b2, b3, b4});
 
@@ -1546,7 +1546,7 @@ TEST(testoperator, to_pos_real_matrix) {
   uint b2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
   uint b3 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
   uint b4 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
   uint tm = g.add_operator(
       OperatorType::TO_MATRIX, std::vector<uint>{two, two, b1, b2, b3, b4});
 
@@ -1568,15 +1568,15 @@ TEST(testoperator, to_pos_real_matrix) {
 
 TEST(testoperator, to_matrix) {
   Graph g;
-  uint nat_one = g.add_constant((natural_t)1);
-  uint nat_two = g.add_constant((natural_t)2);
+  uint nat_one = g.add_constant_natural(1);
+  uint nat_two = g.add_constant_natural(2);
 
   // negative initialization
   EXPECT_THROW(
       g.add_operator(OperatorType::TO_MATRIX, std::vector<uint>{}),
       std::invalid_argument);
   // requires scalar parents
-  uint three = g.add_constant(3.0);
+  uint three = g.add_constant_real(3.0);
   Eigen::MatrixXd m1(2, 1);
   m1 << 2.0, -1.0;
   uint cm1 = g.add_constant_real_matrix(m1);
@@ -1609,7 +1609,7 @@ TEST(testoperator, to_matrix) {
       std::invalid_argument);
 
   // 1x2 real numbers
-  uint two = g.add_constant(2.0);
+  uint two = g.add_constant_real(2.0);
   uint real_matrix =
       g.add_operator(OperatorType::TO_MATRIX, {nat_one, nat_two, two, three});
   g.query(real_matrix);
@@ -1619,10 +1619,10 @@ TEST(testoperator, to_matrix) {
 
   // 2x2 natural numbers
   Graph g1;
-  nat_two = g1.add_constant((natural_t)2);
-  uint nat_zero = g1.add_constant((natural_t)0);
-  uint nat_three = g1.add_constant((natural_t)3);
-  uint nat_four = g1.add_constant((natural_t)4);
+  nat_two = g1.add_constant_natural(2);
+  uint nat_zero = g1.add_constant_natural(0);
+  uint nat_three = g1.add_constant_natural(3);
+  uint nat_four = g1.add_constant_natural(4);
   uint nat_matrix = g1.add_operator(
       OperatorType::TO_MATRIX,
       {nat_two, nat_two, nat_two, nat_zero, nat_three, nat_four});
@@ -1635,8 +1635,8 @@ TEST(testoperator, to_matrix) {
 
   // 3x1 stochastic boolean samples
   Graph g2;
-  nat_three = g2.add_constant((natural_t)3);
-  nat_one = g2.add_constant((natural_t)1);
+  nat_three = g2.add_constant_natural(3);
+  nat_one = g2.add_constant_natural(1);
   uint half = g2.add_constant_probability(0.5);
   uint bern_dist = g2.add_distribution(
       DistributionType::BERNOULLI, AtomicType::BOOLEAN, {half});
@@ -1657,8 +1657,8 @@ TEST(testoperator, to_matrix) {
 
 TEST(testoperator, broadcast_add) {
   Graph g1;
-  auto c1 = g1.add_constant(1.5);
-  auto bool1 = g1.add_constant(true);
+  auto c1 = g1.add_constant_real(1.5);
+  auto bool1 = g1.add_constant_bool(true);
   Eigen::MatrixXd m1(2, 1);
   m1 << 2.0, -1.0;
   auto matrix1 = g1.add_constant_real_matrix(m1);
@@ -1694,7 +1694,7 @@ TEST(testoperator, broadcast_add) {
   EXPECT_EQ(eval1[0][0]._matrix(1, 0), 0.5);
 
   Graph g2;
-  auto c2 = g2.add_constant(-1.0);
+  auto c2 = g2.add_constant_real(-1.0);
   Eigen::MatrixXd m2(2, 2);
   m2 << 0.0, 1.0, 2.0, 3.0;
   auto matrix2 = g2.add_constant_real_matrix(m2);
@@ -1710,8 +1710,8 @@ TEST(testoperator, broadcast_add) {
 
 TEST(testoperator, to_pos_real) {
   Graph g;
-  auto zero = g.add_constant(0.0);
-  auto c1 = g.add_constant(1.0);
+  auto zero = g.add_constant_real(0.0);
+  auto c1 = g.add_constant_real(1.0);
 
   // normal distribution requires scale to be POS_REAL
   EXPECT_THROW(
@@ -1735,8 +1735,8 @@ TEST(testoperator, to_pos_real) {
 
   // runtime error for negative value should be thrown
   Graph g1;
-  zero = g1.add_constant(0.0);
-  c1 = g1.add_constant(-1.0);
+  zero = g1.add_constant_real(0.0);
+  c1 = g1.add_constant_real(-1.0);
   auto invalid_c1 =
       g1.add_operator(OperatorType::TO_POS_REAL, std::vector<uint>{c1});
   norm_dist = g1.add_distribution(
@@ -1804,7 +1804,7 @@ TEST(testoperator, matrix_exp) {
 
   // negative tests
   // MATRIX_EXP requires matrix parent
-  auto real_number = g.add_constant(2.0);
+  auto real_number = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_EXP, {real_number}),
       std::invalid_argument);
@@ -1845,7 +1845,7 @@ TEST(testoperator, matrix_log) {
 
   // negative tests
   // MATRIX_LOG requires matrix parent
-  auto real_number = g.add_constant(2.0);
+  auto real_number = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_LOG, {real_number}),
       std::invalid_argument);
@@ -1885,7 +1885,7 @@ TEST(testoperator, matrix_phi) {
   Graph g;
   // negative tests
   // MATRIX_PHI requires matrix parent
-  auto real_number = g.add_constant(2.0);
+  auto real_number = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_PHI, {real_number}),
       std::invalid_argument);
@@ -1927,7 +1927,7 @@ TEST(testoperator, log_prob) {
 
   // negative tests
   // LOG_PROB requires two parents
-  auto two = g.add_constant(2.0);
+  auto two = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::LOG_PROB, {}), std::invalid_argument);
   EXPECT_THROW(
@@ -1945,7 +1945,7 @@ TEST(testoperator, log_prob) {
 
   // test at 2
   auto log_prob2 = g.add_operator(
-      OperatorType::LOG_PROB, {distribution, g.add_constant(2.0)});
+      OperatorType::LOG_PROB, {distribution, g.add_constant_real(2.0)});
   EXPECT_EQ(g.get_node(log_prob2)->value.type, graph::AtomicType::REAL);
   g.get_node(log_prob2)->eval(gen);
   // log[PDF[NormalDistribution[2, 3], 2]] ~ -2.01755082187
@@ -1953,21 +1953,21 @@ TEST(testoperator, log_prob) {
 
   // test at 3
   auto log_prob3 = g.add_operator(
-      OperatorType::LOG_PROB, {distribution, g.add_constant(3.0)});
+      OperatorType::LOG_PROB, {distribution, g.add_constant_real(3.0)});
   g.get_node(log_prob3)->eval(gen);
   // Log[PDF[NormalDistribution[2, 3], 3]] ~ -2.07310637743
   EXPECT_NEAR(g.get_node(log_prob3)->value._double, -2.07310637743, epsilon);
 
   // test at 5
   auto log_prob5 = g.add_operator(
-      OperatorType::LOG_PROB, {distribution, g.add_constant(5.0)});
+      OperatorType::LOG_PROB, {distribution, g.add_constant_real(5.0)});
   g.get_node(log_prob5)->eval(gen);
   // Log[PDF[NormalDistribution[2, 3], 5]] ~ -2.51755082187
   EXPECT_NEAR(g.get_node(log_prob5)->value._double, -2.51755082187, epsilon);
 
   // test at 10
   auto log_prob10 = g.add_operator(
-      OperatorType::LOG_PROB, {distribution, g.add_constant(10.0)});
+      OperatorType::LOG_PROB, {distribution, g.add_constant_real(10.0)});
   g.get_node(log_prob10)->eval(gen);
   // Log[PDF[NormalDistribution[2, 3], 10]] ~ -5.57310637743
   EXPECT_NEAR(g.get_node(log_prob10)->value._double, -5.57310637743, epsilon);
@@ -1978,7 +1978,7 @@ TEST(testoperator, matrix_sum) {
   Eigen::MatrixXd matrix1(2, 2);
   matrix1 << 2.0, 1.0, 4.0, 3.0;
   auto cm1 = g.add_constant_real_matrix(matrix1);
-  auto six = g.add_constant(6.0);
+  auto six = g.add_constant_real(6.0);
 
   // negative tests
   // MATRIX_SUM requires a matrix parent
@@ -2022,7 +2022,7 @@ TEST(testoperator, log1p) {
   EXPECT_THROW(
       g.add_operator(OperatorType::LOG1P, std::vector<uint>{prob1}),
       std::invalid_argument);
-  auto real1 = g.add_constant(-0.5);
+  auto real1 = g.add_constant_real(-0.5);
   /* ok */ g.add_operator(OperatorType::LOG1P, std::vector<uint>{real1});
   auto pos1 = g.add_constant_pos_real(1.0);
   /* ok */ g.add_operator(OperatorType::LOG1P, std::vector<uint>{pos1});
@@ -2076,7 +2076,7 @@ TEST(testoperator, matrix_log1p) {
 
   // negative tests
   // MATRIX_LOG1P requires matrix parent
-  auto real_number = g.add_constant(2.0);
+  auto real_number = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_LOG1P, {real_number}),
       std::invalid_argument);
@@ -2117,7 +2117,7 @@ TEST(testoperator, matrix_log1mexp) {
 
   // negative tests
   // MATRIX_LOG1P requires matrix parent
-  auto real_number = g.add_constant(2.0);
+  auto real_number = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_LOG1MEXP, {real_number}),
       std::invalid_argument);
@@ -2156,7 +2156,7 @@ TEST(testoperator, matrix_complement) {
 
   // negative tests
   // MATRIX_COMPLEMENT requires matrix parent
-  auto real_number = g.add_constant(2.0);
+  auto real_number = g.add_constant_real(2.0);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_COMPLEMENT, {real_number}),
       std::invalid_argument);

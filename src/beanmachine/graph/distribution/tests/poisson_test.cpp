@@ -84,7 +84,7 @@ TEST(testdistrib, poisson) {
   EXPECT_NEAR(grad2, -2.6667, 0.001);
   // test backward_param, backward_value
   // test backward_param_iid, backward_param_iid
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto y2 = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{y_dist, two, two});
   Eigen::MatrixXn m_y(2, 2);

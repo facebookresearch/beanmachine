@@ -698,11 +698,23 @@ uint Graph::add_constant(bool value) {
   return add_constant(NodeValue(value));
 }
 
+uint Graph::add_constant_bool(bool value) {
+  return add_constant(NodeValue(value));
+}
+
 uint Graph::add_constant(double value) {
   return add_constant(NodeValue(value));
 }
 
+uint Graph::add_constant_real(double value) {
+  return add_constant(NodeValue(value));
+}
+
 uint Graph::add_constant(natural_t value) {
+  return add_constant(NodeValue(value));
+}
+
+uint Graph::add_constant_natural(natural_t value) {
   return add_constant(NodeValue(value));
 }
 

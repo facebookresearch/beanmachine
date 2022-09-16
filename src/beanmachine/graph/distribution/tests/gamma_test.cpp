@@ -18,7 +18,7 @@ TEST(testdistrib, gamma) {
   const double C = -1.0;
   auto pos1 = g.add_constant_pos_real(A);
   auto pos2 = g.add_constant_pos_real(B);
-  auto neg1 = g.add_constant(C);
+  auto neg1 = g.add_constant_real(C);
   // negative test the sample_type must be positive real.
   EXPECT_THROW(
       g.add_distribution(
@@ -123,7 +123,7 @@ TEST(testdistrib, gamma) {
   EXPECT_NEAR(grad2, -15.7778, 0.001);
   // test test backward_param, backward_value, backward_param_iid,
   // backward_value_iid
-  auto two = g.add_constant((natural_t)2);
+  auto two = g.add_constant_natural(2);
   auto y2 = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{y_dist, two, two});
   Eigen::MatrixXd m_y(2, 2);
@@ -142,7 +142,7 @@ TEST(testdistrib, gamma) {
 
   // test sample/iid_sample from a mixture of gammas
   Graph g2;
-  auto size = g2.add_constant((natural_t)2);
+  auto size = g2.add_constant_natural(2);
   auto flat_pos = g2.add_distribution(
       DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   auto flat_prob = g2.add_distribution(

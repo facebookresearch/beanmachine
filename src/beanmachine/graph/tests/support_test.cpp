@@ -149,7 +149,7 @@ TEST(testgraph, full_support) {
       DistributionType::NORMAL, AtomicType::REAL, {coin_real, one});
   uint n1 = g.add_operator(OperatorType::SAMPLE, {normal1});
   // should be in support since queried
-  uint five = g.add_constant(5.0);
+  uint five = g.add_constant_real(5.0);
   uint coin_plus_five = g.add_operator(OperatorType::ADD, {coin_real, five});
   uint normal2 = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {coin_plus_five, one});

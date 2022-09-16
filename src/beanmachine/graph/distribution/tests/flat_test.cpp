@@ -13,7 +13,7 @@ using namespace beanmachine::graph;
 
 TEST(testdistrib, flat) {
   Graph g;
-  auto real1 = g.add_constant(3.0);
+  auto real1 = g.add_constant_real(3.0);
   // negative test: flat has no parent
   EXPECT_THROW(
       g.add_distribution(

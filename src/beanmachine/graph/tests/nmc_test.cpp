@@ -16,7 +16,7 @@ TEST(testnmc, beta_binomial) {
   Graph g;
   uint a = g.add_constant_pos_real(5.0);
   uint b = g.add_constant_pos_real(3.0);
-  uint n = g.add_constant((natural_t)10);
+  uint n = g.add_constant_natural(10);
   uint beta = g.add_distribution(
       DistributionType::BETA,
       AtomicType::PROBABILITY,
@@ -77,7 +77,7 @@ TEST(testnmc, net_norad) {
       {200, 170, {2, 3}},
       {200, 199, {0, 1, 3}}};
   for (const auto& path : paths) {
-    uint pkts_sent = g.add_constant((natural_t)std::get<0>(path));
+    uint pkts_sent = g.add_constant_natural(std::get<0>(path));
     std::vector<uint> path_comp_rates;
     for (uint id : std::get<2>(path)) {
       path_comp_rates.push_back(comp_rates[id]);
@@ -105,7 +105,7 @@ TEST(testnmc, net_norad) {
 
 TEST(testnmc, normal_normal) {
   Graph g;
-  auto mean0 = g.add_constant(0.0);
+  auto mean0 = g.add_constant_real(0.0);
   auto sigma0 = g.add_constant_pos_real(5.0);
   auto dist0 = g.add_distribution(
       DistributionType::NORMAL,
@@ -177,7 +177,7 @@ TEST(testnmc, gmm_two_components) {
   // posterior of mu_true will be close to 9.5
   // posterior of tau is Beta (3, 2) which has a mean of 0.6
   Graph g;
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto one = g.add_constant_pos_real(1.0);
   auto hundred = g.add_constant_pos_real(100.0);
   auto tau_prior = g.add_distribution(
@@ -240,7 +240,7 @@ TEST(testnmc, infinite_grad) {
           prob_sign ~ Beta(1, 1)
   */
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint one = g.add_constant_pos_real(1.0);
   uint two = g.add_constant_pos_real(2.0);
   uint sei = g.add_constant_pos_real(0.15);
@@ -348,7 +348,7 @@ TEST(testnmc, bernoulli_dirichlet_beta) {
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dirich_dist});
 
   for (uint k = 0; k < 2; k++) {
-    uint idx = g.add_constant((natural_t)k);
+    uint idx = g.add_constant_natural(k);
     uint p =
         g.add_operator(OperatorType::INDEX, std::vector<uint>{dirich_vec, idx});
     uint bern_dist = g.add_distribution(

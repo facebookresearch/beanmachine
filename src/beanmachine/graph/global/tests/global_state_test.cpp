@@ -23,10 +23,10 @@ TEST(testglobal, global_state_no_transform) {
   // incrementing global values, and calculating gradients
   Graph g = Graph();
 
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint one = g.add_constant_pos_real(1.0);
-  uint two = g.add_constant((natural_t)2);
-  uint three = g.add_constant(3.0);
+  uint two = g.add_constant_natural(2);
+  uint three = g.add_constant_real(3.0);
 
   uint norm_dist = g.add_distribution(
       DistributionType::NORMAL, AtomicType::REAL, {zero, one});
@@ -144,7 +144,7 @@ TEST(testglobal, global_state_no_transform) {
 TEST(testglobal, global_state_transform) {
   Graph g;
   uint one = g.add_constant_pos_real(1.0);
-  uint three_nat = g.add_constant((natural_t)3);
+  uint three_nat = g.add_constant_natural(3);
   uint three = g.add_constant_pos_real(3.0);
 
   uint dist = g.add_distribution(
@@ -288,9 +288,9 @@ TEST(testglobal, global_state_gamma_transform) {
 TEST(testglobal, global_state_initialization) {
   /* Test initialization in real space */
   Graph g;
-  uint hundred = g.add_constant(100.0);
+  uint hundred = g.add_constant_real(100.0);
   uint one = g.add_constant_pos_real(1.0);
-  uint thousand = g.add_constant((natural_t)1000);
+  uint thousand = g.add_constant_natural(1000);
 
   uint normal_dist = g.add_distribution(
       DistributionType::NORMAL,
@@ -333,7 +333,7 @@ TEST(testglobal, global_state_transform_initialization) {
   Graph g;
   uint twohundred = g.add_constant_pos_real(200.0);
   uint hundred = g.add_constant_pos_real(100.0);
-  uint thousand = g.add_constant((natural_t)1000);
+  uint thousand = g.add_constant_natural(1000);
 
   uint normal_dist = g.add_distribution(
       DistributionType::GAMMA,

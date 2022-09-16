@@ -19,7 +19,7 @@ TEST(testdistrib, half_normal) {
   // TODO[Walid]: Move declarations and graph additions closer to use
   const double MEAN = 0; // Half-normal assumes 0
   const double STD = 3.0;
-  auto real1 = g.add_constant(MEAN);
+  auto real1 = g.add_constant_real(MEAN);
   auto pos1 = g.add_constant_pos_real(STD);
   // Test that g.add_distribution checks arguments to HALF_NORMAL correctly
   // negative tests half_normal has one parent
@@ -222,9 +222,9 @@ TEST(testdistrib, half_normal) {
 // Tests with aggregate samples
 TEST(testdistrib, backward_half_normal_half_normal) {
   Graph g;
-  uint zero = g.add_constant(0.0);
+  uint zero = g.add_constant_real(0.0);
   uint pos_one = g.add_constant_pos_real(1.0);
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
 
   uint half_normal_dist = g.add_distribution(
       DistributionType::HALF_NORMAL,
@@ -298,7 +298,7 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   // back gradient calculations with respect to several
   // sampled variables, and through a composition of distributions.
   Graph g2;
-  auto size = g2.add_constant((natural_t)2);
+  auto size = g2.add_constant_natural(2);
   auto flat_real = g2.add_distribution(
       DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
   auto flat_pos = g2.add_distribution(

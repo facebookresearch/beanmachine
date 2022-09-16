@@ -565,7 +565,7 @@ class TestContinuousModels(unittest.TestCase):
 
         MEAN0 = -5.0
         STD0 = 1.0
-        real0 = g.add_constant(MEAN0)
+        real0 = g.add_constant_real(MEAN0)
         pos0 = g.add_constant_pos_real(STD0)
 
         normal_dist0 = g.add_distribution(
@@ -583,7 +583,7 @@ class TestContinuousModels(unittest.TestCase):
 
         MEAN2 = 5.0
         STD2 = 2.0
-        real2 = g.add_constant(MEAN2)
+        real2 = g.add_constant_real(MEAN2)
         pos2 = g.add_constant_pos_real(STD2)
 
         normal_dist2 = g.add_distribution(

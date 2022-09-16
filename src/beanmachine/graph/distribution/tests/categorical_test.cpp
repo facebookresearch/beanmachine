@@ -22,7 +22,7 @@ TEST(testdistrib, categorical) {
   Eigen::MatrixXd matrix2(4, 2);
   matrix2 << 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25;
 
-  uint c0 = g.add_constant(0.0);
+  uint c0 = g.add_constant_real(0.0);
   uint c1 = g.add_constant_col_simplex_matrix(matrix);
   uint c2 = g.add_constant_col_simplex_matrix(matrix2);
 

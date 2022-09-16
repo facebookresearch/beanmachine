@@ -24,9 +24,9 @@ TEST(testdistrib, cauchy) {
   const double SCALE = 3.5;
   const double X0 = 1.2;
   auto scale_pos = g.add_constant_pos_real(SCALE);
-  auto x0_real = g.add_constant(X0);
+  auto x0_real = g.add_constant_real(X0);
   auto pos1 = g.add_constant_pos_real(SCALE);
-  auto real1 = g.add_constant(SCALE);
+  auto real1 = g.add_constant_real(SCALE);
   // negative tests: cauchy has two parents which are real and positive
   EXPECT_THROW(
       g.add_distribution(
@@ -60,7 +60,7 @@ TEST(testdistrib, cauchy) {
 
   // test creation of a distribution
 
-  auto zero = g.add_constant(0.0);
+  auto zero = g.add_constant_real(0.0);
   auto pos_zero = g.add_constant_pos_real(0.0);
   auto loc =
       g.add_operator(OperatorType::ADD, std::vector<uint>{zero, x0_real});

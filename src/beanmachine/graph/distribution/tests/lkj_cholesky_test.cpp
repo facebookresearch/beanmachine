@@ -21,7 +21,7 @@ TEST(testdistrib, lkj_cholesky) {
   Graph g;
   const double ETA = 3.0;
   auto pos1 = g.add_constant_pos_real(ETA);
-  auto nat1 = g.add_constant((natural_t)1);
+  auto nat1 = g.add_constant_natural(1);
 
   // negative tests that LKJ Cholesky has one positive real parent
   EXPECT_THROW(

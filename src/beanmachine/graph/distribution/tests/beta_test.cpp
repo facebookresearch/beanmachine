@@ -19,7 +19,7 @@ TEST(testdistrib, beta1) {
   const double C = -1.5;
   auto pos1 = g1.add_constant_pos_real(A);
   auto pos2 = g1.add_constant_pos_real(B);
-  auto neg1 = g1.add_constant(C);
+  auto neg1 = g1.add_constant_real(C);
   // negative test the sample_type must be probability.
   EXPECT_THROW(
       g1.add_distribution(
@@ -147,7 +147,7 @@ TEST(testdistrib, beta2) {
   const double B = 5.0;
   auto pos1 = g1.add_constant_pos_real(A);
   auto pos2 = g1.add_constant_pos_real(B);
-  auto two = g1.add_constant((natural_t)2);
+  auto two = g1.add_constant_natural(2);
 
   auto beta_dist = g1.add_distribution(
       DistributionType::BETA,
@@ -167,7 +167,7 @@ TEST(testdistrib, beta2) {
   // b ~ FLAT
   // y = (y1, y2) ~ Beta(a^2, b^2)
   Graph g2;
-  auto nat_node = g2.add_constant((natural_t)2);
+  auto nat_node = g2.add_constant_natural(2);
   auto a = g2.add_operator(
       OperatorType::SAMPLE,
       std::vector<uint>{g2.add_distribution(
@@ -207,7 +207,7 @@ TEST(testdistrib, beta2) {
 
   // test sample/iid_sample from a mixture of betas
   Graph g3;
-  auto size = g3.add_constant((natural_t)2);
+  auto size = g3.add_constant_natural(2);
   auto flat_pos = g3.add_distribution(
       DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   auto flat_prob = g3.add_distribution(

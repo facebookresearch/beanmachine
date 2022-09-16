@@ -19,7 +19,7 @@ TEST(testdistrib, dirichlet_negative) {
   Eigen::MatrixXd m1(3, 1);
   m1 << 1.5, 1.0, 2.0;
   uint cm1 = g.add_constant_pos_matrix(m1);
-  uint two = g.add_constant((natural_t)2);
+  uint two = g.add_constant_natural(2);
 
   // negative initialization tests
   EXPECT_THROW(

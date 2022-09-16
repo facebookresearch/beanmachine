@@ -22,7 +22,7 @@ TEST(testrejection, beta_bernoulli) {
       AtomicType::PROBABILITY,
       std::vector<uint>({a, b}));
   uint prob = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({prior}));
-  uint n = g.add_constant((natural_t)5);
+  uint n = g.add_constant_natural(5);
   uint like = g.add_distribution(
       DistributionType::BINOMIAL,
       AtomicType::NATURAL,

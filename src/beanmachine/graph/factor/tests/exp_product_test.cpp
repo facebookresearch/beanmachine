@@ -18,13 +18,13 @@ TEST(testfactor, exp_product) {
       g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{}),
       std::invalid_argument);
   // negative test, booleans can't be the parent of an exp_product
-  uint bool1 = g.add_constant(true);
+  uint bool1 = g.add_constant_bool(true);
   EXPECT_THROW(
       g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{bool1}),
       std::invalid_argument);
   // positive test, mixed product types are allowed
   uint pos1 = g.add_constant_pos_real(2.0);
-  uint real1 = g.add_constant(3.0);
+  uint real1 = g.add_constant_real(3.0);
   uint prob1 = g.add_constant_probability(0.4);
   uint neg1 = g.add_constant_neg_real(-1.0);
   g.add_factor(
