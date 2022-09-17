@@ -90,7 +90,7 @@ digraph "graph" {
         observed = to_bmg_cpp(bmg).code
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(0.0);
+uint n0 = g.add_constant_real(0.0);
 uint n1 = g.add_constant_pos_real(1.0);
 uint n2 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -98,8 +98,8 @@ uint n2 = g.add_distribution(
   std::vector<uint>({n0, n1}));
 uint n3 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
-uint n4 = g.add_constant(2);
-uint n5 = g.add_constant(1);
+uint n4 = g.add_constant_natural(2);
+uint n5 = g.add_constant_natural(1);
 uint n6 = g.add_operator(
   graph::OperatorType::EXP, std::vector<uint>({n3}));
 uint n7 = g.add_operator(
@@ -202,7 +202,7 @@ digraph "graph" {
         observed = to_bmg_cpp(bmg).code
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(0.0);
+uint n0 = g.add_constant_real(0.0);
 uint n1 = g.add_constant_pos_real(1.0);
 uint n2 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -210,8 +210,8 @@ uint n2 = g.add_distribution(
   std::vector<uint>({n0, n1}));
 uint n3 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
-uint n4 = g.add_constant(1);
-uint n5 = g.add_constant(2);
+uint n4 = g.add_constant_natural(1);
+uint n5 = g.add_constant_natural(2);
 uint n6 = g.add_operator(
   graph::OperatorType::EXP, std::vector<uint>({n3}));
 uint n7 = g.add_operator(
@@ -421,11 +421,11 @@ uint n4 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n5 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
-uint n6 = g.add_constant(2);
+uint n6 = g.add_constant_natural(2);
 uint n7 = g.add_operator(
   graph::OperatorType::TO_MATRIX,
   std::vector<uint>({n6, n6, n2, n3, n4, n5}));
-uint n8 = g.add_constant(0);
+uint n8 = g.add_constant_natural(0);
 uint n9 = g.add_operator(
   graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n8}));
 uint n10 = g.add_operator(
@@ -433,7 +433,7 @@ uint n10 = g.add_operator(
 uint n11 = g.add_operator(
   graph::OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>({n10}));
 uint q0 = g.query(n11);
-uint n12 = g.add_constant(1);
+uint n12 = g.add_constant_natural(1);
 uint n13 = g.add_operator(
   graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n12}));
 uint n14 = g.add_operator(

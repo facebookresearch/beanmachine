@@ -156,17 +156,17 @@ PYBIND11_MODULE(graph, module) {
       .def("to_dot", &Graph::to_dot, "DOT representation of the graph")
       .def(
           "add_constant_bool",
-          (uint(Graph::*)(bool)) & Graph::add_constant,
+          (uint(Graph::*)(bool)) & Graph::add_constant_bool,
           "add a Node with a constant boolean value",
           py::arg("value"))
       .def(
           "add_constant_real",
-          (uint(Graph::*)(double)) & Graph::add_constant,
+          (uint(Graph::*)(double)) & Graph::add_constant_real,
           "add a Node with a constant real value",
           py::arg("value"))
       .def(
           "add_constant_natural",
-          (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
+          (uint(Graph::*)(graph::natural_t)) & Graph::add_constant_natural,
           "add a Node with a constant natural (integers >= 0) value",
           py::arg("value"))
       .def(

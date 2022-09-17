@@ -101,7 +101,7 @@ digraph "graph" {
         observed = BMGInference().to_cpp(queries, observations)
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(0.0);
+uint n0 = g.add_constant_real(0.0);
 uint n1 = g.add_constant_pos_real(1000.0);
 uint n2 = g.add_distribution(
   graph::DistributionType::NORMAL,

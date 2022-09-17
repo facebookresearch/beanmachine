@@ -222,15 +222,15 @@ digraph "graph" {
         # NB: m2 is transposed from the source!
         expected = """
 graph::Graph g;
-Eigen::MatrixXd m0(1, 1)
+Eigen::MatrixXd m0(1, 1);
 m0 << 1.0;
 uint n0 = g.add_constant_pos_matrix(m0);
 uint q0 = g.query(n0);
-Eigen::MatrixXd m1(2, 1)
+Eigen::MatrixXd m1(2, 1);
 m1 << 1.0, 1.5;
 uint n1 = g.add_constant_pos_matrix(m1);
 uint q1 = g.query(n1);
-Eigen::MatrixXd m2(2, 2)
+Eigen::MatrixXd m2(2, 2);
 m2 << 1.0, 2.0, 1.5, 2.5;
 uint n2 = g.add_constant_pos_matrix(m2);
 uint q2 = g.query(n2);
@@ -517,7 +517,7 @@ q0 = g.query(n2)"""
         observed = BMGInference().to_cpp(queries, observations)
         expected = """
 graph::Graph g;
-Eigen::MatrixXd m0(2, 1)
+Eigen::MatrixXd m0(2, 1);
 m0 << 2.5, 3.0;
 uint n0 = g.add_constant_pos_matrix(m0);
 uint n1 = g.add_distribution(
@@ -531,9 +531,9 @@ uint n1 = g.add_distribution(
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
-Eigen::MatrixXd o0(2, 1)
+Eigen::MatrixXd o0(2, 1);
 o0 << 0.5, 0.5;
-g.observe([n2], o0);
+g.observe(n2, o0);
 uint q0 = g.query(n2);"""
         self.assertEqual(expected.strip(), observed.strip())
 

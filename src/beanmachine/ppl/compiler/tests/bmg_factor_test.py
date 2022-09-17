@@ -93,7 +93,7 @@ g.observe(n3, 7.0)
 
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(3.0);
+uint n0 = g.add_constant_real(3.0);
 uint n1 = g.add_constant_pos_real(2.0);
 uint n2 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -107,6 +107,6 @@ uint n5 = g.add_operator(
 uint n6 = g.add_factor(
   graph::FactorType::EXP_PRODUCT,
   std::vector<uint>({n3, n4, n5}));
-g.observe([n3], 7.0);
+g.observe(n3, 7.0);
 """
         self.assertEqual(expected.strip(), observed.strip())

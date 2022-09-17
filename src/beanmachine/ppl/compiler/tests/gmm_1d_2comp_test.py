@@ -384,7 +384,7 @@ uint n1 = g.add_distribution(
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
-uint n3 = g.add_constant(0.0);
+uint n3 = g.add_constant_real(0.0);
 uint n4 = g.add_constant_pos_real(10.0);
 uint n5 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -415,7 +415,7 @@ uint n14 = g.add_distribution(
   std::vector<uint>({n12, n13}));
 uint n15 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n14}));
-g.observe([n15], 0.0);
+g.observe(n15, 0.0);
 uint n16 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n17 = g.add_operator(
@@ -430,7 +430,7 @@ uint n19 = g.add_distribution(
   std::vector<uint>({n17, n18}));
 uint n20 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n19}));
-g.observe([n20], 1.0);
+g.observe(n20, 1.0);
 uint n21 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n22 = g.add_operator(
@@ -445,7 +445,7 @@ uint n24 = g.add_distribution(
   std::vector<uint>({n22, n23}));
 uint n25 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n24}));
-g.observe([n25], 0.0);
+g.observe(n25, 0.0);
 uint n26 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n27 = g.add_operator(
@@ -460,7 +460,7 @@ uint n29 = g.add_distribution(
   std::vector<uint>({n27, n28}));
 uint n30 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n29}));
-g.observe([n30], 1.0);
+g.observe(n30, 1.0);
 uint n31 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n32 = g.add_operator(
@@ -475,7 +475,7 @@ uint n34 = g.add_distribution(
   std::vector<uint>({n32, n33}));
 uint n35 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n34}));
-g.observe([n35], 0.0);
+g.observe(n35, 0.0);
 uint n36 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n37 = g.add_operator(
@@ -490,7 +490,7 @@ uint n39 = g.add_distribution(
   std::vector<uint>({n37, n38}));
 uint n40 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n39}));
-g.observe([n40], 1.0);
+g.observe(n40, 1.0);
 uint n41 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n42 = g.add_operator(
@@ -505,7 +505,7 @@ uint n44 = g.add_distribution(
   std::vector<uint>({n42, n43}));
 uint n45 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n44}));
-g.observe([n45], 0.0);
+g.observe(n45, 0.0);
 uint n46 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n47 = g.add_operator(
@@ -520,7 +520,7 @@ uint n49 = g.add_distribution(
   std::vector<uint>({n47, n48}));
 uint n50 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n49}));
-g.observe([n50], 1.0);
+g.observe(n50, 1.0);
 uint n51 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n52 = g.add_operator(
@@ -535,7 +535,7 @@ uint n54 = g.add_distribution(
   std::vector<uint>({n52, n53}));
 uint n55 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n54}));
-g.observe([n55], 0.0);
+g.observe(n55, 0.0);
 uint n56 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n57 = g.add_operator(
@@ -550,7 +550,7 @@ uint n59 = g.add_distribution(
   std::vector<uint>({n57, n58}));
 uint n60 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n59}));
-g.observe([n60], 1.0);
+g.observe(n60, 1.0);
 uint n61 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n62 = g.add_operator(
@@ -565,7 +565,7 @@ uint n64 = g.add_distribution(
   std::vector<uint>({n62, n63}));
 uint n65 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n64}));
-g.observe([n65], 0.0);
+g.observe(n65, 0.0);
 uint n66 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n67 = g.add_operator(
@@ -580,7 +580,7 @@ uint n69 = g.add_distribution(
   std::vector<uint>({n67, n68}));
 uint n70 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n69}));
-g.observe([n70], 1.0);
+g.observe(n70, 1.0);
 uint q0 = g.query(n2);
 uint q1 = g.query(n16);
 uint q2 = g.query(n21);

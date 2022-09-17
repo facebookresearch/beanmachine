@@ -277,16 +277,16 @@ uint n4 = g.add_distribution(
   std::vector<uint>({n3}));
 uint n5 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n5], false);
+g.observe(n5, false);
 uint n6 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n6], false);
+g.observe(n6, false);
 uint n7 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n7], true);
+g.observe(n7, true);
 uint n8 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n8], false);
+g.observe(n8, false);
 uint n9 = g.add_operator(
   graph::OperatorType::TO_POS_REAL, std::vector<uint>({n3}));
 uint n10 = g.add_operator(

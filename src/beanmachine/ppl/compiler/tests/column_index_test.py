@@ -89,7 +89,7 @@ digraph "graph" {
         observed = to_bmg_cpp(bmg).code
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(0.0);
+uint n0 = g.add_constant_real(0.0);
 uint n1 = g.add_constant_pos_real(1.0);
 uint n2 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -104,7 +104,7 @@ uint n5 = g.add_distribution(
   std::vector<uint>({n4}));
 uint n6 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n5}));
-uint n7 = g.add_constant(2);
+uint n7 = g.add_constant_natural(2);
 uint n8 = g.add_operator(
   graph::OperatorType::EXP, std::vector<uint>({n3}));
 uint n9 = g.add_operator(
@@ -112,8 +112,8 @@ uint n9 = g.add_operator(
 uint n10 = g.add_operator(
   graph::OperatorType::TO_MATRIX,
   std::vector<uint>({n7, n7, n9, n3, n3, n3}));
-uint n11 = g.add_constant(1);
-uint n12 = g.add_constant(0);
+uint n11 = g.add_constant_natural(1);
+uint n12 = g.add_constant_natural(0);
 uint n13 = g.add_operator(
   graph::OperatorType::IF_THEN_ELSE,
   std::vector<uint>({n6, n11, n12}));

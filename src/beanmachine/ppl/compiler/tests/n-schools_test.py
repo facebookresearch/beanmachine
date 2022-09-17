@@ -576,7 +576,7 @@ digraph "graph" {
         observed = BMGInference().to_cpp(queries, observations)
         expected = """
 graph::Graph g;
-Eigen::MatrixXd m0(2, 1)
+Eigen::MatrixXd m0(2, 1);
 m0 << 1.0, 0.0;
 uint n0 = g.add_constant_pos_matrix(m0);
 uint n1 = g.add_distribution(
@@ -637,7 +637,7 @@ uint n25 = g.add_distribution(
   std::vector<uint>({n24}));
 uint n26 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
-g.observe([n26], true);
+g.observe(n26, true);
 g.query(n12);
 g.query(n2);
 g.query(n3);

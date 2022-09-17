@@ -202,7 +202,7 @@ digraph "graph" {
         observed = BMGInference().to_cpp(queries, observations)
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(0.0);
+uint n0 = g.add_constant_real(0.0);
 uint n1 = g.add_constant_pos_real(10000.0);
 uint n2 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -212,14 +212,14 @@ uint n3 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
 uint n4 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
-uint n5 = g.add_constant(-0.9189385332046727);
-uint n6 = g.add_constant(0.3333333333333333);
+uint n5 = g.add_constant_real(-0.9189385332046727);
+uint n6 = g.add_constant_real(0.3333333333333333);
 uint n7 = g.add_operator(
   graph::OperatorType::MULTIPLY, std::vector<uint>({n3, n6}));
 uint n8 = g.add_constant_pos_real(2.0);
 uint n9 = g.add_operator(
   graph::OperatorType::POW, std::vector<uint>({n7, n8}));
-uint n10 = g.add_constant(0.5);
+uint n10 = g.add_constant_real(0.5);
 uint n11 = g.add_operator(
   graph::OperatorType::MULTIPLY, std::vector<uint>({n9, n10}));
 uint n12 = g.add_operator(
@@ -228,7 +228,7 @@ uint n13 = g.add_operator(
   graph::OperatorType::MULTIPLY, std::vector<uint>({n3, n10}));
 uint n14 = g.add_operator(
   graph::OperatorType::EXP, std::vector<uint>({n13}));
-uint n15 = g.add_constant(-1.0);
+uint n15 = g.add_constant_real(-1.0);
 uint n16 = g.add_operator(
   graph::OperatorType::POW, std::vector<uint>({n14, n15}));
 uint n17 = g.add_operator(
@@ -254,7 +254,7 @@ uint n25 = g.add_distribution(
   std::vector<uint>({n24}));
 uint n26 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
-g.observe([n26], true);
+g.observe(n26, true);
 uint q0 = g.query(n3);
 uint q1 = g.query(n4);
 """

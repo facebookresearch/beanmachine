@@ -309,7 +309,7 @@ class tutorialGMMwith1DimensionsAnd4Components(unittest.TestCase):
 
         observed = BMGInference().to_cpp(queries, observations)
         expected = """graph::Graph g;
-Eigen::MatrixXd m0(4, 1)
+Eigen::MatrixXd m0(4, 1);
 m0 << 5.0, 5.0, 5.0, 5.0;
 uint n0 = g.add_constant_pos_matrix(m0);
 uint n1 = g.add_distribution(
@@ -329,7 +329,7 @@ uint n3 = g.add_distribution(
   std::vector<uint>({n2}));
 uint n4 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-uint n5 = g.add_constant(0.0);
+uint n5 = g.add_constant_real(0.0);
 uint n6 = g.add_constant_pos_real(10.0);
 uint n7 = g.add_distribution(
   graph::DistributionType::NORMAL,
@@ -368,7 +368,7 @@ uint n20 = g.add_distribution(
   std::vector<uint>({n18, n19}));
 uint n21 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n20}));
-g.observe([n21], 0.0);
+g.observe(n21, 0.0);
 uint n22 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 uint n23 = g.add_operator(
@@ -383,7 +383,7 @@ uint n25 = g.add_distribution(
   std::vector<uint>({n23, n24}));
 uint n26 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
-g.observe([n26], 1.0);
+g.observe(n26, 1.0);
 uint n27 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 uint n28 = g.add_operator(
@@ -398,7 +398,7 @@ uint n30 = g.add_distribution(
   std::vector<uint>({n28, n29}));
 uint n31 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n30}));
-g.observe([n31], 0.0);
+g.observe(n31, 0.0);
 uint n32 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 uint n33 = g.add_operator(
@@ -413,7 +413,7 @@ uint n35 = g.add_distribution(
   std::vector<uint>({n33, n34}));
 uint n36 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n35}));
-g.observe([n36], 1.0);
+g.observe(n36, 1.0);
 uint n37 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 uint n38 = g.add_operator(
@@ -428,7 +428,7 @@ uint n40 = g.add_distribution(
   std::vector<uint>({n38, n39}));
 uint n41 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n40}));
-g.observe([n41], 0.0);
+g.observe(n41, 0.0);
 uint n42 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 uint n43 = g.add_operator(
@@ -443,7 +443,7 @@ uint n45 = g.add_distribution(
   std::vector<uint>({n43, n44}));
 uint n46 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n45}));
-g.observe([n46], 1.0);
+g.observe(n46, 1.0);
 uint q0 = g.query(n2);
 uint q1 = g.query(n4);
 uint q2 = g.query(n22);

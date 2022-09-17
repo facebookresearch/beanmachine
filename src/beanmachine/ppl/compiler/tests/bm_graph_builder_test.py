@@ -129,8 +129,8 @@ uint n1 = g.add_distribution(
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
-g.observe([n2], true);
-uint n3 = g.add_constant(2.0);
+g.observe(n2, true);
+uint n3 = g.add_constant_real(2.0);
 uint n4 = g.add_operator(
   graph::OperatorType::TO_REAL, std::vector<uint>({n2}));
 uint n5 = g.add_operator(

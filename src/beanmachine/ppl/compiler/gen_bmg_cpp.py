@@ -25,7 +25,7 @@ def _value_to_cpp_eigen(value: torch.Tensor, variable: str) -> str:
     r, c = _size_to_rc(value.size())
     v = value.reshape(r, c).transpose(0, 1).contiguous()
     values = ", ".join(str(element) for element in v.reshape(-1).tolist())
-    return f"Eigen::MatrixXd {variable}({c}, {r})\n{variable} << {values};"
+    return f"Eigen::MatrixXd {variable}({c}, {r});\n{variable} << {values};"
 
 
 def _value_to_cpp(value: Any) -> str:
@@ -60,9 +60,9 @@ class GeneratedGraphCPP:
             self._observation_count += 1
             s = _value_to_cpp_eigen(v, o)
             self._code.append(s)
-            self._code.append(f"g.observe([n{graph_id}], {o});")
+            self._code.append(f"g.observe(n{graph_id}, {o});")
         else:
-            self._code.append(f"g.observe([n{graph_id}], {_value_to_cpp(v)});")
+            self._code.append(f"g.observe(n{graph_id}, {_value_to_cpp(v)});")
 
     def _add_query(self, node: bn.Query) -> None:
         query_id = len(self.query_to_query_id)
@@ -134,12 +134,15 @@ class GeneratedGraphCPP:
         elif t is bn.ProbabilityNode:
             f = f"add_constant_probability({_value_to_cpp(float(v))})"
         elif t is bn.BooleanNode:
-            f = f"add_constant({_value_to_cpp(bool(v))})"
+            f = f"add_constant_bool({_value_to_cpp(bool(v))})"
         elif t is bn.NaturalNode:
-            f = f"add_constant({_value_to_cpp(int(v))})"
+            f = f"add_constant_natural({_value_to_cpp(int(v))})"
         elif t is bn.RealNode:
-            f = f"add_constant({_value_to_cpp(float(v))})"
+            f = f"add_constant_real({_value_to_cpp(float(v))})"
         elif t is bn.ConstantTensorNode:
+            # TODO: This should be dead code; this is a holdover
+            # from before BMG used Eigen as its matrix library.
+            # Remove it, and remove the case from _value_to_cpp.
             f = f"add_constant({_value_to_cpp(v)})"
         elif t is bn.ConstantPositiveRealMatrixNode:
             m = _value_to_cpp_eigen(v, f"m{graph_id}")
@@ -157,9 +160,11 @@ class GeneratedGraphCPP:
             m = _value_to_cpp_eigen(v, f"m{graph_id}")
             f = f"add_constant_col_simplex_matrix(m{graph_id})"
         elif t is bn.ConstantNaturalMatrixNode:
+            # TODO: This is wrong, it needs to be a MatrixXn
             m = _value_to_cpp_eigen(v, f"m{graph_id}")
             f = f"add_constant_natural_matrix(m{graph_id})"
         elif t is bn.ConstantBooleanMatrixNode:
+            # TODO: This is wrong, it needs to be a MatrixXb
             m = _value_to_cpp_eigen(v, f"m{graph_id}")
             f = f"add_constant_bool_matrix(m{graph_id})"
         else:

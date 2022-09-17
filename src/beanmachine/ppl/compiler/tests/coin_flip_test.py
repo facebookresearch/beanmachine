@@ -112,16 +112,16 @@ uint n3 = g.add_distribution(
   std::vector<uint>({n2}));
 uint n4 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n4], false);
+g.observe(n4, false);
 uint n5 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n5], false);
+g.observe(n5, false);
 uint n6 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n6], true);
+g.observe(n6, true);
 uint n7 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n7], false);
+g.observe(n7, false);
 uint q0 = g.query(n2);"""
         self.assertEqual(expected.strip(), observed.strip())
 
