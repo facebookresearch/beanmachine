@@ -24,7 +24,7 @@ class EvalError : public std::exception {
 
 template <class N>
 requires Number<N> N
-eval_operator(Operator op, std::function<N(uint)> get_value) {
+eval_operator(Operator op, std::function<N(unsigned)> get_value) {
   switch (op) {
     case Operator::ADD:
       return get_value(0) + get_value(1);
@@ -59,7 +59,7 @@ eval_operator(Operator op, std::function<N(uint)> get_value) {
 // Sample from the given distribution.
 double sample_distribution(
     Operator distribution,
-    std::function<double(uint)> get_parameter,
+    std::function<double(unsigned)> get_parameter,
     std::mt19937& gen);
 
 // Evaluating an entire graph, returning an array of doubles that contains, for
@@ -71,7 +71,7 @@ requires Number<T>
 void eval_graph(
     const Graph& graph,
     std::mt19937& gen,
-    std::function<T(const std::string& name, const uint sequence)>
+    std::function<T(const std::string& name, const unsigned sequence)>
         read_variable,
     std::vector<T>& data) {
   int n = graph.size();
@@ -96,7 +96,7 @@ void eval_graph(
         const OperatorNode* sample = static_cast<const OperatorNode*>(node);
         const Node* in0 = sample->in_nodes[0];
         const OperatorNode* dist = static_cast<const OperatorNode*>(in0);
-        std::function<double(uint)> get_parameter = [=](uint i) {
+        std::function<double(unsigned)> get_parameter = [=](unsigned i) {
           return data[dist->in_nodes[i]->sequence].as_double();
         };
         data[i] = sample_distribution(dist->op, get_parameter, gen);
@@ -107,7 +107,7 @@ void eval_graph(
         const QueryNode* sample = static_cast<const QueryNode*>(node);
         const Node* in0 = sample->in_node;
         const OperatorNode* dist = static_cast<const OperatorNode*>(in0);
-        std::function<double(uint)> get_parameter = [=](uint i) {
+        std::function<double(unsigned)> get_parameter = [=](unsigned i) {
           return data[dist->in_nodes[i]->sequence].as_double();
         };
         data[i] = sample_distribution(dist->op, get_parameter, gen);
@@ -129,7 +129,7 @@ void eval_graph(
         break;
       default:
         const OperatorNode* opnode = static_cast<const OperatorNode*>(node);
-        std::function<T(uint)> get_parameter = [=](uint i) {
+        std::function<T(unsigned)> get_parameter = [=](unsigned i) {
           return data[opnode->in_nodes[i]->sequence];
         };
         T result = eval_operator<T>(node->op, get_parameter);

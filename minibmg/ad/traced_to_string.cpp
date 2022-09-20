@@ -213,7 +213,7 @@ std::string to_string(const Traced& traced) {
     }
   };
   auto pred_counts = count_predecessors<Traced>({traced}, successors);
-  std::map<Traced, uint> pred_counts_copy = pred_counts;
+  std::map<Traced, unsigned> pred_counts_copy = pred_counts;
   std::vector<Traced> topologically_sorted;
   bool sorted = topological_sort<Traced>(
       pred_counts_copy, successors, topologically_sorted);
