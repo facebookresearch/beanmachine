@@ -35,12 +35,11 @@ class Graph : public Container {
     return nodes.size();
   }
 
-  inline const Node* operator[](NodeId node_id) const {
-    return nodes[node_id];
-  }
+  const Node* operator[](const NodeId& node_id) const;
 
  private:
   const std::vector<const Node*> nodes;
+  const std::unordered_map<NodeId, const Node*> nodes_by_id;
 
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
@@ -48,7 +47,10 @@ class Graph : public Container {
   static void validate(std::vector<const Node*> nodes);
 
  public:
+  // A factory for making graphs, like the bmg API
   class Factory;
+
+  // A fluent factory for making graphs, using operator overloading.
   class FluentFactory;
 };
 

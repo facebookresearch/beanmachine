@@ -10,6 +10,7 @@
 #include <cmath>
 #include <functional>
 #include <random>
+#include <unordered_map>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/minibmg.h"
 
@@ -21,6 +22,30 @@ class EvalError : public std::exception {
   explicit EvalError(const std::string& message) : message{message} {}
   const std::string message;
 };
+
+} // namespace beanmachine::minibmg
+
+namespace {
+
+using namespace beanmachine::minibmg;
+
+template <class T>
+T get(const std::unordered_map<NodeId, T>& map, const NodeId& id) {
+  auto t = map.find(id);
+  if (t == map.end()) {
+    throw EvalError(fmt::format("Missing data for node {}", id));
+  }
+  return t->second;
+}
+
+template <class T>
+void put(std::unordered_map<NodeId, T>& map, const NodeId& id, const T& value) {
+  map[id] = value;
+}
+
+} // namespace
+
+namespace beanmachine::minibmg {
 
 template <class N>
 requires Number<N> N
@@ -73,33 +98,31 @@ void eval_graph(
     std::mt19937& gen,
     std::function<T(const std::string& name, const unsigned sequence)>
         read_variable,
-    std::vector<T>& data) {
+    std::unordered_map<NodeId, T>& data) {
   int n = graph.size();
   for (int i = 0; i < n; i++) {
     const Node* node = graph[i];
-    if (node->sequence != i) {
-      throw EvalError(
-          fmt::format("node at index {0} is numbered {1}", i, node->sequence));
-    }
     switch (node->op) {
       case Operator::VARIABLE: {
         const VariableNode* v = static_cast<const VariableNode*>(node);
-        data[i] = read_variable(v->name, v->sequence);
+        put(data, node->sequence, read_variable(v->name, v->variable_index));
         break;
       }
       case Operator::CONSTANT: {
         const ConstantNode* c = static_cast<const ConstantNode*>(node);
-        data[i] = c->value;
+        put(data, node->sequence, T{c->value});
         break;
       }
       case Operator::SAMPLE: {
         const OperatorNode* sample = static_cast<const OperatorNode*>(node);
         const Node* in0 = sample->in_nodes[0];
         const OperatorNode* dist = static_cast<const OperatorNode*>(in0);
-        std::function<double(unsigned)> get_parameter = [=](unsigned i) {
+        std::function<double(unsigned)> get_parameter = [&](unsigned i) {
           return data[dist->in_nodes[i]->sequence].as_double();
         };
-        data[i] = sample_distribution(dist->op, get_parameter, gen);
+        put(data,
+            node->sequence,
+            T{sample_distribution(dist->op, get_parameter, gen)});
         break;
       }
       case Operator::QUERY: {
@@ -107,10 +130,12 @@ void eval_graph(
         const QueryNode* sample = static_cast<const QueryNode*>(node);
         const Node* in0 = sample->in_node;
         const OperatorNode* dist = static_cast<const OperatorNode*>(in0);
-        std::function<double(unsigned)> get_parameter = [=](unsigned i) {
+        std::function<double(unsigned)> get_parameter = [&](unsigned i) {
           return data[dist->in_nodes[i]->sequence].as_double();
         };
-        data[i] = sample_distribution(dist->op, get_parameter, gen);
+        put(data,
+            node->sequence,
+            T{sample_distribution(dist->op, get_parameter, gen)});
         break;
       }
       case Operator::OBSERVE:
@@ -129,11 +154,11 @@ void eval_graph(
         break;
       default:
         const OperatorNode* opnode = static_cast<const OperatorNode*>(node);
-        std::function<T(unsigned)> get_parameter = [=](unsigned i) {
+        std::function<T(unsigned)> get_parameter = [&](unsigned i) {
           return data[opnode->in_nodes[i]->sequence];
         };
         T result = eval_operator<T>(node->op, get_parameter);
-        data[i] = result;
+        put(data, node->sequence, result);
     }
   }
 }

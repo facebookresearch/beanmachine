@@ -6,14 +6,32 @@
  */
 
 #include "beanmachine/minibmg/graph.h"
+#include <fmt/core.h>
 #include <folly/json.h>
 #include "beanmachine/minibmg/factory.h"
+
+namespace {
+
+using namespace beanmachine::minibmg;
+
+const std::vector<const Node*> nodes;
+std::unordered_map<NodeId, const Node*> make_nodes_by_id(
+    const std::vector<const Node*> nodes) {
+  std::unordered_map<NodeId, const Node*> result;
+  for (auto node : nodes) {
+    result[node->sequence] = node;
+  }
+  return result;
+}
+
+} // namespace
 
 namespace beanmachine::minibmg {
 
 using dynamic = folly::dynamic;
 
-Graph::Graph(std::vector<const Node*> nodes) : nodes{nodes} {}
+Graph::Graph(std::vector<const Node*> nodes)
+    : nodes{nodes}, nodes_by_id{make_nodes_by_id(nodes)} {}
 
 Graph::~Graph() {
   for (auto node : nodes) {
@@ -26,6 +44,14 @@ Graph Graph::create(std::vector<const Node*> nodes) {
   return Graph{nodes};
 }
 
+const Node* Graph::operator[](const NodeId& node_id) const {
+  auto t = nodes_by_id.find(node_id);
+  if (t == nodes_by_id.end()) {
+    return nullptr;
+  }
+  return t->second;
+}
+
 void Graph::validate(std::vector<const Node*> nodes) {
   std::unordered_set<const Node*> seen;
   unsigned next_query = 0;
@@ -33,13 +59,7 @@ void Graph::validate(std::vector<const Node*> nodes) {
   for (int i = 0, n = nodes.size(); i < n; i++) {
     auto node = nodes[i];
 
-    // Check that the nodes are in sequence.
-    if (node->sequence != i) {
-      throw std::invalid_argument(fmt::format(
-          "Node {0} has sequence number {1} but should be {0}",
-          i,
-          node->sequence));
-    }
+    // TODO: check that node identifiers are unique
 
     // Check that the operator is in range.
     if (node->op < (Operator)0 || node->op >= Operator::LAST_OPERATOR) {
@@ -110,6 +130,11 @@ void Graph::validate(std::vector<const Node*> nodes) {
   }
 }
 
+// For now we format sequences as numbers.
+dynamic format_sequence(NodeId id) {
+  return id._value();
+}
+
 folly::dynamic graph_to_json(const Graph& g) {
   dynamic result = dynamic::object;
   result["comment"] = "created by graph_to_json";
@@ -117,14 +142,14 @@ folly::dynamic graph_to_json(const Graph& g) {
 
   for (auto node : g) {
     dynamic dyn_node = dynamic::object;
-    dyn_node["sequence"] = node->sequence;
+    dyn_node["sequence"] = format_sequence(node->sequence);
     dyn_node["operator"] = to_string(node->op);
     dyn_node["type"] = to_string(node->type);
     switch (node->op) {
       case Operator::QUERY: {
         auto n = (const QueryNode*)node;
         dyn_node["query_index"] = n->query_index;
-        dyn_node["in_node"] = n->in_node->sequence;
+        dyn_node["in_node"] = format_sequence(n->in_node->sequence);
         break;
       }
       case Operator::CONSTANT: {
@@ -136,7 +161,7 @@ folly::dynamic graph_to_json(const Graph& g) {
         auto n = (const OperatorNode*)node;
         dynamic in_nodes = dynamic::array;
         for (auto pred : n->in_nodes) {
-          in_nodes.push_back(pred->sequence);
+          in_nodes.push_back(format_sequence(pred->sequence));
         }
         dyn_node["in_nodes"] = in_nodes;
         break;
@@ -165,7 +190,7 @@ Graph json_to_graph(folly::dynamic d) {
     if (!sequencev.isInt()) {
       throw JsonError("missing sequence number.");
     }
-    auto sequence = (NodeId)sequencev.asInt();
+    auto sequence = NodeId(sequencev.asInt());
 
     auto opv = json_node["operator"];
     if (!opv.isString()) {
@@ -184,7 +209,7 @@ Graph json_to_graph(folly::dynamic d) {
       type = type_from_name(typev.asString());
     }
 
-    const Node* node;
+    Node* node;
     switch (op) {
       case Operator::QUERY: {
         auto query_indexv = json_node["query_index"];
@@ -197,7 +222,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (!in_nodev.isInt()) {
           throw JsonError("missing in_node for query.");
         }
-        auto in_node_i = in_nodev.asInt();
+        auto in_node_i = NodeId{in_nodev.asInt()};
         if (sequence_to_node.find(in_node_i) == sequence_to_node.end()) {
           throw JsonError("bad in_node for query.");
         }
@@ -205,7 +230,8 @@ Graph json_to_graph(folly::dynamic d) {
         if (type != Type::NONE) {
           throw JsonError("bad type for query.");
         }
-        node = new QueryNode{query_index, in_node, sequence};
+        node = new QueryNode{query_index, in_node};
+        node->sequence = sequence;
         break;
       }
       case Operator::CONSTANT: {
@@ -221,7 +247,8 @@ Graph json_to_graph(folly::dynamic d) {
         if (type != Type::REAL) {
           throw JsonError("bad type for query.");
         }
-        node = new ConstantNode{value, sequence};
+        node = new ConstantNode{value};
+        node->sequence = sequence;
         break;
       }
       case Operator::VARIABLE: {
@@ -240,7 +267,8 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("bad variable_index for variable.");
         }
         auto variable_index = (unsigned)variable_indexv.asInt();
-        node = new VariableNode{name, variable_index, sequence};
+        node = new VariableNode{name, variable_index};
+        node->sequence = sequence;
         break;
       }
       default: {
@@ -253,20 +281,24 @@ Graph json_to_graph(folly::dynamic d) {
           if (!in_nodev.isInt()) {
             throw JsonError("missing in_node for query.");
           }
-          auto in_node_i = in_nodev.asInt();
+          auto in_node_i = NodeId{in_nodev.asInt()};
           if (sequence_to_node.find(in_node_i) == sequence_to_node.end()) {
             throw JsonError("bad in_node for query.");
           }
           auto in_node = sequence_to_node.find(in_node_i)->second;
           in_nodes.push_back(in_node);
         }
-        node = new OperatorNode{in_nodes, sequence, op, type};
+        node = new OperatorNode{in_nodes, op, type};
+        node->sequence = sequence;
         break;
       }
     }
 
+    if (sequence_to_node.find(sequence) != sequence_to_node.end()) {
+      throw JsonError(fmt::format("duplicate node ID {}.", sequence));
+    }
+    sequence_to_node[sequence] = node;
     all_nodes.push_back(node);
-    sequence_to_node[node->sequence] = node;
   }
 
   return Graph::create(all_nodes);

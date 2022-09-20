@@ -9,11 +9,16 @@
 
 namespace beanmachine::minibmg {
 
-NodeId Graph::Factory::add_constant(double value) {
-  auto sequence = (unsigned)nodes.size();
-  const auto new_node = new ConstantNode{value, sequence};
-  nodes.push_back(new_node);
+NodeId Graph::Factory::add_node(const Node* node) {
+  all_nodes.push_back(node);
+  const NodeId& sequence = node->sequence;
+  nodes.insert({sequence, node});
   return sequence;
+}
+
+NodeId Graph::Factory::add_constant(double value) {
+  const auto new_node = new ConstantNode{value};
+  return add_node(new_node);
 }
 
 enum Type op_type(enum Operator op) {
@@ -124,7 +129,6 @@ unsigned arity(Operator op) {
 NodeId Graph::Factory::add_operator(
     enum Operator op,
     std::vector<NodeId> parents) {
-  auto sequence = (unsigned)nodes.size();
   auto expected = expected_parents[(unsigned)op];
   std::vector<const Node*> in_nodes;
   if (parents.size() != expected.size()) {
@@ -132,58 +136,63 @@ NodeId Graph::Factory::add_operator(
   }
   for (int i = 0, n = expected.size(); i < n; i++) {
     NodeId p = parents[i];
-    if (p >= sequence) {
+    auto parent_node = nodes[p];
+    if (parent_node == nullptr) {
       throw std::invalid_argument("Reference to nonexistent node.");
     }
-    auto parent_node = nodes[p];
     if (parent_node->type != expected[i]) {
       throw std::invalid_argument("Incorrect type for parent node.");
     }
     in_nodes.push_back(parent_node);
   }
 
-  auto new_node =
-      new OperatorNode{in_nodes, sequence, op, expected_result_type(op)};
-  nodes.push_back(new_node);
-  return sequence;
+  auto new_node = new OperatorNode{in_nodes, op, expected_result_type(op)};
+  return add_node(new_node);
 }
 
-NodeId Graph::Factory::add_query(NodeId parent) {
+unsigned Graph::Factory::add_query(NodeId parent, NodeId& new_node_id) {
   auto sequence = (unsigned)nodes.size();
-  if (parent >= sequence) {
-    throw std::invalid_argument("Reference to nonexistent node.");
-  }
   auto parent_node = nodes[parent];
   if (parent_node->type != Type::DISTRIBUTION) {
     throw std::invalid_argument("Incorrect parent for QUERY node.");
   }
+  if (parent_node == nullptr) {
+    throw std::invalid_argument("Reference to nonexistent node.");
+  }
   auto query_id = next_query;
   next_query++;
-  auto new_node = new QueryNode{query_id, parent_node, sequence};
-  nodes.push_back(new_node);
+  auto new_node = new QueryNode{query_id, parent_node};
+  new_node_id = add_node(new_node);
   return query_id;
+}
+
+unsigned Graph::Factory::add_query(NodeId parent) {
+  NodeId new_node_id;
+  return add_query(parent, new_node_id); // discard new node id
 }
 
 NodeId Graph::Factory::add_variable(
     const std::string& name,
     const unsigned variable_index) {
   auto sequence = (unsigned)nodes.size();
-  auto new_node = new VariableNode{name, variable_index, sequence};
-  nodes.push_back(new_node);
-  return sequence;
+  auto new_node = new VariableNode{name, variable_index};
+  return add_node(new_node);
 }
 
 Graph Graph::Factory::build() {
-  auto nodes = this->nodes;
+  auto nodes = this->all_nodes;
   this->nodes.clear();
+  this->all_nodes.clear();
   return Graph{nodes};
 }
 
 Graph::Factory::~Factory() {
+  auto nodes = this->all_nodes;
+  this->nodes.clear();
+  this->all_nodes.clear();
   for (auto node : nodes) {
     delete node;
   }
-  nodes.clear();
 }
 
 } // namespace beanmachine::minibmg
