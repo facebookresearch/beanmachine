@@ -27,32 +27,31 @@ TEST(out_nodes_test, simple) {
   NodeId query;
   /* auto query_ = */ gf.add_query(beta, query);
 
-  const Node* k12n = gf[k12];
-  const Node* k34n = gf[k34];
-  const Node* plusn = gf[plus];
-  const Node* k56n = gf[k56];
-  const Node* betan = gf[beta];
-  const Node* samplen = gf[sample];
-  const Node* k78n = gf[k78];
-  const Node* observen = gf[observe];
-  const Node* queryn = gf[query];
+  Nodep k12n = gf[k12];
+  Nodep k34n = gf[k34];
+  Nodep plusn = gf[plus];
+  Nodep k56n = gf[k56];
+  Nodep betan = gf[beta];
+  Nodep samplen = gf[sample];
+  Nodep k78n = gf[k78];
+  Nodep observen = gf[observe];
+  Nodep queryn = gf[query];
   Graph g = gf.build();
 
   ASSERT_EQ(out_nodes(g, k12n), std::list{plusn});
   ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn, betan}));
-  ASSERT_EQ(out_nodes(g, plusn), std::list<const Node*>{});
+  ASSERT_EQ(out_nodes(g, plusn), std::list<Nodep>{});
   ASSERT_EQ(out_nodes(g, k56n), std::list{betan});
   ASSERT_EQ(out_nodes(g, betan), (std::list{samplen, observen, queryn}));
-  ASSERT_EQ(out_nodes(g, samplen), std::list<const Node*>{});
+  ASSERT_EQ(out_nodes(g, samplen), std::list<Nodep>{});
   ASSERT_EQ(out_nodes(g, k78n), std::list{observen});
-  ASSERT_EQ(out_nodes(g, observen), std::list<const Node*>{});
-  ASSERT_EQ(out_nodes(g, queryn), std::list<const Node*>{});
+  ASSERT_EQ(out_nodes(g, observen), std::list<Nodep>{});
+  ASSERT_EQ(out_nodes(g, queryn), std::list<Nodep>{});
 }
 
 TEST(out_nodes_test, not_found2) {
   Graph::Factory gf;
   Graph g = gf.build();
-  Node* n = new ConstantNode(0);
+  Nodep n = std::make_shared<const ConstantNode>(0);
   ASSERT_THROW(out_nodes(g, n), std::invalid_argument);
-  delete n;
 }
