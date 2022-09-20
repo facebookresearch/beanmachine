@@ -10,14 +10,7 @@
 
 namespace beanmachine::minibmg {
 
-std::atomic<unsigned long> NodeId::_next_value{0};
-
-NodeId::NodeId() {
-  this->value = _next_value.fetch_add(1);
-}
-
-Node::Node(const enum Operator op, const Type type)
-    : sequence{}, op{op}, type{type} {}
+Node::Node(const enum Operator op, const Type type) : op{op}, type{type} {}
 
 Node::~Node() {}
 
