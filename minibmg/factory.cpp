@@ -6,6 +6,7 @@
  */
 
 #include "beanmachine/minibmg/factory.h"
+#include <stdexcept>
 
 namespace beanmachine::minibmg {
 
@@ -16,6 +17,9 @@ NodeId::NodeId() {
 }
 
 NodeId Graph::Factory::add_node(Nodep node) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   all_nodes.push_back(node);
   NodeId sequence{};
   nodes.insert({sequence, node});
@@ -158,6 +162,9 @@ NodeId Graph::Factory::add_operator(
 }
 
 unsigned Graph::Factory::add_query(NodeId parent, NodeId& new_node_id) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   auto parent_node = nodes[parent];
   if (parent_node->type != Type::DISTRIBUTION) {
     throw std::invalid_argument("Incorrect parent for QUERY node.");
@@ -185,8 +192,13 @@ NodeId Graph::Factory::add_variable(
 }
 
 Graph Graph::Factory::build() {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   auto nodes = this->all_nodes;
   this->all_nodes.clear();
+  // We preserve this->nodes so it can be used for lookup.
+  built = true;
   return Graph{nodes};
 }
 
