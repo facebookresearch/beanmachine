@@ -35,11 +35,8 @@ class Graph : public Container {
     return nodes.size();
   }
 
-  const Node* operator[](const NodeId& node_id) const;
-
  private:
   const std::vector<const Node*> nodes;
-  const std::unordered_map<NodeId, const Node*> nodes_by_id;
 
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
