@@ -19,7 +19,7 @@ namespace distribution {
 using namespace graph;
 
 Half_Normal::Half_Normal(
-    AtomicType sample_type,
+    ValueType sample_type,
     const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::HALF_NORMAL, sample_type) {
   // a Half_Normal distribution has one parent
@@ -38,6 +38,11 @@ Half_Normal::Half_Normal(
         "Half_Normal distribution produces positive real number samples");
   }
 }
+
+Half_Normal::Half_Normal(
+    AtomicType sample_type,
+    const std::vector<Node*>& in_nodes)
+    : Half_Normal(graph::ValueType(sample_type), in_nodes) {}
 
 double Half_Normal::_double_sampler(std::mt19937& gen) const {
   std::normal_distribution<double> dist(0.0, in_nodes[0]->value._double);

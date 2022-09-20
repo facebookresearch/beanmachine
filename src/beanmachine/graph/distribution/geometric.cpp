@@ -14,7 +14,7 @@ namespace beanmachine {
 namespace distribution {
 
 Geometric::Geometric(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::GEOMETRIC, sample_type) {
   if (sample_type != graph::AtomicType::NATURAL) {
@@ -31,6 +31,11 @@ Geometric::Geometric(
     throw std::invalid_argument("Geometric parent must be a probability");
   }
 }
+
+Geometric::Geometric(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Geometric(graph::ValueType(sample_type), in_nodes) {}
 
 graph::natural_t Geometric::_natural_sampler(std::mt19937& gen) const {
   std::geometric_distribution<graph::natural_t> distrib(

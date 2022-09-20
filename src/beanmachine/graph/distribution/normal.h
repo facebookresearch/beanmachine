@@ -14,6 +14,9 @@ namespace distribution {
 class Normal : public Distribution {
  public:
   Normal(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Normal(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Normal() override {}

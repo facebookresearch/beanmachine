@@ -14,6 +14,9 @@ namespace distribution {
 class Bernoulli : public Distribution {
  public:
   Bernoulli(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Bernoulli(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Bernoulli() override {}

@@ -29,7 +29,7 @@ static inline double log1mexpm(double x) {
 }
 
 BernoulliNoisyOr::BernoulliNoisyOr(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::BERNOULLI_NOISY_OR, sample_type) {
   if (sample_type != graph::AtomicType::BOOLEAN) {
@@ -47,6 +47,11 @@ BernoulliNoisyOr::BernoulliNoisyOr(
         "BernoulliNoisyOr parent probability must be positive real-valued");
   }
 }
+
+BernoulliNoisyOr::BernoulliNoisyOr(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : BernoulliNoisyOr(graph::ValueType(sample_type), in_nodes) {}
 
 bool BernoulliNoisyOr::_bool_sampler(std::mt19937& gen) const {
   double param = in_nodes[0]->value._double;

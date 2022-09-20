@@ -18,6 +18,9 @@ is parameterized by a >= 0, s.t. the probability of success = `1 - exp(-a)`.
 class BernoulliNoisyOr : public Distribution {
  public:
   BernoulliNoisyOr(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  BernoulliNoisyOr(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~BernoulliNoisyOr() override {}

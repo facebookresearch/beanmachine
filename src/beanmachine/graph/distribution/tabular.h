@@ -14,6 +14,9 @@ namespace distribution {
 class Tabular : public Distribution {
  public:
   Tabular(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Tabular(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Tabular() override {}

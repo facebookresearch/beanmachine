@@ -14,6 +14,9 @@ namespace distribution {
 class Gamma : public Distribution {
  public:
   Gamma(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Gamma(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Gamma() override {}

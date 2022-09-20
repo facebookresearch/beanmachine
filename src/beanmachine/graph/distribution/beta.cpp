@@ -15,7 +15,7 @@ namespace beanmachine {
 namespace distribution {
 
 Beta::Beta(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::BETA, sample_type) {
   // a Beta has two parents which are real numbers and it outputs a probability
@@ -31,6 +31,11 @@ Beta::Beta(
     throw std::invalid_argument("Beta parents must be positive real-valued");
   }
 }
+
+Beta::Beta(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Beta(graph::ValueType(sample_type), in_nodes) {}
 
 double Beta::_double_sampler(std::mt19937& gen) const {
   return util::sample_beta(

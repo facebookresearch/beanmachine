@@ -14,7 +14,7 @@ namespace beanmachine {
 namespace distribution {
 
 Categorical::Categorical(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::CATEGORICAL, sample_type) {
   if (sample_type != graph::AtomicType::NATURAL) {
@@ -31,6 +31,11 @@ Categorical::Categorical(
         "Categorical parent must be a one-column simplex");
   }
 }
+
+Categorical::Categorical(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Categorical(graph::ValueType(sample_type), in_nodes) {}
 
 graph::natural_t Categorical::_natural_sampler(std::mt19937& gen) const {
   const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;

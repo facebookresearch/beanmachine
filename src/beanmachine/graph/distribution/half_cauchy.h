@@ -14,6 +14,9 @@ namespace distribution {
 class HalfCauchy : public Distribution {
  public:
   HalfCauchy(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  HalfCauchy(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~HalfCauchy() override {}

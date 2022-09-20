@@ -14,6 +14,9 @@ namespace distribution {
 class Poisson : public Distribution {
  public:
   Poisson(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Poisson(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Poisson() override {}

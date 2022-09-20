@@ -19,7 +19,7 @@ namespace distribution {
 
 using namespace graph;
 
-Normal::Normal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+Normal::Normal(ValueType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::NORMAL, sample_type) {
   // a Normal distribution has two parents
   // mean -> real, sigma -> positive real
@@ -38,6 +38,9 @@ Normal::Normal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
         "Normal distribution produces real number samples");
   }
 }
+
+Normal::Normal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+    : Normal(ValueType(sample_type), in_nodes) {}
 
 double Normal::_double_sampler(std::mt19937& gen) const {
   std::normal_distribution<double> dist(

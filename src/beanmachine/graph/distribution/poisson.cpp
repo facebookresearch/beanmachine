@@ -17,7 +17,7 @@ namespace beanmachine {
 namespace distribution {
 
 Poisson::Poisson(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::POISSON, sample_type) {
   if (sample_type != graph::AtomicType::NATURAL) {
@@ -34,6 +34,11 @@ Poisson::Poisson(
     throw std::invalid_argument("Poisson parent must be a positive real");
   }
 }
+
+Poisson::Poisson(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Poisson(graph::ValueType(sample_type), in_nodes) {}
 
 graph::natural_t Poisson::_natural_sampler(std::mt19937& gen) const {
   std::poisson_distribution<graph::natural_t> distrib(

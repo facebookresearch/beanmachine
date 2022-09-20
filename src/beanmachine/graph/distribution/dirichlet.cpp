@@ -40,6 +40,11 @@ Dirichlet::Dirichlet(
   }
 }
 
+Dirichlet::Dirichlet(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Dirichlet(graph::ValueType(sample_type), in_nodes) {}
+
 Eigen::MatrixXd Dirichlet::_matrix_sampler(std::mt19937& gen) const {
   int n_rows = static_cast<int>(in_nodes[0]->value._matrix.rows());
   Eigen::MatrixXd sample(n_rows, 1);

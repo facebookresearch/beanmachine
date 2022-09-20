@@ -14,6 +14,9 @@ namespace distribution {
 class Binomial : public Distribution {
  public:
   Binomial(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Binomial(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Binomial() override {}
