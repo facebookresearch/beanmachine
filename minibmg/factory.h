@@ -17,16 +17,16 @@ namespace beanmachine::minibmg {
 
 class Graph::Factory {
  public:
-  uint add_constant(double value);
+  NodeId add_constant(double value);
 
-  uint add_operator(enum Operator op, std::vector<uint> parents);
+  NodeId add_operator(enum Operator op, std::vector<NodeId> parents);
 
-  // returns the index of the query in the samples
-  uint add_query(uint parent);
+  // returns the index of the query in the samples, not a NodeId
+  unsigned add_query(NodeId parent);
 
-  uint add_variable(const std::string& name, const uint variable_index);
+  NodeId add_variable(const std::string& name, const unsigned variable_index);
 
-  inline const Node* operator[](uint node_id) const {
+  inline const Node* operator[](NodeId node_id) const {
     return nodes[node_id];
   }
   Graph build();
@@ -34,12 +34,12 @@ class Graph::Factory {
 
  private:
   std::vector<const Node*> nodes;
-  uint next_query = 0;
+  unsigned next_query = 0;
 };
 
 enum Type expected_result_type(enum Operator op);
 extern const std::vector<std::vector<enum Type>> expected_parents;
-uint arity(Operator op);
+unsigned arity(Operator op);
 enum Type op_type(enum Operator op);
 
 } // namespace beanmachine::minibmg
