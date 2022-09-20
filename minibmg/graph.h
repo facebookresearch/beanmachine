@@ -18,7 +18,7 @@ class Graph : public Container {
   // valudates that the list of nodes forms a valid graph,
   // and returns that graph.  Throws an exception if the
   // nodes do not form a valid graph.
-  static Graph create(std::vector<const Node*> nodes);
+  static Graph create(std::vector<Nodep> nodes);
   ~Graph();
 
   // Implement the iterator pattern so clients can iterate over the nodes.
@@ -28,7 +28,7 @@ class Graph : public Container {
   inline auto end() const {
     return nodes.end();
   }
-  inline const Node* operator[](int index) const {
+  inline Nodep operator[](int index) const {
     return nodes[index];
   }
   inline int size() const {
@@ -36,12 +36,12 @@ class Graph : public Container {
   }
 
  private:
-  const std::vector<const Node*> nodes;
+  const std::vector<Nodep> nodes;
 
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
-  explicit Graph(std::vector<const Node*> nodes);
-  static void validate(std::vector<const Node*> nodes);
+  explicit Graph(std::vector<Nodep> nodes);
+  static void validate(std::vector<Nodep> nodes);
 
  public:
   // A factory for making graphs, like the bmg API
