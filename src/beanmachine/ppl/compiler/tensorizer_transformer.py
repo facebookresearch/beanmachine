@@ -41,6 +41,7 @@ class Tensorizer(NodeTransformer):
             bn.AdditionNode: _always,
             bn.MultiplicationNode: self.mult_can_be_tensorized,
             bn.DivisionNode: self.div_can_be_tensorized,
+            bn.ComplementNode: _always,
             bn.ExpNode: _always,
             bn.LogNode: _always,
             bn.SumNode: _always,
@@ -51,6 +52,9 @@ class Tensorizer(NodeTransformer):
             ),
             bn.MultiplicationNode: self._tensorize_multiply,
             bn.DivisionNode: self._tensorize_div,
+            bn.ComplementNode: lambda node, inputs: self._tensorize_unary_elementwise(
+                node, inputs, self.cloner.bmg.add_matrix_complement
+            ),
             bn.ExpNode: lambda node, inputs: self._tensorize_unary_elementwise(
                 node, inputs, self.cloner.bmg.add_matrix_exp
             ),

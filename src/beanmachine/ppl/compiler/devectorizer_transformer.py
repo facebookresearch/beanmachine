@@ -28,6 +28,7 @@ from beanmachine.ppl.compiler.tensorizer_transformer import Tensorizer
 # elements in this list operate over tensors (all parameters are tensors) but do not necessarily produce tensors
 _unary_tensor_ops = [
     bn.LogSumExpVectorNode,
+    bn.MatrixComplementNode,
     bn.MatrixExpNode,
     bn.MatrixLogNode,
     bn.MatrixSumNode,
@@ -40,8 +41,11 @@ _unary_tensor_ops = [
 _binary_tensor_ops = [bn.ElementwiseMultiplyNode, bn.MatrixAddNode]
 
 _tensor_constants = [
+    bn.ConstantProbabilityMatrixNode,
+    bn.ConstantBooleanMatrixNode,
     bn.ConstantPositiveRealMatrixNode,
     bn.ConstantRealMatrixNode,
+    bn.ConstantSimplexMatrixNode,
     bn.ConstantTensorNode,
     bn.UntypedConstantNode,
 ]
@@ -54,6 +58,7 @@ _indexable_node_types = [
     bn.ElementwiseMultiplyNode,
     bn.IndexNode,
     bn.MatrixAddNode,
+    bn.MatrixComplementNode,
     bn.MatrixLogNode,
     bn.MatrixExpNode,
     bn.MatrixScaleNode,

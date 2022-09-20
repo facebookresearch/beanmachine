@@ -102,6 +102,7 @@ class EdgeRequirements:
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
             # TODO: bn.MatrixMultiplyNode: self._requirements_matrix_multiply,
             # see comment above
+            bn.MatrixComplementNode: self._requrirements_matrix_complement,
             bn.MatrixScaleNode: self._requirements_matrix_scale,
             bn.MultiplicationNode: self._requirements_multiplication,
             bn.NegateNode: self._requirements_exp_neg,
@@ -403,6 +404,24 @@ class EdgeRequirements:
         it = self.typer[node]
         assert it in {bt.Probability, bt.PositiveReal, bt.Real}
         return [it] * len(node.inputs)  # pyre-ignore
+
+    def _requrirements_matrix_complement(
+        self, node: bn.MatrixComplementNode
+    ) -> List[bt.Requirement]:
+        it = self.typer[node]
+        assert (
+            isinstance(it, bt.BooleanMatrix)
+            or isinstance(it, bt.ProbabilityMatrix)
+            or isinstance(it, bt.SimplexMatrix)
+        )
+        req = []
+        if isinstance(it, bt.ProbabilityMatrix):
+            req = [bt.ProbabilityMatrix]
+        if isinstance(it, bt.BooleanMatrix):
+            req = [bt.BooleanMatrix]
+        if isinstance(it, bt.SimplexMatrix):
+            req = [bt.SimplexMatrix]
+        return req
 
     def _requirements_matrix_scale(
         self, node: bn.MatrixScaleNode
