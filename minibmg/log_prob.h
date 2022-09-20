@@ -23,7 +23,7 @@ using namespace beanmachine::minibmg::distribution;
 // by the given distribution with the given parameters.
 template <class N>
 requires Number<N> N
-log_prob(Operator distribution, N v, std::function<N(uint)> get_parameter) {
+log_prob(Operator distribution, N v, std::function<N(unsigned)> get_parameter) {
   switch (distribution) {
     case Operator::DISTRIBUTION_NORMAL: {
       N mean = get_parameter(0);
