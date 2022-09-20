@@ -148,6 +148,7 @@ _broadcast_the_inputs: Set[type] = {
     bn.Log1mexpNode,
     bn.LShiftNode,
     bn.MatrixAddNode,
+    bn.MatrixComplementNode,
     bn.MatrixExpNode,
     bn.MatrixLogNode,
     bn.MatrixScaleNode,

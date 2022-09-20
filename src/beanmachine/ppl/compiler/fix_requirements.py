@@ -82,6 +82,12 @@ class RequirementsFixer:
             return bt.supremum(t, r.bound) == r.bound
         if isinstance(r, bt.AlwaysMatrix):
             return t == r.bound
+        if r == bt.BooleanMatrix:
+            return isinstance(t, bt.BooleanMatrix)
+        if r == bt.ProbabilityMatrix:
+            return isinstance(t, bt.ProbabilityMatrix)
+        if r == bt.SimplexMatrix:
+            return isinstance(t, bt.SimplexMatrix)
         return t == r
 
     def _node_meets_requirement(self, node: bn.BMGNode, r: bt.Requirement) -> bool:

@@ -147,6 +147,7 @@ _always_matrix_types: Set[type] = {
     bn.MatrixAddNode,
     bn.MatrixExpNode,
     bn.MatrixLogNode,
+    bn.MatrixComplementNode,
     bn.MatrixScaleNode,
     bn.TransposeNode,
 }
@@ -178,6 +179,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.MatrixScaleNode: self._type_matrix_scale,
             bn.MatrixExpNode: self._type_matrix_exp,
             bn.MatrixLogNode: self._type_matrix_log,
+            bn.MatrixComplementNode: self._type_matrix_complement,
             bn.MatrixSumNode: self._type_matrix_sum,
             bn.MultiplicationNode: self._type_multiplication,
             bn.NegateNode: self._type_negate,
@@ -285,6 +287,24 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         if isinstance(op, bt.ProbabilityMatrix):
             return bt.NegativeRealMatrix(op.rows, op.columns)
         return bt.RealMatrix(op.rows, op.columns)
+
+    def _type_matrix_complement(
+        self, node: bn.MatrixComplementNode
+    ) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 1
+        op = self[node.operand]
+        assert op is not bt.Untypable
+        assert isinstance(op, bt.BroadcastMatrixType) or isinstance(
+            op, bt.SimplexMatrix
+        )
+        if isinstance(op, bt.SimplexMatrix):
+            return bt.SimplexMatrix(op.rows, op.columns)
+        op_element_type = self._lattice_type_for_element_type(op.element_type)
+        if bt.supremum(bt.Boolean, op_element_type) == bt.Boolean:
+            return bt.BooleanMatrix(op.rows, op.columns)
+        if bt.supremum(bt.Probability, op_element_type) == bt.Probability:
+            return bt.ProbabilityMatrix(op.rows, op.columns)
+        return bt.Untypable
 
     def _type_matrix_sum(self, node: bn.MatrixSumNode) -> bt.BMGLatticeType:
         operand_type = self[node.operand]

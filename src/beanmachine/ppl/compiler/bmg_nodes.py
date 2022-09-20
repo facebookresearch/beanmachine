@@ -1167,6 +1167,18 @@ class MatrixLogNode(UnaryOperatorNode):
         return "MatrixLog(" + str(self.operand) + ")"
 
 
+class MatrixComplementNode(UnaryOperatorNode):
+    """This represents a complement operation; it is generated when
+    a model contains calls like (1-p) or ~b where p is a probability
+    and b is a boolean"""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixComplement(" + str(self.operand) + ")"
+
+
 class Log10Node(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
