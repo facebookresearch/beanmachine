@@ -33,8 +33,7 @@ TEST(eval_test, simple1) {
   std::mt19937 gen;
   auto read_variable = [](const std::string&, const unsigned) { return 1.15; };
   int graph_size = graph.size();
-  vector<Real> data;
-  data.assign(graph_size, 0);
+  unordered_map<NodeId, Real> data;
   eval_graph<Real>(graph, gen, read_variable, data);
   EXPECT_CLOSE(1.995, data[sub1].as_double());
 }
@@ -42,6 +41,7 @@ TEST(eval_test, simple1) {
 TEST(eval_test, sample1) {
   // a graph that produces normal samples is evaluated many times
   // and the statistics of the samples are compared to their expected values.
+  std::exception x1;
   Graph::Factory fac;
   double expected_mean = 12.34;
   double expected_stdev = 41.78;
@@ -58,8 +58,7 @@ TEST(eval_test, sample1) {
   double sum = 0;
   double sum_squared = 0;
   int graph_size = graph.size();
-  vector<Real> data;
-  data.assign(graph_size, 0);
+  std::unordered_map<NodeId, Real> data;
   for (int i = 0; i < n; i++) {
     eval_graph<Real>(graph, gen, nullptr, data);
     auto sample = data[sample0].as_double();
@@ -110,14 +109,13 @@ TEST(eval_test, derivative_dual) {
   // We generate several doubles between -2.0 and 2.0 to test with.
   std::uniform_real_distribution<double> unif(-2.0, 2.0);
 
-  vector<Dual> data;
+  std::unordered_map<NodeId, Dual> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
     auto read_variable = [=](const std::string&, const unsigned) {
       return Dual{input, 1};
     };
     data.clear();
-    data.assign(graph_size, 0);
     eval_graph<Dual>(graph, gen, read_variable, data);
     EXPECT_CLOSE(f<Real>(input).as_double(), data[s].primal.as_double());
     EXPECT_CLOSE(fp<Real>(input).as_double(), data[s].derivative1.as_double());
@@ -142,14 +140,13 @@ TEST(eval_test, derivatives_triune) {
   // We generate several doubles between -2.0 and 2.0 to test with.
   std::uniform_real_distribution<double> unif(-2.0, 2.0);
 
-  vector<Triune> data;
+  std::unordered_map<NodeId, Triune> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
     auto read_variable = [=](const std::string&, const unsigned) {
       return Triune{input, 1, 0};
     };
     data.clear();
-    data.assign(graph_size, 0);
     eval_graph<Triune>(graph, gen, read_variable, data);
     EXPECT_CLOSE(f<Real>(input).as_double(), data[s].primal.as_double());
     EXPECT_CLOSE(fp<Real>(input).as_double(), data[s].derivative1.as_double());

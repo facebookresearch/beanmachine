@@ -10,17 +10,22 @@
 
 namespace beanmachine::minibmg {
 
-Node::Node(const NodeId sequence, const enum Operator op, const Type type)
-    : sequence{sequence}, op{op}, type{type} {}
+std::atomic<unsigned long> NodeId::_next_value{0};
+
+NodeId::NodeId() {
+  this->value = _next_value.fetch_add(1);
+}
+
+Node::Node(const enum Operator op, const Type type)
+    : sequence{}, op{op}, type{type} {}
 
 Node::~Node() {}
 
 OperatorNode::OperatorNode(
     const std::vector<const Node*>& in_nodes,
-    const NodeId sequence,
     const enum Operator op,
     const Type type)
-    : Node{sequence, op, type}, in_nodes{in_nodes} {
+    : Node{op, type}, in_nodes{in_nodes} {
   switch (op) {
     case Operator::CONSTANT:
     case Operator::QUERY:
@@ -31,22 +36,18 @@ OperatorNode::OperatorNode(
   }
 }
 
-QueryNode::QueryNode(
-    const unsigned query_index,
-    const Node* in_node,
-    const NodeId sequence)
-    : Node{sequence, Operator::QUERY, Type::NONE},
+QueryNode::QueryNode(const unsigned query_index, const Node* in_node)
+    : Node{Operator::QUERY, Type::NONE},
       query_index{query_index},
       in_node{in_node} {}
 
-ConstantNode::ConstantNode(const double value, const NodeId sequence)
-    : Node{sequence, Operator::CONSTANT, Type::REAL}, value{value} {}
+ConstantNode::ConstantNode(const double value)
+    : Node{Operator::CONSTANT, Type::REAL}, value{value} {}
 
 VariableNode::VariableNode(
     const std::string& name,
-    const unsigned variable_index,
-    const NodeId sequence)
-    : Node{sequence, Operator::VARIABLE, Type::REAL},
+    const unsigned variable_index)
+    : Node{Operator::VARIABLE, Type::REAL},
       name{name},
       variable_index{variable_index} {}
 

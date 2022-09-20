@@ -9,7 +9,7 @@
 #include <exception>
 #include <list>
 #include <map>
-#include <set>
+#include <unordered_set>
 #include "beanmachine/minibmg/minibmg.h"
 
 namespace {
@@ -18,7 +18,7 @@ using namespace beanmachine::minibmg;
 
 class Out_Nodes_Data {
  public:
-  std::map<const Node*, std::set<NodeId>*> id_map{};
+  std::map<const Node*, std::unordered_set<NodeId>*> id_map{};
   std::map<const Node*, std::list<const Node*>*> node_map{};
   ~Out_Nodes_Data() {
     for (auto e : id_map) {
@@ -28,7 +28,7 @@ class Out_Nodes_Data {
       delete e.second;
     }
   }
-  std::set<NodeId>& for_ids(const Node* node) {
+  std::unordered_set<NodeId>& for_ids(const Node* node) {
     auto found = id_map.find(node);
     if (found == id_map.end()) {
       throw std::invalid_argument("node not in graph");
@@ -51,7 +51,7 @@ class Out_Nodes_Property
     Out_Nodes_Data* data = new Out_Nodes_Data{};
     // create the version using NodeId values
     for (auto node : g) {
-      data->id_map[node] = new std::set<NodeId>{};
+      data->id_map[node] = new std::unordered_set<NodeId>{};
       switch (node->op) {
         case Operator::CONSTANT:
         case Operator::VARIABLE:
@@ -94,12 +94,13 @@ class Out_Nodes_Property
 
 namespace beanmachine::minibmg {
 
-const std::set<NodeId>& out_nodes(const Graph& graph, NodeId node) {
-  if (node < 0 || node >= graph.size()) {
+const std::unordered_set<NodeId>& out_nodes(const Graph& graph, NodeId node) {
+  const Node* n = graph[node];
+  if (n == nullptr) {
     throw std::invalid_argument("node not in graph");
   }
   Out_Nodes_Data* data = Out_Nodes_Property::get(graph);
-  std::set<NodeId>& result = data->for_ids(graph[node]);
+  std::unordered_set<NodeId>& result = data->for_ids(graph[node]);
   return result;
 }
 

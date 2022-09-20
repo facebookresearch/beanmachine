@@ -8,7 +8,7 @@
 #pragma once
 
 #include <list>
-#include <set>
+#include <unordered_set>
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/node.h"
 
@@ -17,6 +17,6 @@ namespace beanmachine::minibmg {
 // return the set of nodes that have the given node as an input in the given
 // graph.
 const std::list<const Node*>& out_nodes(const Graph& graph, const Node* node);
-const std::set<NodeId>& out_nodes(const Graph& graph, NodeId node);
+const std::unordered_set<NodeId>& out_nodes(const Graph& graph, NodeId node);
 
 } // namespace beanmachine::minibmg
