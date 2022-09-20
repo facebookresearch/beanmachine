@@ -15,7 +15,7 @@ Node::Node(const enum Operator op, const Type type) : op{op}, type{type} {}
 Node::~Node() {}
 
 OperatorNode::OperatorNode(
-    const std::vector<const Node*>& in_nodes,
+    const std::vector<Nodep>& in_nodes,
     const enum Operator op,
     const Type type)
     : Node{op, type}, in_nodes{in_nodes} {
@@ -29,7 +29,7 @@ OperatorNode::OperatorNode(
   }
 }
 
-QueryNode::QueryNode(const unsigned query_index, const Node* in_node)
+QueryNode::QueryNode(const unsigned query_index, Nodep in_node)
     : Node{Operator::QUERY, Type::NONE},
       query_index{query_index},
       in_node{in_node} {}

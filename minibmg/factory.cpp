@@ -15,7 +15,7 @@ NodeId::NodeId() {
   this->value = _next_value.fetch_add(1);
 }
 
-NodeId Graph::Factory::add_node(const Node* node) {
+NodeId Graph::Factory::add_node(Nodep node) {
   all_nodes.push_back(node);
   NodeId sequence{};
   nodes.insert({sequence, node});
@@ -23,7 +23,7 @@ NodeId Graph::Factory::add_node(const Node* node) {
 }
 
 NodeId Graph::Factory::add_constant(double value) {
-  const auto new_node = new ConstantNode{value};
+  const auto new_node = std::make_shared<ConstantNode>(value);
   return add_node(new_node);
 }
 
@@ -136,7 +136,7 @@ NodeId Graph::Factory::add_operator(
     enum Operator op,
     std::vector<NodeId> parents) {
   auto expected = expected_parents[(unsigned)op];
-  std::vector<const Node*> in_nodes;
+  std::vector<Nodep> in_nodes;
   if (parents.size() != expected.size()) {
     throw std::invalid_argument("Incorrect number of parent nodes.");
   }
@@ -152,7 +152,8 @@ NodeId Graph::Factory::add_operator(
     in_nodes.push_back(parent_node);
   }
 
-  auto new_node = new OperatorNode{in_nodes, op, expected_result_type(op)};
+  auto new_node =
+      std::make_shared<OperatorNode>(in_nodes, op, expected_result_type(op));
   return add_node(new_node);
 }
 
@@ -166,7 +167,7 @@ unsigned Graph::Factory::add_query(NodeId parent, NodeId& new_node_id) {
   }
   auto query_id = next_query;
   next_query++;
-  auto new_node = new QueryNode{query_id, parent_node};
+  auto new_node = std::make_shared<QueryNode>(query_id, parent_node);
   new_node_id = add_node(new_node);
   return query_id;
 }
@@ -179,7 +180,7 @@ unsigned Graph::Factory::add_query(NodeId parent) {
 NodeId Graph::Factory::add_variable(
     const std::string& name,
     const unsigned variable_index) {
-  auto new_node = new VariableNode{name, variable_index};
+  auto new_node = std::make_shared<VariableNode>(name, variable_index);
   return add_node(new_node);
 }
 
@@ -190,12 +191,8 @@ Graph Graph::Factory::build() {
 }
 
 Graph::Factory::~Factory() {
-  auto nodes = this->all_nodes;
   this->nodes.clear();
   this->all_nodes.clear();
-  for (auto node : nodes) {
-    delete node;
-  }
 }
 
 } // namespace beanmachine::minibmg
