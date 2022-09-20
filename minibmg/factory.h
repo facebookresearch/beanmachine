@@ -8,6 +8,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <list>
 #include <vector>
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/node.h"
@@ -72,12 +73,13 @@ namespace beanmachine::minibmg {
 class Graph::Factory {
  public:
   NodeId add_constant(double value);
-
   NodeId add_operator(enum Operator op, std::vector<NodeId> parents);
+
+  // Add an observation to the graph.  The sample must identify a SAMPLE node.
+  void add_observation(NodeId sample, double value);
 
   // returns the index of the query in the samples, not a NodeId
   unsigned add_query(NodeId parent);
-  unsigned add_query(NodeId parent, NodeId& new_node_id);
 
   NodeId add_variable(const std::string& name, const unsigned variable_index);
 
@@ -93,8 +95,8 @@ class Graph::Factory {
  private:
   bool built = false;
   std::unordered_map<NodeId, Nodep> nodes;
-  std::vector<Nodep> all_nodes;
-  unsigned next_query = 0;
+  std::vector<Nodep> queries;
+  std::unordered_map<Nodep, double> observations;
 
   NodeId add_node(Nodep node);
 };

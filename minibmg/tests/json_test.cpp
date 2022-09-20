@@ -14,6 +14,13 @@ using namespace ::beanmachine::minibmg;
 
 std::string raw_json = R"({
   "comment": "created by graph_to_json",
+  "queries": [ 2 ],
+  "observations": [
+    { "node": 4, "value": 1.0 },
+    { "node": 5, "value": 1.0 },
+    { "node": 6, "value": 1.0 },
+    { "node": 7, "value": 0.0 }
+  ],
   "nodes": [
     {
       "operator": "CONSTANT",
@@ -47,59 +54,36 @@ std::string raw_json = R"({
       "type": "DISTRIBUTION"
     },
     {
-      "operator": "CONSTANT",
+      "in_nodes": [
+        3
+      ],
+      "operator": "SAMPLE",
       "sequence": 4,
-      "type": "REAL",
-      "value": 0
+      "type": "REAL"
     },
     {
-      "operator": "CONSTANT",
+      "in_nodes": [
+        3
+      ],
+      "operator": "SAMPLE",
       "sequence": 5,
-      "type": "REAL",
-      "value": 1
+      "type": "REAL"
     },
     {
       "in_nodes": [
-        3,
-        5
+        3
       ],
-      "operator": "OBSERVE",
+      "operator": "SAMPLE",
       "sequence": 6,
-      "type": "NONE"
+      "type": "REAL"
     },
     {
       "in_nodes": [
-        3,
-        5
+        3
       ],
-      "operator": "OBSERVE",
+      "operator": "SAMPLE",
       "sequence": 7,
-      "type": "NONE"
-    },
-    {
-      "in_nodes": [
-        3,
-        5
-      ],
-      "operator": "OBSERVE",
-      "sequence": 8,
-      "type": "NONE"
-    },
-    {
-      "in_nodes": [
-        3,
-        4
-      ],
-      "operator": "OBSERVE",
-      "sequence": 9,
-      "type": "NONE"
-    },
-    {
-      "in_node": 2,
-      "operator": "QUERY",
-      "query_index": 0,
-      "sequence": 10,
-      "type": "NONE"
+      "type": "REAL"
     }
   ]
 })";
@@ -113,82 +97,70 @@ TEST(json_test, test_from_string) {
 }
 
 std::string raw_json_without_types = R"({
+  "comment": "created by graph_to_json",
+  "queries": [ 2 ],
+  "observations": [
+    { "node": 4, "value": 1.0 },
+    { "node": 5, "value": 1.0 },
+    { "node": 6, "value": 1.0 },
+    { "node": 7, "value": 0.0 }
+  ],
   "nodes": [
     {
-      "sequence": 0,
       "operator": "CONSTANT",
+      "sequence": 0,
       "value": 2
     },
     {
-      "sequence": 1,
-      "operator": "DISTRIBUTION_BETA",
       "in_nodes": [
         0,
         0
-      ]
+      ],
+      "operator": "DISTRIBUTION_BETA",
+      "sequence": 1,
     },
     {
-      "sequence": 2,
-      "operator": "SAMPLE",
       "in_nodes": [
         1
-      ]
+      ],
+      "operator": "SAMPLE",
+      "sequence": 2,
     },
     {
-      "sequence": 3,
-      "operator": "DISTRIBUTION_BERNOULLI",
       "in_nodes": [
         2
-      ]
+      ],
+      "operator": "DISTRIBUTION_BERNOULLI",
+      "sequence": 3,
     },
     {
+      "in_nodes": [
+        3
+      ],
+      "operator": "SAMPLE",
       "sequence": 4,
-      "operator": "CONSTANT",
-      "value": 0
     },
     {
+      "in_nodes": [
+        3
+      ],
+      "operator": "SAMPLE",
       "sequence": 5,
-      "operator": "CONSTANT",
-      "value": 1
     },
     {
+      "in_nodes": [
+        3
+      ],
+      "operator": "SAMPLE",
       "sequence": 6,
-      "operator": "OBSERVE",
-      "in_nodes": [
-        3,
-        5
-      ]
     },
     {
+      "in_nodes": [
+        3
+      ],
+      "operator": "SAMPLE",
       "sequence": 7,
-      "operator": "OBSERVE",
-      "in_nodes": [
-        3,
-        5
-      ]
     },
-    {
-      "sequence": 8,
-      "operator": "OBSERVE",
-      "in_nodes": [
-        3,
-        5
-      ]
-    },
-    {
-      "sequence": 9,
-      "operator": "OBSERVE",
-      "in_nodes": [
-        3,
-        4
-      ]
-    },
-    {
-      "sequence": 10,
-      "operator": "QUERY",
-      "in_node": 2,
-      "query_index": 0
-    }
   ]
 })";
 

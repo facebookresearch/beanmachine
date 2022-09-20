@@ -8,6 +8,7 @@
 #pragma once
 
 #include <folly/json.h>
+#include <unordered_map>
 #include "beanmachine/minibmg/container.h"
 #include "beanmachine/minibmg/node.h"
 
@@ -15,10 +16,14 @@ namespace beanmachine::minibmg {
 
 class Graph : public Container {
  public:
-  // valudates that the list of nodes forms a valid graph,
-  // and returns that graph.  Throws an exception if the
-  // nodes do not form a valid graph.
-  static Graph create(std::vector<Nodep> nodes);
+  // produces a graph by computing the transitive closure of the input queries
+  // and observations and topologically sorting the set of nodes so reached.
+  // valudates that the list of nodes so reached forms a valid graph, and
+  // returns that graph.  Throws an exception if the nodes do not form a valid
+  // graph.
+  static Graph create(
+      std::vector<Nodep> queries,
+      std::unordered_map<Nodep, double> observations);
   ~Graph();
 
   // Implement the iterator pattern so clients can iterate over the nodes.
@@ -35,12 +40,25 @@ class Graph : public Container {
     return nodes.size();
   }
 
- private:
+  // All of the nodes, in a topologically sorted order such that a node can only
+  // be used as an input in subsequent (and not previous) nodes.
   const std::vector<Nodep> nodes;
 
+  // Queries of the model.  These are nodes whose values are sampled by
+  // inference.
+  const std::vector<Nodep> queries;
+
+  // Observations of the model.  These are SAMPLE nodes in the model whose
+  // values are known.
+  const std::unordered_map<Nodep, double> observations;
+
+ private:
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
-  explicit Graph(std::vector<Nodep> nodes);
+  Graph(
+      std::vector<Nodep> nodes,
+      std::vector<Nodep> queries,
+      std::unordered_map<Nodep, double> observations);
   static void validate(std::vector<Nodep> nodes);
 
  public:

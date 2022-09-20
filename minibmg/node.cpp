@@ -21,18 +21,12 @@ OperatorNode::OperatorNode(
     : Node{op, type}, in_nodes{in_nodes} {
   switch (op) {
     case Operator::CONSTANT:
-    case Operator::QUERY:
     case Operator::VARIABLE:
       throw std::invalid_argument(
           "OperatorNode cannot be used for " + to_string(op) + ".");
     default:;
   }
 }
-
-QueryNode::QueryNode(const unsigned query_index, Nodep in_node)
-    : Node{Operator::QUERY, Type::NONE},
-      query_index{query_index},
-      in_node{in_node} {}
 
 ConstantNode::ConstantNode(const double value)
     : Node{Operator::CONSTANT, Type::REAL}, value{value} {}

@@ -20,12 +20,10 @@ TEST(out_nodes_test, simple) {
   auto k34 = gf.add_constant(3.4);
   auto plus = gf.add_operator(Operator::ADD, {k12, k34});
   auto k56 = gf.add_constant(5.6);
-  auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {k34, k56});
+  auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {plus, k56});
   auto sample = gf.add_operator(Operator::SAMPLE, {beta});
-  auto k78 = gf.add_constant(7.8);
-  auto observe = gf.add_operator(Operator::OBSERVE, {beta, k78});
-  NodeId query;
-  /* auto query_ = */ gf.add_query(beta, query);
+  gf.add_observation(sample, 7.8);
+  /* auto query_ = */ gf.add_query(sample);
   Graph g = gf.build();
 
   Nodep k12n = gf[k12];
@@ -34,19 +32,18 @@ TEST(out_nodes_test, simple) {
   Nodep k56n = gf[k56];
   Nodep betan = gf[beta];
   Nodep samplen = gf[sample];
-  Nodep k78n = gf[k78];
-  Nodep observen = gf[observe];
-  Nodep queryn = gf[query];
 
   ASSERT_EQ(out_nodes(g, k12n), std::list{plusn});
-  ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn, betan}));
-  ASSERT_EQ(out_nodes(g, plusn), std::list<Nodep>{});
+  ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn}));
+  ASSERT_EQ(out_nodes(g, plusn), std::list<Nodep>{betan});
   ASSERT_EQ(out_nodes(g, k56n), std::list{betan});
-  ASSERT_EQ(out_nodes(g, betan), (std::list{samplen, observen, queryn}));
+  ASSERT_EQ(out_nodes(g, betan), (std::list{samplen}));
   ASSERT_EQ(out_nodes(g, samplen), std::list<Nodep>{});
-  ASSERT_EQ(out_nodes(g, k78n), std::list{observen});
-  ASSERT_EQ(out_nodes(g, observen), std::list<Nodep>{});
-  ASSERT_EQ(out_nodes(g, queryn), std::list<Nodep>{});
+
+  ASSERT_EQ(g.queries, std::vector{samplen});
+  std::unordered_map<Nodep, double> expected_observations;
+  expected_observations[samplen] = 7.8;
+  ASSERT_EQ(g.observations, expected_observations);
 }
 
 TEST(out_nodes_test, not_found2) {
