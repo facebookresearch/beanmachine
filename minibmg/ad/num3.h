@@ -32,11 +32,16 @@ class Num3 {
 
   /* implicit */ Num3(double primal);
   /* implicit */ Num3(Underlying primal);
+  Num3();
   Num3(Underlying primal, Underlying derivative1, Underlying derivative2);
   Num3(const Num3<Underlying>& other);
   Num3<Underlying>& operator=(const Num3<Underlying>& other) = default;
   double as_double() const;
 };
+
+template <class Underlying>
+requires Number<Underlying> Num3<Underlying>::Num3()
+    : primal{0}, derivative1{0}, derivative2{0} {}
 
 template <class Underlying>
 requires Number<Underlying> Num3<Underlying>::Num3(double primal)
