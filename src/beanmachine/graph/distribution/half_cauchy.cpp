@@ -19,7 +19,7 @@ namespace distribution {
 using namespace graph;
 
 HalfCauchy::HalfCauchy(
-    AtomicType sample_type,
+    ValueType sample_type,
     const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::HALF_CAUCHY, sample_type) {
   // a HalfCauchy distribution has one parent a scale which is positive real
@@ -37,6 +37,11 @@ HalfCauchy::HalfCauchy(
         "HalfCauchy distribution produces positive real number samples");
   }
 }
+
+HalfCauchy::HalfCauchy(
+    AtomicType sample_type,
+    const std::vector<Node*>& in_nodes)
+    : HalfCauchy(ValueType(sample_type), in_nodes) {}
 
 double HalfCauchy::_double_sampler(std::mt19937& gen) const {
   // the cdf of a standard HalfCauchy is  F(x) = (2/pi) arctan(x)

@@ -16,7 +16,7 @@ namespace beanmachine {
 namespace distribution {
 
 Binomial::Binomial(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::BINOMIAL, sample_type) {
   // a Binomial has two parents -- natural, probability and outputs a natural
@@ -33,6 +33,11 @@ Binomial::Binomial(
         "Binomial parents must be a natural number and a probability");
   }
 }
+
+Binomial::Binomial(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Binomial(graph::ValueType(sample_type), in_nodes) {}
 
 graph::natural_t Binomial::_natural_sampler(std::mt19937& gen) const {
   graph::natural_t param_n = in_nodes[0]->value._natural;

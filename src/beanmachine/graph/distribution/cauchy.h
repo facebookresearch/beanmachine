@@ -14,6 +14,9 @@ namespace distribution {
 class Cauchy : public Distribution {
  public:
   Cauchy(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Cauchy(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Cauchy() override {}

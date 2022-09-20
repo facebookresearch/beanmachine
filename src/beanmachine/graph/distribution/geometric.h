@@ -18,6 +18,9 @@ class Geometric : public Distribution {
   Geometric(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
+  Geometric(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
   ~Geometric() override {}
   graph::natural_t _natural_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::NodeValue& value) const override;

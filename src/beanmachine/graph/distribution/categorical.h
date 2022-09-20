@@ -14,6 +14,9 @@ namespace distribution {
 class Categorical : public Distribution {
  public:
   Categorical(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Categorical(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Categorical() override {}

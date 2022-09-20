@@ -17,7 +17,7 @@ namespace distribution {
 
 using namespace graph;
 
-Cauchy::Cauchy(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+Cauchy::Cauchy(ValueType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::CAUCHY, sample_type) {
   // a Cauchy distribution has two parents - a location and a scale which are
   // positive reals
@@ -40,6 +40,9 @@ Cauchy::Cauchy(AtomicType sample_type, const std::vector<Node*>& in_nodes)
         "Cauchy distribution produces real number samples");
   }
 }
+
+Cauchy::Cauchy(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+    : Cauchy(ValueType(sample_type), in_nodes) {}
 
 double Cauchy::_double_sampler(std::mt19937& gen) const {
   // the CDF of a standard Cauchy is  F(x) = (1/pi) arctan(x)

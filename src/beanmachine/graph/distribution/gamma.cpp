@@ -19,7 +19,7 @@ namespace distribution {
 
 using namespace graph;
 
-Gamma::Gamma(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+Gamma::Gamma(ValueType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::GAMMA, sample_type) {
   // a Gamma distribution has two parents:
   // shape -> positive real; rate -> positive real
@@ -35,6 +35,9 @@ Gamma::Gamma(AtomicType sample_type, const std::vector<Node*>& in_nodes)
     throw std::invalid_argument("Gamma parents must be positive real-valued");
   }
 }
+
+Gamma::Gamma(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+    : Gamma(ValueType(sample_type), in_nodes) {}
 
 double Gamma::_double_sampler(std::mt19937& gen) const {
   std::gamma_distribution<double> dist(

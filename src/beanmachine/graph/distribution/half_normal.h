@@ -14,6 +14,9 @@ namespace distribution {
 class Half_Normal : public Distribution {
  public:
   Half_Normal(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  Half_Normal(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Half_Normal() override {}

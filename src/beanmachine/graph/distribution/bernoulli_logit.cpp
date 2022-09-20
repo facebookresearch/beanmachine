@@ -20,7 +20,7 @@ namespace distribution {
 using namespace graph;
 
 BernoulliLogit::BernoulliLogit(
-    AtomicType sample_type,
+    ValueType sample_type,
     const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::BERNOULLI_LOGIT, sample_type) {
   // a BernoulliLogit distribution has one parent which is a real value
@@ -37,6 +37,11 @@ BernoulliLogit::BernoulliLogit(
         "BernoulliLogit distribution produces boolean samples");
   }
 }
+
+BernoulliLogit::BernoulliLogit(
+    AtomicType sample_type,
+    const std::vector<Node*>& in_nodes)
+    : BernoulliLogit(ValueType(sample_type), in_nodes) {}
 
 bool BernoulliLogit::_bool_sampler(std::mt19937& gen) const {
   double logodds = in_nodes[0]->value._double;

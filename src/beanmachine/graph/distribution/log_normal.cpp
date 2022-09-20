@@ -18,7 +18,7 @@ namespace distribution {
 
 using namespace graph;
 
-LogNormal::LogNormal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+LogNormal::LogNormal(ValueType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::LOG_NORMAL, sample_type) {
   // a Log Normal distribution has two parents
   // mean of logarithm distribution -> real,
@@ -37,6 +37,9 @@ LogNormal::LogNormal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
         "LogNormal distribution produces positive real number samples");
   }
 }
+
+LogNormal::LogNormal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+    : LogNormal(ValueType(sample_type), in_nodes) {}
 
 double LogNormal::_double_sampler(std::mt19937& gen) const {
   std::lognormal_distribution<double> dist(

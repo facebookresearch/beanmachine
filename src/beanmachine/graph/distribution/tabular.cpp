@@ -16,7 +16,7 @@ namespace beanmachine {
 namespace distribution {
 
 Tabular::Tabular(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::TABULAR, sample_type) {
   // check the sample datatype
@@ -55,6 +55,11 @@ Tabular::Tabular(
     }
   }
 }
+
+Tabular::Tabular(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Tabular(graph::ValueType(sample_type), in_nodes) {}
 
 double Tabular::get_probability() const {
   uint col_id = 0;
