@@ -14,7 +14,7 @@ namespace beanmachine {
 namespace distribution {
 
 Bernoulli::Bernoulli(
-    graph::AtomicType sample_type,
+    graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::BERNOULLI, sample_type) {
   if (sample_type != graph::AtomicType::BOOLEAN) {
@@ -31,6 +31,11 @@ Bernoulli::Bernoulli(
     throw std::invalid_argument("Bernoulli parent must be a probability");
   }
 }
+
+Bernoulli::Bernoulli(
+    graph::AtomicType sample_type,
+    const std::vector<graph::Node*>& in_nodes)
+    : Bernoulli(graph::ValueType(sample_type), in_nodes) {}
 
 bool Bernoulli::_bool_sampler(std::mt19937& gen) const {
   std::bernoulli_distribution distrib(in_nodes[0]->value._double);

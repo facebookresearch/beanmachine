@@ -30,7 +30,7 @@ namespace distribution {
 
 using namespace graph;
 
-StudentT::StudentT(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+StudentT::StudentT(ValueType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::STUDENT_T, sample_type) {
   // a StudentT distribution has three parents
   // n (degrees of freedom) > 0 ; l (location) -> real; scale -> positive real
@@ -50,6 +50,9 @@ StudentT::StudentT(AtomicType sample_type, const std::vector<Node*>& in_nodes)
         "StudentT distribution produces real number samples");
   }
 }
+
+StudentT::StudentT(AtomicType sample_type, const std::vector<Node*>& in_nodes)
+    : StudentT(graph::ValueType(sample_type), in_nodes) {}
 
 double StudentT::_double_sampler(std::mt19937& gen) const {
   double n = in_nodes[0]->value._double;

@@ -13,6 +13,7 @@ namespace distribution {
 
 class Beta : public Distribution {
  public:
+  Beta(graph::ValueType sample_type, const std::vector<graph::Node*>& in_nodes);
   Beta(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);

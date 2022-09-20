@@ -14,6 +14,9 @@ namespace distribution {
 class StudentT : public Distribution {
  public:
   StudentT(
+      graph::ValueType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
+  StudentT(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~StudentT() override {}

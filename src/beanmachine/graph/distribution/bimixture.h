@@ -20,7 +20,6 @@ class Bimixture : public Distribution {
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Bimixture() override {}
-
   bool _bool_sampler(std::mt19937& gen) const override;
   double _double_sampler(std::mt19937& gen) const override;
   graph::natural_t _natural_sampler(std::mt19937& gen) const override;

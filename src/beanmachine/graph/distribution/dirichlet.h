@@ -16,6 +16,9 @@ class Dirichlet : public Distribution {
   Dirichlet(
       graph::ValueType sample_type,
       const std::vector<graph::Node*>& in_nodes);
+  Dirichlet(
+      graph::AtomicType sample_type,
+      const std::vector<graph::Node*>& in_nodes);
   ~Dirichlet() override {}
   Eigen::MatrixXd _matrix_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::NodeValue& value) const override;
