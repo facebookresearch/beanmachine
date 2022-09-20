@@ -52,6 +52,7 @@ def observations_fixer(bmg: BMGraphBuilder):
         else:
             # TODO: How should we deal with observations of
             # TODO: matrix-valued samples?
+            # When this gets fixed, also fix _add_observation in gen_bmg_cpp.
             pass
         # TODO: Handle the case where there are two inconsistent
         # TODO: observations of the same sample
