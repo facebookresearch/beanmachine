@@ -7,15 +7,15 @@
 
 #include <gtest/gtest.h>
 #include <list>
-#include <set>
+#include <unordered_set>
 #include "beanmachine/minibmg/minibmg.h"
 #include "beanmachine/minibmg/out_nodes.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
-std::set<NodeId> set(std::list<NodeId> values) {
-  std::set<NodeId> result{};
+std::unordered_set<NodeId> set(std::list<NodeId> values) {
+  std::unordered_set<NodeId> result{};
   for (auto x : values) {
     result.insert(x);
   }
@@ -32,11 +32,10 @@ TEST(out_nodes_test, simple) {
   auto sample = gf.add_operator(Operator::SAMPLE, {beta});
   auto k78 = gf.add_constant(7.8);
   auto observe = gf.add_operator(Operator::OBSERVE, {beta, k78});
-  /* auto query_ = */ gf.add_query(beta);
-  // We don't get the node index of the query from the factory.  The factory
-  // only gives us the query number.
-  unsigned query = observe + 1;
+  NodeId query;
+  /* auto query_ = */ gf.add_query(beta, query);
   Graph g = gf.build();
+
   ASSERT_EQ(out_nodes(g, k12), set({plus}));
   ASSERT_EQ(out_nodes(g, k34), set({plus, beta}));
   ASSERT_EQ(out_nodes(g, plus), set({}));
@@ -58,7 +57,7 @@ TEST(out_nodes_test, not_found1) {
 TEST(out_nodes_test, not_found2) {
   Graph::Factory gf;
   Graph g = gf.build();
-  Node* n = new ConstantNode(0, 0);
+  Node* n = new ConstantNode(0);
   ASSERT_THROW(out_nodes(g, n), std::invalid_argument);
   delete n;
 }

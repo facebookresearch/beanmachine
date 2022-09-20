@@ -30,7 +30,10 @@ class Real {
     return value;
   }
   /* implicit */ inline Real(double value) : value{value} {}
+
+  INLINE Real() : value{0} {}
   INLINE Real& operator=(const Real&) = default;
+  INLINE Real(const Real& other) : value{other.value} {}
 };
 
 INLINE Real operator+(const Real left, const Real right) {

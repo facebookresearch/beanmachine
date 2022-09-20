@@ -12,24 +12,27 @@
 using namespace ::testing;
 using namespace beanmachine::minibmg;
 
+#define ASSERT_ID(node, num) ASSERT_EQ(node, NodeId{(unsigned long)(num)})
+
 TEST(test_minibmg, basic_building) {
+  NodeId::_reset_for_testing();
   Graph::Factory gf;
   auto k12 = gf.add_constant(1.2);
-  ASSERT_EQ(k12, 0);
+  ASSERT_ID(k12, 0);
   auto k34 = gf.add_constant(3.4);
-  ASSERT_EQ(k34, 1);
+  ASSERT_ID(k34, 1);
   auto plus = gf.add_operator(Operator::ADD, {k12, k34});
-  ASSERT_EQ(plus, 2);
+  ASSERT_ID(plus, 2);
   auto k56 = gf.add_constant(5.6);
-  ASSERT_EQ(k56, 3);
+  ASSERT_ID(k56, 3);
   auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {k34, k56});
-  ASSERT_EQ(beta, 4);
+  ASSERT_ID(beta, 4);
   auto sample = gf.add_operator(Operator::SAMPLE, {beta});
-  ASSERT_EQ(sample, 5);
+  ASSERT_ID(sample, 5);
   auto k78 = gf.add_constant(7.8);
-  ASSERT_EQ(k78, 6);
+  ASSERT_ID(k78, 6);
   auto observe = gf.add_operator(Operator::OBSERVE, {beta, k78});
-  ASSERT_EQ(observe, 7);
+  ASSERT_ID(observe, 7);
   auto query = gf.add_query(beta);
   ASSERT_EQ(query, 0); // we get the query number back from add_query
   Graph g = gf.build();
