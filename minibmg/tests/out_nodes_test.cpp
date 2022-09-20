@@ -14,14 +14,6 @@
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
-std::unordered_set<NodeId> set(std::list<NodeId> values) {
-  std::unordered_set<NodeId> result{};
-  for (auto x : values) {
-    result.insert(x);
-  }
-  return result;
-}
-
 TEST(out_nodes_test, simple) {
   Graph::Factory gf;
   auto k12 = gf.add_constant(1.2);
@@ -34,24 +26,27 @@ TEST(out_nodes_test, simple) {
   auto observe = gf.add_operator(Operator::OBSERVE, {beta, k78});
   NodeId query;
   /* auto query_ = */ gf.add_query(beta, query);
+
+  const Node* k12n = gf[k12];
+  const Node* k34n = gf[k34];
+  const Node* plusn = gf[plus];
+  const Node* k56n = gf[k56];
+  const Node* betan = gf[beta];
+  const Node* samplen = gf[sample];
+  const Node* k78n = gf[k78];
+  const Node* observen = gf[observe];
+  const Node* queryn = gf[query];
   Graph g = gf.build();
 
-  ASSERT_EQ(out_nodes(g, k12), set({plus}));
-  ASSERT_EQ(out_nodes(g, k34), set({plus, beta}));
-  ASSERT_EQ(out_nodes(g, plus), set({}));
-  ASSERT_EQ(out_nodes(g, k56), set({beta}));
-  ASSERT_EQ(out_nodes(g, beta), set({sample, observe, query}));
-  ASSERT_EQ(out_nodes(g, sample), set({}));
-  ASSERT_EQ(out_nodes(g, k78), set({observe}));
-  ASSERT_EQ(out_nodes(g, observe), set({}));
-  ASSERT_EQ(out_nodes(g, query), set({}));
-}
-
-TEST(out_nodes_test, not_found1) {
-  Graph::Factory gf;
-  Graph g = gf.build();
-  NodeId not_found_node{};
-  ASSERT_THROW(out_nodes(g, not_found_node), std::invalid_argument);
+  ASSERT_EQ(out_nodes(g, k12n), std::list{plusn});
+  ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn, betan}));
+  ASSERT_EQ(out_nodes(g, plusn), std::list<const Node*>{});
+  ASSERT_EQ(out_nodes(g, k56n), std::list{betan});
+  ASSERT_EQ(out_nodes(g, betan), (std::list{samplen, observen, queryn}));
+  ASSERT_EQ(out_nodes(g, samplen), std::list<const Node*>{});
+  ASSERT_EQ(out_nodes(g, k78n), std::list{observen});
+  ASSERT_EQ(out_nodes(g, observen), std::list<const Node*>{});
+  ASSERT_EQ(out_nodes(g, queryn), std::list<const Node*>{});
 }
 
 TEST(out_nodes_test, not_found2) {
