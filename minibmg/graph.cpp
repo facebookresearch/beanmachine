@@ -28,7 +28,7 @@ Graph Graph::create(std::vector<const Node*> nodes) {
 
 void Graph::validate(std::vector<const Node*> nodes) {
   std::unordered_set<const Node*> seen;
-  uint next_query = 0;
+  unsigned next_query = 0;
   // Check the nodes.
   for (int i = 0, n = nodes.size(); i < n; i++) {
     auto node = nodes[i];
@@ -84,7 +84,7 @@ void Graph::validate(std::vector<const Node*> nodes) {
       // Check other operators.
       default: {
         const OperatorNode* op = (OperatorNode*)node;
-        uint ix = (uint)node->op;
+        unsigned ix = (unsigned)node->op;
         auto parent_types = expected_parents[ix];
         if (op->in_nodes.size() != parent_types.size()) {
           throw std::invalid_argument(fmt::format(
@@ -153,7 +153,7 @@ JsonError::JsonError(const std::string& message) : message(message) {}
 
 Graph json_to_graph(folly::dynamic d) {
   Graph::Factory gf;
-  std::unordered_map<uint, const Node*> sequence_to_node;
+  std::unordered_map<NodeId, const Node*> sequence_to_node;
   std::vector<const Node*> all_nodes;
 
   auto json_nodes = d["nodes"];
@@ -165,7 +165,7 @@ Graph json_to_graph(folly::dynamic d) {
     if (!sequencev.isInt()) {
       throw JsonError("missing sequence number.");
     }
-    auto sequence = (uint)sequencev.asInt();
+    auto sequence = (NodeId)sequencev.asInt();
 
     auto opv = json_node["operator"];
     if (!opv.isString()) {
@@ -191,7 +191,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (!query_indexv.isInt()) {
           throw JsonError("missing query_index for query.");
         }
-        auto query_index = (uint)query_indexv.asInt();
+        auto query_index = (unsigned)query_indexv.asInt();
 
         auto in_nodev = json_node["in_node"];
         if (!in_nodev.isInt()) {
@@ -239,7 +239,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (!variable_indexv.isInt()) {
           throw JsonError("bad variable_index for variable.");
         }
-        auto variable_index = (uint)variable_indexv.asInt();
+        auto variable_index = (unsigned)variable_indexv.asInt();
         node = new VariableNode{name, variable_index, sequence};
         break;
       }

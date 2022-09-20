@@ -34,7 +34,8 @@ class Graph : public Container {
   inline int size() const {
     return nodes.size();
   }
-  inline const Node* operator[](uint node_id) const {
+
+  inline const Node* operator[](NodeId node_id) const {
     return nodes[node_id];
   }
 

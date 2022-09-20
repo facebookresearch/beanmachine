@@ -13,10 +13,13 @@
 
 namespace beanmachine::minibmg {
 
+// TODO: replace this with an opaque identifier.
+using NodeId = unsigned;
+
 class Node {
  public:
-  Node(const uint sequence, const enum Operator op, const Type type);
-  const uint sequence;
+  Node(const NodeId sequence, const enum Operator op, const Type type);
+  const NodeId sequence;
   const enum Operator op;
   const enum Type type;
   virtual ~Node() = 0;
@@ -26,7 +29,7 @@ class OperatorNode : public Node {
  public:
   OperatorNode(
       const std::vector<const Node*>& in_nodes,
-      const uint sequence,
+      const NodeId sequence,
       const enum Operator op,
       const enum Type type);
   const std::vector<const Node*> in_nodes;
@@ -34,7 +37,7 @@ class OperatorNode : public Node {
 
 class ConstantNode : public Node {
  public:
-  ConstantNode(const double value, const uint sequence);
+  ConstantNode(const double value, const NodeId sequence);
   const double value;
 };
 
@@ -42,16 +45,19 @@ class VariableNode : public Node {
  public:
   VariableNode(
       const std::string& name,
-      const uint variable_index,
-      const uint sequence);
+      const unsigned variable_index,
+      const NodeId sequence);
   const std::string name;
-  const uint variable_index;
+  const unsigned variable_index;
 };
 
 class QueryNode : public Node {
  public:
-  QueryNode(const uint query_index, const Node* in_node, const uint sequence);
-  const uint query_index;
+  QueryNode(
+      const unsigned query_index,
+      const Node* in_node,
+      const NodeId sequence);
+  const unsigned query_index;
   const Node* const in_node;
 };
 

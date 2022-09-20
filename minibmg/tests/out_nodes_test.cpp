@@ -14,8 +14,8 @@
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
-std::set<uint> set(std::list<uint> values) {
-  std::set<uint> result{};
+std::set<NodeId> set(std::list<NodeId> values) {
+  std::set<NodeId> result{};
   for (auto x : values) {
     result.insert(x);
   }
@@ -35,7 +35,7 @@ TEST(out_nodes_test, simple) {
   /* auto query_ = */ gf.add_query(beta);
   // We don't get the node index of the query from the factory.  The factory
   // only gives us the query number.
-  uint query = observe + 1;
+  unsigned query = observe + 1;
   Graph g = gf.build();
   ASSERT_EQ(out_nodes(g, k12), set({plus}));
   ASSERT_EQ(out_nodes(g, k34), set({plus, beta}));
@@ -51,7 +51,7 @@ TEST(out_nodes_test, simple) {
 TEST(out_nodes_test, not_found1) {
   Graph::Factory gf;
   Graph g = gf.build();
-  uint not_found_node = 0;
+  NodeId not_found_node{};
   ASSERT_THROW(out_nodes(g, not_found_node), std::invalid_argument);
 }
 

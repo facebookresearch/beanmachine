@@ -9,8 +9,8 @@
 
 namespace beanmachine::minibmg {
 
-uint Graph::Factory::add_constant(double value) {
-  auto sequence = (uint)nodes.size();
+NodeId Graph::Factory::add_constant(double value) {
+  auto sequence = (unsigned)nodes.size();
   const auto new_node = new ConstantNode{value, sequence};
   nodes.push_back(new_node);
   return sequence;
@@ -56,29 +56,29 @@ const std::vector<std::vector<enum Type>> make_expected_parents() {
     result.push_back(empty);
   }
   assert(result.size() == (int)Operator::LAST_OPERATOR);
-  result[(uint)Operator::CONSTANT] = {};
-  result[(uint)Operator::VARIABLE] = {};
-  result[(uint)Operator::ADD] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::SUBTRACT] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::NEGATE] = {Type::REAL};
-  result[(uint)Operator::MULTIPLY] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::DIVIDE] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::POW] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::EXP] = {Type::REAL};
-  result[(uint)Operator::LOG] = {Type::REAL};
-  result[(uint)Operator::ATAN] = {Type::REAL};
-  result[(uint)Operator::LGAMMA] = {Type::REAL};
-  result[(uint)Operator::POLYGAMMA] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::IF_EQUAL] = {
+  result[(unsigned)Operator::CONSTANT] = {};
+  result[(unsigned)Operator::VARIABLE] = {};
+  result[(unsigned)Operator::ADD] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::SUBTRACT] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::NEGATE] = {Type::REAL};
+  result[(unsigned)Operator::MULTIPLY] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::DIVIDE] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::POW] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::EXP] = {Type::REAL};
+  result[(unsigned)Operator::LOG] = {Type::REAL};
+  result[(unsigned)Operator::ATAN] = {Type::REAL};
+  result[(unsigned)Operator::LGAMMA] = {Type::REAL};
+  result[(unsigned)Operator::POLYGAMMA] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::IF_EQUAL] = {
       Type::REAL, Type::REAL, Type::REAL, Type::REAL};
-  result[(uint)Operator::IF_LESS] = {
+  result[(unsigned)Operator::IF_LESS] = {
       Type::REAL, Type::REAL, Type::REAL, Type::REAL};
-  result[(uint)Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
-  result[(uint)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
-  result[(uint)Operator::SAMPLE] = {Type::DISTRIBUTION};
-  result[(uint)Operator::OBSERVE] = {Type::DISTRIBUTION, Type::REAL};
-  result[(uint)Operator::QUERY] = {Type::DISTRIBUTION};
+  result[(unsigned)Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
+  result[(unsigned)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
+  result[(unsigned)Operator::SAMPLE] = {Type::DISTRIBUTION};
+  result[(unsigned)Operator::OBSERVE] = {Type::DISTRIBUTION, Type::REAL};
+  result[(unsigned)Operator::QUERY] = {Type::DISTRIBUTION};
   return result;
 }
 
@@ -118,18 +118,20 @@ const std::vector<std::vector<enum Type>> expected_parents =
     make_expected_parents();
 
 unsigned arity(Operator op) {
-  return expected_parents[(uint)op].size();
+  return expected_parents[(unsigned)op].size();
 }
 
-uint Graph::Factory::add_operator(enum Operator op, std::vector<uint> parents) {
-  auto sequence = (uint)nodes.size();
-  auto expected = expected_parents[(uint)op];
+NodeId Graph::Factory::add_operator(
+    enum Operator op,
+    std::vector<NodeId> parents) {
+  auto sequence = (unsigned)nodes.size();
+  auto expected = expected_parents[(unsigned)op];
   std::vector<const Node*> in_nodes;
   if (parents.size() != expected.size()) {
     throw std::invalid_argument("Incorrect number of parent nodes.");
   }
   for (int i = 0, n = expected.size(); i < n; i++) {
-    uint p = parents[i];
+    NodeId p = parents[i];
     if (p >= sequence) {
       throw std::invalid_argument("Reference to nonexistent node.");
     }
@@ -146,8 +148,8 @@ uint Graph::Factory::add_operator(enum Operator op, std::vector<uint> parents) {
   return sequence;
 }
 
-uint Graph::Factory::add_query(uint parent) {
-  auto sequence = (uint)nodes.size();
+NodeId Graph::Factory::add_query(NodeId parent) {
+  auto sequence = (unsigned)nodes.size();
   if (parent >= sequence) {
     throw std::invalid_argument("Reference to nonexistent node.");
   }
@@ -162,10 +164,10 @@ uint Graph::Factory::add_query(uint parent) {
   return query_id;
 }
 
-uint Graph::Factory::add_variable(
+NodeId Graph::Factory::add_variable(
     const std::string& name,
-    const uint variable_index) {
-  auto sequence = (uint)nodes.size();
+    const unsigned variable_index) {
+  auto sequence = (unsigned)nodes.size();
   auto new_node = new VariableNode{name, variable_index, sequence};
   nodes.push_back(new_node);
   return sequence;
