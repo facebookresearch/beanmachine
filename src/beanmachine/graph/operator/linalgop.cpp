@@ -598,9 +598,10 @@ MatrixComplement::MatrixComplement(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument("MATRIX_COMPLEMENT requires one parent node");
   }
   auto type = in_nodes[0]->value.type;
-  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX &&
+      type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
     throw std::invalid_argument(
-        "the parent of MATRIX_COMPLEMENT must be a BROADCAST_MATRIX");
+        "the parent of MATRIX_COMPLEMENT must be a BROADCAST_MATRIX or COL_SIMPLEX_MATRIX");
   }
   if (type.atomic_type != graph::AtomicType::PROBABILITY &&
       type.atomic_type != graph::AtomicType::BOOLEAN) {
