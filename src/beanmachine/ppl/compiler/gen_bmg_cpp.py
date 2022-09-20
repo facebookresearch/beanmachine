@@ -18,21 +18,29 @@ from beanmachine.ppl.compiler.fix_problems import fix_problems
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
-def _value_to_cpp_eigen(value: torch.Tensor, variable: str) -> str:
+def _value_to_cpp_eigen(value: torch.Tensor, variable: str, array_type: str) -> str:
     # Torch tensors are row major but Eigen matrices are column major;
     # a torch Dirichlet distribution expects a row of parameters;
     # BMG expects a column.  That's why we swap rows with columns here.
     r, c = _size_to_rc(value.size())
     v = value.reshape(r, c).transpose(0, 1).contiguous()
     values = ", ".join(str(element) for element in v.reshape(-1).tolist())
-    return f"Eigen::MatrixXd {variable}({c}, {r});\n{variable} << {values};"
+    return f"{array_type} {variable}({c}, {r});\n{variable} << {values};"
+
+
+def _value_to_cpp_real_eigen(value: torch.Tensor, variable: str) -> str:
+    return _value_to_cpp_eigen(value, variable, "Eigen::MatrixXd")
+
+
+def _value_to_cpp_natural_eigen(value: torch.Tensor, variable: str) -> str:
+    return _value_to_cpp_eigen(value, variable, "Eigen::MatrixXn")
+
+
+def _value_to_cpp_bool_eigen(value: torch.Tensor, variable: str) -> str:
+    return _value_to_cpp_eigen(value, variable, "Eigen::MatrixXb")
 
 
 def _value_to_cpp(value: Any) -> str:
-    if isinstance(value, torch.Tensor):
-        values = ",".join(str(element) for element in value.reshape(-1).tolist())
-        dims = ",".join(str(dim) for dim in value.shape)
-        return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
     return str(value).lower()
 
 
@@ -58,7 +66,10 @@ class GeneratedGraphCPP:
         if isinstance(v, torch.Tensor):
             o = f"o{self._observation_count}"
             self._observation_count += 1
-            s = _value_to_cpp_eigen(v, o)
+            # TODO: What if its not a real-valued observation?
+            # We do not handle this case correctly in fix_observations.
+            # When we do, fix this here too.
+            s = _value_to_cpp_real_eigen(v, o)
             self._code.append(s)
             self._code.append(f"g.observe(n{graph_id}, {o});")
         else:
@@ -140,32 +151,33 @@ class GeneratedGraphCPP:
         elif t is bn.RealNode:
             f = f"add_constant_real({_value_to_cpp(float(v))})"
         elif t is bn.ConstantTensorNode:
-            # TODO: This should be dead code; this is a holdover
-            # from before BMG used Eigen as its matrix library.
-            # Remove it, and remove the case from _value_to_cpp.
-            f = f"add_constant({_value_to_cpp(v)})"
+            # This only happens in the rare case where we have a functional
+            # which returns a constant tensor and there's a query on it.
+            # We never rewrite that to another kind of node.
+            # TODO: Consider turning that into a constant of some more
+            # specific BMG node type.
+            m = _value_to_cpp_real_eigen(v, f"m{graph_id}")
+            f = f"add_constant_real_matrix(m{graph_id})"
         elif t is bn.ConstantPositiveRealMatrixNode:
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_real_eigen(v, f"m{graph_id}")
             f = f"add_constant_pos_matrix(m{graph_id})"
         elif t is bn.ConstantRealMatrixNode:
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_real_eigen(v, f"m{graph_id}")
             f = f"add_constant_real_matrix(m{graph_id})"
         elif t is bn.ConstantNegativeRealMatrixNode:
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_real_eigen(v, f"m{graph_id}")
             f = f"add_constant_neg_matrix(m{graph_id})"
         elif t is bn.ConstantProbabilityMatrixNode:
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_real_eigen(v, f"m{graph_id}")
             f = f"add_constant_probability_matrix(m{graph_id})"
         elif t is bn.ConstantSimplexMatrixNode:
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_real_eigen(v, f"m{graph_id}")
             f = f"add_constant_col_simplex_matrix(m{graph_id})"
         elif t is bn.ConstantNaturalMatrixNode:
-            # TODO: This is wrong, it needs to be a MatrixXn
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_natural_eigen(v, f"m{graph_id}")
             f = f"add_constant_natural_matrix(m{graph_id})"
         elif t is bn.ConstantBooleanMatrixNode:
-            # TODO: This is wrong, it needs to be a MatrixXb
-            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            m = _value_to_cpp_bool_eigen(v, f"m{graph_id}")
             f = f"add_constant_bool_matrix(m{graph_id})"
         else:
             f = "UNKNOWN"

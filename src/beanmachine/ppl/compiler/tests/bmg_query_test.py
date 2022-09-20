@@ -118,9 +118,13 @@ digraph "graph" {
         # Check if this is wrong and fix it.
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(torch::from_blob((float[]){2.5}, {}));
+Eigen::MatrixXd m0(1, 1);
+m0 << 2.5;
+uint n0 = g.add_constant_real_matrix(m0);
 uint q0 = g.query(n0);
-uint n1 = g.add_constant(torch::from_blob((float[]){1.5,-2.5}, {2}));
+Eigen::MatrixXd m1(2, 1);
+m1 << 1.5, -2.5;
+uint n1 = g.add_constant_real_matrix(m1);
 uint q1 = g.query(n1);
          """
         self.assertEqual(expected.strip(), observed.strip())
