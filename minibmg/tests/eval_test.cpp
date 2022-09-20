@@ -31,7 +31,7 @@ TEST(eval_test, simple1) {
   auto sub1 = fac.add_operator(Operator::SUBTRACT, {mul1, k1}); // 1.995
   auto graph = fac.build();
   std::mt19937 gen;
-  auto read_variable = [](const std::string&, const uint) { return 1.15; };
+  auto read_variable = [](const std::string&, const unsigned) { return 1.15; };
   int graph_size = graph.size();
   vector<Real> data;
   data.assign(graph_size, 0);
@@ -113,7 +113,7 @@ TEST(eval_test, derivative_dual) {
   vector<Dual> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
-    auto read_variable = [=](const std::string&, const uint) {
+    auto read_variable = [=](const std::string&, const unsigned) {
       return Dual{input, 1};
     };
     data.clear();
@@ -145,7 +145,7 @@ TEST(eval_test, derivatives_triune) {
   vector<Triune> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
-    auto read_variable = [=](const std::string&, const uint) {
+    auto read_variable = [=](const std::string&, const unsigned) {
       return Triune{input, 1, 0};
     };
     data.clear();

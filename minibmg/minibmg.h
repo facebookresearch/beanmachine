@@ -12,7 +12,3 @@
 #include "beanmachine/minibmg/node.h"
 #include "beanmachine/minibmg/operator.h"
 #include "beanmachine/minibmg/type.h"
-
-// TODO: remove this declaration and introduce an opaque type for node
-// identifier.
-using uint = unsigned int;

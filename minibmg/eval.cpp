@@ -16,7 +16,7 @@ namespace beanmachine::minibmg {
 
 double sample_distribution(
     Operator distribution,
-    function<double(uint)> get_parameter,
+    function<double(unsigned)> get_parameter,
     mt19937& gen) {
   switch (distribution) {
     case Operator::DISTRIBUTION_NORMAL: {
