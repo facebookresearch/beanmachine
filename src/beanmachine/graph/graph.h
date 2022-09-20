@@ -438,11 +438,16 @@ struct InferConfig {
 
 class Node {
  public:
-  bool is_observed = false;
+  /*** Structural properties ***/
+
   NodeType node_type;
-  uint index; // index in Graph::nodes
   std::vector<Node*> in_nodes;
   std::vector<Node*> out_nodes;
+
+  /*** Stateful properties (to be eventually moved out) ***/
+
+  uint index; // index in Graph::nodes
+  bool is_observed = false;
   NodeValue value;
   double grad1;
   double grad2;
@@ -450,95 +455,70 @@ class Node {
   Eigen::MatrixXd Grad2;
   DoubleMatrix back_grad1;
 
-  virtual bool is_stochastic() const {
-    return false;
-  }
-  // only valid for stochastic nodes
-  // TODO: shouldn't we then restrict them to those classes? See below.
-  virtual double log_prob() const {
-    return 0;
-  }
-  // only valid for stochastic nodes
-  // TODO: shouldn't we then restrict them to those classes? See below.
-  virtual void log_prob_iid(
-      const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* log_probs */) const {}
-  // only valid for stochastic nodes
-  // TODO: shouldn't we then restrict them to those classes? See below.
-  /*
-   * Convenience creating a matrix for passing to log_prob_iid(value, matrix)
-   * and returning it.
-   * Returning this large object is fine because Eigen supports move semantics.
-   */
-  virtual Eigen::MatrixXd log_prob_iid(
-      const graph::NodeValue& /* value */) const;
-  virtual bool needs_gradient() const {
-    return true;
-  }
-  // gradient_log_prob is also only valid for stochastic nodes.
-  // (TODO: shouldn't we then restrict them to those classes? See above.)
-  // It computes the first and second gradients of the log prob
-  // of this node with respect to a given target node and
-  // adds them to the passed-in gradient parameters.
-  // Note that for this computation to be correct,
-  // gradients (the grad1 and grad2 properties of nodes)
-  // must have been updated all the way from the
-  // target node to this node.
-  // This is because this method only performs a local computation
-  // and relies on the grad1 and grad2 attributes of nodes.
-  virtual void gradient_log_prob(
-      const graph::Node* target_node,
-      double& /* grad1 */,
-      double& /* grad2 */) const {}
-  virtual void gradient_log_prob(
-      Eigen::MatrixXd& /* grad1 */,
-      Eigen::MatrixXd& /* grad2_diag */) const {}
+  /*** Constructors and destructor ***/
+
   Node() {}
   explicit Node(NodeType node_type)
       : node_type(node_type), grad1(0), grad2(0) {}
   Node(NodeType node_type, NodeValue value)
       : node_type(node_type), value(value), grad1(0), grad2(0) {}
-  // evaluate the node and store the result in `value` if appropriate
-  // eval may involve sampling and that's why we need the random number engine
+  virtual ~Node() {}
+
+  /*** Evaluation and gradients ***/
+
+  virtual bool is_stochastic() const {
+    return false;
+  }
+
+  /*
+   Evaluate the node and store the result in `value` if appropriate
+   eval may involve sampling and that's why we need the random number engine.
+  */
   virtual void eval(std::mt19937& gen) = 0;
 
-  // Computes the first and second gradients of this node
-  // with respect to some (unspecified -- see below) variable.
-  // More specifically, it uses the values stored in this node's input
-  // nodes grad1 and grad2 fields (or Grad1 and Grad2 if they are matrices)
-  // to compute the value of this node's own gradient fields
-  // (again grad1, grad2 or Grad1 and Grad2).
-  // Note that this method does *not* compute the gradient of
-  // this node with respect to its inputs,
-  // but with respect to some (possibly distant) variable.
-  // The method is neutral regarding which variable this is,
-  // and simply computes its own gradient with respect
-  // to the same variable its input node gradients are
-  // with respect to.
-  // In the planned refactoring of BMG's autograd (as of May 2022)
-  // this should be replaced by the more fundamental and modular function
-  // computing a node's gradient with respect to its own inputs,
-  // which should then be used as needed in
-  // applications of the chain rule.
+  virtual bool needs_gradient() const {
+    return true;
+  }
+
+  /*
+   Computes the first and second gradients of this node
+   with respect to some (unspecified -- see below) variable.
+   More specifically, it uses the values stored in this node's input
+   nodes grad1 and grad2 fields (or Grad1 and Grad2 if they are matrices)
+   to compute the value of this node's own gradient fields
+   (again grad1, grad2 or Grad1 and Grad2).
+   Note that this method does *not* compute the gradient of
+   this node with respect to its inputs,
+   but with respect to some (possibly distant) variable.
+   The method is neutral regarding which variable this is,
+   and simply computes its own gradient with respect
+   to the same variable its input node gradients are
+   with respect to.
+   In the planned refactoring of BMG's autograd (as of May 2022)
+   this should be replaced by the more fundamental and modular function
+   computing a node's gradient with respect to its own inputs,
+   which should then be used as needed in
+   applications of the chain rule.
+  */
   virtual void compute_gradients() {}
 
   /*
-  Gradient backward propagation: computes the 1st-order gradient update and
-  add it to the parent's back_grad1.
+   Gradient backward propagation: computes the 1st-order gradient update and
+   add it to the parent's back_grad1.
   */
   virtual void backward() {}
-  virtual ~Node() {}
   void reset_backgrad();
+
   /*
-  The generic forward gradient propagation thru a node (deterministic operator
-  or distribution) with multiple scalar inputs and one scalar output, w.r.t a
-  scalar source. Template is used so that the
-  jacobian and hessian may have fixed sized, which is much faster than dynamic
-  sized.
-  :param jacobian: The Jacobian matrix, with dimension 1 x in-degree.
-  :param hessian: The Hessian matrix, with dimension in-degree x in-degree.
-  :param d_grad1: The double type 1st order gradient
-  :param d_grad2: The double type 2nd order gradient
+   The generic forward gradient propagation thru a node (deterministic operator
+   or distribution) with multiple scalar inputs and one scalar output, w.r.t a
+   scalar source. Template is used so that the
+   jacobian and hessian may have fixed sized, which is much faster than dynamic
+   sized.
+   :param jacobian: The Jacobian matrix, with dimension 1 x in-degree.
+   :param hessian: The Hessian matrix, with dimension in-degree x in-degree.
+   :param d_grad1: The double type 1st order gradient
+   :param d_grad2: The double type 2nd order gradient
   */
   template <class T1, class T2>
   void forward_gradient_scalarops(
@@ -546,8 +526,48 @@ class Node {
       T2& hessian,
       double& d_grad1,
       double& d_grad2) const;
-  // Converts the 1x1 matrix value to a scalar value.
+
+  /* Converts the 1x1 matrix value to a scalar value. */
   void to_scalar();
+
+  /*** The following methods are valid only for *stochastic* nodes. ***/
+  /*** They may eventually be moved to a specific subclass.         ***/
+
+  virtual double log_prob() const {
+    return 0;
+  }
+
+  virtual void log_prob_iid(
+      const graph::NodeValue& /* value */,
+      Eigen::MatrixXd& /* log_probs */) const {}
+
+  /*
+   Convenience creating a matrix for passing to log_prob_iid(value, matrix)
+   and returning it.
+   Returning this large object is fine because Eigen supports move semantics.
+  */
+  virtual Eigen::MatrixXd log_prob_iid(
+      const graph::NodeValue& /* value */) const;
+
+  /*
+   Computes the first and second gradients of the log prob
+   of this node with respect to a given target node and
+   adds them to the passed-in gradient parameters.
+   Note that for this computation to be correct,
+   gradients (the grad1 and grad2 properties of nodes)
+   must have been updated all the way from the
+   target node to this node.
+   This is because this method only performs a local computation
+   and relies on the grad1 and grad2 attributes of nodes.
+  */
+  virtual void gradient_log_prob(
+      const graph::Node* target_node,
+      double& /* grad1 */,
+      double& /* grad2 */) const {}
+
+  virtual void gradient_log_prob(
+      Eigen::MatrixXd& /* grad1 */,
+      Eigen::MatrixXd& /* grad2_diag */) const {}
 };
 
 class ConstNode : public Node {
