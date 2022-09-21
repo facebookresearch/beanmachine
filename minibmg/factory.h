@@ -91,6 +91,7 @@ class Graph::Factory {
   ~Factory();
 
  private:
+  bool built = false;
   std::unordered_map<NodeId, Nodep> nodes;
   std::vector<Nodep> all_nodes;
   unsigned next_query = 0;
