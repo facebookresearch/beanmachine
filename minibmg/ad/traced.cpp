@@ -19,9 +19,9 @@ Traced::Traced(const Operator op, shared_ptr<const TracedBody> p)
 Traced::Traced(double n)
     : m_op{Operator::CONSTANT}, m_ptr{make_shared<TracedConstant>(n)} {}
 
-Traced Traced::variable(const std::string& name, const unsigned sequence) {
+Traced Traced::variable(const std::string& name, const unsigned identifier) {
   return Traced{
-      Operator::VARIABLE, make_shared<TracedVariable>(name, sequence)};
+      Operator::VARIABLE, make_shared<TracedVariable>(name, identifier)};
 }
 
 double Traced::as_double() const {

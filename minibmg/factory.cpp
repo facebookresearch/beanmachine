@@ -9,11 +9,17 @@
 
 namespace beanmachine::minibmg {
 
+std::atomic<unsigned long> NodeId::_next_value{0};
+
+NodeId::NodeId() {
+  this->value = _next_value.fetch_add(1);
+}
+
 NodeId Graph::Factory::add_node(const Node* node) {
   all_nodes.push_back(node);
-  const NodeId& sequence = node->sequence;
-  nodes.insert({sequence, node});
-  return sequence;
+  NodeId identifier{};
+  nodes.insert({identifier, node});
+  return identifier;
 }
 
 NodeId Graph::Factory::add_constant(double value) {
@@ -179,7 +185,6 @@ NodeId Graph::Factory::add_variable(
 
 Graph Graph::Factory::build() {
   auto nodes = this->all_nodes;
-  this->nodes.clear();
   this->all_nodes.clear();
   return Graph{nodes};
 }

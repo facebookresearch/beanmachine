@@ -8,30 +8,14 @@
 #include "beanmachine/minibmg/graph.h"
 #include <fmt/core.h>
 #include <folly/json.h>
+#include <unordered_map>
 #include "beanmachine/minibmg/factory.h"
-
-namespace {
-
-using namespace beanmachine::minibmg;
-
-const std::vector<const Node*> nodes;
-std::unordered_map<NodeId, const Node*> make_nodes_by_id(
-    const std::vector<const Node*> nodes) {
-  std::unordered_map<NodeId, const Node*> result;
-  for (auto node : nodes) {
-    result[node->sequence] = node;
-  }
-  return result;
-}
-
-} // namespace
 
 namespace beanmachine::minibmg {
 
 using dynamic = folly::dynamic;
 
-Graph::Graph(std::vector<const Node*> nodes)
-    : nodes{nodes}, nodes_by_id{make_nodes_by_id(nodes)} {}
+Graph::Graph(std::vector<const Node*> nodes) : nodes{nodes} {}
 
 Graph::~Graph() {
   for (auto node : nodes) {
@@ -42,14 +26,6 @@ Graph::~Graph() {
 Graph Graph::create(std::vector<const Node*> nodes) {
   Graph::validate(nodes);
   return Graph{nodes};
-}
-
-const Node* Graph::operator[](const NodeId& node_id) const {
-  auto t = nodes_by_id.find(node_id);
-  if (t == nodes_by_id.end()) {
-    return nullptr;
-  }
-  return t->second;
 }
 
 void Graph::validate(std::vector<const Node*> nodes) {
@@ -130,26 +106,27 @@ void Graph::validate(std::vector<const Node*> nodes) {
   }
 }
 
-// For now we format sequences as numbers.
-dynamic format_sequence(NodeId id) {
-  return id._value();
-}
-
 folly::dynamic graph_to_json(const Graph& g) {
+  std::unordered_map<const Node*, unsigned long> id_map{};
   dynamic result = dynamic::object;
   result["comment"] = "created by graph_to_json";
   dynamic a = dynamic::array;
 
+  unsigned long next_identifier = 0;
   for (auto node : g) {
+    // assign node identifiers sequentially.  They are called "sequence" in the
+    // generated json.
+    auto identifier = next_identifier++;
+    id_map[node] = identifier;
     dynamic dyn_node = dynamic::object;
-    dyn_node["sequence"] = format_sequence(node->sequence);
+    dyn_node["sequence"] = identifier;
     dyn_node["operator"] = to_string(node->op);
     dyn_node["type"] = to_string(node->type);
     switch (node->op) {
       case Operator::QUERY: {
         auto n = (const QueryNode*)node;
         dyn_node["query_index"] = n->query_index;
-        dyn_node["in_node"] = format_sequence(n->in_node->sequence);
+        dyn_node["in_node"] = id_map[n->in_node];
         break;
       }
       case Operator::CONSTANT: {
@@ -161,7 +138,7 @@ folly::dynamic graph_to_json(const Graph& g) {
         auto n = (const OperatorNode*)node;
         dynamic in_nodes = dynamic::array;
         for (auto pred : n->in_nodes) {
-          in_nodes.push_back(format_sequence(pred->sequence));
+          in_nodes.push_back(id_map[pred]);
         }
         dyn_node["in_nodes"] = in_nodes;
         break;
@@ -178,7 +155,12 @@ JsonError::JsonError(const std::string& message) : message(message) {}
 
 Graph json_to_graph(folly::dynamic d) {
   Graph::Factory gf;
-  std::unordered_map<NodeId, const Node*> sequence_to_node;
+  // Nodes are identified by a "sequence" number appearing in json.
+  // They are arbitrary numbers.  The only requirement is that they
+  // are distinct.  They are used to identify nodes in the json.
+  // This map is used to identify the specific node when it is
+  // referenced in the json.
+  std::unordered_map<int, const Node*> identifier_to_node;
   std::vector<const Node*> all_nodes;
 
   auto json_nodes = d["nodes"];
@@ -186,11 +168,11 @@ Graph json_to_graph(folly::dynamic d) {
     throw JsonError("missing \"nodes\" property");
   }
   for (auto json_node : json_nodes) {
-    auto sequencev = json_node["sequence"];
-    if (!sequencev.isInt()) {
+    auto identifierv = json_node["sequence"];
+    if (!identifierv.isInt()) {
       throw JsonError("missing sequence number.");
     }
-    auto sequence = NodeId(sequencev.asInt());
+    auto identifier = identifierv.asInt();
 
     auto opv = json_node["operator"];
     if (!opv.isString()) {
@@ -222,16 +204,15 @@ Graph json_to_graph(folly::dynamic d) {
         if (!in_nodev.isInt()) {
           throw JsonError("missing in_node for query.");
         }
-        auto in_node_i = NodeId{in_nodev.asInt()};
-        if (sequence_to_node.find(in_node_i) == sequence_to_node.end()) {
+        auto in_node_i = in_nodev.asInt();
+        if (identifier_to_node.find(in_node_i) == identifier_to_node.end()) {
           throw JsonError("bad in_node for query.");
         }
-        auto in_node = sequence_to_node.find(in_node_i)->second;
+        auto in_node = identifier_to_node.find(in_node_i)->second;
         if (type != Type::NONE) {
           throw JsonError("bad type for query.");
         }
         node = new QueryNode{query_index, in_node};
-        node->sequence = sequence;
         break;
       }
       case Operator::CONSTANT: {
@@ -248,7 +229,6 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("bad type for query.");
         }
         node = new ConstantNode{value};
-        node->sequence = sequence;
         break;
       }
       case Operator::VARIABLE: {
@@ -268,7 +248,6 @@ Graph json_to_graph(folly::dynamic d) {
         }
         auto variable_index = (unsigned)variable_indexv.asInt();
         node = new VariableNode{name, variable_index};
-        node->sequence = sequence;
         break;
       }
       default: {
@@ -281,23 +260,22 @@ Graph json_to_graph(folly::dynamic d) {
           if (!in_nodev.isInt()) {
             throw JsonError("missing in_node for query.");
           }
-          auto in_node_i = NodeId{in_nodev.asInt()};
-          if (sequence_to_node.find(in_node_i) == sequence_to_node.end()) {
+          auto in_node_i = in_nodev.asInt();
+          if (identifier_to_node.find(in_node_i) == identifier_to_node.end()) {
             throw JsonError("bad in_node for query.");
           }
-          auto in_node = sequence_to_node.find(in_node_i)->second;
+          auto in_node = identifier_to_node.find(in_node_i)->second;
           in_nodes.push_back(in_node);
         }
         node = new OperatorNode{in_nodes, op, type};
-        node->sequence = sequence;
         break;
       }
     }
 
-    if (sequence_to_node.find(sequence) != sequence_to_node.end()) {
-      throw JsonError(fmt::format("duplicate node ID {}.", sequence));
+    if (identifier_to_node.find(identifier) != identifier_to_node.end()) {
+      throw JsonError(fmt::format("duplicate node ID {}.", identifier));
     }
-    sequence_to_node[sequence] = node;
+    identifier_to_node[identifier] = node;
     all_nodes.push_back(node);
   }
 

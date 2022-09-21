@@ -32,7 +32,7 @@ class Traced {
   shared_ptr<const TracedBody> m_ptr;
 
   /* implicit */ Traced(double d);
-  static Traced variable(const std::string& name, const unsigned sequence);
+  static Traced variable(const std::string& name, const unsigned identifier);
   inline Operator op() const {
     return m_op;
   }

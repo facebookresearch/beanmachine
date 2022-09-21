@@ -10,14 +10,7 @@
 
 namespace beanmachine::minibmg {
 
-std::atomic<unsigned long> NodeId::_next_value{0};
-
-NodeId::NodeId() {
-  this->value = _next_value.fetch_add(1);
-}
-
-Node::Node(const enum Operator op, const Type type)
-    : sequence{}, op{op}, type{type} {}
+Node::Node(const enum Operator op, const Type type) : op{op}, type{type} {}
 
 Node::~Node() {}
 
@@ -44,11 +37,9 @@ QueryNode::QueryNode(const unsigned query_index, const Node* in_node)
 ConstantNode::ConstantNode(const double value)
     : Node{Operator::CONSTANT, Type::REAL}, value{value} {}
 
-VariableNode::VariableNode(
-    const std::string& name,
-    const unsigned variable_index)
+VariableNode::VariableNode(const std::string& name, const unsigned identifier)
     : Node{Operator::VARIABLE, Type::REAL},
       name{name},
-      variable_index{variable_index} {}
+      identifier{identifier} {}
 
 } // namespace beanmachine::minibmg
