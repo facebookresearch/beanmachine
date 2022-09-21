@@ -143,7 +143,13 @@ class BMGInference:
         return samples
 
     def _build_mcsamples(
-        self, rv_to_query, samples, query_to_query_id, num_samples: int, num_chains: int
+        self,
+        rv_to_query,
+        samples,
+        query_to_query_id,
+        num_samples: int,
+        num_chains: int,
+        num_adaptive_samples: int,
     ) -> MonteCarloSamples:
         self._begin(prof.build_mcsamples)
 
@@ -162,9 +168,13 @@ class BMGInference:
         # we had to tweak it to support the right operator for merging
         # saumple values when num_chains!=1.
         if num_chains == 1:
-            mcsamples = MonteCarloSamples(results[0], 0, stack_not_cat=True)
+            mcsamples = MonteCarloSamples(
+                results[0], num_adaptive_samples, stack_not_cat=True
+            )
         else:
-            mcsamples = MonteCarloSamples(results, 0, stack_not_cat=False)
+            mcsamples = MonteCarloSamples(
+                results, num_adaptive_samples, stack_not_cat=False
+            )
 
         self._finish(prof.build_mcsamples)
 
@@ -176,6 +186,7 @@ class BMGInference:
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
         num_chains: int = 1,
+        num_adaptive_samples: int = 0,
         inference_type: InferenceType = InferenceType.NMC,
         produce_report: bool = True,
         skip_optimizations: Set[str] = default_skip_optimizations,
@@ -193,6 +204,7 @@ class BMGInference:
         g = generated_graph.graph
         query_to_query_id = generated_graph.query_to_query_id
 
+        num_samples = num_samples + num_adaptive_samples
         samples = []
 
         # BMG requires that we have at least one query.
@@ -231,6 +243,7 @@ class BMGInference:
             query_to_query_id,
             num_samples,
             num_chains,
+            num_adaptive_samples,
         )
 
         self._finish(prof.infer)
@@ -246,6 +259,7 @@ class BMGInference:
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
         num_chains: int = 4,
+        num_adaptive_samples: int = 0,
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
@@ -259,6 +273,7 @@ class BMGInference:
             observations: observations dict
             num_samples: number of samples in each chain
             num_chains: number of chains generated
+            num_adaptive_samples: number of burn in samples to discard
             inference_type: inference method, currently only NMC is supported
             skip_optimizations: list of optimization to disable in this call
 
@@ -272,6 +287,7 @@ class BMGInference:
             observations,
             num_samples,
             num_chains,
+            num_adaptive_samples,
             inference_type,
             False,
             skip_optimizations,

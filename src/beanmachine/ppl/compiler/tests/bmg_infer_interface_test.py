@@ -135,6 +135,25 @@ tensor([[[ 1.5000, -2.5000]],
         f4 = samples[flip4()]
         self.assertEqual(str(f3), str(f4))
 
+    def test_infer_interface_burn_in(self) -> None:
+        # Check default case when num_adaptive_samples = 0
+        num_samples = 25
+        num_adaptive_samples = 0
+        samples = BMGInference().infer([c(), c2()], {}, num_samples, 1)
+        observed = len(samples[c()][0])
+        expected = num_samples
+        self.assertEqual(expected, observed)
+
+        # Check case when num_adaptive_samples = 10
+        num_samples = 25
+        num_adaptive_samples = 10
+        samples = BMGInference().infer(
+            [c(), c2()], {}, num_samples, 1, num_adaptive_samples=num_adaptive_samples
+        )
+        observed = len(samples[c()][0])
+        expected = num_samples
+        self.assertEqual(expected, observed)
+
     class SampleModel:
         @bm.random_variable
         def a(self):
