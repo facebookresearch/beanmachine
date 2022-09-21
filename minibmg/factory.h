@@ -81,7 +81,7 @@ class Graph::Factory {
 
   NodeId add_variable(const std::string& name, const unsigned variable_index);
 
-  inline const Node* operator[](const NodeId& node_id) const {
+  inline Nodep operator[](const NodeId& node_id) const {
     auto t = nodes.find(node_id);
     if (t == nodes.end())
       return nullptr;
@@ -91,11 +91,11 @@ class Graph::Factory {
   ~Factory();
 
  private:
-  std::unordered_map<NodeId, const Node*> nodes;
-  std::vector<const Node*> all_nodes;
+  std::unordered_map<NodeId, Nodep> nodes;
+  std::vector<Nodep> all_nodes;
   unsigned next_query = 0;
 
-  NodeId add_node(const Node* node);
+  NodeId add_node(Nodep node);
 };
 
 enum Type expected_result_type(enum Operator op);

@@ -18,13 +18,13 @@ using namespace beanmachine::minibmg;
 
 class Out_Nodes_Data {
  public:
-  std::map<const Node*, std::list<const Node*>*> node_map{};
+  std::map<Nodep, std::list<Nodep>*> node_map{};
   ~Out_Nodes_Data() {
     for (auto e : node_map) {
       delete e.second;
     }
   }
-  std::list<const Node*>& for_node(const Node* node) {
+  std::list<Nodep>& for_node(Nodep node) {
     auto found = node_map.find(node);
     if (found == node_map.end()) {
       throw std::invalid_argument("node not in graph");
@@ -39,7 +39,7 @@ class Out_Nodes_Property
   Out_Nodes_Data* create(const Graph& g) const override {
     Out_Nodes_Data* data = new Out_Nodes_Data{};
     for (auto node : g) {
-      data->node_map[node] = new std::list<const Node*>{};
+      data->node_map[node] = new std::list<Nodep>{};
       switch (node->op) {
         case Operator::CONSTANT:
         case Operator::VARIABLE:
@@ -47,14 +47,14 @@ class Out_Nodes_Property
           break;
         case Operator::QUERY: {
           // query has one input.
-          auto query = static_cast<const QueryNode*>(node);
+          auto query = std::dynamic_pointer_cast<const QueryNode>(node);
           auto& predecessor_out_set = data->for_node(query->in_node);
           predecessor_out_set.push_back(node);
           break;
         }
         default: {
           // the rest are operator nodes.
-          auto opnode = static_cast<const OperatorNode*>(node);
+          auto opnode = std::dynamic_pointer_cast<const OperatorNode>(node);
           for (auto in_node : opnode->in_nodes) {
             auto& predecessor_out_set = data->for_node(in_node);
             predecessor_out_set.push_back(node);
@@ -72,9 +72,9 @@ class Out_Nodes_Property
 
 namespace beanmachine::minibmg {
 
-const std::list<const Node*>& out_nodes(const Graph& graph, const Node* node) {
+const std::list<Nodep>& out_nodes(const Graph& graph, Nodep node) {
   Out_Nodes_Data* data = Out_Nodes_Property::get(graph);
-  std::list<const Node*>& result = data->for_node(node);
+  std::list<Nodep>& result = data->for_node(node);
   return result;
 }
 

@@ -18,6 +18,10 @@
 
 namespace beanmachine::minibmg {
 
+class Node;
+
+using Nodep = std::shared_ptr<const Node>;
+
 class Node {
  public:
   Node(const enum Operator op, const Type type);
@@ -29,10 +33,10 @@ class Node {
 class OperatorNode : public Node {
  public:
   OperatorNode(
-      const std::vector<const Node*>& in_nodes,
+      const std::vector<Nodep>& in_nodes,
       const enum Operator op,
       const enum Type type);
-  std::vector<const Node*> in_nodes;
+  std::vector<Nodep> in_nodes;
 };
 
 class ConstantNode : public Node {
@@ -53,9 +57,9 @@ class VariableNode : public Node {
 
 class QueryNode : public Node {
  public:
-  QueryNode(const unsigned query_index, const Node* in_node);
+  QueryNode(const unsigned query_index, Nodep in_node);
   unsigned query_index;
-  const Node* in_node;
+  Nodep in_node;
 };
 
 } // namespace beanmachine::minibmg
