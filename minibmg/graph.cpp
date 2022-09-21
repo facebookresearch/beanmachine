@@ -15,21 +15,17 @@ namespace beanmachine::minibmg {
 
 using dynamic = folly::dynamic;
 
-Graph::Graph(std::vector<const Node*> nodes) : nodes{nodes} {}
+Graph::Graph(std::vector<Nodep> nodes) : nodes{nodes} {}
 
-Graph::~Graph() {
-  for (auto node : nodes) {
-    delete node;
-  }
-}
+Graph::~Graph() {}
 
-Graph Graph::create(std::vector<const Node*> nodes) {
+Graph Graph::create(std::vector<Nodep> nodes) {
   Graph::validate(nodes);
   return Graph{nodes};
 }
 
-void Graph::validate(std::vector<const Node*> nodes) {
-  std::unordered_set<const Node*> seen;
+void Graph::validate(std::vector<Nodep> nodes) {
+  std::unordered_set<Nodep> seen;
   unsigned next_query = 0;
   // Check the nodes.
   for (int i = 0, n = nodes.size(); i < n; i++) {
@@ -57,7 +53,7 @@ void Graph::validate(std::vector<const Node*> nodes) {
       case Operator::CONSTANT:
         break;
       case Operator::QUERY: {
-        const QueryNode* q = (QueryNode*)node;
+        auto q = std::dynamic_pointer_cast<const QueryNode>(node);
         if (q->query_index != next_query) {
           throw std::invalid_argument(fmt::format(
               "Node {0} has query index {1} but should be {2}",
@@ -79,7 +75,7 @@ void Graph::validate(std::vector<const Node*> nodes) {
 
       // Check other operators.
       default: {
-        const OperatorNode* op = (OperatorNode*)node;
+        auto op = std::dynamic_pointer_cast<const OperatorNode>(node);
         unsigned ix = (unsigned)node->op;
         auto parent_types = expected_parents[ix];
         if (op->in_nodes.size() != parent_types.size()) {
@@ -87,7 +83,7 @@ void Graph::validate(std::vector<const Node*> nodes) {
               "Node {0} should have {1} parents", i, parent_types.size()));
         }
         for (int j = 0, m = parent_types.size(); j < m; j++) {
-          const Node* parent = op->in_nodes[j];
+          Nodep parent = op->in_nodes[j];
           if (!seen.count(parent)) {
             throw std::invalid_argument(
                 fmt::format("Node {0} has a parent not previously seen", i));
@@ -107,7 +103,7 @@ void Graph::validate(std::vector<const Node*> nodes) {
 }
 
 folly::dynamic graph_to_json(const Graph& g) {
-  std::unordered_map<const Node*, unsigned long> id_map{};
+  std::unordered_map<Nodep, unsigned long> id_map{};
   dynamic result = dynamic::object;
   result["comment"] = "created by graph_to_json";
   dynamic a = dynamic::array;
@@ -124,18 +120,18 @@ folly::dynamic graph_to_json(const Graph& g) {
     dyn_node["type"] = to_string(node->type);
     switch (node->op) {
       case Operator::QUERY: {
-        auto n = (const QueryNode*)node;
+        auto n = std::dynamic_pointer_cast<const QueryNode>(node);
         dyn_node["query_index"] = n->query_index;
         dyn_node["in_node"] = id_map[n->in_node];
         break;
       }
       case Operator::CONSTANT: {
-        auto n = (const ConstantNode*)node;
+        auto n = std::dynamic_pointer_cast<const ConstantNode>(node);
         dyn_node["value"] = n->value;
         break;
       }
       default: {
-        auto n = (const OperatorNode*)node;
+        auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
         dynamic in_nodes = dynamic::array;
         for (auto pred : n->in_nodes) {
           in_nodes.push_back(id_map[pred]);
@@ -160,8 +156,8 @@ Graph json_to_graph(folly::dynamic d) {
   // are distinct.  They are used to identify nodes in the json.
   // This map is used to identify the specific node when it is
   // referenced in the json.
-  std::unordered_map<int, const Node*> identifier_to_node;
-  std::vector<const Node*> all_nodes;
+  std::unordered_map<int, Nodep> identifier_to_node;
+  std::vector<Nodep> all_nodes;
 
   auto json_nodes = d["nodes"];
   if (!json_nodes.isArray()) {
@@ -191,7 +187,7 @@ Graph json_to_graph(folly::dynamic d) {
       type = type_from_name(typev.asString());
     }
 
-    Node* node;
+    Nodep node;
     switch (op) {
       case Operator::QUERY: {
         auto query_indexv = json_node["query_index"];
@@ -212,7 +208,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (type != Type::NONE) {
           throw JsonError("bad type for query.");
         }
-        node = new QueryNode{query_index, in_node};
+        node = std::make_shared<const QueryNode>(query_index, in_node);
         break;
       }
       case Operator::CONSTANT: {
@@ -228,7 +224,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (type != Type::REAL) {
           throw JsonError("bad type for query.");
         }
-        node = new ConstantNode{value};
+        node = std::make_shared<const ConstantNode>(value);
         break;
       }
       case Operator::VARIABLE: {
@@ -247,7 +243,7 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("bad variable_index for variable.");
         }
         auto variable_index = (unsigned)variable_indexv.asInt();
-        node = new VariableNode{name, variable_index};
+        node = std::make_shared<const VariableNode>(name, variable_index);
         break;
       }
       default: {
@@ -255,7 +251,7 @@ Graph json_to_graph(folly::dynamic d) {
         if (!in_nodesv.isArray()) {
           throw JsonError("missing in_nodes.");
         }
-        std::vector<const Node*> in_nodes;
+        std::vector<Nodep> in_nodes;
         for (auto in_nodev : in_nodesv) {
           if (!in_nodev.isInt()) {
             throw JsonError("missing in_node for query.");
@@ -267,7 +263,7 @@ Graph json_to_graph(folly::dynamic d) {
           auto in_node = identifier_to_node.find(in_node_i)->second;
           in_nodes.push_back(in_node);
         }
-        node = new OperatorNode{in_nodes, op, type};
+        node = std::make_shared<const OperatorNode>(in_nodes, op, type);
         break;
       }
     }

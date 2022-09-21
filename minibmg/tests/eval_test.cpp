@@ -33,7 +33,7 @@ TEST(eval_test, simple1) {
   std::mt19937 gen;
   auto read_variable = [](const std::string&, const unsigned) { return 1.15; };
   int graph_size = graph.size();
-  unordered_map<const Node*, Real> data;
+  unordered_map<Nodep, Real> data;
   eval_graph<Real>(graph, gen, read_variable, data);
   EXPECT_CLOSE(1.995, data[fac[sub1]].as_double());
 }
@@ -58,7 +58,7 @@ TEST(eval_test, sample1) {
   double sum = 0;
   double sum_squared = 0;
   int graph_size = graph.size();
-  std::unordered_map<const Node*, Real> data;
+  std::unordered_map<Nodep, Real> data;
   for (int i = 0; i < n; i++) {
     eval_graph<Real>(graph, gen, nullptr, data);
     auto sample = data[fac[sample0]].as_double();
@@ -109,7 +109,7 @@ TEST(eval_test, derivative_dual) {
   // We generate several doubles between -2.0 and 2.0 to test with.
   std::uniform_real_distribution<double> unif(-2.0, 2.0);
 
-  std::unordered_map<const Node*, Dual> data;
+  std::unordered_map<Nodep, Dual> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
     auto read_variable = [=](const std::string&, const unsigned) {
@@ -142,7 +142,7 @@ TEST(eval_test, derivatives_triune) {
   // We generate several doubles between -2.0 and 2.0 to test with.
   std::uniform_real_distribution<double> unif(-2.0, 2.0);
 
-  std::unordered_map<const Node*, Triune> data;
+  std::unordered_map<Nodep, Triune> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
     auto read_variable = [=](const std::string&, const unsigned) {
