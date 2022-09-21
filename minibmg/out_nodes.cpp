@@ -45,13 +45,6 @@ class Out_Nodes_Property
         case Operator::VARIABLE:
           // these nodes do not have inputs.
           break;
-        case Operator::QUERY: {
-          // query has one input.
-          auto query = std::dynamic_pointer_cast<const QueryNode>(node);
-          auto& predecessor_out_set = data->for_node(query->in_node);
-          predecessor_out_set.push_back(node);
-          break;
-        }
         default: {
           // the rest are operator nodes.
           auto opnode = std::dynamic_pointer_cast<const OperatorNode>(node);

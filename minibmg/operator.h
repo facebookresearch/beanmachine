@@ -104,19 +104,6 @@ enum class Operator {
   // Result: A sample from the distribution (REAL)
   SAMPLE,
 
-  // Observe a sample from the distribution parameter.
-  // Parameters:
-  // - ditribution (DISTRIBUTION)
-  // - value (REAL)
-  // Result: NONE.
-  OBSERVE,
-
-  // Query an intermediate result in the graph.
-  // Parameters:
-  // - value (REAL)
-  // Result: NONE.
-  QUERY,
-
   // Not a real operator.  Used as a limit when looping through operators.
   LAST_OPERATOR,
 };
