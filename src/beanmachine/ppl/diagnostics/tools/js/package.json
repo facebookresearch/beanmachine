@@ -1,0 +1,54 @@
+{
+  "name": "visual-diagnostic-tools",
+  "version": "0.1.0",
+  "description": "",
+  "license": "MIT",
+  "keywords": [],
+  "repository": {},
+  "scripts": {
+    "build": "webpack"
+  },
+  "dependencies": {
+    "@bokeh/bokehjs": "^2.4.3",
+    "fast-kde": "^0.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.4",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "eslint": "^8.19.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
+    "ts-loader": "^9.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "overrides": {
+    "cwise": "$cwise",
+    "minimist": "$minimist",
+    "quote-stream": "$quote-stream",
+    "static-eval": "$static-eval",
+    "static-module": "$static-module",
+    "typedarray-pool": "$typedarray-pool"
+  },
+  "peerDependencies": {
+    "@types/cwise": "^1.0.4",
+    "@types/minimist": "^1.2.2",
+    "@types/static-eval": "^0.2.31",
+    "@types/typedarray-pool": "^1.1.2",
+    "buffer": "^6.0.3",
+    "cwise": "^1.0.10",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "minimist": "^1.2.6",
+    "quote-stream": "^1.0.2",
+    "static-eval": "2.1.0",
+    "static-module": "^3.0.4",
+    "typedarray-pool": "^1.2.0"
+  }
+}

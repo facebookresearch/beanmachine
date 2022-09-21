@@ -8,6 +8,7 @@ from torch.distributions import Distribution
 from . import experimental
 from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
+from .diagnostics.tools import viz
 from .inference import (
     CompositionalInference,
     empirical,
@@ -60,4 +61,5 @@ __all__ = [
     "random_variable",
     "simulate",
     "split_r_hat",
+    "viz",
 ]
