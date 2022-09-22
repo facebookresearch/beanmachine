@@ -8,10 +8,10 @@
 from itertools import chain
 from typing import List, Optional
 
-import arviz as az
 import numpy as np
+import statsmodels.api as sm
 from beanmachine.ppl.diagnostics.tools.marginal1d import typing
-from beanmachine.ppl.diagnostics.tools.utils import plotting_utils
+from beanmachine.ppl.diagnostics.tools.utils import hdi, plotting_utils
 from bokeh.models.annotations import Band, LabelSet
 from bokeh.models.glyphs import Circle, Line
 from bokeh.models.layouts import Column, Row
@@ -76,13 +76,13 @@ def compute_stats(
     kdex = np.array(kde_x)
     kdey = np.array(kde_y)
     mean = np.mean(kdex)
-    hdi = az.stats.hdi(ary=flattened_data, hdi_prob=hdi_probability)
-    x = [hdi[0], mean, hdi[1]]
+    hdi_interval = hdi.interval(flattened_data, hdi_probability)
+    x = [hdi_interval["lower_bound"], mean, hdi_interval["upper_bound"]]
     y = np.interp(x=np.array(x).astype(float), xp=kdex, fp=kdey)
     text = [
-        f"Lower HDI: {hdi[0]:.4}",
+        f"Lower HDI: {hdi_interval['lower_bound']:.4}",
         f"Mean: {mean:.4}",
-        f"Upper HDI: {hdi[1]:.4}",
+        f"Upper HDI: {hdi_interval['upper_bound']:.4}",
     ]
     stats = {"x": x, "y": y.tolist(), "text": text}
     labels = {}
@@ -125,8 +125,10 @@ def hdi_data(
     flattened_data = np.array(list(chain(*data)))
     kdex = np.array(kde_x)
     kdey = np.array(kde_y)
-    hdi = az.stats.hdi(ary=flattened_data, hdi_prob=hdi_probability)
-    mask = np.ix_(np.logical_and(kdex >= hdi[0], kdex <= hdi[1]))[0]
+    hdi_interval = hdi.interval(flattened_data, hdi_probability)
+    hdi_lb = hdi_interval["lower_bound"]
+    hdi_ub = hdi_interval["upper_bound"]
+    mask = np.ix_(np.logical_and(kdex >= hdi_lb, kdex <= hdi_ub))[0]
     base = kdex[mask]
     lower = np.zeros((len(mask)))
     upper = kdey[mask]
@@ -158,12 +160,11 @@ def compute_data(
     output = {}
     for figure_name in FIGURE_NAMES:
         output[figure_name] = {}
-        x, y, bandwidth = az.stats.density_utils._kde_linear(
-            x=flattened_data,
-            bw="scott",  # Scott is chosen to mirror fast-kde in the JavaScript.
-            bw_return=True,
-            bw_fct=bw_factor,
-        )
+        kde = sm.nonparametric.KDEUnivariate(flattened_data)
+        kde.fit(bw="scott", adjust=bw_factor, gridsize=512)
+        x = kde.support
+        y = kde.density
+        bandwidth = kde.bw
         if figure_name == "cumulative":
             y = np.cumsum(y)
         y /= y.max()

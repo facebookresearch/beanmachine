@@ -5,4 +5,6 @@
 
 import * as marginal1d from './callbacks';
 
+// The CustomJS methods used by Bokeh require us to make the JavaScript available in the
+// browser, which is done by defining it below.
 (window as any).marginal1d = marginal1d;

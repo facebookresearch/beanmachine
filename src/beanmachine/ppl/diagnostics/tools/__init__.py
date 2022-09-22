@@ -3,6 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+# flake8: noqa
+
+"""Visual diagnostic tools for Bean Machine models."""
+
 import sys
 from pathlib import Path
 

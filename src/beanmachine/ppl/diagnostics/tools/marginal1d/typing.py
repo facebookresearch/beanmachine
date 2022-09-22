@@ -20,7 +20,7 @@ from bokeh.plotting.figure import Figure
 
 
 # NOTE: These are the types pyre gives us when using `reveal_type(...)` on the outputs
-# of the methods.
+#       of the methods.
 StatsAndLabelsData = Dict[str, Dict[str, Any]]
 HDIData = Dict[str, Any]
 Data = Dict[Any, Any]
