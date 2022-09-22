@@ -187,7 +187,7 @@ Graph Graph::Factory::build() {
 
   // We preserve this->nodes so it can be used for lookup.
   built = true;
-  return Graph::create(queries, observations);
+  return Graph{queries, observations};
 }
 
 Graph::Factory::~Factory() {
