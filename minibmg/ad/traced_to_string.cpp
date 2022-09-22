@@ -192,11 +192,9 @@ std::string to_string(const Nodep& node) {
         return std::dynamic_pointer_cast<const OperatorNode>(t)->in_nodes;
     }
   };
-  auto pred_counts = count_predecessors<Nodep>({node}, successors);
-  std::map<Nodep, unsigned> pred_counts_copy = pred_counts;
   std::vector<Nodep> topologically_sorted;
-  bool sorted = topological_sort<Nodep>(
-      pred_counts_copy, successors, topologically_sorted);
+  bool sorted =
+      topological_sort<Nodep>({node}, successors, topologically_sorted);
   if (!sorted) {
     throw std::invalid_argument("cycle in graph");
   }

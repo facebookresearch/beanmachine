@@ -14,21 +14,13 @@
 
 namespace {
 
-template <class K, class V>
-class insertion_ordered_map {
- private:
-
-};
-
-}
-namespace beanmachine::minibmg {
-
 // Compute the predecessor count for all nodes reachable from the set of roots
 // given.
 template <class T>
-std::map<T, unsigned> count_predecessors(
+std::map<T, unsigned> count_predecessors_internal(
     const std::list<T>& root_nodes,
-    std::function<std::vector<T>(const T&)> successors) {
+    std::function<std::vector<T>(const T&)> successors,
+    std::list<T>& nodes) {
   std::map<T, unsigned> predecessor_counts;
   std::list<T> to_count;
   std::set<T> counted;
@@ -43,6 +35,7 @@ std::map<T, unsigned> count_predecessors(
       continue;
     }
     counted.insert(node);
+    nodes.push_back(node);
 
     if (predecessor_counts.find(node) == predecessor_counts.end()) {
       predecessor_counts[node] = 0;
@@ -69,15 +62,16 @@ std::map<T, unsigned> count_predecessors(
 // topological sort succeeds (no cycle was found).  Returns the topologically
 // sorted result in the `result` parameter.  Note: clears `predecessor_counts`.
 template <class T>
-bool topological_sort(
+bool topological_sort_internal(
     std::map<T, unsigned>& predecessor_counts,
     std::function<std::vector<T>(const T&)> successors,
+    std::list<T>& nodes,
     std::vector<T>& result) {
   // initialize the ready set with those nodes that have no predecessors
   std::list<T> ready;
-  for (auto node_and_count : predecessor_counts) {
-    if (node_and_count.second == 0) {
-      ready.push_back(node_and_count.first);
+  for (auto node : nodes) {
+    if (predecessor_counts[node] == 0) {
+      ready.push_back(node);
     }
   }
 
@@ -103,6 +97,20 @@ bool topological_sort(
   return predecessor_counts.size() == result.size();
 }
 
+} // namespace
+
+namespace beanmachine::minibmg {
+
+// Compute the predecessor count for all nodes reachable from the set of roots
+// given.
+template <class T>
+std::map<T, unsigned> count_predecessors(
+    const std::list<T>& root_nodes,
+    std::function<std::vector<T>(const T&)> successors) {
+  std::list<T> ready;
+  return count_predecessors_internal<T>(root_nodes, successors, ready);
+}
+
 // Perform a topological sort of the nodes in the directed acyclic graph imposed
 // by the set of root nodes and the successor relation.  Returns true if the
 // topological sort succeeds (no cycle was found).  Returns the topologically
@@ -112,10 +120,12 @@ bool topological_sort(
     const std::list<T>& root_nodes,
     std::function<std::vector<T>(const T&)> successors,
     std::vector<T>& result) {
+  std::list<T> ready;
   // count the predecessors of each node.
   std::map<T, unsigned> predecessor_counts =
-      count_predecessors(root_nodes, successors);
-  return topological_sort(predecessor_counts, successors, result);
+      count_predecessors_internal<T>(root_nodes, successors, ready);
+  return topological_sort_internal<T>(
+      predecessor_counts, successors, ready, result);
 }
 
 } // namespace beanmachine::minibmg
