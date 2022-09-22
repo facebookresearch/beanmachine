@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <stdexcept>
 
 #include "beanmachine/minibmg/minibmg.h"
 
@@ -88,4 +89,11 @@ TEST(test_minibmg, type_to_string) {
 
   // with runtime checks enabled, the following would crash at the cast.
   // ASSERT_EQ(to_string((Type)10000), "NONE");
+}
+
+TEST(test_minibmg, duplicate_build) {
+  Graph::Factory gf;
+  Graph g = gf.build();
+  ASSERT_THROW(gf.add_constant(1.2);, std::invalid_argument);
+  ASSERT_THROW(gf.build();, std::invalid_argument);
 }

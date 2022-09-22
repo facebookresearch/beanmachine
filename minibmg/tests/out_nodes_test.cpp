@@ -26,6 +26,7 @@ TEST(out_nodes_test, simple) {
   auto observe = gf.add_operator(Operator::OBSERVE, {beta, k78});
   NodeId query;
   /* auto query_ = */ gf.add_query(beta, query);
+  Graph g = gf.build();
 
   Nodep k12n = gf[k12];
   Nodep k34n = gf[k34];
@@ -36,7 +37,6 @@ TEST(out_nodes_test, simple) {
   Nodep k78n = gf[k78];
   Nodep observen = gf[observe];
   Nodep queryn = gf[query];
-  Graph g = gf.build();
 
   ASSERT_EQ(out_nodes(g, k12n), std::list{plusn});
   ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn, betan}));
