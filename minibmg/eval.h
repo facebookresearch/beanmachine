@@ -100,6 +100,11 @@ void eval_graph(
     std::function<T(const std::string& name, const unsigned identifier)>
         read_variable,
     std::unordered_map<Nodep, T>& data) {
+  // Copy observations into a map for easy access.
+  std::unordered_map<Nodep, double> observations;
+  for (auto p : graph.observations) {
+    observations[p.first] = p.second;
+  }
   int n = graph.size();
   for (int i = 0; i < n; i++) {
     Nodep node = graph[i];
@@ -115,29 +120,22 @@ void eval_graph(
         break;
       }
       case Operator::SAMPLE: {
-        auto sample = std::dynamic_pointer_cast<const OperatorNode>(node);
-        Nodep in0 = sample->in_nodes[0];
-        auto dist = std::dynamic_pointer_cast<const OperatorNode>(in0);
-        std::function<double(unsigned)> get_parameter = [&](unsigned i) {
-          return data[dist->in_nodes[i]].as_double();
-        };
-        put(data, node, T{sample_distribution(dist->op, get_parameter, gen)});
+        auto obsp = observations.find(node);
+        double value;
+        if (obsp != observations.end()) {
+          value = obsp->second;
+        } else {
+          auto sample = std::dynamic_pointer_cast<const OperatorNode>(node);
+          Nodep in0 = sample->in_nodes[0];
+          auto dist = std::dynamic_pointer_cast<const OperatorNode>(in0);
+          std::function<double(unsigned)> get_parameter = [&](unsigned i) {
+            return data[dist->in_nodes[i]].as_double();
+          };
+          value = sample_distribution(dist->op, get_parameter, gen);
+        }
+        put(data, node, T{value});
         break;
       }
-      case Operator::QUERY: {
-        // We treat a query like a sample.
-        auto sample = std::dynamic_pointer_cast<const QueryNode>(node);
-        Nodep in0 = sample->in_node;
-        auto dist = std::dynamic_pointer_cast<const OperatorNode>(in0);
-        std::function<double(unsigned)> get_parameter = [&](unsigned i) {
-          return data[dist->in_nodes[i]].as_double();
-        };
-        put(data, node, T{sample_distribution(dist->op, get_parameter, gen)});
-        break;
-      }
-      case Operator::OBSERVE:
-        // OBSERVE has no result and has no effect during evaluation.
-        break;
       case Operator::NO_OPERATOR:
         throw EvalError(
             "sample_distribution does not support " + to_string(node->op));
