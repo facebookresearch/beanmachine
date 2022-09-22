@@ -21,7 +21,7 @@ NodeId Graph::Factory::add_node(Nodep node) {
     throw std::invalid_argument("Graph has already been built");
   }
   NodeId identifier{};
-  nodes.insert({identifier, node});
+  identifer_to_node.insert({identifier, node});
   return identifier;
 }
 
@@ -137,7 +137,7 @@ NodeId Graph::Factory::add_operator(
   }
   for (int i = 0, n = expected.size(); i < n; i++) {
     NodeId p = parents[i];
-    auto parent_node = nodes[p];
+    auto parent_node = identifer_to_node[p];
     if (parent_node == nullptr) {
       throw std::invalid_argument("Reference to nonexistent node.");
     }
@@ -160,7 +160,7 @@ NodeId Graph::Factory::add_variable(
 }
 
 void Graph::Factory::add_observation(NodeId sample, double value) {
-  auto parent_node = nodes[sample];
+  auto parent_node = identifer_to_node[sample];
   if (parent_node == nullptr) {
     throw std::invalid_argument("Reference to nonexistent node.");
   }
@@ -168,7 +168,7 @@ void Graph::Factory::add_observation(NodeId sample, double value) {
 }
 
 unsigned Graph::Factory::add_query(NodeId queried) {
-  auto parent_node = nodes[queried];
+  auto parent_node = identifer_to_node[queried];
   if (parent_node == nullptr) {
     throw std::invalid_argument("Reference to nonexistent node.");
   }
@@ -187,11 +187,11 @@ Graph Graph::Factory::build() {
 
   // We preserve this->nodes so it can be used for lookup.
   built = true;
-  return Graph::create(queries, observations);
+  return Graph{queries, observations};
 }
 
 Graph::Factory::~Factory() {
-  this->nodes.clear();
+  this->identifer_to_node.clear();
 }
 
 } // namespace beanmachine::minibmg

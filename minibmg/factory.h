@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <list>
+#include <unordered_map>
 #include <vector>
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/node.h"
@@ -84,8 +84,8 @@ class Graph::Factory {
   NodeId add_variable(const std::string& name, const unsigned variable_index);
 
   inline Nodep operator[](const NodeId& node_id) const {
-    auto t = nodes.find(node_id);
-    if (t == nodes.end())
+    auto t = identifer_to_node.find(node_id);
+    if (t == identifer_to_node.end())
       return nullptr;
     return t->second;
   }
@@ -94,7 +94,7 @@ class Graph::Factory {
 
  private:
   bool built = false;
-  std::unordered_map<NodeId, Nodep> nodes;
+  std::unordered_map<NodeId, Nodep> identifer_to_node;
   std::vector<Nodep> queries;
   std::list<std::pair<Nodep, double>> observations;
 
