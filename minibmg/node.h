@@ -55,11 +55,4 @@ class VariableNode : public Node {
   unsigned identifier;
 };
 
-class QueryNode : public Node {
- public:
-  QueryNode(const unsigned query_index, Nodep in_node);
-  unsigned query_index;
-  Nodep in_node;
-};
-
 } // namespace beanmachine::minibmg
