@@ -12,6 +12,8 @@
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
+namespace {
+
 std::string raw_json = R"({
   "comment": "created by graph_to_json",
   "nodes": [
@@ -102,6 +104,8 @@ std::string raw_json = R"({
   ]
 })";
 
+}
+
 TEST(json_test, test_from_string) {
   folly::dynamic parsed = folly::parseJson(raw_json);
   auto graph = beanmachine::minibmg::json_to_graph(parsed);
@@ -109,6 +113,8 @@ TEST(json_test, test_from_string) {
       folly::toPrettyJson(beanmachine::minibmg::graph_to_json(graph));
   ASSERT_EQ(raw_json, s);
 }
+
+namespace {
 
 std::string raw_json_without_types = R"({
   "comment": "created by graph_to_json",
@@ -191,6 +197,8 @@ std::string raw_json_without_types = R"({
     2
   ]
 })";
+
+}
 
 TEST(json_test, test_from_string_without_types) {
   folly::dynamic parsed = folly::parseJson(raw_json_without_types);

@@ -29,6 +29,25 @@ std::vector<Nodep> successors(const Nodep& n) {
   }
 }
 
+const std::vector<Nodep> roots(
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations) {
+  std::list<Nodep> roots;
+  for (auto p : observations) {
+    if (p.first->op != Operator::SAMPLE) {
+      throw std::invalid_argument(fmt::format("can only observe a sample"));
+    }
+    roots.push_front(p.first);
+  }
+  for (auto n : queries)
+    roots.push_back(n);
+  std::vector<Nodep> all_nodes;
+  if (!topological_sort<Nodep>(roots, &successors, all_nodes))
+    throw std::invalid_argument("graph has a cycle");
+  std::reverse(all_nodes.begin(), all_nodes.end());
+  return all_nodes;
+}
+
 } // namespace
 
 namespace beanmachine::minibmg {
@@ -36,33 +55,21 @@ namespace beanmachine::minibmg {
 using dynamic = folly::dynamic;
 
 Graph::Graph(
-    std::vector<Nodep> nodes,
-    std::vector<Nodep> queries,
-    std::list<std::pair<Nodep, double>> observations)
-    : nodes{nodes}, queries{queries}, observations{observations} {}
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations)
+    : nodes{roots(queries, observations)},
+      queries{queries},
+      observations{observations} {
+  Graph::validate(nodes);
+}
 
 Graph::~Graph() {}
 
-Graph Graph::create(
-    std::vector<Nodep> queries,
-    std::list<std::pair<Nodep, double>> observations) {
-  std::list<Nodep> roots;
-  for (auto n : queries)
-    roots.push_back(n);
-  for (auto p : observations) {
-    if (p.first->op != Operator::SAMPLE) {
-      throw std::invalid_argument(fmt::format("can only observe a sample"));
-    }
-    roots.push_back(p.first);
-  }
-  std::vector<Nodep> all_nodes;
-  if (!topological_sort<Nodep>(roots, &successors, all_nodes))
-    throw std::invalid_argument("graph has a cycle");
-  std::reverse(all_nodes.begin(), all_nodes.end());
-
-  Graph::validate(all_nodes);
-  return Graph{all_nodes, queries, observations};
-}
+Graph::Graph(
+    const std::vector<Nodep>& nodes,
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations)
+    : nodes{nodes}, queries{queries}, observations{observations} {}
 
 void Graph::validate(std::vector<Nodep> nodes) {
   std::unordered_set<Nodep> seen;
@@ -158,23 +165,23 @@ folly::dynamic graph_to_json(const Graph& g) {
     }
     a.push_back(dyn_node);
   }
+  result["nodes"] = a;
 
   dynamic queries = dynamic::array;
-  dynamic observations = dynamic::array;
-
   for (auto q : g.queries) {
     queries.push_back(id_map[q]);
   }
+  result["queries"] = queries;
+
+  dynamic observations = dynamic::array;
   for (auto q : g.observations) {
     dynamic d = dynamic::object;
     d["node"] = id_map[q.first];
     d["value"] = q.second;
     observations.push_back(d);
   }
-
-  result["queries"] = queries;
   result["observations"] = observations;
-  result["nodes"] = a;
+
   return result;
 }
 
@@ -320,7 +327,7 @@ Graph json_to_graph(folly::dynamic d) {
     }
   }
 
-  return Graph::create(queries, observations);
+  return Graph{queries, observations};
 }
 
 } // namespace beanmachine::minibmg

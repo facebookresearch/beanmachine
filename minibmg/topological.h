@@ -12,6 +12,15 @@
 #include <map>
 #include <set>
 
+namespace {
+
+template <class K, class V>
+class insertion_ordered_map {
+ private:
+
+};
+
+}
 namespace beanmachine::minibmg {
 
 // Compute the predecessor count for all nodes reachable from the set of roots

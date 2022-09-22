@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <list>
+#include <unordered_map>
 #include <vector>
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/node.h"
