@@ -48,8 +48,6 @@ bool _c0 = [] {
   add(Operator::DISTRIBUTION_BETA, "DISTRIBUTION_BETA");
   add(Operator::DISTRIBUTION_BERNOULLI, "DISTRIBUTION_BERNOULLI");
   add(Operator::SAMPLE, "SAMPLE");
-  add(Operator::OBSERVE, "OBSERVE");
-  add(Operator::QUERY, "QUERY");
 
   // check that we have set the name for every operator.
   for (Operator op = Operator::NO_OPERATOR; op < Operator::LAST_OPERATOR;
