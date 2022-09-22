@@ -18,18 +18,13 @@ using namespace beanmachine::minibmg;
 
 class Out_Nodes_Data {
  public:
-  std::map<Nodep, std::list<Nodep>*> node_map{};
-  ~Out_Nodes_Data() {
-    for (auto e : node_map) {
-      delete e.second;
-    }
-  }
+  std::map<Nodep, std::list<Nodep>> node_map{};
   std::list<Nodep>& for_node(Nodep node) {
     auto found = node_map.find(node);
     if (found == node_map.end()) {
       throw std::invalid_argument("node not in graph");
     }
-    return *found->second;
+    return found->second;
   }
 };
 
@@ -39,7 +34,7 @@ class Out_Nodes_Property
   Out_Nodes_Data* create(const Graph& g) const override {
     Out_Nodes_Data* data = new Out_Nodes_Data{};
     for (auto node : g) {
-      data->node_map[node] = new std::list<Nodep>{};
+      data->node_map[node] = std::list<Nodep>{};
       switch (node->op) {
         case Operator::CONSTANT:
         case Operator::VARIABLE:
