@@ -22,30 +22,19 @@ class Node;
 // An opaque identifier for a node.
 class NodeId {
  public:
-  // Create a fresh, new, never-before-seen NodeId
-  NodeId();
   explicit NodeId(unsigned long value) : value{value} {}
-  explicit NodeId(long value) : value{(unsigned long)value} {}
+
   inline bool operator==(const NodeId& other) const {
     return value == other.value;
   }
   NodeId(const NodeId& other) : value{other.value} {} // copy ctor
-  NodeId& operator=(const NodeId& other) { // assignment
-    this->value = other.value;
-    return *this;
-  }
   ~NodeId() {} // dtor
 
   inline unsigned long _value() const {
     return value;
   }
 
-  static void _reset_for_testing() {
-    _next_value = 0;
-  }
-
  private:
-  static std::atomic<unsigned long> _next_value;
   unsigned long value;
 };
 
@@ -97,6 +86,7 @@ class Graph::Factory {
   std::unordered_map<NodeId, Nodep> identifer_to_node;
   std::vector<Nodep> queries;
   std::list<std::pair<Nodep, double>> observations;
+  unsigned long next_identifier = 0;
 
   NodeId add_node(Nodep node);
 };
