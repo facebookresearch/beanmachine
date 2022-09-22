@@ -15,7 +15,29 @@ using namespace beanmachine::minibmg;
 
 #define ASSERT_ID(node, num) ASSERT_EQ(node, NodeId{(unsigned long)(num)})
 
-TEST(test_minibmg, basic_building) {
+TEST(test_minibmg, basic_building_1) {
+  NodeId::_reset_for_testing();
+  Graph::Factory gf;
+  auto k12 = gf.add_constant(1.2);
+  ASSERT_ID(k12, 0);
+  auto k34 = gf.add_constant(3.4);
+  ASSERT_ID(k34, 1);
+  auto plus = gf.add_operator(Operator::ADD, {k12, k34});
+  ASSERT_ID(plus, 2);
+  auto k56 = gf.add_constant(5.6);
+  ASSERT_ID(k56, 3);
+  auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {plus, k56});
+  ASSERT_ID(beta, 4);
+  auto sample = gf.add_operator(Operator::SAMPLE, {beta});
+  ASSERT_ID(sample, 5);
+  gf.add_observation(sample, 7.8);
+  auto query = gf.add_query(sample);
+  ASSERT_EQ(query, 0);
+  Graph g = gf.build();
+  ASSERT_EQ(g.size(), 6);
+}
+
+TEST(test_minibmg, dead_code_dropped) {
   NodeId::_reset_for_testing();
   Graph::Factory gf;
   auto k12 = gf.add_constant(1.2);
@@ -30,14 +52,11 @@ TEST(test_minibmg, basic_building) {
   ASSERT_ID(beta, 4);
   auto sample = gf.add_operator(Operator::SAMPLE, {beta});
   ASSERT_ID(sample, 5);
-  auto k78 = gf.add_constant(7.8);
-  ASSERT_ID(k78, 6);
-  auto observe = gf.add_operator(Operator::OBSERVE, {beta, k78});
-  ASSERT_ID(observe, 7);
-  auto query = gf.add_query(beta);
-  ASSERT_EQ(query, 0); // we get the query number back from add_query
+  gf.add_observation(sample, 7.8);
+  auto query = gf.add_query(sample);
+  ASSERT_EQ(query, 0);
   Graph g = gf.build();
-  ASSERT_EQ(g.size(), 9);
+  ASSERT_EQ(g.size(), 4); // k34 and plus are dead code.
 }
 
 TEST(test_minibmg, operator_from_name) {
@@ -52,8 +71,6 @@ TEST(test_minibmg, operator_from_name) {
       operator_from_name("DISTRIBUTION_BERNOULLI"),
       Operator::DISTRIBUTION_BERNOULLI);
   ASSERT_EQ(operator_from_name("SAMPLE"), Operator::SAMPLE);
-  ASSERT_EQ(operator_from_name("OBSERVE"), Operator::OBSERVE);
-  ASSERT_EQ(operator_from_name("QUERY"), Operator::QUERY);
 
   ASSERT_EQ(operator_from_name("GIBBERISH"), Operator::NO_OPERATOR);
 }
@@ -67,8 +84,6 @@ TEST(test_minibmg, operator_to_string) {
   ASSERT_EQ(
       to_string(Operator::DISTRIBUTION_BERNOULLI), "DISTRIBUTION_BERNOULLI");
   ASSERT_EQ(to_string(Operator::SAMPLE), "SAMPLE");
-  ASSERT_EQ(to_string(Operator::OBSERVE), "OBSERVE");
-  ASSERT_EQ(to_string(Operator::QUERY), "QUERY");
 
   // with runtime checks enabled, the following would crash at the cast.
   // ASSERT_EQ(to_string((Operator)10000), "NO_OPERATOR");

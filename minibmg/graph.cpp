@@ -8,30 +8,70 @@
 #include "beanmachine/minibmg/graph.h"
 #include <fmt/core.h>
 #include <folly/json.h>
+#include <algorithm>
 #include <unordered_map>
 #include "beanmachine/minibmg/factory.h"
+#include "beanmachine/minibmg/topological.h"
+#include "graph.h"
+#include "operator.h"
+
+namespace {
+
+using namespace beanmachine::minibmg;
+
+std::vector<Nodep> successors(const Nodep& n) {
+  switch (n->op) {
+    case Operator::CONSTANT:
+    case Operator::VARIABLE:
+      return {};
+    default:
+      return std::dynamic_pointer_cast<const OperatorNode>(n)->in_nodes;
+  }
+}
+
+} // namespace
 
 namespace beanmachine::minibmg {
 
 using dynamic = folly::dynamic;
 
-Graph::Graph(std::vector<Nodep> nodes) : nodes{nodes} {}
+Graph::Graph(
+    std::vector<Nodep> nodes,
+    std::vector<Nodep> queries,
+    std::list<std::pair<Nodep, double>> observations)
+    : nodes{nodes}, queries{queries}, observations{observations} {}
 
 Graph::~Graph() {}
 
-Graph Graph::create(std::vector<Nodep> nodes) {
-  Graph::validate(nodes);
-  return Graph{nodes};
+Graph Graph::create(
+    std::vector<Nodep> queries,
+    std::list<std::pair<Nodep, double>> observations) {
+  std::list<Nodep> roots;
+  for (auto n : queries)
+    roots.push_back(n);
+  for (auto p : observations) {
+    if (p.first->op != Operator::SAMPLE) {
+      throw std::invalid_argument(fmt::format("can only observe a sample"));
+    }
+    roots.push_back(p.first);
+  }
+  std::vector<Nodep> all_nodes;
+  if (!topological_sort<Nodep>(roots, &successors, all_nodes))
+    throw std::invalid_argument("graph has a cycle");
+  std::reverse(all_nodes.begin(), all_nodes.end());
+
+  Graph::validate(all_nodes);
+  return Graph{all_nodes, queries, observations};
 }
 
 void Graph::validate(std::vector<Nodep> nodes) {
   std::unordered_set<Nodep> seen;
-  unsigned next_query = 0;
   // Check the nodes.
   for (int i = 0, n = nodes.size(); i < n; i++) {
     auto node = nodes[i];
 
-    // TODO: check that node identifiers are unique
+    // TODO: improve the exception diagnostics on failure.  e.g. how to identify
+    // a node?
 
     // Check that the operator is in range.
     if (node->op < (Operator)0 || node->op >= Operator::LAST_OPERATOR) {
@@ -51,27 +91,8 @@ void Graph::validate(std::vector<Nodep> nodes) {
     // Check the predecessor nodes
     switch (node->op) {
       case Operator::CONSTANT:
+      case Operator::VARIABLE:
         break;
-      case Operator::QUERY: {
-        auto q = std::dynamic_pointer_cast<const QueryNode>(node);
-        if (q->query_index != next_query) {
-          throw std::invalid_argument(fmt::format(
-              "Node {0} has query index {1} but should be {2}",
-              i,
-              q->query_index,
-              next_query));
-        }
-        next_query++;
-        if (!seen.count(q->in_node)) {
-          throw std::invalid_argument(
-              fmt::format("Query Node {0} parent not previously seen", i));
-        }
-        if (q->in_node->type == Type::DISTRIBUTION) {
-          throw std::invalid_argument(fmt::format(
-              "Query Node {0} should have a distribution input", i));
-        }
-        break;
-      }
 
       // Check other operators.
       default: {
@@ -119,17 +140,12 @@ folly::dynamic graph_to_json(const Graph& g) {
     dyn_node["operator"] = to_string(node->op);
     dyn_node["type"] = to_string(node->type);
     switch (node->op) {
-      case Operator::QUERY: {
-        auto n = std::dynamic_pointer_cast<const QueryNode>(node);
-        dyn_node["query_index"] = n->query_index;
-        dyn_node["in_node"] = id_map[n->in_node];
-        break;
-      }
       case Operator::CONSTANT: {
         auto n = std::dynamic_pointer_cast<const ConstantNode>(node);
         dyn_node["value"] = n->value;
         break;
       }
+      // TODO: case Operator::VARIABLE:
       default: {
         auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
         dynamic in_nodes = dynamic::array;
@@ -143,6 +159,21 @@ folly::dynamic graph_to_json(const Graph& g) {
     a.push_back(dyn_node);
   }
 
+  dynamic queries = dynamic::array;
+  dynamic observations = dynamic::array;
+
+  for (auto q : g.queries) {
+    queries.push_back(id_map[q]);
+  }
+  for (auto q : g.observations) {
+    dynamic d = dynamic::object;
+    d["node"] = id_map[q.first];
+    d["value"] = q.second;
+    observations.push_back(d);
+  }
+
+  result["queries"] = queries;
+  result["observations"] = observations;
   result["nodes"] = a;
   return result;
 }
@@ -157,7 +188,6 @@ Graph json_to_graph(folly::dynamic d) {
   // This map is used to identify the specific node when it is
   // referenced in the json.
   std::unordered_map<int, Nodep> identifier_to_node;
-  std::vector<Nodep> all_nodes;
 
   auto json_nodes = d["nodes"];
   if (!json_nodes.isArray()) {
@@ -189,28 +219,6 @@ Graph json_to_graph(folly::dynamic d) {
 
     Nodep node;
     switch (op) {
-      case Operator::QUERY: {
-        auto query_indexv = json_node["query_index"];
-        if (!query_indexv.isInt()) {
-          throw JsonError("missing query_index for query.");
-        }
-        auto query_index = (unsigned)query_indexv.asInt();
-
-        auto in_nodev = json_node["in_node"];
-        if (!in_nodev.isInt()) {
-          throw JsonError("missing in_node for query.");
-        }
-        auto in_node_i = in_nodev.asInt();
-        if (identifier_to_node.find(in_node_i) == identifier_to_node.end()) {
-          throw JsonError("bad in_node for query.");
-        }
-        auto in_node = identifier_to_node.find(in_node_i)->second;
-        if (type != Type::NONE) {
-          throw JsonError("bad type for query.");
-        }
-        node = std::make_shared<const QueryNode>(query_index, in_node);
-        break;
-      }
       case Operator::CONSTANT: {
         auto valuev = json_node["value"];
         double value;
@@ -222,7 +230,7 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("bad value for constant.");
         }
         if (type != Type::REAL) {
-          throw JsonError("bad type for query.");
+          throw JsonError("bad type for constant.");
         }
         node = std::make_shared<const ConstantNode>(value);
         break;
@@ -254,11 +262,11 @@ Graph json_to_graph(folly::dynamic d) {
         std::vector<Nodep> in_nodes;
         for (auto in_nodev : in_nodesv) {
           if (!in_nodev.isInt()) {
-            throw JsonError("missing in_node for query.");
+            throw JsonError("missing in_node for operator.");
           }
           auto in_node_i = in_nodev.asInt();
           if (identifier_to_node.find(in_node_i) == identifier_to_node.end()) {
-            throw JsonError("bad in_node for query.");
+            throw JsonError("bad in_node for operator.");
           }
           auto in_node = identifier_to_node.find(in_node_i)->second;
           in_nodes.push_back(in_node);
@@ -272,10 +280,47 @@ Graph json_to_graph(folly::dynamic d) {
       throw JsonError(fmt::format("duplicate node ID {}.", identifier));
     }
     identifier_to_node[identifier] = node;
-    all_nodes.push_back(node);
   }
 
-  return Graph::create(all_nodes);
+  std::vector<Nodep> queries;
+  auto query_nodes = d["queries"];
+  if (query_nodes.isArray()) {
+    for (auto query : query_nodes) {
+      if (!query.isInt()) {
+        throw JsonError("bad query value.");
+      }
+      auto query_i = query.asInt();
+      if (identifier_to_node.find(query_i) == identifier_to_node.end()) {
+        throw JsonError(fmt::format("bad in_node {} for query.", query_i));
+      }
+      auto query_node = identifier_to_node.find(query_i)->second;
+      queries.push_back(query_node);
+    }
+  }
+
+  std::list<std::pair<Nodep, double>> observations;
+  auto observation_nodes = d["observations"];
+  if (observation_nodes.isArray()) {
+    for (auto obs : observation_nodes) {
+      auto node = obs["node"];
+      if (!node.isInt()) {
+        throw JsonError("bad observation node.");
+      }
+      auto node_i = node.asInt();
+      if (identifier_to_node.find(node_i) == identifier_to_node.end()) {
+        throw JsonError(fmt::format("bad in_node {} for observation.", node_i));
+      }
+      auto obs_node = identifier_to_node.find(node_i)->second;
+      auto value = obs["value"];
+      if (!node.isDouble() && !node.isInt()) {
+        throw JsonError("bad value for observation.");
+      }
+      auto value_d = value.asDouble();
+      observations.push_back(std::pair{obs_node, value_d});
+    }
+  }
+
+  return Graph::create(queries, observations);
 }
 
 } // namespace beanmachine::minibmg

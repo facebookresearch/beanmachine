@@ -20,7 +20,6 @@ NodeId Graph::Factory::add_node(Nodep node) {
   if (built) {
     throw std::invalid_argument("Graph has already been built");
   }
-  all_nodes.push_back(node);
   NodeId identifier{};
   nodes.insert({identifier, node});
   return identifier;
@@ -54,9 +53,6 @@ enum Type op_type(enum Operator op) {
     case Operator::DISTRIBUTION_BETA:
     case Operator::DISTRIBUTION_BERNOULLI:
       return Type::DISTRIBUTION;
-    case Operator::OBSERVE:
-    case Operator::QUERY:
-      return Type::NONE;
     default:
       throw std::invalid_argument("op_type not defined for operator.");
   }
@@ -92,8 +88,6 @@ const std::vector<std::vector<enum Type>> make_expected_parents() {
   result[(unsigned)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
   result[(unsigned)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
   result[(unsigned)Operator::SAMPLE] = {Type::DISTRIBUTION};
-  result[(unsigned)Operator::OBSERVE] = {Type::DISTRIBUTION, Type::REAL};
-  result[(unsigned)Operator::QUERY] = {Type::DISTRIBUTION};
   return result;
 }
 
@@ -113,16 +107,13 @@ enum Type expected_result_type(enum Operator op) {
     case Operator::POLYGAMMA:
     case Operator::IF_EQUAL:
     case Operator::IF_LESS:
+    case Operator::VARIABLE:
       return Type::REAL;
 
     case Operator::DISTRIBUTION_NORMAL:
     case Operator::DISTRIBUTION_BETA:
     case Operator::DISTRIBUTION_BERNOULLI:
       return Type::DISTRIBUTION;
-
-    case Operator::OBSERVE:
-    case Operator::QUERY:
-      return Type::NONE;
 
     default:
       throw std::invalid_argument("Unknown type for operator.");
@@ -161,29 +152,6 @@ NodeId Graph::Factory::add_operator(
   return add_node(new_node);
 }
 
-unsigned Graph::Factory::add_query(NodeId parent, NodeId& new_node_id) {
-  if (built) {
-    throw std::invalid_argument("Graph has already been built");
-  }
-  auto parent_node = nodes[parent];
-  if (parent_node->type != Type::DISTRIBUTION) {
-    throw std::invalid_argument("Incorrect parent for QUERY node.");
-  }
-  if (parent_node == nullptr) {
-    throw std::invalid_argument("Reference to nonexistent node.");
-  }
-  auto query_id = next_query;
-  next_query++;
-  auto new_node = std::make_shared<QueryNode>(query_id, parent_node);
-  new_node_id = add_node(new_node);
-  return query_id;
-}
-
-unsigned Graph::Factory::add_query(NodeId parent) {
-  NodeId new_node_id;
-  return add_query(parent, new_node_id); // discard new node id
-}
-
 NodeId Graph::Factory::add_variable(
     const std::string& name,
     const unsigned variable_index) {
@@ -191,20 +159,39 @@ NodeId Graph::Factory::add_variable(
   return add_node(new_node);
 }
 
+void Graph::Factory::add_observation(NodeId sample, double value) {
+  auto parent_node = nodes[sample];
+  if (parent_node == nullptr) {
+    throw std::invalid_argument("Reference to nonexistent node.");
+  }
+  this->observations.push_back(std::pair(parent_node, value));
+}
+
+unsigned Graph::Factory::add_query(NodeId queried) {
+  auto parent_node = nodes[queried];
+  if (parent_node == nullptr) {
+    throw std::invalid_argument("Reference to nonexistent node.");
+  }
+  if (parent_node->type != Type::REAL) {
+    throw std::invalid_argument("Can only query a scalar.");
+  }
+  auto result = (unsigned)this->queries.size();
+  this->queries.push_back(parent_node);
+  return result;
+}
+
 Graph Graph::Factory::build() {
   if (built) {
     throw std::invalid_argument("Graph has already been built");
   }
+
   // We preserve this->nodes so it can be used for lookup.
   built = true;
-  auto result = Graph{this->all_nodes};
-  this->all_nodes.clear();
-  return result;
+  return Graph::create(queries, observations);
 }
 
 Graph::Factory::~Factory() {
   this->nodes.clear();
-  this->all_nodes.clear();
 }
 
 } // namespace beanmachine::minibmg
