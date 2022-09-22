@@ -29,23 +29,9 @@ std::vector<Nodep> successors(const Nodep& n) {
   }
 }
 
-} // namespace
-
-namespace beanmachine::minibmg {
-
-using dynamic = folly::dynamic;
-
-Graph::Graph(
-    std::vector<Nodep> nodes,
-    std::vector<Nodep> queries,
-    std::list<std::pair<Nodep, double>> observations)
-    : nodes{nodes}, queries{queries}, observations{observations} {}
-
-Graph::~Graph() {}
-
-Graph Graph::create(
-    std::vector<Nodep> queries,
-    std::list<std::pair<Nodep, double>> observations) {
+const std::vector<Nodep> roots(
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations) {
   std::list<Nodep> roots;
   for (auto n : queries) {
     roots.push_back(n);
@@ -54,17 +40,41 @@ Graph Graph::create(
     if (p.first->op != Operator::SAMPLE) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
-    roots.push_back(p.first);
+    roots.push_front(p.first);
+  }
+  for (auto n : queries) {
+    roots.push_back(n);
   }
   std::vector<Nodep> all_nodes;
   if (!topological_sort<Nodep>(roots, &successors, all_nodes)) {
     throw std::invalid_argument("graph has a cycle");
   }
   std::reverse(all_nodes.begin(), all_nodes.end());
-
-  Graph::validate(all_nodes);
-  return Graph{all_nodes, queries, observations};
+  return all_nodes;
 }
+
+} // namespace
+
+namespace beanmachine::minibmg {
+
+using dynamic = folly::dynamic;
+
+Graph::Graph(
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations)
+    : nodes{roots(queries, observations)},
+      queries{queries},
+      observations{observations} {
+  Graph::validate(nodes);
+}
+
+Graph::~Graph() {}
+
+Graph::Graph(
+    const std::vector<Nodep>& nodes,
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations)
+    : nodes{nodes}, queries{queries}, observations{observations} {}
 
 void Graph::validate(std::vector<Nodep> nodes) {
   std::unordered_set<Nodep> seen;
@@ -126,7 +136,7 @@ void Graph::validate(std::vector<Nodep> nodes) {
 }
 
 folly::dynamic graph_to_json(const Graph& g) {
-  std::unordered_map<Nodep, unsigned long> id_map{};
+  std::unordered_map<Nodep, unsigned long> node_to_identifier;
   dynamic result = dynamic::object;
   result["comment"] = "created by graph_to_json";
   dynamic a = dynamic::array;
@@ -136,7 +146,7 @@ folly::dynamic graph_to_json(const Graph& g) {
     // assign node identifiers sequentially.  They are called "sequence" in the
     // generated json.
     auto identifier = next_identifier++;
-    id_map[node] = identifier;
+    node_to_identifier[node] = identifier;
     dynamic dyn_node = dynamic::object;
     dyn_node["sequence"] = identifier;
     dyn_node["operator"] = to_string(node->op);
@@ -152,7 +162,7 @@ folly::dynamic graph_to_json(const Graph& g) {
         auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
         dynamic in_nodes = dynamic::array;
         for (auto pred : n->in_nodes) {
-          in_nodes.push_back(id_map[pred]);
+          in_nodes.push_back(node_to_identifier[pred]);
         }
         dyn_node["in_nodes"] = in_nodes;
         break;
@@ -160,23 +170,24 @@ folly::dynamic graph_to_json(const Graph& g) {
     }
     a.push_back(dyn_node);
   }
+  result["nodes"] = a;
 
-  dynamic queries = dynamic::array;
   dynamic observations = dynamic::array;
-
-  for (auto q : g.queries) {
-    queries.push_back(id_map[q]);
-  }
   for (auto q : g.observations) {
     dynamic d = dynamic::object;
-    d["node"] = id_map[q.first];
+    auto id = node_to_identifier[q.first];
+    d["node"] = id;
     d["value"] = q.second;
     observations.push_back(d);
   }
-
-  result["queries"] = queries;
   result["observations"] = observations;
-  result["nodes"] = a;
+
+  dynamic queries = dynamic::array;
+  for (auto q : g.queries) {
+    queries.push_back(node_to_identifier[q]);
+  }
+  result["queries"] = queries;
+
   return result;
 }
 
@@ -322,7 +333,7 @@ Graph json_to_graph(folly::dynamic d) {
     }
   }
 
-  return Graph::create(queries, observations);
+  return Graph{queries, observations};
 }
 
 } // namespace beanmachine::minibmg

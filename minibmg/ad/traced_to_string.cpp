@@ -83,40 +83,31 @@ std::string string_for_operator(Operator op) {
   }
 }
 
-PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
-  auto op = traced.op();
+PrintedForm print(Nodep node, std::map<Nodep, PrintedForm>& cache) {
+  auto op = node->op;
   switch (op) {
     case Operator::CONSTANT: {
-      const TracedConstant* b =
-          std::static_pointer_cast<const TracedConstant, const TracedBody>(
-              traced.ptr())
-              .get();
-      return PrintedForm{to_string(b->value), Precedence::Term};
+      auto n = std::dynamic_pointer_cast<const ConstantNode>(node);
+      return PrintedForm{fmt::format("{}", n->value), Precedence::Term};
     }
     case Operator::VARIABLE: {
-      const TracedVariable* b =
-          std::static_pointer_cast<const TracedVariable, const TracedBody>(
-              traced.ptr())
-              .get();
-      auto name =
-          (b->name.length() == 0) ? fmt::format("__{0}", b->sequence) : b->name;
+      auto n = std::dynamic_pointer_cast<const VariableNode>(node);
+      auto name = (n->name.length() == 0) ? fmt::format("__{0}", n->identifier)
+                                          : n->name;
       return PrintedForm{name, Precedence::Term};
     }
     case Operator::ADD:
     case Operator::SUBTRACT:
     case Operator::MULTIPLY:
     case Operator::DIVIDE: {
-      const TracedOp* b =
-          std::static_pointer_cast<const TracedOp, const TracedBody>(
-              traced.ptr())
-              .get();
+      auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
       auto this_precedence = precedence_for_operator(op);
       auto this_string = string_for_operator(op);
-      auto left = cache[b->args[0]];
+      auto left = cache[n->in_nodes[0]];
       auto ls = (left.precedence > this_precedence)
           ? fmt::format("({0})", left.string)
           : left.string;
-      auto right = cache[b->args[1]];
+      auto right = cache[n->in_nodes[1]];
       auto rs = (right.precedence >= this_precedence)
           ? fmt::format("({0})", right.string)
           : right.string;
@@ -124,12 +115,9 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
           fmt::format("{0} {1} {2}", ls, this_string, rs), this_precedence};
     }
     case Operator::NEGATE: {
-      const TracedOp* b =
-          std::static_pointer_cast<const TracedOp, const TracedBody>(
-              traced.ptr())
-              .get();
+      auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
       auto this_precedence = precedence_for_operator(op);
-      auto right = cache[b->args[0]];
+      auto right = cache[n->in_nodes[0]];
       auto rs = (right.precedence >= this_precedence)
           ? fmt::format("({0})", right.string)
           : right.string;
@@ -137,13 +125,10 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
     }
     case Operator::POW:
     case Operator::POLYGAMMA: {
-      const TracedOp* b =
-          std::static_pointer_cast<const TracedOp, const TracedBody>(
-              traced.ptr())
-              .get();
-      auto left = cache[b->args[0]];
+      auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
+      auto left = cache[n->in_nodes[0]];
       auto ls = left.string;
-      auto right = cache[b->args[1]];
+      auto right = cache[n->in_nodes[1]];
       auto rs = right.string;
       auto this_string = string_for_operator(op);
       return PrintedForm{
@@ -153,81 +138,76 @@ PrintedForm print(const Traced& traced, std::map<Traced, PrintedForm>& cache) {
     case Operator::LOG:
     case Operator::ATAN:
     case Operator::LGAMMA: {
-      const TracedOp* b =
-          std::static_pointer_cast<const TracedOp, const TracedBody>(
-              traced.ptr())
-              .get();
+      auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
       auto this_string = string_for_operator(op);
-      auto left = cache[b->args[0]];
+      auto left = cache[n->in_nodes[0]];
       auto ls = left.string;
       return PrintedForm{
           fmt::format("{1}({0})", ls, this_string), Precedence::Term};
     }
     case Operator::IF_LESS:
     case Operator::IF_EQUAL: {
-      const TracedOp* b =
-          std::static_pointer_cast<const TracedOp, const TracedBody>(
-              traced.ptr())
-              .get();
+      auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
       auto this_string = string_for_operator(op);
-      auto left = cache[b->args[0]];
+      auto left = cache[n->in_nodes[0]];
       auto ls = left.string;
       return PrintedForm{
           fmt::format(
               "{1}({0}, {2}, {3}, {4})",
               ls,
               this_string,
-              cache[b->args[1]].string,
-              cache[b->args[2]].string,
-              cache[b->args[3]].string),
+              cache[n->in_nodes[1]].string,
+              cache[n->in_nodes[2]].string,
+              cache[n->in_nodes[3]].string),
           Precedence::Term};
     }
     default: {
       return PrintedForm{
-          "std::string to_string(const Traced& traced) not implemented",
+          fmt::format(
+              "{}:{}: not implemented: to_string(const Traced& traced)",
+              __FILE__,
+              __LINE__),
           Precedence::Term};
     }
   }
 }
 
-PrintedForm to_printed_form(
-    const Traced& traced,
-    std::map<Traced, PrintedForm> cache) {
-  auto p = print(traced, cache);
-  const Traced& t = traced;
-  cache[t] = p;
-  return p;
-}
 } // namespace
 
 namespace beanmachine::minibmg {
 
+std::string to_string(const Nodep& node);
+
 std::string to_string(const Traced& traced) {
-  auto successors = [](const Traced& t) {
-    switch (t.op()) {
+  return to_string(traced.node);
+}
+
+std::string to_string(const Nodep& node) {
+  auto successors = [](const Nodep& t) -> std::vector<Nodep> {
+    switch (t->op) {
       case Operator::CONSTANT:
       case Operator::VARIABLE:
-        return std::vector<Traced>{};
+        return {};
       default:
-        return static_cast<const TracedOp*>(t.ptr().get())->args;
+        return std::dynamic_pointer_cast<const OperatorNode>(t)->in_nodes;
     }
   };
-  auto pred_counts = count_predecessors<Traced>({traced}, successors);
-  std::map<Traced, unsigned> pred_counts_copy = pred_counts;
-  std::vector<Traced> topologically_sorted;
-  bool sorted = topological_sort<Traced>(
+  auto pred_counts = count_predecessors<Nodep>({node}, successors);
+  std::map<Nodep, unsigned> pred_counts_copy = pred_counts;
+  std::vector<Nodep> topologically_sorted;
+  bool sorted = topological_sort<Nodep>(
       pred_counts_copy, successors, topologically_sorted);
   if (!sorted) {
-    throw std::invalid_argument("cycle in traced expression");
+    throw std::invalid_argument("cycle in graph");
   }
   std::reverse(topologically_sorted.begin(), topologically_sorted.end());
-  std::map<Traced, PrintedForm> cache{};
+  std::map<Nodep, PrintedForm> cache{};
   for (auto n : topologically_sorted) {
     auto p = print(n, cache);
     cache[n] = p;
   }
 
-  return cache[traced].string;
+  return cache[node].string;
 }
 
 } // namespace beanmachine::minibmg

@@ -12,6 +12,8 @@
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
+namespace json_test {
+
 std::string raw_json = R"({
   "comment": "created by graph_to_json",
   "nodes": [
@@ -198,3 +200,5 @@ TEST(json_test, test_from_string_without_types) {
   std::string s = folly::toPrettyJson(graph_to_json(graph));
   ASSERT_EQ(raw_json, s);
 }
+
+} // namespace json_test

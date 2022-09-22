@@ -7,42 +7,42 @@
 
 #pragma once
 
-#include <boost/math/special_functions/polygamma.hpp>
-#include <cmath>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/minibmg.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
-
-using namespace std;
-
-class TracedBody;
 
 /*
 An implementation of the Number concept that simply builds an expression tree
 (actually, a DAG: directed acyclic graph) representing the computation
-performed.
+performed.  This is also used for the fluent factory.
  */
 class Traced {
  public:
-  Operator m_op;
-  shared_ptr<const TracedBody> m_ptr;
+  Nodep node;
 
-  /* implicit */ Traced(double d);
-  static Traced variable(const std::string& name, const unsigned identifier);
-  inline Operator op() const {
-    return m_op;
+  /* implicit */ inline Traced(Nodep node) : node{node} {
+    if (node->type != Type::REAL) {
+      throw std::invalid_argument("node is not a value");
+    }
   }
-  inline shared_ptr<const TracedBody> ptr() const {
-    return m_ptr;
+  /* implicit */ inline Traced(double value)
+      : node{std::make_shared<ConstantNode>(value)} {}
+  /* implicit */ inline Traced(Real value)
+      : node{std::make_shared<ConstantNode>(value.as_double())} {}
+  inline Operator op() const {
+    return node->op;
+  }
+
+  static Traced variable(const std::string& name, const unsigned identifier) {
+    return Traced{std::make_shared<VariableNode>(name, identifier)};
   }
 
   double as_double() const;
-
-  Traced(const Operator op, shared_ptr<const TracedBody> p);
 };
 
 Traced operator+(const Traced& left, const Traced& right);
@@ -70,43 +70,19 @@ bool is_constant(const Traced& x, double& value);
 bool is_constant(const Traced& x, const double& value);
 std::string to_string(const Traced& x);
 
-class TracedBody {
- public:
-  virtual ~TracedBody() {}
-};
-
-class TracedVariable : public TracedBody {
- public:
-  const string name;
-  const unsigned sequence;
-  TracedVariable(const std::string& name, const unsigned sequence)
-      : name{name}, sequence{sequence} {}
-};
-class TracedConstant : public TracedBody {
- public:
-  const Real value;
-  /* implicit */ TracedConstant(const Real value) : value{value} {}
-};
-class TracedOp : public TracedBody {
- public:
-  const std::vector<Traced> args;
-  explicit TracedOp(std::initializer_list<Traced> args) : args{args} {}
-};
-
 static_assert(Number<Traced>);
 
 } // namespace beanmachine::minibmg
 
 // We want to use Traced values in (unordered) maps and sets, so we need a good
-// comparison function.  We delegate to the underlying TracedBody pointer for
+// comparison function.  We delegate to the underlying node pointer for
 // that comparison.
 template <>
 struct ::std::less<beanmachine::minibmg::Traced> {
   bool operator()(
       const beanmachine::minibmg::Traced& lhs,
       const beanmachine::minibmg::Traced& rhs) const {
-    static const auto x =
-        ::std::less<const beanmachine::minibmg::TracedBody*>{};
-    return x(lhs.ptr().get(), rhs.ptr().get());
+    static const auto x = ::std::less<beanmachine::minibmg::Nodep>{};
+    return x(lhs.node, rhs.node);
   }
 };

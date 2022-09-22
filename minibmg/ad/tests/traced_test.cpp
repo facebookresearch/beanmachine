@@ -12,6 +12,12 @@
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
+TEST(traced_test, simple0) {
+  Traced x = Traced::variable("x", 0);
+  Traced r = 100 + x;
+  ASSERT_EQ("100 + x", to_string(r));
+}
+
 TEST(traced_test, simple1) {
   Traced x = Traced::variable("x", 0);
   auto r = 100 * pow(x, 3) + 10 * pow(x, 2) + 1 * x - 5;
