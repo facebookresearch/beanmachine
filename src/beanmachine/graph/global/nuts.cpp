@@ -22,5 +22,10 @@ void NUTS::prepare_graph() {
   set_default_transforms(graph);
 }
 
+void Graph::nuts(uint num_samples, uint seed, InferConfig infer_config) {
+  NUTS(*this).infer(
+      num_samples, seed, infer_config.num_warmup, infer_config.keep_warmup);
+}
+
 } // namespace graph
 } // namespace beanmachine

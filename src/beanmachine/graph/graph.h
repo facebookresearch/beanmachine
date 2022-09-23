@@ -430,6 +430,7 @@ enum class InferenceType {
   REJECTION,
   GIBBS,
   NMC,
+  NUTS,
 };
 
 enum class AggregationType {
@@ -984,6 +985,7 @@ struct Graph {
   void rejection(uint num_samples, uint seed, InferConfig infer_config);
   void gibbs(uint num_samples, uint seed, InferConfig infer_config);
   void nmc(uint num_samples, uint seed, InferConfig infer_config);
+  void nuts(uint num_samples, uint seed, InferConfig infer_config);
   void cavi(
       uint num_iters,
       uint steps_per_iter,

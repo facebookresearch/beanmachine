@@ -1098,6 +1098,8 @@ void Graph::_infer(
     gibbs(num_samples, seed, infer_config);
   } else if (algorithm == InferenceType::NMC) {
     nmc(num_samples, seed, infer_config);
+  } else if (algorithm == InferenceType::NUTS) {
+    nuts(num_samples, seed, infer_config);
   }
 }
 
