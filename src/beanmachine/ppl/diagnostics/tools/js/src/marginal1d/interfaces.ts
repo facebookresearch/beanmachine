@@ -7,6 +7,7 @@
 
 import {Plot} from '@bokehjs/models/plots/plot';
 import {ColumnDataSource} from '@bokehjs/models/sources/column_data_source';
+import {HoverTool} from '@bokehjs/models/tools/inspectors/hover_tool';
 
 // NOTE: In the corresponding Python typing files for the diagnostic tool, we define
 //       similar types using a TypedDict object. TypeScript allows us to maintain
@@ -18,7 +19,28 @@ import {ColumnDataSource} from '@bokehjs/models/sources/column_data_source';
 //       keep the semantic information here at the expense of losing type information
 //       similarly to what is done in Python.
 
-export interface Marginal1dStats {
+export interface DistributionData {
+  [key: string]: any;
+  x: number[];
+  y: number[];
+  bandwidth: number;
+}
+
+export interface HDIData {
+  [key: string]: any;
+  base: number[];
+  lower: number[];
+  upper: number[];
+}
+
+export interface StatsData {
+  [key: string]: any;
+  x: number[];
+  y: number[];
+  text: string[];
+}
+
+export interface LabelsData {
   [key: string]: any;
   x: number[];
   y: number[];
@@ -28,37 +50,21 @@ export interface Marginal1dStats {
   y_offset: number[];
 }
 
-// Used for both the marginal and cumulative distribution objects.
-export interface Marginal1dDatum {
-  distribution: {[key: string]: any; x: number[]; y: number[]; bandwidth: number};
-  hdi: {
-    [key: string]: any;
-    base: number[];
-    lower: number[];
-    upper: number[];
-    lowerBound: number;
-    upperBound: number;
-  };
-  stats: {[key: string]: any; x: number[]; y: number[]};
-  labels: {
-    [key: string]: any;
-    x: number[];
-    y: number[];
-    text: string[];
-    text_align: string[];
-    x_offset: number[];
-    y_offset: number[];
-  };
-}
-
-export interface Marginal1dData {
+export interface GlyphData {
   [key: string]: any;
-  marginal: Marginal1dDatum;
-  cumulative: Marginal1dDatum;
+  distribution: DistributionData;
+  hdi: HDIData;
+  stats: StatsData;
+  labels: LabelsData;
 }
 
-// Used for both the marginal and cumulative distribution objects.
-export interface Marginal1dSource {
+export interface Data {
+  [key: string]: any;
+  marginal: GlyphData;
+  cumulative: GlyphData;
+}
+
+export interface Source {
   [key: string]: any;
   distribution: ColumnDataSource;
   hdi: ColumnDataSource;
@@ -66,14 +72,26 @@ export interface Marginal1dSource {
   labels: ColumnDataSource;
 }
 
-export interface Marginal1dSources {
+export interface Sources {
   [key: string]: any;
-  marginal: Marginal1dSource;
-  cumulative: Marginal1dSource;
+  marginal: Source;
+  cumulative: Source;
 }
 
-export interface Marginal1dFigures {
+export interface Figures {
   [key: string]: any;
   marginal: Plot;
   cumulative: Plot;
+}
+
+export interface Tooltip {
+  [key: string]: any;
+  distribution: HoverTool;
+  stats: HoverTool;
+}
+
+export interface Tooltips {
+  [key: string]: any;
+  marginal: Tooltip;
+  cumulative: Tooltip;
 }

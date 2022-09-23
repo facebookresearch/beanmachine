@@ -5,13 +5,11 @@
 
 """Methods used to generate the diagnostic tool."""
 
-from itertools import chain
-from typing import List, Optional
+from typing import List
 
 import numpy as np
-import statsmodels.api as sm
 from beanmachine.ppl.diagnostics.tools.marginal1d import typing
-from beanmachine.ppl.diagnostics.tools.utils import hdi, plotting_utils
+from beanmachine.ppl.diagnostics.tools.utils import plotting_utils
 from bokeh.models.annotations import Band, LabelSet
 from bokeh.models.glyphs import Circle, Line
 from bokeh.models.layouts import Column, Row
@@ -27,179 +25,40 @@ from bokeh.plotting.figure import figure
 PLOT_WIDTH = 500
 PLOT_HEIGHT = 500
 FIGURE_NAMES = ["marginal", "cumulative"]
+# Define what the empty data object looks like in order to make the browser handle all
+# computations.
+EMPTY_DATA = {
+    "marginal": {
+        "distribution": {"x": [], "y": [], "bandwidth": np.NaN},
+        "hdi": {"base": [], "lower": [], "upper": []},
+        "stats": {"x": [], "y": [], "text": []},
+        "labels": {
+            "x": [],
+            "y": [],
+            "text": [],
+            "text_align": [],
+            "x_offset": [],
+            "y_offset": [],
+        },
+    },
+    "cumulative": {
+        "distribution": {"x": [], "y": [], "bandwidth": np.NaN},
+        "hdi": {"base": [], "lower": [], "upper": []},
+        "stats": {"x": [], "y": [], "text": []},
+        "labels": {
+            "x": [],
+            "y": [],
+            "text": [],
+            "text_align": [],
+            "x_offset": [],
+            "y_offset": [],
+        },
+    },
+}
 
 
-def compute_stats(
-    data: List[List[float]],
-    kde_x: List[float],
-    kde_y: List[float],
-    hdi_probability: float,
-    text_align: Optional[List[str]] = None,
-    x_offset: Optional[List[int]] = None,
-    y_offset: Optional[List[int]] = None,
-    return_labels: bool = False,
-) -> typing.StatsAndLabelsData:
-    """Compute statistics for the given data, and its KDE.
-
-    Parameters
-    ----------
-    data : List[List[float]]
-        JSON serializable representation of the model data for all random variables.
-    kde_x : List[float]
-        The x-axis KDE estimate of the random variable data.
-    kde_y : List[float]
-        The y-axis KDE estimate of the random variable data.
-    hdi_probability : float
-        The HDI probability to use when calculating the HDI bounds.
-    text_align : Optional[List[str]], optional default is ``None``
-        How to display label justifications for the statistics in Bokeh.
-    x_offset : Optional[List[int]], optional default is ``None``
-        x-axis offsets for the labels.
-    y_offset : Optional[List[int]], optional default is ``None``
-        y-axis offsets for the labels.
-    return_labels : bool, optional default is ``False``
-        ``True`` returns labels to be used in the Bokeh figure.
-
-    Returns
-    -------
-    typing.StatsAndLabelsData
-        A dictionary for statistics and labels for the Bokeh figures.
-    """
-    if text_align is None:
-        text_align = ["right", "center", "left"]
-    if x_offset is None:
-        x_offset = [-5, 0, 5]
-    if y_offset is None:
-        y_offset = [0, 10, 0]
-
-    flattened_data = np.array(list(chain(*data)))
-    kdex = np.array(kde_x)
-    kdey = np.array(kde_y)
-    mean = np.mean(kdex)
-    hdi_interval = hdi.interval(flattened_data, hdi_probability)
-    x = [hdi_interval["lower_bound"], mean, hdi_interval["upper_bound"]]
-    y = np.interp(x=np.array(x).astype(float), xp=kdex, fp=kdey)
-    text = [
-        f"Lower HDI: {hdi_interval['lower_bound']:.4}",
-        f"Mean: {mean:.4}",
-        f"Upper HDI: {hdi_interval['upper_bound']:.4}",
-    ]
-    stats = {"x": x, "y": y.tolist(), "text": text}
-    labels = {}
-    if return_labels:
-        labels = {
-            "x": x,
-            "y": y.tolist(),
-            "text": text,
-            "text_align": text_align,
-            "x_offset": x_offset,
-            "y_offset": y_offset,
-        }
-    return {"stats": stats, "labels": labels}
-
-
-def hdi_data(
-    data: List[List[float]],
-    kde_x: List[float],
-    kde_y: List[float],
-    hdi_probability: float,
-) -> typing.HDIData:
-    """Calculate the HDI arrays needed for the Bokeh annotation.
-
-    Parameters
-    ----------
-    data : List[List[float]]
-        JSON serializable representation of the model data for one random variable.
-    kde_x : npt.NDArray
-        The x-axis KDE estimate of the random variable data.
-    kde_y : npt.NDArray
-        The y-axis KDE estimate of the random variable data.
-    hdi_probability : float
-        The HDI probability to use when calculating the HDI bounds.
-
-    Returns
-    -------
-    typing.HDIData
-        Arrays used to create the Bokeh annotation for the HDI.
-    """
-    flattened_data = np.array(list(chain(*data)))
-    kdex = np.array(kde_x)
-    kdey = np.array(kde_y)
-    hdi_interval = hdi.interval(flattened_data, hdi_probability)
-    hdi_lb = hdi_interval["lower_bound"]
-    hdi_ub = hdi_interval["upper_bound"]
-    mask = np.ix_(np.logical_and(kdex >= hdi_lb, kdex <= hdi_ub))[0]
-    base = kdex[mask]
-    lower = np.zeros((len(mask)))
-    upper = kdey[mask]
-    return {"base": base.tolist(), "lower": lower.tolist(), "upper": upper.tolist()}
-
-
-def compute_data(
-    data: List[List[float]],
-    bw_factor: float,
-    hdi_probability: float,
-) -> typing.Data:
-    """Compute effective sample size estimates using the given data.
-
-    Parameters
-    ----------
-    data : List[List[float]]
-        JSON serializable representation of the model data for one random variables.
-    bw_factor : float
-        Multiplicative factor used when calculating the kernel density estimate.
-    hdi_probability : float
-        The HDI probability to use when calculating the HDI bounds.
-
-    Returns
-    -------
-    typing.Data
-        A dictionary of data used for the tool.
-    """
-    flattened_data = np.array(list(chain(*data)))
-    output = {}
-    for figure_name in FIGURE_NAMES:
-        output[figure_name] = {}
-        kde = sm.nonparametric.KDEUnivariate(flattened_data)
-        kde.fit(bw="scott", adjust=bw_factor, gridsize=512)
-        x = kde.support
-        y = kde.density
-        bandwidth = kde.bw
-        if figure_name == "cumulative":
-            y = np.cumsum(y)
-        y /= y.max()
-        stats_and_labels = compute_stats(
-            data=data,
-            kde_x=x,
-            kde_y=y,
-            hdi_probability=hdi_probability,
-            return_labels=True,
-        )
-        output[figure_name] = {
-            "distribution": {
-                "x": x.tolist(),
-                "y": y.tolist(),
-                "bandwidth": bandwidth,
-            },
-            "hdi": hdi_data(
-                data=data,
-                kde_x=x,
-                kde_y=y,
-                hdi_probability=hdi_probability,
-            ),
-            "stats": stats_and_labels["stats"],
-            "labels": stats_and_labels["labels"],
-        }
-    return output
-
-
-def create_sources(data: typing.Data) -> typing.Sources:
+def create_sources() -> typing.Sources:
     """Create Bokeh sources from the given data that will be bound to glyphs.
-
-    Parameters
-    ----------
-    data : typing.Data
-        A dictionary of data used for the tool.
 
     Returns
     -------
@@ -207,7 +66,7 @@ def create_sources(data: typing.Data) -> typing.Sources:
         A dictionary of Bokeh ColumnDataSource objects.
     """
     output = {}
-    for figure_name, figure_data in data.items():
+    for figure_name, figure_data in EMPTY_DATA.items():
         output[figure_name] = {}
         for glyph_name, glyph_data in figure_data.items():
             if "bandwidth" in list(glyph_data.keys()):
@@ -247,13 +106,8 @@ def create_figures(rv_name: str) -> typing.Figures:
     return output
 
 
-def create_glyphs(data: typing.Data) -> typing.Glyphs:
+def create_glyphs() -> typing.Glyphs:
     """Create the glyphs used for the figures of the tool.
-
-    Parameters
-    ----------
-    data : typing.Data
-        A dictionary of data used for the tool.
 
     Returns
     -------
@@ -262,7 +116,7 @@ def create_glyphs(data: typing.Data) -> typing.Glyphs:
     """
     palette = plotting_utils.choose_palette(num_colors=2)
     output = {}
-    for figure_name, figure_data in data.items():
+    for figure_name, figure_data in EMPTY_DATA.items():
         output[figure_name] = {}
         for glyph_name, _ in figure_data.items():
             if glyph_name in ["distribution", "stats"]:
@@ -541,7 +395,11 @@ def help_page() -> Div:
           2nd edition.
         </b>
         <em>Chapman and Hall/CRC</em>
-        <a href=https://dx.doi.org/10.1201/9780429029608 style="color: blue">
+        <a
+          href=https://dx.doi.org/10.1201/9780429029608
+          style="color: blue"
+          target="_blank"
+        >
           doi: 10.1201/9780429029608
         </a>.
       </li>
@@ -597,47 +455,3 @@ def create_view(widgets: typing.Widgets, figures: typing.Figures) -> Tabs:
         name="toolPanel",
     )
     return Tabs(tabs=[tool_panel, help_panel])
-
-
-def update(
-    data: List[List[float]],
-    sources: typing.Sources,
-    figures: typing.Figures,
-    rv_name: str,
-    bw_factor: float,
-    hdi_probability: float,
-) -> float:
-    """Update the tool based on user interaction.
-
-    Parameters
-    ----------
-    data : List[List[float]]
-        JSON serializable representation of the model data for one random variables.
-    sources : typing.Sources
-        A dictionary of Bokeh ColumnDataSource objects.
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
-    rv_name : str
-        The string representation of the random variable data.
-    rv_names : List[str]
-        A list of all available random variable names.
-    hdi_probability : float
-        The HDI probability to use when calculating the HDI bounds.
-
-    Returns
-    -------
-    float
-        Returns the bandwidth used to calculate the KDE.
-    """
-    computed_data = compute_data(data, bw_factor, hdi_probability)
-    bw = computed_data["marginal"]["distribution"]["bandwidth"][0]
-    for figure_name, figure_sources in sources.items():
-        fig = figures[figure_name]
-        fig.xaxis.axis_label = rv_name
-        figure_data = computed_data[figure_name]
-        for glyph_name, glyph_source in figure_sources.items():
-            glyph_data = figure_data[glyph_name]
-            if "bandwidth" in list(glyph_data.keys()):
-                glyph_data.pop("bandwidth")
-            glyph_source.data = dict(**glyph_data)
-    return float(bw)

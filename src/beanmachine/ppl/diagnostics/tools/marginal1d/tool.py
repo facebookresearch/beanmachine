@@ -50,34 +50,37 @@ class Marginal1d(Base):
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
         bw_factor = 1.0
-        hdi_probability = 0.89
+        bandwidth = 1.0
 
-        # Compute the initial data displayed in the tool using Python. It is not quite
-        # clear how to initialize the tool without requiring Python to first render it
-        # using data it calculates.
-        rv_data = self.data[rv_name]
-        computed_data = utils.compute_data(
-            data=rv_data,
-            bw_factor=bw_factor,
-            hdi_probability=hdi_probability,
-        )
-        bandwidth = computed_data["marginal"]["distribution"]["bandwidth"]
+        # NOTE: We are going to use Python and Bokeh to render the tool in the notebook
+        #       output cell, however, we WILL NOT use Python to calculate any of the
+        #       statistics displayed in the tool. We do this so we can make the BROWSER
+        #       run all the calculations based on user interactions. If we did not
+        #       employ this strategy, then the initial display a user would receive
+        #       would be calculated by Python, and any subsequent updates would be
+        #       calculated by JavaScript. The side-effect of having two backends
+        #       calculate data could cause the figures to flicker, which would not be a
+        #       good end user experience.
+        #
+        #       Bokeh 3.0 is implementing an "on load" feature, which would nullify this
+        #       requirement, and until that version is released, we have to employ this
+        #       work-around.
 
-        # Create the Bokeh sources using Python with data calculated in Python.
-        sources = utils.create_sources(data=computed_data)
+        # Create empty Bokeh sources using Python.
+        sources = utils.create_sources()
 
-        # Create the figures for the tool using Python.
+        # Create empty figures for the tool using Python.
         figures = utils.create_figures(rv_name=rv_name)
 
-        # Create the glyphs and attach them to the figures using Python.
-        glyphs = utils.create_glyphs(data=computed_data)
+        # Create empty glyphs and attach them to the figures using Python.
+        glyphs = utils.create_glyphs()
         utils.add_glyphs(sources=sources, figures=figures, glyphs=glyphs)
 
-        # Create the annotations and attach them to the figures using Python.
+        # Create empty annotations and attach them to the figures using Python.
         annotations = utils.create_annotations(sources=sources)
         utils.add_annotations(figures=figures, annotations=annotations)
 
-        # Create the tool tips and attach them to the figures using Python.
+        # Create empty tool tips and attach them to the figures using Python.
         tooltips = utils.create_tooltips(figures=figures, rv_name=rv_name)
         utils.add_tooltips(figures=figures, tooltips=tooltips)
 
@@ -89,11 +92,7 @@ class Marginal1d(Base):
             bw_factor=bw_factor,
         )
 
-        # Below we create callbacks for the widgets using JavaScript. The below JS uses
-        # a try/catch block to ensure the proper methods are in the notebook output
-        # cell no matter which widget a user interacts with first.
-        # NOTE: When this callback is invoked, data is no longer being calculated with
-        #       Python, and is instead being calculated by the browser.
+        # Create callbacks for the tool using JavaScript.
         callback_js = f"""
             const rvName = widgets.rv_select.value;
             const rvData = data[rvName].flat();
@@ -106,6 +105,7 @@ class Marginal1d(Base):
                 hdiProbability,
                 sources,
                 figures,
+                tooltips,
               );
             }} catch (error) {{
               {self.js}
@@ -116,6 +116,7 @@ class Marginal1d(Base):
                 hdiProbability,
                 sources,
                 figures,
+                tooltips,
               );
             }}
         """
@@ -128,6 +129,7 @@ class Marginal1d(Base):
             "widgets": widgets,
             "sources": sources,
             "figures": figures,
+            "tooltips": tooltips,
         }
 
         # Each widget requires slightly different JS, except for the sliders.
@@ -149,13 +151,15 @@ class Marginal1d(Base):
         rv_select_callback = CustomJS(args=callback_arguments, code=rv_select_js)
         slider_callback = CustomJS(args=callback_arguments, code=slider_js)
 
-        # Below is where we tell Python to use the JS callbacks based on user
-        # interaction.
+        # Tell Python to use the JavaScript.
         widgets["rv_select"].js_on_change("value", rv_select_callback)
         widgets["bw_factor_slider"].js_on_change("value", slider_callback)
         widgets["hdi_slider"].js_on_change("value", slider_callback)
 
-        # Create the tool view using Python. Note that all subsequent callbacks will be
-        # performed by JavaScript.
+        # Create the view of the tool and serialize it into HTML using static resources
+        # from Bokeh. Embedding the tool in this manner prevents external CDN calls for
+        # JavaScript resources, and prevents the user from having to know where the
+        # Bokeh server is.
         tool_view = utils.create_view(figures=figures, widgets=widgets)
-        return file_html(tool_view, resources=INLINE)
+        output = file_html(tool_view, resources=INLINE)
+        return output

@@ -56,7 +56,7 @@ export const updateAxisLabel = (axis: Axis, label: string | null): void => {
  *     x-axis.
  * @param {number[]} [y_offset=[0, 10, 0]] - Offset values for the text along the
  *     y-axis
- * @returns {interfaces.Marginal1dStats} Object containing the computed stats.
+ * @returns {interfaces.LabelsData} Object containing the computed stats.
  */
 export const computeStats = (
   rawData: number[],
@@ -66,7 +66,7 @@ export const computeStats = (
   text_align: string[] = ['right', 'center', 'left'],
   x_offset: number[] = [-5, 0, 5],
   y_offset: number[] = [0, 10, 0],
-): interfaces.Marginal1dStats => {
+): interfaces.LabelsData => {
   // Set the default value to 0.89 if no default value has been given.
   const hdiProbability = hdiProb ?? 0.89;
 
@@ -100,7 +100,7 @@ export const computeStats = (
  *     calculating the Kernel Density Estimate (KDE).
  * @param {number} hdiProbability - The highest density interval probability to use when
  *     calculating the HDI.
- * @returns {interfaces.Marginal1dData} The marginal distribution and cumulative
+ * @returns {interfaces.Data} The marginal distribution and cumulative
  *     distribution calculated from the given random variable data. Point statistics are
  *     also calculated.
  */
@@ -108,11 +108,11 @@ export const computeData = (
   data: number[],
   bwFactor: number,
   hdiProbability: number,
-): interfaces.Marginal1dData => {
-  const output = {} as interfaces.Marginal1dData;
+): interfaces.Data => {
+  const output = {} as interfaces.Data;
   for (let i = 0; i < figureNames.length; i += 1) {
     const figureName = figureNames[i];
-    output[figureName] = {} as interfaces.Marginal1dDatum;
+    output[figureName] = {} as interfaces.GlyphData;
 
     // Compute the one-dimensional KDE and its cumulative distribution.
     const distribution = oneD(data, bwFactor);
@@ -130,7 +130,7 @@ export const computeData = (
     output[figureName] = {
       distribution: distribution,
       hdi: hdiData(data, distribution.x, distribution.y, hdiProbability),
-      stats: {x: stats.x, y: stats.y},
+      stats: {x: stats.x, y: stats.y, text: stats.text},
       labels: stats,
     };
   }
@@ -146,10 +146,10 @@ export const computeData = (
  *     calculating the kernel density estimate.
  * @param {number} hdiProbability - The highest density interval probability to use when
  *     calculating the HDI.
- * @param {interfaces.Marginal1dSources} sources - Bokeh sources used to render glyphs
- *     in the application.
- * @param {interfaces.Marginal1dFigures} figures - Bokeh figures shown in the
+ * @param {interfaces.Sources} sources - Bokeh sources used to render glyphs in the
  *     application.
+ * @param {interfaces.Figures} figures - Bokeh figures shown in the application.
+ * @param {interfaces.Tooltips} tooltips - Bokeh tooltips shown on the glyphs.
  * @returns {number} We display the value of the bandwidth used for computing the Kernel
  *     Density Estimate in a div, and must return that value here in order to update the
  *     value displayed to the user.
@@ -159,8 +159,9 @@ export const update = (
   rvName: string,
   bwFactor: number,
   hdiProbability: number,
-  sources: interfaces.Marginal1dSources,
-  figures: interfaces.Marginal1dFigures,
+  sources: interfaces.Sources,
+  figures: interfaces.Figures,
+  tooltips: interfaces.Tooltips,
 ): number => {
   const computedData = computeData(data, bwFactor, hdiProbability);
   for (let i = 0; i < figureNames.length; i += 1) {
@@ -175,15 +176,15 @@ export const update = (
       lower: computedData[figureName].hdi.lower,
       upper: computedData[figureName].hdi.upper,
     };
-    sources[figureName].stats.data = {
-      x: computedData[figureName].stats.x,
-      y: computedData[figureName].stats.y,
-      label: computedData[figureName].labels.text,
-    };
+    sources[figureName].stats.data = computedData[figureName].stats;
     sources[figureName].labels.data = computedData[figureName].labels;
 
     // Update the axes labels.
     updateAxisLabel(figures[figureName].below[0], rvName);
+
+    // Update the tooltips.
+    tooltips[figureName].stats.tooltips = [['', '@text']];
+    tooltips[figureName].distribution.tooltips = [[rvName, '@x']];
   }
   return computedData.marginal.distribution.bandwidth;
 };

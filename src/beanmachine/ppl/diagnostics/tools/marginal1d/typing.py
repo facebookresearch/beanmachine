@@ -66,15 +66,6 @@ class _LabelsData(TypedDict):  # pyre-ignore
     y_offset: List[int]
 
 
-class _StatsAndLabelsData(TypedDict):  # pyre-ignore
-    x: List[float]
-    y: List[float]
-    text: List[str]
-    text_align: List[str]
-    x_offset: List[int]
-    y_offset: List[int]
-
-
 class _GlyphData(TypedDict):  # pyre-ignore
     distribtution: _DistributionData
     hdi: _HDIData
@@ -87,7 +78,7 @@ class _Data(TypedDict):  # pyre-ignore
     cumulative: _GlyphData
 
 
-class _GlyphSources(TypedDict):  # pyre-ignore
+class _Source(TypedDict):  # pyre-ignore
     distribution: ColumnDataSource
     hdi: ColumnDataSource
     stats: ColumnDataSource
@@ -95,8 +86,8 @@ class _GlyphSources(TypedDict):  # pyre-ignore
 
 
 class _Sources(TypedDict):  # pyre-ignore
-    marginal: _GlyphSources
-    cumulative: _GlyphSources
+    marginal: _Source
+    cumulative: _Source
 
 
 class _Figures(TypedDict):  # pyre-ignore
@@ -114,49 +105,34 @@ class _StatsGlyph(TypedDict):  # pyre-ignore
     hover_glyph: Circle
 
 
-class _MarginalFigureGlyphs(TypedDict):  # pyre-ignore
-    distribution: _DistributionGlyph
-    stats: _StatsGlyph
-
-
-class _CumulativeFigureGlyphs(TypedDict):  # pyre-ignore
+class _FigureGlyphs(TypedDict):  # pyre-ignore
     distribution: _DistributionGlyph
     stats: _StatsGlyph
 
 
 class _Glyphs(TypedDict):  # pyre-ignore
-    marginal: _MarginalFigureGlyphs
-    cumulative: _CumulativeFigureGlyphs
+    marginal: _FigureGlyphs
+    cumulative: _FigureGlyphs
 
 
-class _MarginalFigureAnnotations(TypedDict):  # pyre-ignore
-    hdi: Band
-    labels: LabelSet
-
-
-class _CumulativeFigureAnnotations(TypedDict):  # pyre-ignore
+class _FigureAnnotations(TypedDict):  # pyre-ignore
     hdi: Band
     labels: LabelSet
 
 
 class _Annotations(TypedDict):  # pyre-ignore
-    marginal: _MarginalFigureAnnotations
-    cumulative: _CumulativeFigureAnnotations
+    marginal: _FigureAnnotations
+    cumulative: _FigureAnnotations
 
 
-class _MarginalFigureTooltips(TypedDict):  # pyre-ignore
-    distribution: HoverTool
-    stats: HoverTool
-
-
-class _CumulativeFigureTooltips(TypedDict):  # pyre-ignore
+class _Tooltip(TypedDict):  # pyre-ignore
     distribution: HoverTool
     stats: HoverTool
 
 
 class _Tooltips(TypedDict):  # pyre-ignore
-    marginal: _MarginalFigureTooltips
-    cumulative: _CumulativeFigureTooltips
+    marginal: _Tooltip
+    cumulative: _Tooltip
 
 
 class _Widgets(TypedDict):  # pyre-ignore
