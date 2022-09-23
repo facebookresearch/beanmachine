@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/ad/tests/test_utils.h"
+#include "beanmachine/minibmg/tests/test_utils.h"
 #include <cmath>
 
 using namespace std;

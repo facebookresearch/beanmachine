@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include <beanmachine/minibmg/ad/tests/test_utils.h>
+#include <beanmachine/minibmg/tests/test_utils.h>
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/num3.h"
 #include "beanmachine/minibmg/ad/real.h"
