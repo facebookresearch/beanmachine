@@ -8,6 +8,7 @@
 #include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include <gtest/gtest.h>
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/testing_util.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {

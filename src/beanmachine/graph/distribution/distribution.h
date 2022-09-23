@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <boost/iterator/transform_iterator.hpp>
 #include <string>
 #include "beanmachine/graph/graph.h"
 
@@ -166,6 +167,27 @@ class Distribution : public graph::Node {
         "_matrix_sampler has not been implemented for this distribution.");
   }
 };
+
+/* Returns a function (distribution::Distribution* d) -> d->log_prob(value). */
+inline auto log_prob_getter(const graph::NodeValue& value) {
+  return [&](distribution::Distribution* d) { return d->log_prob(value); };
+}
+
+/* Downcasts node pointer to distribution::Distribution* d and returns
+ * d->sample_type.
+ */
+inline graph::ValueType get_sample_type(graph::Node* node) {
+  return dynamic_cast<distribution::Distribution*>(node)->sample_type;
+}
+
+/*
+ * Takes iterator over Node pointers to distributions
+ * and returns iterator over their sample types.
+ */
+template <typename Iterator>
+inline auto sample_type_iterator(Iterator it) {
+  return boost::make_transform_iterator(it, get_sample_type);
+}
 
 } // namespace distribution
 } // namespace beanmachine
