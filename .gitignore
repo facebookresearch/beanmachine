@@ -100,10 +100,11 @@ botorch/qmc/sobol.c*
 # Sphinx documentation
 sphinx/build/
 
-# Docusaurus
+# Docusaurus and diagnostic tools
 website/build/
 website/i18n/
 website/node_modules/
+node_modules
 
 # Tutorials
 docs/overview/tutorials/*/*.mdx
