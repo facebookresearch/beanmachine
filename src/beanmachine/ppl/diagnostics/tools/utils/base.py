@@ -23,7 +23,7 @@ class Base(ABC):
     @abstractmethod
     def __init__(self: T, mcs: MonteCarloSamples) -> None:
         self.data = serialize_bm(mcs)
-        self.rv_names = list(self.data.keys())
+        self.rv_names = ["Select a random variable..."] + list(self.data.keys())
         self.num_chains = mcs.num_chains
         self.num_draws = mcs.get_num_samples()
         self.palette = plotting_utils.choose_palette(self.num_chains)

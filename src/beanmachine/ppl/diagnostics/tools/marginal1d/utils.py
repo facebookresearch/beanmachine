@@ -8,9 +8,8 @@
 from typing import List
 
 import numpy as np
-import statsmodels.api as sm
 from beanmachine.ppl.diagnostics.tools.marginal1d import typing
-from beanmachine.ppl.diagnostics.tools.utils import hdi, plotting_utils
+from beanmachine.ppl.diagnostics.tools.utils import plotting_utils
 from bokeh.models.annotations import Band, LabelSet
 from bokeh.models.glyphs import Circle, Line
 from bokeh.models.layouts import Column, Row
