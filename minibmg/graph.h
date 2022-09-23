@@ -21,9 +21,9 @@ class Graph : public Container {
   // valudates that the list of nodes so reached forms a valid graph, and
   // returns that graph.  Throws an exception if the nodes do not form a valid
   // graph.
-  static Graph create(
-      std::vector<Nodep> queries,
-      std::list<std::pair<Nodep, double>> observations);
+  Graph(
+      const std::vector<Nodep>& queries,
+      const std::list<std::pair<Nodep, double>>& observations);
   ~Graph();
 
   // Implement the iterator pattern so clients can iterate over the nodes.
@@ -56,9 +56,9 @@ class Graph : public Container {
   // A private constructor that forms a graph without validation.
   // Used internally.  All exposed graphs should be validated.
   Graph(
-      std::vector<Nodep> nodes,
-      std::vector<Nodep> queries,
-      std::list<std::pair<Nodep, double>> observations);
+      const std::vector<Nodep>& nodes,
+      const std::vector<Nodep>& queries,
+      const std::list<std::pair<Nodep, double>>& observations);
   static void validate(std::vector<Nodep> nodes);
 
  public:

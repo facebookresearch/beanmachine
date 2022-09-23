@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 #include <list>
-#include <unordered_set>
 #include "beanmachine/minibmg/minibmg.h"
 #include "beanmachine/minibmg/out_nodes.h"
 

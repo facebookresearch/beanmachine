@@ -9,7 +9,6 @@
 #include <exception>
 #include <list>
 #include <map>
-#include <unordered_set>
 #include "beanmachine/minibmg/minibmg.h"
 
 namespace {
