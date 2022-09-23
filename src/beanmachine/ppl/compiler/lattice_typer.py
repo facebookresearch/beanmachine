@@ -277,6 +277,8 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         op = self[node.operand]
         assert op is not bt.Untypable
         assert isinstance(op, bt.BMGMatrixType)
+        if isinstance(op, bt.NegativeRealMatrix):
+            return bt.ProbabilityMatrix(op.rows, op.columns)
         return bt.PositiveRealMatrix(op.rows, op.columns)
 
     def _type_matrix_log(self, node: bn.MatrixLogNode) -> bt.BMGLatticeType:

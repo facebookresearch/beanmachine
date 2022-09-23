@@ -35,6 +35,7 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # what their inputs are.
 
 _known_requirements: Dict[type, List[bt.Requirement]] = {
+    # TODO See comment below regarding RealMatrix
     bn.ElementwiseMultiplyNode: [bt.RealMatrix, bt.RealMatrix],
     bn.Observation: [bt.any_requirement],
     bn.Query: [bt.any_requirement],
@@ -55,6 +56,15 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
     bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],
+    # TODO: This is wrong in several ways.
+    # First, RealMatrix does not meet the contract of a requirement;
+    # in particular, it cannot be printed out by the requirement diagnostic
+    # in gen_to_dot.
+    # Second, it is too strict; the requirement on matrix add is actually
+    # that the two operands be any double matrix (real, neg real,
+    # pos real or probability).
+    # Third, this requirement is too weak; we are missing the requirement
+    # that the operands have the same element type and shape.
     bn.MatrixAddNode: [bt.RealMatrix, bt.RealMatrix],
     bn.MatrixExpNode: [bt.any_real_matrix],
     bn.MatrixLogNode: [bt.any_pos_real_matrix],
