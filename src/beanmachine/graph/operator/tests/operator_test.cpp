@@ -1556,11 +1556,14 @@ TEST(testoperator, to_pos_real_matrix) {
           OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tm, tm}),
       std::invalid_argument);
 
-  uint tr = g.add_operator(OperatorType::TO_REAL_MATRIX, std::vector<uint>{tm});
+  // Input must not be neg real matrix
 
-  // Input must not be real matrix
+  uint l1 = g.add_operator(OperatorType::LOG, std::vector<uint>{b1});
+  uint nrm = g.add_operator(
+      OperatorType::TO_MATRIX, std::vector<uint>{two, two, l1, l1, l1, l1});
+
   EXPECT_THROW(
-      g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tr}),
+      g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{nrm}),
       std::invalid_argument);
 
   g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tm});

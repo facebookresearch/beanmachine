@@ -205,11 +205,12 @@ ToPosRealMatrix::ToPosRealMatrix(const std::vector<graph::Node*>& in_nodes)
 
   if (element_type != graph::AtomicType::PROBABILITY and
       element_type != graph::AtomicType::POS_REAL and
+      element_type != graph::AtomicType::REAL and
       element_type != graph::AtomicType::NATURAL and
       element_type != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument(
         "operator TO_POS_REAL_MATRIX requires a "
-        "pos_real, probability, natural or boolean matrix parent");
+        "real, pos_real, probability, natural or boolean matrix parent");
   }
 
   value = graph::NodeValue(graph::ValueType(
