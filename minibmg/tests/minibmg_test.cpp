@@ -16,7 +16,6 @@ using namespace beanmachine::minibmg;
 #define ASSERT_ID(node, num) ASSERT_EQ(node, NodeId{(unsigned long)(num)})
 
 TEST(test_minibmg, basic_building_1) {
-  NodeId::_reset_for_testing();
   Graph::Factory gf;
   auto k12 = gf.add_constant(1.2);
   ASSERT_ID(k12, 0);
@@ -38,7 +37,6 @@ TEST(test_minibmg, basic_building_1) {
 }
 
 TEST(test_minibmg, dead_code_dropped) {
-  NodeId::_reset_for_testing();
   Graph::Factory gf;
   auto k12 = gf.add_constant(1.2);
   ASSERT_ID(k12, 0);

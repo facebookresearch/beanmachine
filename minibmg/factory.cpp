@@ -10,17 +10,11 @@
 
 namespace beanmachine::minibmg {
 
-std::atomic<unsigned long> NodeId::_next_value{0};
-
-NodeId::NodeId() {
-  this->value = _next_value.fetch_add(1);
-}
-
 NodeId Graph::Factory::add_node(Nodep node) {
   if (built) {
     throw std::invalid_argument("Graph has already been built");
   }
-  NodeId identifier{};
+  NodeId identifier{next_identifier++};
   identifer_to_node.insert({identifier, node});
   return identifier;
 }
