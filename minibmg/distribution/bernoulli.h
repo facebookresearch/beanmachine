@@ -10,7 +10,7 @@
 #include <random>
 #include "beanmachine/minibmg/distribution/distribution.h"
 
-namespace beanmachine::minibmg::distribution {
+namespace beanmachine::minibmg {
 
 template <class Underlying>
 requires Number<Underlying>
@@ -29,6 +29,9 @@ class Bernoulli : public Distribution<Underlying> {
         log(probability_of_one),
         value.if_equal(0, log(probability_of_zero), -INFINITY));
   }
+  bool is_discrete() const override {
+    return false;
+  }
 };
 
-} // namespace beanmachine::minibmg::distribution
+} // namespace beanmachine::minibmg
