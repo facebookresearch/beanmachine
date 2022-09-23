@@ -10,6 +10,7 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/testing_util.h"
 #include "beanmachine/graph/third-party/nameof.h"
 #include "beanmachine/graph/util.h"
 

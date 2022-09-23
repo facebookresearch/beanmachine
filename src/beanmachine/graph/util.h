@@ -17,8 +17,7 @@
 #include <numeric>
 #include <random>
 #include <stdexcept>
-#include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/graph.h"
+#include <type_traits>
 
 namespace beanmachine {
 namespace util {
@@ -258,36 +257,6 @@ inline auto log_poisson_probability(unsigned k, double lambda) {
 }
 
 /*
-Returns the mean of the index-th dimension in samples.
-*/
-double compute_mean_at_index(
-    std::vector<std::vector<graph::NodeValue>> samples,
-    std::size_t index);
-
-/*
-Returns the means of samples.
-*/
-std::vector<double> compute_means(
-    std::vector<std::vector<graph::NodeValue>> samples);
-
-/*
-Runs both NMC and NUTS on given graph for a number of rounds
-with a given number of samples (warmup samples is used only for NUTS),
-and calls a tester function on the means of the first query
-variable obtained by both algorithms.
-The seed is provided as a nullary function (so it can vary across rounds).
-Also prints the obtained means and the measured maximum difference over all
-rounds.
-*/
-void test_nmc_against_nuts(
-    graph::Graph& graph,
-    int num_rounds,
-    int num_samples,
-    int warmup_samples,
-    std::function<unsigned()> seed_getter,
-    std::function<void(double, double)> tester);
-
-/*
  * Returns a runtime_error exception
  * indicating that the feature of given name is
  * unsupported.
@@ -295,34 +264,6 @@ void test_nmc_against_nuts(
 inline std::runtime_error unsupported(const char* name) {
   return std::runtime_error(std::string(name) + " is unsupported");
 }
-
-/* Returns a function (distribution::Distribution* d) -> d->log_prob(value). */
-inline auto log_prob_getter(const graph::NodeValue& value) {
-  return [&](distribution::Distribution* d) { return d->log_prob(value); };
-}
-
-/* Downcasts node pointer to distribution::Distribution* d and returns
- * d->sample_type.
- */
-inline graph::ValueType get_sample_type(graph::Node* node) {
-  return dynamic_cast<distribution::Distribution*>(node)->sample_type;
-}
-
-/*
- * Takes iterator over Node pointers to distributions
- * and returns iterator over their sample types.
- */
-template <typename Iterator>
-inline auto sample_type_iterator(Iterator it) {
-  return boost::make_transform_iterator(it, get_sample_type);
-}
-
-inline bool atomic_type_unknown_or_equal_to(
-    graph::AtomicType a,
-    graph::ValueType v) {
-  return a == graph::AtomicType::UNKNOWN or graph::ValueType(a) == v;
-}
-
 template <typename T>
 void erase_position(std::vector<T>& vector, std::size_t index) {
   vector.erase(vector.begin() + index);

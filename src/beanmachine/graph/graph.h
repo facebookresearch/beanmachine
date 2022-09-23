@@ -125,6 +125,12 @@ struct ValueType {
   std::string to_string() const;
 };
 
+inline bool atomic_type_unknown_or_equal_to(
+    graph::AtomicType a,
+    graph::ValueType v) {
+  return a == graph::AtomicType::UNKNOWN or graph::ValueType(a) == v;
+}
+
 typedef NATURAL_TYPE natural_t;
 
 extern NATURAL_TYPE NATURAL_ZERO;
