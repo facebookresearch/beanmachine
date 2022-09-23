@@ -570,12 +570,10 @@ MatrixPhi::MatrixPhi(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument("MATRIX_PHI requires one parent node");
   }
   auto type = in_nodes[0]->value.type;
-  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+  if (type.variable_type != graph::VariableType::BROADCAST_MATRIX or
+      type.atomic_type != graph::AtomicType::REAL) {
     throw std::invalid_argument(
-        "the parent of MATRIX_PHI must be a BROADCAST_MATRIX");
-  }
-  if (type.atomic_type != graph::AtomicType::REAL) {
-    throw std::invalid_argument("operator MATRIX_PHI requires a real parent");
+        "the parent of MATRIX_PHI must be a BROADCAST_MATRIX of atomic type real");
   }
   value = graph::NodeValue(graph::ValueType(
       graph::VariableType::BROADCAST_MATRIX,
