@@ -29,6 +29,7 @@ TEST(eval_test, simple1) {
   auto v1 = fac.add_variable("x", 0); // 1.15
   auto mul1 = fac.add_operator(Operator::MULTIPLY, {add0, v1}); // 6.095
   auto sub1 = fac.add_operator(Operator::SUBTRACT, {mul1, k1}); // 1.995
+  fac.add_query(sub1); // add a root to the graph.
   auto graph = fac.build();
   std::mt19937 gen;
   auto read_variable = [](const std::string&, const unsigned) { return 1.15; };
@@ -49,6 +50,7 @@ TEST(eval_test, sample1) {
   auto k1 = fac.add_constant(expected_stdev);
   auto normal0 = fac.add_operator(Operator::DISTRIBUTION_NORMAL, {k0, k1});
   auto sample0 = fac.add_operator(Operator::SAMPLE, {normal0});
+  fac.add_query(sample0); // add a root to the graph.
   auto graph = fac.build();
   // We create a new random number generator with its default (deterministic)
   // seed so that this test will not be flaky.
@@ -103,6 +105,7 @@ TEST(eval_test, derivative_dual) {
       {fac.add_constant(1.1),
        fac.add_operator(
            Operator::POW, {fac.add_variable("x", 0), fac.add_constant(2)})});
+  fac.add_query(s); // add a root to the graph.
   Graph graph = fac.build();
   int graph_size = graph.size();
 
@@ -135,6 +138,7 @@ TEST(eval_test, derivatives_triune) {
       {fac.add_constant(1.1),
        fac.add_operator(
            Operator::POW, {fac.add_variable("x", 0), fac.add_constant(2)})});
+  fac.add_query(s); // add a root to the graph.
   auto sn = fac[s];
   Graph graph = fac.build();
   int graph_size = graph.size();
