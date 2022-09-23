@@ -269,5 +269,42 @@ void erase_position(std::vector<T>& vector, std::size_t index) {
   vector.erase(vector.begin() + index);
 }
 
+/*
+ * An iterable over an enum class.
+ * If you have an enum class Foo with first value Foo::FIRST
+ * and last value Foo::LAST, use
+ * using FooIterable = EnumClassIterable<Foo, Foo::FIRST, Foo::LAST>;
+ * for (auto value : FooIterable()) {
+ }
+ * Code provided in https://stackoverflow.com/a/31836401/3358488
+ */
+template <typename C, C beginVal, C endVal>
+class EnumClassIterable {
+  using val_t = typename std::underlying_type<C>::type;
+  int val;
+
+ public:
+  explicit EnumClassIterable(const C& f) : val(static_cast<val_t>(f)) {}
+  EnumClassIterable() : val(static_cast<val_t>(beginVal)) {}
+  EnumClassIterable operator++() {
+    ++val;
+    return *this;
+  }
+  C operator*() {
+    return static_cast<C>(val);
+  }
+  EnumClassIterable begin() {
+    return *this;
+  } // default ctor is good
+  EnumClassIterable end() {
+    static const EnumClassIterable endIter =
+        ++EnumClassIterable(endVal); // cache it
+    return endIter;
+  }
+  bool operator!=(const EnumClassIterable& i) {
+    return val != i.val;
+  }
+};
+
 } // namespace util
 } // namespace beanmachine

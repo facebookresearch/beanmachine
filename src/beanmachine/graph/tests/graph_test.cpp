@@ -11,7 +11,10 @@
 
 #include <gtest/gtest.h>
 
-#include "beanmachine/graph/graph.h"
+#include <beanmachine/graph/graph.h>
+#include "beanmachine/graph/distribution/distribution.h"
+#include "beanmachine/graph/factor/factor.h"
+#include "beanmachine/graph/operator/operator.h"
 
 using namespace beanmachine;
 using namespace std;
@@ -221,157 +224,441 @@ TEST(testgraph, infer_bn) {
   ASSERT_LT(all_means[1].front(), 0.6);
 }
 
-TEST(testgraph, clone_graph) {
-  // This graph is not a meaningful model. It is designed to include all
-  // types of nodes to test the copy constructor.
-  graph::Graph g;
+/*
+  A graph with nodes of all types. It is not a meaningful model.
+  It is designed to test Graph's copy constructor and Node's clone.
+*/
+unique_ptr<Graph> make_graph_with_nodes_of_all_types() {
+  auto g = make_unique<Graph>();
+
   // constants
-  uint c_bool = g.add_constant_bool(true);
-  uint c_real = g.add_constant_real(-2.5);
-  uint c_natural_1 = g.add_constant_natural(1);
-  uint c_natural_2 = g.add_constant_natural(2);
-  uint c_prob = g.add_constant_probability(0.5);
-  uint c_pos = g.add_constant_pos_real(2.5);
-  uint c_neg = g.add_constant_neg_real(-1.5);
+  uint c_bool = g->add_constant_bool(true);
+  uint c_real = g->add_constant_real(-2.5);
+  uint c_natural_1 = g->add_constant_natural(1);
+  uint c_natural_2 = g->add_constant_natural(2);
+  uint c_prob = g->add_constant_probability(0.5);
+  uint c_pos = g->add_constant_pos_real(2.5);
+  uint c_neg = g->add_constant_neg_real(-1.5);
 
   Eigen::MatrixXd m0 = Eigen::MatrixXd::Constant(2, 1, 0.6);
-  g.add_constant_probability_matrix(m0);
+  uint cm0 = g->add_constant_probability_matrix(m0);
   Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(2, 2);
-  g.add_constant_pos_matrix(m1);
+  uint cm1 = g->add_constant_pos_matrix(m1);
   Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(2, 2);
-  g.add_constant_real_matrix(m2);
+  uint cm2 = g->add_constant_real_matrix(m2);
   Eigen::MatrixXd m3(2, 1);
   m3 << 0.2, 0.8;
-  g.add_constant_col_simplex_matrix(m3);
+  g->add_constant_col_simplex_matrix(m3);
   Eigen::MatrixXb m4(1, 2);
   m4 << true, false;
-  g.add_constant_bool_matrix(m4);
+  g->add_constant_bool_matrix(m4);
   Eigen::MatrixXn m5(2, 1);
   m5 << 1, 2;
-  g.add_constant_natural_matrix(m5);
+  g->add_constant_natural_matrix(m5);
+
+  Eigen::MatrixXd matrix1(2, 1);
+  matrix1 << 0.8, 0.2;
+  uint c1 = g->add_constant_col_simplex_matrix(matrix1);
+
+  Eigen::MatrixXd matrix2(3, 1);
+  matrix2 << 10.0, 20.00, 30.00;
+  uint c2 = g->add_constant_pos_matrix(matrix2);
+
+  const double LOG_MEAN = -11.0;
+  const double LOG_STD = 3.0;
+  auto real1 = g->add_constant(LOG_MEAN);
+  auto real2 = g->add_constant_real(0.5);
+  auto real3 = g->add_constant_real(3.0);
+  auto pos1 = g->add_constant_pos_real(LOG_STD);
+  auto pos2 = g->add_constant_pos_real(2.5);
+
+  auto prob1 = g->add_constant_probability(0.3);
+
+  auto zero = g->add_constant_real(0.0);
+  auto zero_nat = g->add_constant_natural(0);
+  auto one = g->add_constant_natural(1);
+  auto two = g->add_constant_natural(2);
+  auto three = g->add_constant_natural(3);
+
+  auto pos_zero = g->add_constant_pos_real(0.0);
+  auto loc = g->add_operator(OperatorType::ADD, vector<uint>{zero, real1});
+  auto scale = g->add_operator(OperatorType::ADD, vector<uint>{pos_zero, pos1});
+
   // distributions
-  uint d_bernoulli = g.add_distribution(
-      graph::DistributionType::BERNOULLI,
-      graph::AtomicType::BOOLEAN,
-      std::vector<uint>{c_prob});
-  uint d_bernoulli_or = g.add_distribution(
-      graph::DistributionType::BERNOULLI_NOISY_OR,
-      graph::AtomicType::BOOLEAN,
-      std::vector<uint>{c_pos});
-  uint d_bernoulli_logit = g.add_distribution(
-      graph::DistributionType::BERNOULLI_LOGIT,
-      graph::AtomicType::BOOLEAN,
-      std::vector<uint>{c_real});
-  uint d_beta = g.add_distribution(
-      graph::DistributionType::BETA,
-      graph::AtomicType::PROBABILITY,
-      std::vector<uint>{c_pos, c_pos});
-  uint d_binomial = g.add_distribution(
-      graph::DistributionType::BINOMIAL,
-      graph::AtomicType::NATURAL,
-      std::vector<uint>{c_natural_2, c_prob});
-  uint d_flat = g.add_distribution(
-      graph::DistributionType::FLAT,
-      graph::AtomicType::POS_REAL,
-      std::vector<uint>{});
-  uint d_normal = g.add_distribution(
-      graph::DistributionType::NORMAL,
-      graph::AtomicType::REAL,
-      std::vector<uint>{c_real, c_pos});
-  uint d_halfcauchy = g.add_distribution(
-      graph::DistributionType::HALF_CAUCHY,
-      graph::AtomicType::POS_REAL,
-      std::vector<uint>{c_pos});
-  uint d_studentt = g.add_distribution(
-      graph::DistributionType::STUDENT_T,
-      graph::AtomicType::REAL,
-      std::vector<uint>{c_pos, c_real, c_pos});
-  uint d_gamma = g.add_distribution(
-      graph::DistributionType::GAMMA,
-      graph::AtomicType::POS_REAL,
-      std::vector<uint>{c_pos, c_pos});
+  auto lkj_chol_dist = g->add_distribution(
+      DistributionType::LKJ_CHOLESKY,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 5, 5),
+      vector<uint>{pos1});
+
+  auto cauchy_dist = g->add_distribution(
+      DistributionType::CAUCHY, AtomicType::REAL, vector<uint>{loc, scale});
+
+  auto geometric_dist = g->add_distribution(
+      DistributionType::GEOMETRIC, AtomicType::NATURAL, vector<uint>{prob1});
+
+  auto poisson_dist = g->add_distribution(
+      DistributionType::POISSON, AtomicType::NATURAL, vector<uint>{pos1});
+
+  uint categorical_dist = g->add_distribution(
+      DistributionType::CATEGORICAL, AtomicType::NATURAL, vector<uint>({c1}));
+
+  auto normal_dist1 = g->add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, vector<uint>{real1, pos1});
+
+  auto normal_dist2 = g->add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, vector<uint>{real2, pos2});
+
+  auto product_dist = g->add_distribution(
+      DistributionType::PRODUCT,
+      AtomicType::UNKNOWN, // OK -- parents will determine
+      vector<uint>{normal_dist1, normal_dist2});
+
+  auto bimix_dist = g->add_distribution(
+      DistributionType::BIMIXTURE,
+      AtomicType::REAL,
+      vector<uint>{prob1, normal_dist1, normal_dist2});
+
+  uint tabular_dist = g->add_distribution(
+      DistributionType::TABULAR, AtomicType::BOOLEAN, vector<uint>({c1}));
+
+  uint d_bernoulli = g->add_distribution(
+      DistributionType::BERNOULLI, AtomicType::BOOLEAN, vector<uint>{c_prob});
+
+  uint flat_dist = g->add_distribution(
+      DistributionType::FLAT,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::POS_REAL, 3, 1),
+      vector<uint>{});
+  uint flat_sample = g->add_operator(OperatorType::SAMPLE, {flat_dist});
+
+  uint diri_dist = g->add_distribution(
+      DistributionType::DIRICHLET,
+      ValueType(
+          VariableType::COL_SIMPLEX_MATRIX, AtomicType::PROBABILITY, 3, 1),
+      vector<uint>{flat_sample});
+
+  auto log_normal_dist = g->add_distribution(
+      DistributionType::LOG_NORMAL,
+      AtomicType::POS_REAL,
+      vector<uint>{real1, pos1});
+
+  auto half_normal_dist = g->add_distribution(
+      DistributionType::HALF_NORMAL, AtomicType::POS_REAL, vector<uint>{pos1});
+
+  uint flat_dist_mean = g->add_distribution(
+      DistributionType::FLAT,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 1),
+      vector<uint>{});
+  uint flat_sample_mean =
+      g->add_operator(OperatorType::SAMPLE, {flat_dist_mean});
+
+  uint flat_dist_cov = g->add_distribution(
+      DistributionType::FLAT,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 3),
+      vector<uint>{});
+  uint flat_sample_cov = g->add_operator(OperatorType::SAMPLE, {flat_dist_cov});
+
+  Eigen::MatrixXd m6(3, 1);
+  m6 << 1.5, 1.0, 2.0;
+
+  Eigen::MatrixXd m7(3, 3);
+  m7 << 1.0, 0.5, 0.0, 0.5, 1.0, 0.25, 0.0, 0.25, 1.0;
+
+  g->observe(flat_sample_mean, m6);
+  g->observe(flat_sample_cov, m7);
+
+  uint multivariate_dist = g->add_distribution(
+      DistributionType::MULTIVARIATE_NORMAL,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 1),
+      vector<uint>{flat_sample_mean, flat_sample_cov});
+
+  uint d_bernoulli_or = g->add_distribution(
+      DistributionType::BERNOULLI_NOISY_OR,
+      AtomicType::BOOLEAN,
+      vector<uint>{c_pos});
+  uint d_bernoulli_logit = g->add_distribution(
+      DistributionType::BERNOULLI_LOGIT,
+      AtomicType::BOOLEAN,
+      vector<uint>{c_real});
+  uint d_beta = g->add_distribution(
+      DistributionType::BETA,
+      AtomicType::PROBABILITY,
+      vector<uint>{c_pos, c_pos});
+  uint d_binomial = g->add_distribution(
+      DistributionType::BINOMIAL,
+      AtomicType::NATURAL,
+      vector<uint>{c_natural_2, c_prob});
+  uint d_flat = g->add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, vector<uint>{});
+  uint d_normal = g->add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, vector<uint>{c_real, c_pos});
+  uint d_halfcauchy = g->add_distribution(
+      DistributionType::HALF_CAUCHY, AtomicType::POS_REAL, vector<uint>{c_pos});
+  uint d_studentt = g->add_distribution(
+      DistributionType::STUDENT_T,
+      AtomicType::REAL,
+      vector<uint>{c_pos, c_real, c_pos});
+  uint d_gamma = g->add_distribution(
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      vector<uint>{c_pos, c_pos});
+
   // operators
-  uint o_sample_bool = g.add_operator(
-      graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
+  uint o_sample_bool =
+      g->add_operator(OperatorType::SAMPLE, vector<uint>{d_bernoulli});
   uint o_sample_real =
-      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_normal});
-  uint o_sample_natural = g.add_operator(
-      graph::OperatorType::SAMPLE, std::vector<uint>{d_binomial});
+      g->add_operator(OperatorType::SAMPLE, vector<uint>{d_normal});
+  uint o_sample_natural =
+      g->add_operator(OperatorType::SAMPLE, vector<uint>{d_binomial});
   uint o_sample_prob =
-      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_beta});
+      g->add_operator(OperatorType::SAMPLE, vector<uint>{d_beta});
   uint o_sample_pos =
-      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_gamma});
+      g->add_operator(OperatorType::SAMPLE, vector<uint>{d_gamma});
 
-  uint o_iidsample_bool = g.add_operator(
-      graph::OperatorType::IID_SAMPLE,
-      std::vector<uint>{d_bernoulli, c_natural_1, c_natural_2});
-  uint o_iidsample_real = g.add_operator(
-      graph::OperatorType::IID_SAMPLE,
-      std::vector<uint>{d_normal, c_natural_2, c_natural_2});
-  uint o_iidsample_natural = g.add_operator(
-      graph::OperatorType::IID_SAMPLE,
-      std::vector<uint>{d_binomial, c_natural_2});
-  uint o_iidsample_prob = g.add_operator(
-      graph::OperatorType::IID_SAMPLE,
-      std::vector<uint>{d_beta, c_natural_2, c_natural_1});
-  uint o_iidsample_pos = g.add_operator(
-      graph::OperatorType::IID_SAMPLE,
-      std::vector<uint>{d_gamma, c_natural_2, c_natural_2});
+  uint o_iidsample_bool = g->add_operator(
+      OperatorType::IID_SAMPLE,
+      vector<uint>{d_bernoulli, c_natural_1, c_natural_2});
+  uint o_iidsample_real = g->add_operator(
+      OperatorType::IID_SAMPLE,
+      vector<uint>{d_normal, c_natural_2, c_natural_2});
+  uint o_iidsample_natural = g->add_operator(
+      OperatorType::IID_SAMPLE, vector<uint>{d_binomial, c_natural_2});
+  uint o_iidsample_prob = g->add_operator(
+      OperatorType::IID_SAMPLE, vector<uint>{d_beta, c_natural_2, c_natural_1});
+  uint o_iidsample_pos = g->add_operator(
+      OperatorType::IID_SAMPLE,
+      vector<uint>{d_gamma, c_natural_2, c_natural_2});
 
-  uint o_to_real = g.add_operator(
-      graph::OperatorType::TO_REAL, std::vector<uint>{o_sample_pos});
-  uint o_to_pos = g.add_operator(
-      graph::OperatorType::TO_POS_REAL, std::vector<uint>{o_sample_prob});
-  uint o_complement = g.add_operator(
-      graph::OperatorType::COMPLEMENT, std::vector<uint>{o_sample_prob});
-  uint o_negate =
-      g.add_operator(graph::OperatorType::NEGATE, std::vector<uint>{c_real});
-  uint o_exp =
-      g.add_operator(graph::OperatorType::EXP, std::vector<uint>{c_real});
-  uint o_expm1 = g.add_operator(
-      graph::OperatorType::EXPM1, std::vector<uint>{o_sample_pos});
-  uint o_log =
-      g.add_operator(graph::OperatorType::LOG, std::vector<uint>{o_to_pos});
+  uint o_to_real =
+      g->add_operator(OperatorType::TO_REAL, vector<uint>{o_sample_pos});
+  uint o_to_pos =
+      g->add_operator(OperatorType::TO_POS_REAL, vector<uint>{o_sample_prob});
+  uint o_complement =
+      g->add_operator(OperatorType::COMPLEMENT, vector<uint>{o_sample_prob});
+  uint o_negate = g->add_operator(OperatorType::NEGATE, vector<uint>{c_real});
+  uint o_exp = g->add_operator(OperatorType::EXP, vector<uint>{c_real});
+  uint o_expm1 =
+      g->add_operator(OperatorType::EXPM1, vector<uint>{o_sample_pos});
+  uint o_log = g->add_operator(OperatorType::LOG, vector<uint>{o_to_pos});
   uint o_log1pexp =
-      g.add_operator(graph::OperatorType::LOG1PEXP, std::vector<uint>{o_log});
+      g->add_operator(OperatorType::LOG1PEXP, vector<uint>{o_log});
   uint o_log1mexp =
-      g.add_operator(graph::OperatorType::LOG1MEXP, std::vector<uint>{c_neg});
-  uint o_logsumexp = g.add_operator(
-      graph::OperatorType::LOGSUMEXP, std::vector<uint>{c_real, o_sample_real});
-  uint o_multiply = g.add_operator(
-      graph::OperatorType::MULTIPLY,
-      std::vector<uint>{c_real, o_sample_real, o_logsumexp});
-  uint o_add = g.add_operator(
-      graph::OperatorType::ADD,
-      std::vector<uint>{c_real, o_sample_real, o_to_real});
-  uint o_phi = g.add_operator(
-      graph::OperatorType::PHI, std::vector<uint>{o_sample_real});
+      g->add_operator(OperatorType::LOG1MEXP, vector<uint>{c_neg});
+  uint o_logsumexp = g->add_operator(
+      OperatorType::LOGSUMEXP, vector<uint>{c_real, o_sample_real});
+  uint o_multiply = g->add_operator(
+      OperatorType::MULTIPLY, vector<uint>{c_real, o_sample_real, o_logsumexp});
+  uint o_add = g->add_operator(
+      OperatorType::ADD, vector<uint>{c_real, o_sample_real, o_to_real});
+  uint o_phi = g->add_operator(OperatorType::PHI, vector<uint>{o_sample_real});
   uint o_logistic =
-      g.add_operator(graph::OperatorType::LOGISTIC, std::vector<uint>{c_real});
-  uint o_ifelse = g.add_operator(
-      graph::OperatorType::IF_THEN_ELSE,
-      std::vector<uint>{o_sample_bool, o_sample_pos, o_log1pexp});
+      g->add_operator(OperatorType::LOGISTIC, vector<uint>{c_real});
+  uint o_ifelse = g->add_operator(
+      OperatorType::IF_THEN_ELSE,
+      vector<uint>{o_sample_bool, o_sample_pos, o_log1pexp});
+
+  auto x = g->add_operator(
+      OperatorType::IID_SAMPLE, vector<uint>{normal_dist1, three, two});
+  auto y = g->add_operator(
+      OperatorType::IID_SAMPLE, vector<uint>{normal_dist1, three, two});
+  Eigen::MatrixXd m8(3, 2);
+  m8 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  Eigen::MatrixXd m9(3, 2);
+  m9 << 0.4, 0.1, 0.5, -1.1, 0.7, -0.6;
+  g->observe(x, m8);
+  g->observe(y, m9);
+  auto xy =
+      g->add_operator(OperatorType::ELEMENTWISE_MULTIPLY, vector<uint>{x, y});
+
+  auto neg = g->add_operator(OperatorType::MATRIX_NEGATE, vector<uint>{cm2});
+
+  auto neg1 = g->add_constant_neg_real(-1.0);
+  auto pospos =
+      g->add_operator(OperatorType::TO_MATRIX, {two, one, pos1, pos1});
+  auto negneg =
+      g->add_operator(OperatorType::TO_MATRIX, {two, one, neg1, neg1});
+  g->add_operator(OperatorType::LOGSUMEXP_VECTOR, vector<uint>{pospos});
+  g->add_operator(OperatorType::LOGSUMEXP_VECTOR, vector<uint>{negneg});
+
+  auto prob1_pow_pos2 =
+      g->add_operator(OperatorType::POW, vector<uint>{prob1, pos2});
+
+  uint cm1t = g->add_operator(OperatorType::TRANSPOSE, vector<uint>{cm1});
+
+  auto cm1_x_cm2 =
+      g->add_operator(OperatorType::MATRIX_MULTIPLY, vector<uint>{cm1, cm2});
+
+  auto real1_cm2_scale =
+      g->add_operator(OperatorType::MATRIX_SCALE, vector<uint>{real1, cm2});
+
+  auto cm2_cm2_add =
+      g->add_operator(OperatorType::MATRIX_ADD, vector<uint>{cm2, cm2});
+
+  auto prob2 =
+      g->add_operator(OperatorType::TO_PROBABILITY, vector<uint>{real1});
+
+  uint first_element =
+      g->add_operator(OperatorType::INDEX, vector<uint>{c1, zero_nat});
+
+  uint first_column =
+      g->add_operator(OperatorType::COLUMN_INDEX, vector<uint>{cm2, zero_nat});
+
+  uint sum_matrix =
+      g->add_operator(OperatorType::BROADCAST_ADD, vector<uint>{real1, cm2});
+
+  uint tm = g->add_operator(
+      OperatorType::TO_MATRIX,
+      vector<uint>{two, two, prob1, prob1, prob1, prob1});
+  uint real_matrix =
+      g->add_operator(OperatorType::TO_REAL_MATRIX, vector<uint>{tm});
+
+  uint pos_real_matrix =
+      g->add_operator(OperatorType::TO_POS_REAL_MATRIX, vector<uint>{tm});
+
+  uint neg_real =
+      g->add_operator(OperatorType::TO_NEG_REAL, vector<uint>{real1});
+
+  uint choice = g->add_operator(
+      OperatorType::CHOICE, vector<uint>{zero_nat, real1, real2, real3});
+
+  uint integer = g->add_operator(OperatorType::TO_INT, vector<uint>{real1});
+
+  Eigen::MatrixXd positive_definite(3, 3);
+  positive_definite << 10, 5, 2, 5, 3, 2, 2, 2, 3;
+  auto positive_definite_matrix =
+      g->add_constant_real_matrix(positive_definite);
+  auto l = g->add_operator(OperatorType::CHOLESKY, {positive_definite_matrix});
+
+  auto exp = g->add_operator(OperatorType::MATRIX_EXP, {cm1});
+
+  auto log_prob =
+      g->add_operator(OperatorType::LOG_PROB, {normal_dist1, real1});
+
+  auto matrix_sum = g->add_operator(OperatorType::MATRIX_SUM, {cm1});
+
+  auto matrix_log = g->add_operator(OperatorType::MATRIX_LOG, {cm1});
+
+  uint log1p = g->add_operator(OperatorType::LOG1P, vector<uint>{real1});
+
+  auto mlog1p = g->add_operator(OperatorType::MATRIX_LOG1P, {cm1});
+
+  Eigen::MatrixXd neg_m1(3, 1);
+  neg_m1 << -2.0, -1.0, -3.0;
+  auto neg_cm1 = g->add_constant_neg_matrix(neg_m1);
+  auto mlog1mexp = g->add_operator(OperatorType::MATRIX_LOG1MEXP, {neg_cm1});
+
+  auto mphi = g->add_operator(OperatorType::MATRIX_PHI, {cm2});
+
+  Eigen::MatrixXd probs(2, 1);
+  probs << 0.2, 0.7;
+  auto probs_matrix = g->add_constant_probability_matrix(probs);
+  auto matrix_complement =
+      g->add_operator(OperatorType::MATRIX_COMPLEMENT, {probs_matrix});
+
   // factors
-  uint f_expprod = g.add_factor(
-      graph::FactorType::EXP_PRODUCT,
-      std::vector<uint>{o_sample_real, o_sample_pos, o_to_pos});
+  uint f_expprod = g->add_factor(
+      FactorType::EXP_PRODUCT,
+      vector<uint>{o_sample_real, o_sample_pos, o_to_pos});
   // observe and query
-  g.observe(o_sample_real, 1.5);
-  g.observe(o_sample_prob, 0.1);
+  g->observe(o_sample_real, 1.5);
+  g->observe(o_sample_prob, 0.1);
 
-  g.observe(o_iidsample_prob, m0);
-  g.observe(o_iidsample_pos, m1);
-  g.observe(o_iidsample_real, m2);
-  g.observe(o_iidsample_bool, m4);
-  g.observe(o_iidsample_natural, m5);
+  g->observe(o_iidsample_prob, m0);
+  g->observe(o_iidsample_pos, m1);
+  g->observe(o_iidsample_real, m2);
+  g->observe(o_iidsample_bool, m4);
+  g->observe(o_iidsample_natural, m5);
 
-  g.query(o_multiply);
-  g.query(o_add);
-  g.query(o_ifelse);
-  g.query(o_log1mexp);
-  // copy and test
-  graph::Graph g_copy(g);
-  ASSERT_EQ(g.to_string(), g_copy.to_string());
+  g->query(o_multiply);
+  g->query(o_add);
+  g->query(o_ifelse);
+  g->query(o_log1mexp);
+
+  return g;
+}
+
+TEST(testgraph, graph_with_nodes_of_all_types_indeed_has_them_all) {
+  using namespace distribution;
+  using namespace oper;
+  using namespace factor;
+
+  auto g = make_graph_with_nodes_of_all_types();
+
+  /// Distributions
+
+  set<DistributionType> missing_distributions;
+  for (auto distribution_type : DistributionTypeIterable()) {
+    auto is_distribution_of_this_type = [distribution_type](auto& node) {
+      return node->node_type == NodeType::DISTRIBUTION and
+          dynamic_cast<Distribution*>(node.get())->dist_type ==
+          distribution_type;
+    };
+
+    if (not any_of(
+            g->nodes.begin(), g->nodes.end(), is_distribution_of_this_type)) {
+      missing_distributions.insert(distribution_type);
+    }
+  }
+
+  missing_distributions.erase(DistributionType::DUMMY); // soon to be discarded
+
+  if (not missing_distributions.empty()) {
+    cerr << "Graph does not contain distributions of types ";
+    for (auto type : missing_distributions) {
+      cerr << NAMEOF_ENUM(type) << ", ";
+    }
+    FAIL();
+  }
+
+  /// Operators
+
+  set<OperatorType> missing_operators;
+  for (auto operator_type : OperatorTypeIterable()) {
+    auto is_operator_of_this_type = [operator_type](auto& node) {
+      return node->node_type == NodeType::OPERATOR and
+          dynamic_cast<Operator*>(node.get())->op_type == operator_type;
+    };
+
+    if (not any_of(
+            g->nodes.begin(), g->nodes.end(), is_operator_of_this_type)) {
+      missing_operators.insert(operator_type);
+    }
+  }
+
+  if (not missing_operators.empty()) {
+    cerr << "Graph does not contain operators of types ";
+    for (auto type : missing_operators) {
+      cerr << NAMEOF_ENUM(type) << ", ";
+    }
+    FAIL();
+  }
+
+  /// Factors
+
+  set<FactorType> missing_factors;
+  for (auto factor_type : FactorTypeIterable()) {
+    auto is_factor_of_this_type = [factor_type](auto& node) {
+      return node->node_type == NodeType::FACTOR and
+          dynamic_cast<Factor*>(node.get())->fac_type == factor_type;
+    };
+
+    if (not any_of(g->nodes.begin(), g->nodes.end(), is_factor_of_this_type)) {
+      missing_factors.insert(factor_type);
+    }
+  }
+
+  if (not missing_factors.empty()) {
+    cerr << "Graph does not contain factors of types ";
+    for (auto type : missing_factors) {
+      cerr << NAMEOF_ENUM(type) << ", ";
+    }
+    FAIL();
+  }
+}
+
+TEST(testgraph, graph_copy_constructor) {
+  auto g = make_graph_with_nodes_of_all_types();
+  Graph g_copy(*g);
+  ASSERT_EQ(g->to_string(), g_copy.to_string());
 }
 
 TEST(testgraph, full_log_prob) {
@@ -497,7 +784,7 @@ TEST(testgraph, bad_observations) {
 }
 
 TEST(testgraph, infer_runtime_error) {
-  graph::Graph g;
+  Graph g;
   auto two = g.add_constant_natural(2);
   Eigen::MatrixXd real_matrix(1, 1);
   real_matrix << 1.0;

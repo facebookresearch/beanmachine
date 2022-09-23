@@ -25,6 +25,7 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/third-party/nameof.h"
 #include "beanmachine/graph/transformation.h"
+#include "beanmachine/graph/util.h"
 
 #define NATURAL_TYPE unsigned long long int
 #ifdef _MSC_VER
@@ -317,7 +318,9 @@ class NodeValue {
 
 enum class OperatorType {
   UNKNOWN,
-  SAMPLE, // This is the ~ operator in models
+  SAMPLE, // This is the ~ operator in models.
+          // IMPORTANT: always update the
+          // first non-UNKNOWN type in the iterator below.
   IID_SAMPLE,
   TO_REAL,
   TO_POS_REAL,
@@ -361,12 +364,18 @@ enum class OperatorType {
   MATRIX_LOG1P,
   MATRIX_LOG1MEXP,
   MATRIX_PHI,
-  MATRIX_COMPLEMENT,
+  MATRIX_COMPLEMENT, // IMPORTANT: always update the last type in the iterator
+                     // below.
 };
+using OperatorTypeIterable = util::EnumClassIterable<
+    OperatorType,
+    OperatorType::SAMPLE,
+    OperatorType::MATRIX_COMPLEMENT>;
 
 enum class DistributionType {
   UNKNOWN,
-  TABULAR,
+  TABULAR, // IMPORTANT: always update the first non-UNKNOWN type in the
+           // iterator below.
   BERNOULLI,
   BERNOULLI_NOISY_OR,
   BETA,
@@ -388,8 +397,12 @@ enum class DistributionType {
   CAUCHY,
   DUMMY,
   PRODUCT,
-  LKJ_CHOLESKY
+  LKJ_CHOLESKY, // IMPORTANT: always update the last type in the iterator below.
 };
+using DistributionTypeIterable = util::EnumClassIterable<
+    DistributionType,
+    DistributionType::TABULAR,
+    DistributionType::LKJ_CHOLESKY>;
 
 // TODO: do we really need DistributionType? Can't we know the type of a
 // Distribution from its class alone?
@@ -398,6 +411,10 @@ enum class FactorType {
   UNKNOWN,
   EXP_PRODUCT,
 };
+using FactorTypeIterable = util::EnumClassIterable<
+    FactorType,
+    FactorType::EXP_PRODUCT,
+    FactorType::EXP_PRODUCT>;
 
 enum class NodeType {
   UNKNOWN,
