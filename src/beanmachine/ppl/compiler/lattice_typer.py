@@ -184,6 +184,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.MatrixComplementNode: self._type_matrix_complement,
             bn.MatrixSumNode: self._type_matrix_sum,
             bn.MultiplicationNode: self._type_multiplication,
+            bn.MatrixNegateNode: self._type_matrix_negate,
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
@@ -326,6 +327,21 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             operand_type.element_type
         )
         return operand_element_type
+
+    def _type_matrix_negate(self, node: bn.MatrixNegateNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 1
+        op = self[node.operand]
+        assert op is not bt.Untypable
+        assert isinstance(op, bt.BMGMatrixType)
+        op_element_type = self._lattice_type_for_element_type(op.element_type)
+        if (
+            bt.supremum(bt.PositiveReal, op_element_type) == bt.PositiveReal
+            or bt.supremum(bt.Probability, op_element_type) == bt.Probability
+        ):
+            return bt.NegativeRealMatrix(op.rows, op.columns)
+        if bt.supremum(bt.NegativeReal, op_element_type) == bt.NegativeReal:
+            return bt.PositiveRealMatrix(op.rows, op.columns)
+        return bt.RealMatrix(op.rows, op.columns)
 
     def _type_observation(self, node: bn.Observation) -> bt.BMGLatticeType:
         return self[node.observed]

@@ -1069,3 +1069,239 @@ digraph "graph" {
 }
 """
         self.assertEqual(expectation.strip(), observed_bmg.strip())
+
+    def test_fix_matrix_negate(self) -> None:
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+        probs = bmg.add_real_matrix(torch.tensor([[0.75, 0.25], [0.125, 0.875]]))
+        tensor_elements = []
+        # create non constant negative real matrix
+        for row in range(0, 2):
+            row_node = bmg.add_natural(row)
+            row_prob = bmg.add_column_index(probs, row_node)
+            for column in range(0, 2):
+                col_index = bmg.add_natural(column)
+                prob = bmg.add_vector_index(row_prob, col_index)
+                bern = bmg.add_bernoulli(prob)
+                sample = bmg.add_sample(bern)
+                neg_two = bmg.add_neg_real(-2.0)
+                neg_samples = bmg.add_multiplication(neg_two, sample)
+                tensor_elements.append(neg_samples)
+        matrix = bmg.add_tensor(Size([2, 2]), *tensor_elements)
+
+        # create constant matrix
+        const_neg_real_matrix = bmg.add_neg_real_matrix(
+            torch.tensor([[-0.25, -0.75], [-0.5, -0.5]]),
+        )
+
+        const_pos_real_matrix = bmg.add_pos_real_matrix(
+            torch.tensor([[0.25, 0.75], [0.5, 0.5]]),
+        )
+
+        const_real_matrix = bmg.add_real_matrix(
+            torch.tensor([[-0.25, 0.75], [0.5, -0.5]]),
+        )
+
+        mn_non_constant_real = bmg.add_matrix_negate(matrix)
+        mn_const_neg_real = bmg.add_matrix_negate(const_neg_real_matrix)
+        mn_const_pos_real = bmg.add_matrix_negate(const_pos_real_matrix)
+        mn_const_real = bmg.add_matrix_negate(const_real_matrix)
+
+        bmg.add_query(mn_non_constant_real, _rv_id())
+        bmg.add_query(mn_const_neg_real, _rv_id())
+        bmg.add_query(mn_const_pos_real, _rv_id())
+        bmg.add_query(mn_const_real, _rv_id())
+        observed_beanstalk = to_dot(bmg, after_transform=True)
+        expectation = """
+digraph "graph" {
+  N00[label="[[0.75,0.25],\\\\n[0.125,0.875]]"];
+  N01[label=0];
+  N02[label=ColumnIndex];
+  N03[label=index];
+  N04[label=ToProb];
+  N05[label=Bernoulli];
+  N06[label=Sample];
+  N07[label=1];
+  N08[label=index];
+  N09[label=ToProb];
+  N10[label=Bernoulli];
+  N11[label=Sample];
+  N12[label=ColumnIndex];
+  N13[label=index];
+  N14[label=ToProb];
+  N15[label=Bernoulli];
+  N16[label=Sample];
+  N17[label=index];
+  N18[label=ToProb];
+  N19[label=Bernoulli];
+  N20[label=Sample];
+  N21[label=2];
+  N22[label=-2.0];
+  N23[label=0.0];
+  N24[label=if];
+  N25[label=if];
+  N26[label=if];
+  N27[label=if];
+  N28[label=ToMatrix];
+  N29[label=MatrixNegate];
+  N30[label=Query];
+  N31[label="[[-0.25,-0.75],\\\\n[-0.5,-0.5]]"];
+  N32[label=MatrixNegate];
+  N33[label=Query];
+  N34[label="[[0.25,0.75],\\\\n[0.5,0.5]]"];
+  N35[label=MatrixNegate];
+  N36[label=Query];
+  N37[label="[[-0.25,0.75],\\\\n[0.5,-0.5]]"];
+  N38[label=MatrixNegate];
+  N39[label=Query];
+  N00 -> N02[label=left];
+  N00 -> N12[label=left];
+  N01 -> N02[label=right];
+  N01 -> N03[label=right];
+  N01 -> N13[label=right];
+  N02 -> N03[label=left];
+  N02 -> N08[label=left];
+  N03 -> N04[label=operand];
+  N04 -> N05[label=probability];
+  N05 -> N06[label=operand];
+  N06 -> N24[label=condition];
+  N07 -> N08[label=right];
+  N07 -> N12[label=right];
+  N07 -> N17[label=right];
+  N08 -> N09[label=operand];
+  N09 -> N10[label=probability];
+  N10 -> N11[label=operand];
+  N11 -> N25[label=condition];
+  N12 -> N13[label=left];
+  N12 -> N17[label=left];
+  N13 -> N14[label=operand];
+  N14 -> N15[label=probability];
+  N15 -> N16[label=operand];
+  N16 -> N26[label=condition];
+  N17 -> N18[label=operand];
+  N18 -> N19[label=probability];
+  N19 -> N20[label=operand];
+  N20 -> N27[label=condition];
+  N21 -> N28[label=columns];
+  N21 -> N28[label=rows];
+  N22 -> N24[label=consequence];
+  N22 -> N25[label=consequence];
+  N22 -> N26[label=consequence];
+  N22 -> N27[label=consequence];
+  N23 -> N24[label=alternative];
+  N23 -> N25[label=alternative];
+  N23 -> N26[label=alternative];
+  N23 -> N27[label=alternative];
+  N24 -> N28[label=0];
+  N25 -> N28[label=1];
+  N26 -> N28[label=2];
+  N27 -> N28[label=3];
+  N28 -> N29[label=operand];
+  N29 -> N30[label=operator];
+  N31 -> N32[label=operand];
+  N32 -> N33[label=operator];
+  N34 -> N35[label=operand];
+  N35 -> N36[label=operator];
+  N37 -> N38[label=operand];
+  N38 -> N39[label=operator];
+}
+        """
+        self.assertEqual(expectation.strip(), observed_beanstalk.strip())
+
+        generated_graph = to_bmg_graph(bmg)
+        observed_bmg = generated_graph.graph.to_dot()
+        expectation = """
+digraph "graph" {
+  N0[label="matrix"];
+  N1[label="0"];
+  N2[label="ColumnIndex"];
+  N3[label="Index"];
+  N4[label="ToProb"];
+  N5[label="Bernoulli"];
+  N6[label="~"];
+  N7[label="1"];
+  N8[label="Index"];
+  N9[label="ToProb"];
+  N10[label="Bernoulli"];
+  N11[label="~"];
+  N12[label="ColumnIndex"];
+  N13[label="Index"];
+  N14[label="ToProb"];
+  N15[label="Bernoulli"];
+  N16[label="~"];
+  N17[label="Index"];
+  N18[label="ToProb"];
+  N19[label="Bernoulli"];
+  N20[label="~"];
+  N21[label="2"];
+  N22[label="-2"];
+  N23[label="-1e-10"];
+  N24[label="IfThenElse"];
+  N25[label="IfThenElse"];
+  N26[label="IfThenElse"];
+  N27[label="IfThenElse"];
+  N28[label="ToMatrix"];
+  N29[label="MatrixNegate"];
+  N30[label="matrix"];
+  N31[label="MatrixNegate"];
+  N32[label="matrix"];
+  N33[label="MatrixNegate"];
+  N34[label="matrix"];
+  N35[label="MatrixNegate"];
+  N0 -> N2;
+  N0 -> N12;
+  N1 -> N2;
+  N1 -> N3;
+  N1 -> N13;
+  N2 -> N3;
+  N2 -> N8;
+  N3 -> N4;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N24;
+  N7 -> N8;
+  N7 -> N12;
+  N7 -> N17;
+  N8 -> N9;
+  N9 -> N10;
+  N10 -> N11;
+  N11 -> N25;
+  N12 -> N13;
+  N12 -> N17;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N26;
+  N17 -> N18;
+  N18 -> N19;
+  N19 -> N20;
+  N20 -> N27;
+  N21 -> N28;
+  N21 -> N28;
+  N22 -> N24;
+  N22 -> N25;
+  N22 -> N26;
+  N22 -> N27;
+  N23 -> N24;
+  N23 -> N25;
+  N23 -> N26;
+  N23 -> N27;
+  N24 -> N28;
+  N25 -> N28;
+  N26 -> N28;
+  N27 -> N28;
+  N28 -> N29;
+  N30 -> N31;
+  N32 -> N33;
+  N34 -> N35;
+  Q0[label="Query"];
+  N29 -> Q0;
+  Q1[label="Query"];
+  N31 -> Q1;
+  Q2[label="Query"];
+  N33 -> Q2;
+  Q3[label="Query"];
+  N35 -> Q3;
+}
+"""
+        self.assertEqual(expectation.strip(), observed_bmg.strip())

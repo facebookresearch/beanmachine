@@ -86,6 +86,7 @@ _operator_types = {
     bn.MatrixLog1mexpNode: OperatorType.MATRIX_LOG1MEXP,
     bn.MatrixComplementNode: OperatorType.MATRIX_COMPLEMENT,
     bn.MatrixMultiplicationNode: OperatorType.MATRIX_MULTIPLY,
+    bn.MatrixNegateNode: OperatorType.MATRIX_NEGATE,
     bn.MatrixScaleNode: OperatorType.MATRIX_SCALE,
     bn.MatrixSumNode: OperatorType.MATRIX_SUM,
     bn.MultiplicationNode: OperatorType.MULTIPLY,

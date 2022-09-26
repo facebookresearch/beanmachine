@@ -15,6 +15,7 @@ from beanmachine.ppl.compiler.copy_and_replace import (
     TransformAssessment,
 )
 from beanmachine.ppl.compiler.error_report import ErrorReport
+from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
 from beanmachine.ppl.compiler.size_assessment import SizeAssessment
 from beanmachine.ppl.compiler.sizer import is_scalar, Sizer, Unsized
 
@@ -45,6 +46,7 @@ class Tensorizer(NodeTransformer):
             bn.ExpNode: _always,
             bn.LogNode: _always,
             bn.Log1mexpNode: _always,
+            bn.NegateNode: self.negate_can_be_tensorized,
             bn.SumNode: _always,
         }
         self.transform_map = {
@@ -64,6 +66,9 @@ class Tensorizer(NodeTransformer):
             ),
             bn.Log1mexpNode: lambda node, inputs: self._tensorize_unary_elementwise(
                 node, inputs, self.cloner.bmg.add_matrix_log1mexp
+            ),
+            bn.NegateNode: lambda node, inputs: self._tensorize_unary_elementwise(
+                node, inputs, self.cloner.bmg.add_matrix_negate
             ),
             bn.SumNode: self._tensorize_sum,
         }
@@ -178,6 +183,24 @@ class Tensorizer(NodeTransformer):
                 and self._element_type(node.inputs.inputs[1]) == ElementType.SCALAR
             )
         return False
+
+    def negate_can_be_tensorized(self, node: bn.NegateNode) -> bool:
+        # We want to fix unsupported nodes first before we tensorize them.
+        # For example, when we have log1p(-Sample(Beta(...))) this gets changed to log(1-Sample(Beta(...))),
+        # which is log(complement(Sample(Beta(...)))). But if we run the tensorizer, it does negate first
+        # and then the log1p fixing. In this case, we get log(1+MatrixNegate(Sample(Beta(...)))).
+        # There is no way to indicate that the computation is always positive real.
+        # Therefore, this leads to the compiler thinking the requirements are violated.
+        # We can avoid this by converting unsupported nodes to supported nodes and then tensorizing them.
+        # TODO: This will also allow us to carry out fixpoint between tensorizer and other fixers.
+        # TODO: We may want to do the same for other operators that can be tensorized.
+        if any(
+            isinstance(i, node_type)
+            for node_type in UnsupportedNodeFixer._unsupported_nodes
+            for i in node.outputs.items
+        ):
+            return False
+        return True
 
     def mult_can_be_tensorized(self, node: bn.MultiplicationNode) -> bool:
         return len(node.inputs.inputs) == 2
