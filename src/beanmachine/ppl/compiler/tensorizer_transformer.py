@@ -44,6 +44,7 @@ class Tensorizer(NodeTransformer):
             bn.ComplementNode: _always,
             bn.ExpNode: _always,
             bn.LogNode: _always,
+            bn.Log1mexpNode: _always,
             bn.SumNode: _always,
         }
         self.transform_map = {
@@ -60,6 +61,9 @@ class Tensorizer(NodeTransformer):
             ),
             bn.LogNode: lambda node, inputs: self._tensorize_unary_elementwise(
                 node, inputs, self.cloner.bmg.add_matrix_log
+            ),
+            bn.Log1mexpNode: lambda node, inputs: self._tensorize_unary_elementwise(
+                node, inputs, self.cloner.bmg.add_matrix_log1mexp
             ),
             bn.SumNode: self._tensorize_sum,
         }

@@ -83,6 +83,7 @@ _operator_types = {
     bn.MatrixAddNode: OperatorType.MATRIX_ADD,
     bn.MatrixExpNode: OperatorType.MATRIX_EXP,
     bn.MatrixLogNode: OperatorType.MATRIX_LOG,
+    bn.MatrixLog1mexpNode: OperatorType.MATRIX_LOG1MEXP,
     bn.MatrixComplementNode: OperatorType.MATRIX_COMPLEMENT,
     bn.MatrixMultiplicationNode: OperatorType.MATRIX_MULTIPLY,
     bn.MatrixScaleNode: OperatorType.MATRIX_SCALE,

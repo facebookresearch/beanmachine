@@ -1057,6 +1057,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_matrix_log1mexp(self, matrix: BMGNode) -> BMGNode:
+        node = bn.MatrixLog1mexpNode(matrix)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_matrix_complement(self, matrix: BMGNode) -> BMGNode:
         node = bn.MatrixComplementNode(matrix)
         self.add_node(node)
