@@ -10,12 +10,6 @@ import pytest
 import torch
 import torch.distributions as dist
 
-try:
-    import functorch  # noqa
-except Exception as e:
-    # skipping the NNC-related test if users don't have compatible functorch installed
-    pytest.skip(str(e), allow_module_level=True)
-
 
 class SampleModel:
     @bm.random_variable
