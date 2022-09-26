@@ -147,6 +147,7 @@ _always_matrix_types: Set[type] = {
     bn.MatrixAddNode,
     bn.MatrixExpNode,
     bn.MatrixLogNode,
+    bn.MatrixLog1mexpNode,
     bn.MatrixComplementNode,
     bn.MatrixScaleNode,
     bn.TransposeNode,
@@ -179,6 +180,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.MatrixScaleNode: self._type_matrix_scale,
             bn.MatrixExpNode: self._type_matrix_exp,
             bn.MatrixLogNode: self._type_matrix_log,
+            bn.MatrixLog1mexpNode: self._type_matrix_log1mexp,
             bn.MatrixComplementNode: self._type_matrix_complement,
             bn.MatrixSumNode: self._type_matrix_sum,
             bn.MultiplicationNode: self._type_multiplication,
@@ -288,6 +290,15 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         assert isinstance(op, bt.BMGMatrixType)
         if isinstance(op, bt.ProbabilityMatrix):
             return bt.NegativeRealMatrix(op.rows, op.columns)
+        return bt.RealMatrix(op.rows, op.columns)
+
+    def _type_matrix_log1mexp(self, node: bn.MatrixLog1mexpNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 1
+        op = self[node.operand]
+        assert op is not bt.Untypable
+        assert isinstance(op, bt.BMGMatrixType)
+        op_element_type = self._lattice_type_for_element_type(op.element_type)
+        assert bt.supremum(bt.NegativeReal, op_element_type) == bt.NegativeReal
         return bt.RealMatrix(op.rows, op.columns)
 
     def _type_matrix_complement(

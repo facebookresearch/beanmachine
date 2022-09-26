@@ -31,6 +31,7 @@ _unary_tensor_ops = [
     bn.MatrixComplementNode,
     bn.MatrixExpNode,
     bn.MatrixLogNode,
+    bn.MatrixLog1mexpNode,
     bn.MatrixSumNode,
     bn.TransposeNode,
     bn.ToPositiveRealMatrixNode,
@@ -43,6 +44,7 @@ _binary_tensor_ops = [bn.ElementwiseMultiplyNode, bn.MatrixAddNode]
 _tensor_constants = [
     bn.ConstantProbabilityMatrixNode,
     bn.ConstantBooleanMatrixNode,
+    bn.ConstantNegativeRealMatrixNode,
     bn.ConstantPositiveRealMatrixNode,
     bn.ConstantRealMatrixNode,
     bn.ConstantSimplexMatrixNode,
@@ -60,6 +62,7 @@ _indexable_node_types = [
     bn.MatrixAddNode,
     bn.MatrixComplementNode,
     bn.MatrixLogNode,
+    bn.MatrixLog1mexpNode,
     bn.MatrixExpNode,
     bn.MatrixScaleNode,
     bn.MatrixMultiplicationNode,
