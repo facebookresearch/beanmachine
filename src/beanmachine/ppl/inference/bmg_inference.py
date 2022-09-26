@@ -204,7 +204,6 @@ class BMGInference:
         g = generated_graph.graph
         query_to_query_id = generated_graph.query_to_query_id
 
-        num_samples = num_samples + num_adaptive_samples
         samples = []
 
         # BMG requires that we have at least one query.
@@ -212,6 +211,9 @@ class BMGInference:
             g.collect_performance_data(produce_report)
             self._begin(prof.graph_infer)
             default_config = InferConfig()
+            default_config.num_warmup = num_adaptive_samples
+            num_adaptive_samples = 0
+
             # TODO[Walid]: In the following we were previously silently using the default seed
             # specified in pybindings.cpp (and not passing the local one in). In the current
             # code we are explicitly passing in the same default value used in that file (5123401).

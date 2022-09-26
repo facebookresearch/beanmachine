@@ -7,6 +7,7 @@
 import unittest
 
 import beanmachine.ppl as bm
+from beanmachine.graph import InferenceType
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
 from torch.distributions import Bernoulli, Dirichlet
@@ -149,6 +150,32 @@ tensor([[[ 1.5000, -2.5000]],
         num_adaptive_samples = 10
         samples = BMGInference().infer(
             [c(), c2()], {}, num_samples, 1, num_adaptive_samples=num_adaptive_samples
+        )
+        observed = len(samples[c()][0])
+        expected = num_samples
+        self.assertEqual(expected, observed)
+
+    def test_infer_interface_nuts(self) -> None:
+        # Check default case when num_adaptive_samples = 0
+        num_samples = 25
+        num_adaptive_samples = 0
+        samples = BMGInference().infer(
+            [c(), c2()], {}, num_samples, 1, inference_type=InferenceType.NUTS
+        )
+        observed = len(samples[c()][0])
+        expected = num_samples
+        self.assertEqual(expected, observed)
+
+        # Check case when num_adaptive_samples = 10
+        num_samples = 25
+        num_adaptive_samples = 10
+        samples = BMGInference().infer(
+            [c(), c2()],
+            {},
+            num_samples,
+            1,
+            num_adaptive_samples=num_adaptive_samples,
+            inference_type=InferenceType.NUTS,
         )
         observed = len(samples[c()][0])
         expected = num_samples
