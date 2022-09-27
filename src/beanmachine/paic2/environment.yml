@@ -1,0 +1,12 @@
+name: bean-machine-39
+channels:
+  - conda-forge
+dependencies:
+  - black>=22.3.0
+  - boost-cpp
+  - eigen==3.4.0
+  - pip
+  - python>=3.9,<3.10
+  - pytest
+  - pip:
+      - ufmt
