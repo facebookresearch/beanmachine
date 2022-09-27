@@ -10,7 +10,7 @@
 #include <random>
 #include "beanmachine/minibmg/distribution/distribution.h"
 
-namespace beanmachine::minibmg::distribution {
+namespace beanmachine::minibmg {
 
 template <class Underlying>
 requires Number<Underlying>
@@ -33,6 +33,9 @@ class Normal : public Distribution<Underlying> {
     auto t2 = vmm * vmm;
     return -t2 / (2 * stddev * stddev) - log(stddev) - ls2pi;
   }
+  bool is_discrete() const override {
+    return false;
+  }
 };
 
-} // namespace beanmachine::minibmg::distribution
+} // namespace beanmachine::minibmg

@@ -17,8 +17,6 @@
 
 namespace beanmachine::minibmg {
 
-using namespace beanmachine::minibmg::distribution;
-
 // Compute the log probability of the given sample being generated
 // by the given distribution with the given parameters.
 template <class N>

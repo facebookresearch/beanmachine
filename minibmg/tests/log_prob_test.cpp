@@ -18,7 +18,6 @@
 
 // using namespace ::testing;
 using namespace ::beanmachine::minibmg;
-using namespace ::beanmachine::minibmg::distribution;
 using namespace ::std;
 
 TEST(log_prob, normal_real) {

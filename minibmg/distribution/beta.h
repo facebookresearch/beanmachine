@@ -11,7 +11,7 @@
 #include "beanmachine/minibmg/distribution/distribution.h"
 #include "beanmachine/minibmg/eval.h"
 
-namespace beanmachine::minibmg::distribution {
+namespace beanmachine::minibmg {
 
 template <class Underlying>
 requires Number<Underlying>
@@ -36,6 +36,9 @@ class Beta : public Distribution<Underlying> {
     return (a - 1) * log(value) + (b - 1) * log(1 - value) + lgamma(a + b) -
         lgamma(a) - lgamma(b);
   }
+  bool is_discrete() const override {
+    return false;
+  }
 };
 
-} // namespace beanmachine::minibmg::distribution
+} // namespace beanmachine::minibmg
