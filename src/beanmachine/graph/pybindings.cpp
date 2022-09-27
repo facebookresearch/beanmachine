@@ -120,7 +120,8 @@ PYBIND11_MODULE(graph, module) {
       .value("CATEGORICAL", DistributionType::CATEGORICAL)
       .value("POISSON", DistributionType::POISSON)
       .value("PRODUCT", DistributionType::PRODUCT)
-      .value("GEOMETRIC", DistributionType::GEOMETRIC);
+      .value("GEOMETRIC", DistributionType::GEOMETRIC)
+      .value("LKJ_CHOLESKY", DistributionType::LKJ_CHOLESKY);
 
   py::enum_<FactorType>(module, "FactorType")
       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
