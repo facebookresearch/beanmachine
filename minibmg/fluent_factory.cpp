@@ -55,8 +55,7 @@ Distribution bernoulli(Value p) {
 }
 
 Value sample(const Distribution& d) {
-  return Value{std::make_shared<OperatorNode>(
-      std::vector<Nodep>{d.node}, Operator::SAMPLE, Type::REAL)};
+  return Value{std::make_shared<SampleNode>(d.node)};
 }
 
 } // namespace beanmachine::minibmg

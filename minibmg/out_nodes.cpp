@@ -34,20 +34,9 @@ class Out_Nodes_Property
     Out_Nodes_Data* data = new Out_Nodes_Data{};
     for (auto node : g) {
       data->node_map[node] = std::list<Nodep>{};
-      switch (node->op) {
-        case Operator::CONSTANT:
-        case Operator::VARIABLE:
-          // these nodes do not have inputs.
-          break;
-        default: {
-          // the rest are operator nodes.
-          auto opnode = std::dynamic_pointer_cast<const OperatorNode>(node);
-          for (auto in_node : opnode->in_nodes) {
-            auto& predecessor_out_set = data->for_node(in_node);
-            predecessor_out_set.push_back(node);
-          }
-          break;
-        }
+      for (auto in_node : in_nodes(node)) {
+        auto& predecessor_out_set = data->for_node(in_node);
+        predecessor_out_set.push_back(node);
       }
     }
 

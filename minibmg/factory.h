@@ -63,6 +63,7 @@ class Graph::Factory {
  public:
   NodeId add_constant(double value);
   NodeId add_operator(enum Operator op, std::vector<NodeId> parents);
+  NodeId add_sample(NodeId distribution);
 
   // Add an observation to the graph.  The sample must identify a SAMPLE node.
   void add_observation(NodeId sample, double value);

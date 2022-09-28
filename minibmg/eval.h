@@ -125,8 +125,8 @@ void eval_graph(
         if (obsp != observations.end()) {
           value = obsp->second;
         } else {
-          auto sample = std::dynamic_pointer_cast<const OperatorNode>(node);
-          Nodep in0 = sample->in_nodes[0];
+          auto sample = std::dynamic_pointer_cast<const SampleNode>(node);
+          Nodep in0 = sample->distribution;
           auto dist = std::dynamic_pointer_cast<const OperatorNode>(in0);
           std::function<double(unsigned)> get_parameter = [&](unsigned i) {
             return data[dist->in_nodes[i]].as_double();
