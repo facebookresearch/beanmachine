@@ -217,6 +217,10 @@ class DOT {
         return "MatrixPhi";
       case OperatorType::MATRIX_COMPLEMENT:
         return "MatrixComplement";
+      case OperatorType::BROADCAST:
+        return "Broadcast";
+      case OperatorType::FILL_MATRIX:
+        return "FillMatrix";
       default:
         throw std::invalid_argument(
             "internal error: missing case for OperatorType");

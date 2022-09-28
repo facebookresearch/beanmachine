@@ -167,6 +167,14 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
         &(ColumnIndex::new_op)) &&
 
     OperatorFactory::register_op(
+        graph::OperatorType::BROADCAST,
+        &(Broadcast::new_op)) &&
+
+    OperatorFactory::register_op(
+        graph::OperatorType::FILL_MATRIX,
+        &(FillMatrix::new_op)) &&
+
+    OperatorFactory::register_op(
         graph::OperatorType::TO_MATRIX,
         &(ToMatrix::new_op)) &&
 

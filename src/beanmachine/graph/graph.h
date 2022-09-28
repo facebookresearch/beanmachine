@@ -364,13 +364,16 @@ enum class OperatorType {
   MATRIX_LOG1P,
   MATRIX_LOG1MEXP,
   MATRIX_PHI,
-  MATRIX_COMPLEMENT, // IMPORTANT: always update the last type in the iterator
-                     // below.
+  MATRIX_COMPLEMENT,
+  BROADCAST,
+  FILL_MATRIX,
+  // IMPORTANT: always update the last type in the iterator below.
 };
+
 using OperatorTypeIterable = util::EnumClassIterable<
     OperatorType,
     OperatorType::SAMPLE,
-    OperatorType::MATRIX_COMPLEMENT>;
+    OperatorType::FILL_MATRIX>;
 
 enum class DistributionType {
   UNKNOWN,
