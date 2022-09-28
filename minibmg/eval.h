@@ -110,8 +110,8 @@ void eval_graph(
         if (obsp != observations.end()) {
           value = obsp->second;
         } else {
-          auto sample = std::dynamic_pointer_cast<const OperatorNode>(node);
-          auto dist = distributions[sample->in_nodes[0]];
+          auto sample = std::dynamic_pointer_cast<const SampleNode>(node);
+          auto dist = distributions[sample->distribution];
           value = dist->sample(gen);
         }
         put(data, node, T{value});

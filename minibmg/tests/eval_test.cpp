@@ -49,7 +49,7 @@ TEST(eval_test, sample1) {
   auto k0 = fac.add_constant(expected_mean);
   auto k1 = fac.add_constant(expected_stdev);
   auto normal0 = fac.add_operator(Operator::DISTRIBUTION_NORMAL, {k0, k1});
-  auto sample0 = fac.add_operator(Operator::SAMPLE, {normal0});
+  auto sample0 = fac.add_sample(normal0);
   fac.add_query(sample0); // add a root to the graph.
   auto graph = fac.build();
   // We create a new random number generator with its default (deterministic)

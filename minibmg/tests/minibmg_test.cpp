@@ -27,7 +27,7 @@ TEST(test_minibmg, basic_building_1) {
   ASSERT_ID(k56, 3);
   auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {plus, k56});
   ASSERT_ID(beta, 4);
-  auto sample = gf.add_operator(Operator::SAMPLE, {beta});
+  auto sample = gf.add_sample(beta);
   ASSERT_ID(sample, 5);
   gf.add_observation(sample, 7.8);
   auto query = gf.add_query(sample);
@@ -48,7 +48,7 @@ TEST(test_minibmg, dead_code_dropped) {
   ASSERT_ID(k56, 3);
   auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {k34, k56});
   ASSERT_ID(beta, 4);
-  auto sample = gf.add_operator(Operator::SAMPLE, {beta});
+  auto sample = gf.add_sample(beta);
   ASSERT_ID(sample, 5);
   gf.add_observation(sample, 7.8);
   auto query = gf.add_query(sample);

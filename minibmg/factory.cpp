@@ -6,7 +6,9 @@
  */
 
 #include "beanmachine/minibmg/factory.h"
+#include <memory>
 #include <stdexcept>
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
@@ -150,6 +152,15 @@ NodeId Graph::Factory::add_variable(
     const std::string& name,
     const unsigned variable_index) {
   auto new_node = std::make_shared<VariableNode>(name, variable_index);
+  return add_node(new_node);
+}
+
+NodeId Graph::Factory::add_sample(NodeId distribution) {
+  auto parent_node = identifer_to_node[distribution];
+  if (parent_node == nullptr) {
+    throw std::invalid_argument("Reference to nonexistent node.");
+  }
+  auto new_node = std::make_shared<SampleNode>(parent_node);
   return add_node(new_node);
 }
 

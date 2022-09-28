@@ -55,4 +55,15 @@ class VariableNode : public Node {
   unsigned identifier;
 };
 
+class SampleNode : public Node {
+ public:
+  explicit SampleNode(Nodep distribution);
+  explicit SampleNode(Nodep distribution, std::string rvid);
+  Nodep distribution;
+  // We assign a distinct ID to each sample operation in a model
+  std::string rvid;
+};
+
+std::vector<Nodep> in_nodes(const Nodep& n);
+
 } // namespace beanmachine::minibmg

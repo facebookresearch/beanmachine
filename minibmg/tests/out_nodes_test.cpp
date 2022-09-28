@@ -20,7 +20,7 @@ TEST(out_nodes_test, simple) {
   auto plus = gf.add_operator(Operator::ADD, {k12, k34});
   auto k56 = gf.add_constant(5.6);
   auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {plus, k56});
-  auto sample = gf.add_operator(Operator::SAMPLE, {beta});
+  auto sample = gf.add_sample(beta);
   gf.add_observation(sample, 7.8);
   /* auto query_ = */ gf.add_query(sample);
   Graph g = gf.build();

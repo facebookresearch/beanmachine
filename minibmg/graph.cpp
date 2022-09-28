@@ -9,25 +9,16 @@
 #include <fmt/core.h>
 #include <folly/json.h>
 #include <algorithm>
+#include <memory>
 #include <unordered_map>
 #include "beanmachine/minibmg/factory.h"
+#include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/operator.h"
 #include "beanmachine/minibmg/topological.h"
-#include "graph.h"
-#include "operator.h"
 
 namespace {
 
 using namespace beanmachine::minibmg;
-
-std::vector<Nodep> successors(const Nodep& n) {
-  switch (n->op) {
-    case Operator::CONSTANT:
-    case Operator::VARIABLE:
-      return {};
-    default:
-      return std::dynamic_pointer_cast<const OperatorNode>(n)->in_nodes;
-  }
-}
 
 const std::vector<Nodep> roots(
     const std::vector<Nodep>& queries,
@@ -46,7 +37,7 @@ const std::vector<Nodep> roots(
     roots.push_back(n);
   }
   std::vector<Nodep> all_nodes;
-  if (!topological_sort<Nodep>(roots, &successors, all_nodes)) {
+  if (!topological_sort<Nodep>(roots, &in_nodes, all_nodes)) {
     throw std::invalid_argument("graph has a cycle");
   }
   std::reverse(all_nodes.begin(), all_nodes.end());
@@ -106,6 +97,20 @@ void Graph::validate(std::vector<Nodep> nodes) {
       case Operator::VARIABLE:
         break;
 
+      case Operator::SAMPLE: {
+        auto op = std::dynamic_pointer_cast<const SampleNode>(node);
+        Nodep distribution = op->distribution;
+        if (!seen.count(distribution)) {
+          throw std::invalid_argument(
+              fmt::format("Node {0} has a parent not previously seen", i));
+        }
+        if (distribution->type != Type::DISTRIBUTION) {
+          throw std::invalid_argument(fmt::format(
+              "Node {0} (SAMPLE) should have a DISTRIBUTION input", i));
+        }
+        break;
+      }
+
       // Check other operators.
       default: {
         auto op = std::dynamic_pointer_cast<const OperatorNode>(node);
@@ -128,6 +133,7 @@ void Graph::validate(std::vector<Nodep> nodes) {
                 to_string(parent_types[j])));
           }
         }
+        break;
       }
     }
 
@@ -158,6 +164,13 @@ folly::dynamic graph_to_json(const Graph& g) {
         break;
       }
       // TODO: case Operator::VARIABLE:
+      case Operator::SAMPLE: {
+        auto n = std::dynamic_pointer_cast<const SampleNode>(node);
+        dynamic in_nodes = dynamic::array;
+        in_nodes.push_back(node_to_identifier[n->distribution]);
+        dyn_node["in_nodes"] = in_nodes;
+        break;
+      }
       default: {
         auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
         dynamic in_nodes = dynamic::array;
@@ -265,6 +278,27 @@ Graph json_to_graph(folly::dynamic d) {
         }
         auto variable_index = (unsigned)variable_indexv.asInt();
         node = std::make_shared<const VariableNode>(name, variable_index);
+        break;
+      }
+      case Operator::SAMPLE: {
+        auto in_nodesv = json_node["in_nodes"];
+        if (!in_nodesv.isArray()) {
+          throw JsonError("missing in_nodes.");
+        }
+        if (in_nodesv.size() != 1) {
+          throw JsonError("sample requires one input node.");
+        }
+        auto in_nodev = in_nodesv[0];
+        if (!in_nodev.isInt()) {
+          throw JsonError("missing in_node for operator.");
+        }
+        auto in_node_i = in_nodev.asInt();
+        if (!identifier_to_node.contains(in_node_i)) {
+          throw JsonError("bad in_node for operator.");
+        }
+        auto in_node = identifier_to_node[in_node_i];
+        auto rvid = fmt::format("S{}", identifier);
+        node = std::make_shared<const SampleNode>(in_node, rvid);
         break;
       }
       default: {
