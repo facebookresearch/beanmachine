@@ -7,24 +7,13 @@
 
 #pragma once
 
-#include <cmath>
-#include <functional>
-#include <memory>
+#include <fmt/format.h>
 #include <random>
-#include <unordered_map>
-#include "beanmachine/minibmg/ad/number.h"
-#include "beanmachine/minibmg/minibmg.h"
-
-namespace beanmachine::minibmg {
-
-// Exception to throw when evaluation fails.
-class EvalError : public std::exception {
- public:
-  explicit EvalError(const std::string& message) : message{message} {}
-  const std::string message;
-};
-
-} // namespace beanmachine::minibmg
+#include "beanmachine/minibmg/distribution/distribution.h"
+#include "beanmachine/minibmg/distribution/make_distribution.h"
+#include "beanmachine/minibmg/eval_error.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace {
 
@@ -82,12 +71,6 @@ eval_operator(Operator op, std::function<N(unsigned)> get_value) {
   }
 }
 
-// Sample from the given distribution.
-double sample_distribution(
-    Operator distribution,
-    std::function<double(unsigned)> get_parameter,
-    std::mt19937& gen);
-
 // Evaluating an entire graph, returning an array of doubles that contains, for
 // each scalar-valued node at graph index i, the evaluated value of that node at
 // the corresponding index in the returned value.  The caller is responsible for
@@ -102,6 +85,8 @@ void eval_graph(
     std::unordered_map<Nodep, T>& data) {
   // Copy observations into a map for easy access.
   std::unordered_map<Nodep, double> observations;
+  std::unordered_map<Nodep, std::shared_ptr<const Distribution<T>>>
+      distributions;
   for (auto p : graph.observations) {
     observations[p.first] = p.second;
   }
@@ -126,34 +111,36 @@ void eval_graph(
           value = obsp->second;
         } else {
           auto sample = std::dynamic_pointer_cast<const OperatorNode>(node);
-          Nodep in0 = sample->in_nodes[0];
-          auto dist = std::dynamic_pointer_cast<const OperatorNode>(in0);
-          std::function<double(unsigned)> get_parameter = [&](unsigned i) {
-            return data[dist->in_nodes[i]].as_double();
-          };
-          value = sample_distribution(dist->op, get_parameter, gen);
+          auto dist = distributions[sample->in_nodes[0]];
+          value = dist->sample(gen);
         }
         put(data, node, T{value});
         break;
       }
-      case Operator::NO_OPERATOR:
-        throw EvalError(
-            "sample_distribution does not support " + to_string(node->op));
-      case Operator::DISTRIBUTION_BERNOULLI:
-      case Operator::DISTRIBUTION_BETA:
-      case Operator::DISTRIBUTION_NORMAL:
-        // Distributions have no effect during evaluation.  They are examined
-        // by downstream nodes such as SAMPLE.  However, given that we do
-        // have an abstract class `Distribution`, we could create the
-        // distribution here (once we figure out where to store it).
-        break;
-      default:
+      case Operator::NO_OPERATOR: {
+        throw EvalError("eval_graph does not support " + to_string(node->op));
+      }
+      default: {
         auto opnode = std::dynamic_pointer_cast<const OperatorNode>(node);
         std::function<T(unsigned)> get_parameter = [&](unsigned i) {
           return data[opnode->in_nodes[i]];
         };
-        T result = eval_operator<T>(node->op, get_parameter);
-        put(data, node, result);
+        switch (node->type) {
+          case Type::DISTRIBUTION: {
+            distributions[node] = make_distribution(node->op, get_parameter);
+            break;
+          }
+          case Type::REAL: {
+            T result = eval_operator<T>(node->op, get_parameter);
+            put(data, node, result);
+            break;
+          }
+          default: {
+            throw EvalError(
+                "eval_graph does not support " + to_string(node->op));
+          }
+        }
+      }
     }
   }
 }

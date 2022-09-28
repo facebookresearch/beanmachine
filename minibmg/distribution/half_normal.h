@@ -7,42 +7,36 @@
 
 #pragma once
 
+#include <memory>
 #include <random>
+#include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/distribution/distribution.h"
+#include "beanmachine/minibmg/distribution/log_transform.h"
 
 namespace beanmachine::minibmg {
 
 template <class Underlying>
 requires Number<Underlying>
-class Bernoulli : public Distribution<Underlying> {
+class HalfNormal : public Distribution<Underlying> {
  private:
-  Underlying probability_of_one;
+  Underlying stddev;
 
  public:
-  explicit Bernoulli(const Underlying& probability_of_one)
-      : probability_of_one(probability_of_one) {}
+  explicit HalfNormal(const Underlying& stddev) : stddev{stddev} {}
   double sample(std::mt19937& gen) const override {
-    std::uniform_real_distribution<double> p(0.0, 1.0);
-    bool result = p(gen) < probability_of_one.as_double();
-    return double(result);
+    std::normal_distribution<double> dist(0.0, stddev.as_double());
+    return std::abs(dist(gen));
   }
   Underlying log_prob(const Underlying& value) const override {
-    auto probability_of_zero = 1 - probability_of_one;
-    return if_equal(
-        value,
-        Underlying{1},
-        log(probability_of_one),
-        if_equal(
-            value,
-            Underlying{0},
-            log(probability_of_zero),
-            Underlying{-INFINITY}));
+    auto sum_xsq = value * value;
+    return -log(value) - std::log(M_PI / 2.0) / 2 -
+        0.5 * sum_xsq / (stddev * stddev);
   }
   bool is_discrete() const override {
-    return true;
+    return false;
   }
   TransformationPtr<Underlying> transformation() const override {
-    return nullptr;
+    return LogTransformation<Underlying>::instance();
   }
 };
 
