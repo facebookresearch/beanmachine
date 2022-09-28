@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <memory>
 #include <random>
 #include "beanmachine/minibmg/distribution/distribution.h"
 
@@ -15,9 +16,11 @@ namespace beanmachine::minibmg {
 template <class Underlying>
 requires Number<Underlying>
 class Normal : public Distribution<Underlying> {
+ private:
+  Underlying mean;
+  Underlying stddev;
+
  public:
-  const Underlying mean;
-  const Underlying stddev;
   Normal(const Underlying& mean, const Underlying& stddev)
       : mean{mean}, stddev{stddev} {}
   double sample(std::mt19937& gen) const override {
@@ -35,6 +38,9 @@ class Normal : public Distribution<Underlying> {
   }
   bool is_discrete() const override {
     return false;
+  }
+  TransformationPtr<Underlying> transformation() const override {
+    return nullptr;
   }
 };
 

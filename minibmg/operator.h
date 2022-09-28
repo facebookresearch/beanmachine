@@ -85,6 +85,12 @@ enum class Operator {
   // Result: the distribution (DISTRIBUTION)
   DISTRIBUTION_NORMAL,
 
+  // A normal distribution.
+  // Parameters:
+  // - standard deviation (REAL)
+  // Result: the distribution (DISTRIBUTION)
+  DISTRIBUTION_HALF_NORMAL,
+
   // A beta distribution.
   // Parameters:
   // - ??? (REAL)

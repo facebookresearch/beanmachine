@@ -9,18 +9,23 @@
 
 #include <random>
 #include "beanmachine/minibmg/distribution/distribution.h"
-#include "beanmachine/minibmg/eval.h"
+#include "beanmachine/minibmg/distribution/sigmoid_transform.h"
+#include "beanmachine/minibmg/eval_error.h"
 
 namespace beanmachine::minibmg {
 
 template <class Underlying>
 requires Number<Underlying>
 class Beta : public Distribution<Underlying> {
+ private:
+  Underlying a;
+  Underlying b;
+
  public:
-  const Underlying a;
-  const Underlying b;
   Beta(const Underlying& a, const Underlying& b) : a{a}, b{b} {}
   double sample(std::mt19937& gen) const override {
+    // We could cache these distributions, but we do not expect sampling to be a
+    // frequent operation during inference.
     std::gamma_distribution<double> distrib_a(a.as_double(), 1);
     std::gamma_distribution<double> distrib_b(b.as_double(), 1);
     double x = distrib_a(gen);
@@ -38,6 +43,9 @@ class Beta : public Distribution<Underlying> {
   }
   bool is_discrete() const override {
     return false;
+  }
+  TransformationPtr<Underlying> transformation() const override {
+    return SigmoidTransformation<Underlying>::instance();
   }
 };
 
