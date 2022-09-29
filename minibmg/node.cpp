@@ -32,7 +32,11 @@ inline std::size_t hash_combine(std::size_t a, std::size_t b, std::size_t c) {
 }
 
 inline std::size_t hash(const std::vector<Nodep>& in_nodes) {
-  return boost::hash_range(in_nodes.begin(), in_nodes.end());
+  std::size_t seed = 0;
+  for (auto n : in_nodes) {
+    boost::hash_combine(seed, n->cached_hash_value);
+  }
+  return seed;
 }
 
 } // namespace
@@ -91,6 +95,62 @@ std::vector<Nodep> in_nodes(const Nodep& n) {
       return {std::dynamic_pointer_cast<const SampleNode>(n)->distribution};
     default:
       return std::dynamic_pointer_cast<const OperatorNode>(n)->in_nodes;
+  }
+}
+
+std::size_t NodepIdentityHash::operator()(
+    beanmachine::minibmg::Nodep const& p) const noexcept {
+  return p->cached_hash_value;
+}
+
+bool NodepIdentityEquals::operator()(
+    const beanmachine::minibmg::Nodep& lhs,
+    const beanmachine::minibmg::Nodep& rhs) const noexcept {
+  using namespace beanmachine::minibmg;
+  const Node* l = lhs.get();
+  const Node* r = rhs.get();
+  // a node is equal to itself.
+  if (l == r) {
+    return true;
+  }
+  // equal nodes have equal hash codes and equal operators.
+  if (l == nullptr || r == nullptr ||
+      l->cached_hash_value != r->cached_hash_value || l->op != r->op) {
+    return false;
+  }
+  switch (l->op) {
+    case Operator::VARIABLE: {
+      const VariableNode* vl = dynamic_cast<const VariableNode*>(l);
+      const VariableNode* vr = dynamic_cast<const VariableNode*>(r);
+      return vl->name == vr->name && vl->identifier == vr->identifier;
+    }
+    case Operator::CONSTANT: {
+      double cl = dynamic_cast<const ConstantNode*>(l)->value;
+      double cr = dynamic_cast<const ConstantNode*>(r)->value;
+      return std::isnan(cl) ? std::isnan(cr) : cl == cr;
+    }
+    case Operator::SAMPLE: {
+      const SampleNode* sl = dynamic_cast<const SampleNode*>(l);
+      const SampleNode* sr = dynamic_cast<const SampleNode*>(r);
+      return sl->rvid == sr->rvid &&
+          this->operator()(sl->distribution, sr->distribution);
+    }
+    default: {
+      const OperatorNode* lo = dynamic_cast<const OperatorNode*>(l);
+      const OperatorNode* ro = dynamic_cast<const OperatorNode*>(r);
+      if (lo->in_nodes.size() != ro->in_nodes.size()) {
+        return false;
+      }
+      auto it1 = lo->in_nodes.begin();
+      auto it2 = ro->in_nodes.begin();
+      for (; it1 != lo->in_nodes.end() && it2 != ro->in_nodes.end();
+           it1++, it2++) {
+        if (!this->operator()(*it1, *it2)) {
+          return false;
+        }
+      }
+      return true;
+    }
   }
 }
 

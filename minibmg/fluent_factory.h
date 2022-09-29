@@ -30,13 +30,15 @@ class Distribution {
   }
 };
 
+Distribution half_normal(Value stddev);
+
 Distribution normal(Value mean, Value stddev);
 
 Distribution beta(Value a, Value b);
 
 Distribution bernoulli(Value p);
 
-Value sample(const Distribution& d);
+Value sample(const Distribution& d, std::string rvid = make_fresh_rvid());
 
 class Graph::FluentFactory {
  public:

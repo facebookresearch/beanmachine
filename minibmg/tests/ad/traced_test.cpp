@@ -62,16 +62,16 @@ TEST(traced_test, simple6) {
 }
 
 // Show what happens when the computation graph is a dag instead of a tree.
-// In that case we unfortunately repeat code in the to_string form.
-// We will fix that later (T128357330).
 TEST(traced_test, dag) {
   Traced x = Traced::variable("x", 0);
   auto t1 = x + x;
   auto t2 = t1 + t1;
   auto t3 = t2 + t2;
-  // As a small consolation, at least it is minimally parenthesized to preserve
-  // order of operations.
-  ASSERT_EQ("x + x + (x + x) + (x + x + (x + x))", to_string(t3));
+  std::string expected_result =
+      R":(auto temp_1 = x + x;
+auto temp_2 = temp_1 + temp_1;
+temp_2 + temp_2):";
+  ASSERT_EQ(expected_result, to_string(t3));
 }
 
 TEST(traced_test, derivative1) {

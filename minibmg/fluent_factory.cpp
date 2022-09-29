@@ -30,7 +30,14 @@ void Graph::FluentFactory::query(const Traced& value) {
 }
 
 Graph Graph::FluentFactory::build() {
-  return Graph{queries, observations};
+  return Graph::create(queries, observations);
+}
+
+Distribution half_normal(Value stddev) {
+  return Distribution{std::make_shared<const OperatorNode>(
+      std::vector<Nodep>{stddev.node},
+      Operator::DISTRIBUTION_HALF_NORMAL,
+      Type::DISTRIBUTION)};
 }
 
 Distribution normal(Value mean, Value stddev) {
@@ -54,8 +61,8 @@ Distribution bernoulli(Value p) {
       Type::DISTRIBUTION)};
 }
 
-Value sample(const Distribution& d) {
-  return Value{std::make_shared<SampleNode>(d.node)};
+Value sample(const Distribution& d, std::string rvid) {
+  return Value{std::make_shared<SampleNode>(d.node, rvid)};
 }
 
 } // namespace beanmachine::minibmg
