@@ -253,6 +253,162 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
   }
 }
 
+Broadcast::Broadcast(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::BROADCAST) {
+  if (in_nodes.size() != 3) {
+    throw std::invalid_argument(
+        "operator BROADCAST requires number of rows (m), number of columns (n), "
+        "and a value");
+  }
+
+  auto val = in_nodes[0];
+  auto rows = in_nodes[1];
+  auto cols = in_nodes[2];
+
+  if (rows->value.type != graph::AtomicType::NATURAL or
+      cols->value.type != graph::AtomicType::NATURAL) {
+    throw std::invalid_argument(
+        "operator BROADCAST requires the second and third parents to be NATURAL"
+        "representing the number of rows and the number of columns respectively");
+  } else if (
+      rows->node_type != graph::NodeType::CONSTANT or
+      cols->node_type != graph::NodeType::CONSTANT) {
+    throw std::invalid_argument(
+        "operator BROADCAST requires the number of rows and columns to be CONSTANT");
+  }
+  int tr = static_cast<int>(rows->value._natural);
+  int tc = static_cast<int>(cols->value._natural);
+
+  if (tr <= 0 or tc <= 0) {
+    throw std::invalid_argument(
+        "operator BROADCAST requires the number of rows and columns to be greater than 0");
+  }
+
+  // Keep the signed-unsigned-mismatch linter happy.
+  uint target_rows = (uint)tr;
+  uint target_cols = (uint)tc;
+
+  graph::ValueType& val_type = val->value.type;
+
+  bool val_is_matrix =
+      val_type.variable_type == graph::VariableType::BROADCAST_MATRIX or
+      val_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX;
+
+  if (!val_is_matrix) {
+    throw std::invalid_argument(
+        "operator BROADCAST requires the value parent to be a matrix");
+  }
+
+  uint val_rows = val_type.rows;
+  uint val_cols = val_type.cols;
+
+  if ((val_rows != 1 and val_rows != target_rows) or
+      (val_cols != 1 and val_cols != target_cols)) {
+    throw std::invalid_argument(
+        "operator BROADCAST cannot broadcast a " + std::to_string(val_rows) +
+        " by " + std::to_string(val_cols) + " array to " +
+        std::to_string(target_rows) + " by " + std::to_string(target_cols));
+  }
+
+  if (val_rows == target_rows && val_cols == target_cols) {
+    // Unlikely but possible: this operator is an identity.
+    value = val->value;
+  } else if (
+      val_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX and
+      val_rows == target_rows) {
+    // If we are broadcasting a simplex but the number of rows stays the same
+    // then the result is still a simplex.
+    value = graph::NodeValue(graph::ValueType(
+        graph::VariableType::COL_SIMPLEX_MATRIX,
+        graph::AtomicType::PROBABILITY,
+        target_rows,
+        target_cols));
+  } else {
+    // Otherwise, we've got a new broadcast matrix.
+    value = graph::NodeValue(graph::ValueType(
+        graph::VariableType::BROADCAST_MATRIX,
+        val_type.atomic_type,
+        target_rows,
+        target_cols));
+  }
+}
+
+void Broadcast::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 3);
+  auto val = in_nodes[0];
+  uint target_rows = static_cast<uint>(in_nodes[1]->value._natural);
+  uint target_cols = static_cast<uint>(in_nodes[2]->value._natural);
+  graph::ValueType& val_type = val->value.type;
+  assert(val_type.rows == 1 or val_type.rows == target_rows);
+  assert(val_type.cols == 1 or val_type.cols == target_cols);
+  uint v_copies = target_rows / val_type.rows;
+  uint h_copies = target_cols / val_type.cols;
+  if (val_type.atomic_type == graph::AtomicType::BOOLEAN) {
+    value._bmatrix = value._bmatrix.replicate(v_copies, h_copies);
+  } else if (val_type.atomic_type == graph::AtomicType::NATURAL) {
+    value._nmatrix = value._nmatrix.replicate(v_copies, h_copies);
+  } else {
+    value._matrix = value._matrix.replicate(v_copies, h_copies);
+  }
+}
+
+FillMatrix::FillMatrix(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::FILL_MATRIX) {
+  if (in_nodes.size() != 3) {
+    throw std::invalid_argument(
+        "operator FILL_MATRIX requires number of rows (m), number of columns (n), "
+        "and a value");
+  }
+
+  auto val = in_nodes[0];
+  auto rows = in_nodes[1];
+  auto cols = in_nodes[2];
+
+  if (rows->value.type != graph::AtomicType::NATURAL or
+      cols->value.type != graph::AtomicType::NATURAL) {
+    throw std::invalid_argument(
+        "operator FILL_MATRIX requires the second and third parents to be NATURAL"
+        "representing the number of rows and the number of columns respectively");
+  } else if (
+      rows->node_type != graph::NodeType::CONSTANT or
+      cols->node_type != graph::NodeType::CONSTANT) {
+    throw std::invalid_argument(
+        "operator FILL_MATRIX requires the number of rows and columns to be CONSTANT");
+  }
+  int target_rows = static_cast<int>(rows->value._natural);
+  int target_cols = static_cast<int>(cols->value._natural);
+
+  if (target_rows <= 0 or target_cols <= 0) {
+    throw std::invalid_argument(
+        "operator FILL_MATRIX requires the number of rows and columns to be greater than 0");
+  }
+
+  graph::ValueType val_type = val->value.type;
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      val_type.atomic_type,
+      target_rows,
+      target_cols));
+}
+
+void FillMatrix::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 3);
+  auto val = in_nodes[0];
+  uint target_rows = static_cast<uint>(in_nodes[1]->value._natural);
+  uint target_cols = static_cast<uint>(in_nodes[2]->value._natural);
+  graph::ValueType& val_type = val->value.type;
+  if (val_type.atomic_type == graph::AtomicType::BOOLEAN) {
+    value._bmatrix =
+        Eigen::MatrixXb::Constant(target_rows, target_cols, val->value._bool);
+  } else if (val_type.atomic_type == graph::AtomicType::NATURAL) {
+    value._nmatrix = Eigen::MatrixXn::Constant(
+        target_rows, target_cols, val->value._natural);
+  } else {
+    value._matrix =
+        Eigen::MatrixXd::Constant(target_rows, target_cols, val->value._double);
+  }
+}
+
 LogProb::LogProb(const std::vector<graph::Node*>& in_nodes)
     : Operator(graph::OperatorType::LOG_PROB) {
   if (in_nodes.size() != 2) {

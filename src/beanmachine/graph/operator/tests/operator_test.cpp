@@ -1658,6 +1658,131 @@ TEST(testoperator, to_matrix) {
   EXPECT_EQ(eval2[0][0]._bmatrix.coeff(2), false);
 }
 
+TEST(testoperator, fill_matrix) {
+  Graph g;
+  uint nat_three = g.add_constant_natural(3);
+  uint nat_two = g.add_constant_natural(2);
+  uint nat_zero = g.add_constant_natural(0);
+  uint prob = g.add_constant_probability(0.5);
+  uint bin_dist = g.add_distribution(
+      DistributionType::BINOMIAL,
+      AtomicType::NATURAL,
+      std::vector<uint>{nat_two, prob});
+  uint bin_samp =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{bin_dist});
+
+  // Negative tests:
+  // Requires three parents.
+  EXPECT_THROW(
+      g.add_operator(OperatorType::FILL_MATRIX, std::vector<uint>{}),
+      std::invalid_argument);
+
+  // Size parents must be constants.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::FILL_MATRIX,
+          std::vector<uint>{bin_samp, nat_two, bin_samp}),
+      std::invalid_argument);
+
+  // Size parents must be natural constants.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::FILL_MATRIX,
+          std::vector<uint>{bin_samp, nat_two, prob}),
+      std::invalid_argument);
+
+  // Size parents must be natural constants >= 1.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::FILL_MATRIX,
+          std::vector<uint>{bin_samp, nat_two, nat_zero}),
+      std::invalid_argument);
+
+  // Success
+  uint matr22 = g.add_operator(
+      OperatorType::FILL_MATRIX, std::vector<uint>{bin_samp, nat_two, nat_two});
+
+  // Value parent must not be a matrix.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::FILL_MATRIX,
+          std::vector<uint>{matr22, nat_two, nat_zero}),
+      std::invalid_argument);
+}
+
+TEST(testoperator, broadcast) {
+  Graph g;
+  uint nat_three = g.add_constant_natural(3);
+  uint nat_two = g.add_constant_natural(2);
+  uint nat_one = g.add_constant_natural(1);
+  uint nat_zero = g.add_constant_natural(0);
+  uint prob = g.add_constant_probability(0.5);
+  uint bin_dist = g.add_distribution(
+      DistributionType::BINOMIAL,
+      AtomicType::NATURAL,
+      std::vector<uint>{nat_two, prob});
+  uint bin_samp =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{bin_dist});
+  uint matr21 = g.add_operator(
+      OperatorType::FILL_MATRIX, std::vector<uint>{bin_samp, nat_two, nat_one});
+  uint matr31 = g.add_operator(
+      OperatorType::FILL_MATRIX,
+      std::vector<uint>{bin_samp, nat_three, nat_one});
+  uint matr32 = g.add_operator(
+      OperatorType::FILL_MATRIX,
+      std::vector<uint>{bin_samp, nat_three, nat_two});
+
+  // Negative tests:
+  // Requires three parents.
+  EXPECT_THROW(
+      g.add_operator(OperatorType::BROADCAST, std::vector<uint>{}),
+      std::invalid_argument);
+
+  // Size parents must be constants.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::BROADCAST,
+          std::vector<uint>{bin_samp, nat_two, bin_samp}),
+      std::invalid_argument);
+
+  // Size parents must be natural constants.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::BROADCAST, std::vector<uint>{bin_samp, nat_two, prob}),
+      std::invalid_argument);
+
+  // Size parents must be natural constants >= 1.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::BROADCAST,
+          std::vector<uint>{bin_samp, nat_two, nat_zero}),
+      std::invalid_argument);
+
+  // Value parent must be matrix.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::BROADCAST,
+          std::vector<uint>{bin_samp, nat_two, nat_two}),
+      std::invalid_argument);
+
+  // Value parent must be matrix of broadcastable size to
+  // target size.
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::BROADCAST, std::vector<uint>{matr32, nat_two, nat_two}),
+      std::invalid_argument);
+
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::BROADCAST,
+          std::vector<uint>{matr21, nat_three, nat_one}),
+      std::invalid_argument);
+
+  // Success.
+  g.add_operator(
+      OperatorType::BROADCAST, std::vector<uint>{matr31, nat_three, nat_two});
+}
+
 TEST(testoperator, broadcast_add) {
   Graph g1;
   auto c1 = g1.add_constant_real(1.5);

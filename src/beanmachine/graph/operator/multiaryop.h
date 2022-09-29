@@ -117,6 +117,36 @@ class ToMatrix : public Operator {
   }
 };
 
+class Broadcast : public Operator {
+ public:
+  explicit Broadcast(const std::vector<graph::Node*>& in_nodes);
+  ~Broadcast() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+  void backward() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<Broadcast>(in_nodes);
+  }
+};
+
+class FillMatrix : public Operator {
+ public:
+  explicit FillMatrix(const std::vector<graph::Node*>& in_nodes);
+  ~FillMatrix() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+  void backward() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<FillMatrix>(in_nodes);
+  }
+};
+
 class LogProb : public Operator {
  public:
   explicit LogProb(const std::vector<graph::Node*>& in_nodes);

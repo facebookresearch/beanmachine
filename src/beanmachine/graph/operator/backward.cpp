@@ -284,14 +284,56 @@ void ColumnIndex::backward() {
 }
 
 void ToMatrix::backward() {
-  int rows = static_cast<int>(in_nodes[0]->value._natural);
-  int cols = static_cast<int>(in_nodes[1]->value._natural);
-  for (int j = 0; j < cols; j++) {
-    for (int i = 0; i < rows; i++) {
+  uint rows = static_cast<uint>(in_nodes[0]->value._natural);
+  uint cols = static_cast<uint>(in_nodes[1]->value._natural);
+  for (uint j = 0; j < cols; j++) {
+    for (uint i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];
       if (node->needs_gradient()) {
         node->back_grad1 += back_grad1(i, j);
       }
+    }
+  }
+}
+
+void Broadcast::backward() {
+  assert(in_nodes.size() == 3);
+  auto val = in_nodes[0];
+  if (!val->needs_gradient()) {
+    return;
+  }
+  uint target_rows = static_cast<uint>(in_nodes[1]->value._natural);
+  uint target_cols = static_cast<uint>(in_nodes[2]->value._natural);
+  graph::ValueType& val_type = val->value.type;
+  uint val_rows = val_type.rows;
+  uint val_cols = val_type.cols;
+  assert(val_rows == 1 or val_rows == target_rows);
+  assert(val_cols == 1 or val_cols == target_cols);
+  if (val_rows == target_rows && val_cols == target_cols) {
+    // Unlikely but possible: this operator is an identity.
+    val->back_grad1 += back_grad1;
+  } else {
+    uint row_divisor = target_rows / val_rows;
+    uint col_divisor = target_cols / val_cols;
+    for (uint j = 0; j < target_cols; j++) {
+      for (uint i = 0; i < target_rows; i++) {
+        val->back_grad1(i / row_divisor, j / col_divisor) += back_grad1(i, j);
+      }
+    }
+  }
+}
+
+void FillMatrix::backward() {
+  assert(in_nodes.size() == 3);
+  auto val = in_nodes[0];
+  if (!val->needs_gradient()) {
+    return;
+  }
+  uint target_rows = static_cast<uint>(in_nodes[1]->value._natural);
+  uint target_cols = static_cast<uint>(in_nodes[2]->value._natural);
+  for (uint j = 0; j < target_cols; j++) {
+    for (uint i = 0; i < target_rows; i++) {
+      val->back_grad1 += back_grad1(i, j);
     }
   }
 }

@@ -430,6 +430,29 @@ void ToMatrix::compute_gradients() {
   }
 }
 
+void Broadcast::compute_gradients() {
+  assert(in_nodes.size() == 3);
+  auto val = in_nodes[0];
+  uint target_rows = static_cast<uint>(in_nodes[1]->value._natural);
+  uint target_cols = static_cast<uint>(in_nodes[2]->value._natural);
+  graph::ValueType& val_type = val->value.type;
+  assert(val_type.rows == 1 or val_type.rows == target_rows);
+  assert(val_type.cols == 1 or val_type.cols == target_cols);
+  uint v_copies = target_rows / val_type.rows;
+  uint h_copies = target_cols / val_type.cols;
+  Grad1 = val->Grad1.replicate(v_copies, h_copies);
+  Grad2 = val->Grad2.replicate(v_copies, h_copies);
+}
+
+void FillMatrix::compute_gradients() {
+  assert(in_nodes.size() == 3);
+  auto val = in_nodes[0];
+  uint target_rows = static_cast<uint>(in_nodes[1]->value._natural);
+  uint target_cols = static_cast<uint>(in_nodes[2]->value._natural);
+  Grad1.setConstant(target_rows, target_cols, val->grad1);
+  Grad2.setConstant(target_rows, target_cols, val->grad2);
+}
+
 void BroadcastAdd::compute_gradients() {
   assert(in_nodes.size() == 2);
   auto rows = in_nodes[1]->value.type.rows;

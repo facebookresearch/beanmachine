@@ -97,7 +97,9 @@ PYBIND11_MODULE(graph, module) {
       .value("MATRIX_LOG1P", OperatorType::MATRIX_LOG1P)
       .value("MATRIX_PHI", OperatorType::MATRIX_PHI)
       .value("MATRIX_LOG1MEXP", OperatorType::MATRIX_LOG1MEXP)
-      .value("MATRIX_COMPLEMENT", OperatorType::MATRIX_COMPLEMENT);
+      .value("MATRIX_COMPLEMENT", OperatorType::MATRIX_COMPLEMENT)
+      .value("BROADCAST", OperatorType::BROADCAST)
+      .value("FILL_MATRIX", OperatorType::FILL_MATRIX);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

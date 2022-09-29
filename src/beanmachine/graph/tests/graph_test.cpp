@@ -554,6 +554,14 @@ unique_ptr<Graph> make_graph_with_nodes_of_all_types() {
   auto matrix_complement =
       g->add_operator(OperatorType::MATRIX_COMPLEMENT, {probs_matrix});
 
+  auto fill_matrix = g->add_operator(
+      OperatorType::FILL_MATRIX,
+      vector<uint>{neg_real, c_natural_1, c_natural_2});
+
+  auto broadcast = g->add_operator(
+      OperatorType::BROADCAST,
+      vector<uint>{fill_matrix, c_natural_2, c_natural_2});
+
   // factors
   uint f_expprod = g->add_factor(
       FactorType::EXP_PRODUCT,
