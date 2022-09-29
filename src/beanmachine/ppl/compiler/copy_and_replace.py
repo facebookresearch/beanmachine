@@ -140,6 +140,7 @@ def _node_factories(bmg: BMGraphBuilder) -> Dict[Type, Callable]:
         bn.MatrixComplementNode: bmg.add_matrix_complement,
         bn.MatrixExpNode: bmg.add_matrix_exp,
         bn.MatrixLogNode: bmg.add_matrix_log,
+        bn.MatrixLog1mexpNode: bmg.add_matrix_log1mexp,
         bn.MatrixMultiplicationNode: bmg.add_matrix_multiplication,
         bn.MatrixScaleNode: bmg.add_matrix_scale,
         bn.MatrixSumNode: bmg.add_matrix_sum,
