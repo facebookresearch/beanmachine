@@ -341,6 +341,12 @@ class UnsupportedNodeFixer:
         # turn into BMG nodes.
         return None
 
+    def _replace_binomial_logit(
+        self, node: bn.BinomialLogitNode
+    ) -> Optional[bn.BinomialNode]:
+        logistic = self._bmg.add_logistic(node.inputs[1])
+        return self._bmg.add_binomial(node.inputs[0], logistic)
+
 
 def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixer:
     usnf = UnsupportedNodeFixer(bmg, typer)
@@ -360,6 +366,7 @@ def unsupported_node_fixer(bmg: BMGraphBuilder, typer: LatticeTyper) -> NodeFixe
             type_guard(bn.SwitchNode, usnf._replace_switch),
             type_guard(bn.TensorNode, usnf._replace_tensor),
             type_guard(bn.UniformNode, usnf._replace_uniform),
+            type_guard(bn.BinomialLogitNode, usnf._replace_binomial_logit),
         ]
     )
 
