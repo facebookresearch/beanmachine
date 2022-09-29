@@ -229,8 +229,10 @@ class Sizer(TyperBase[Size]):
     def __init__(self) -> None:
         TyperBase.__init__(self)
         self._dispatch = {
+            bn.BroadcastNode: self._size_broadcast,
             bn.ChoiceNode: self._size_choice,
             bn.ColumnIndexNode: self._size_column,
+            bn.FillMatrixNode: self._size_broadcast,  # same as broadcast
             bn.IfThenElseNode: self._size_if,
             bn.IndexNode: self._size_index,
             bn.MatrixMultiplicationNode: self._size_mm,
@@ -295,6 +297,22 @@ class Sizer(TyperBase[Size]):
             if self[node.inputs[i * 2 + 2]] != s:
                 return Unsized
         return s
+
+    def _size_broadcast(self, node: bn.BMGNode) -> Size:
+        # We have the same logic for broadcast and fill.
+        assert isinstance(node, bn.FillMatrixNode) or isinstance(node, bn.BroadcastNode)
+        rows = node.inputs[1]
+        assert isinstance(rows, bn.NaturalNode)
+        rows = rows.value
+        columns = node.inputs[2]
+        assert isinstance(columns, bn.NaturalNode)
+        columns = columns.value
+        # As with to-matrix below, the sizer gives the size that the
+        # tensor would be *in Python*, not *in Eigen*, so the rows
+        # and columns are swapped.
+        if columns == 1:
+            return Size([rows])
+        return Size([columns, rows])
 
     def _size_to_matrix(self, node: bn.ToMatrixNode) -> Size:
         # The size of a 2-d torch tensor is [rows, columns], but

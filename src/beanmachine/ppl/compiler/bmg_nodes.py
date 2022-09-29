@@ -687,6 +687,24 @@ class ToMatrixNode(OperatorNode):
         return "ToMatrix"
 
 
+class FillMatrixNode(OperatorNode):
+    def __init__(self, value: BMGNode, rows: NaturalNode, columns: NaturalNode):
+        # The row and column nodes must be constant naturals.
+        BMGNode.__init__(self, [value, rows, columns])
+
+    def __str__(self) -> str:
+        return "FillMatrix"
+
+
+class BroadcastNode(OperatorNode):
+    def __init__(self, value: BMGNode, rows: NaturalNode, columns: NaturalNode):
+        # The row and column nodes must be constant naturals.
+        BMGNode.__init__(self, [value, rows, columns])
+
+    def __str__(self) -> str:
+        return "Broadcast"
+
+
 # ####
 # #### Control flow operators
 # ####

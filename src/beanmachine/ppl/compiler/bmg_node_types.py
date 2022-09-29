@@ -66,6 +66,7 @@ def dist_type(node: bn.DistributionNode) -> Tuple[dt, Any]:
 
 _operator_types = {
     bn.AdditionNode: OperatorType.ADD,
+    bn.BroadcastNode: OperatorType.BROADCAST,
     bn.ChoiceNode: OperatorType.CHOICE,
     bn.CholeskyNode: OperatorType.CHOLESKY,
     bn.ColumnIndexNode: OperatorType.COLUMN_INDEX,
@@ -73,6 +74,7 @@ _operator_types = {
     bn.ElementwiseMultiplyNode: OperatorType.ELEMENTWISE_MULTIPLY,
     bn.ExpM1Node: OperatorType.EXPM1,
     bn.ExpNode: OperatorType.EXP,
+    bn.FillMatrixNode: OperatorType.FILL_MATRIX,
     bn.IfThenElseNode: OperatorType.IF_THEN_ELSE,
     bn.Log1mexpNode: OperatorType.LOG1MEXP,
     bn.LogNode: OperatorType.LOG,

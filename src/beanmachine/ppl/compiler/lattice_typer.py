@@ -133,6 +133,7 @@ _constant_matrix_graph_types: Dict[type, bt.BMGMatrixType] = {
 # These are the node types which always represent a matrix in BMG.
 # Even if the node is a 1x1 matrix, it is a matrix and not an atomic value.
 _always_matrix_types: Set[type] = {
+    bn.BroadcastNode,
     bn.CholeskyNode,
     bn.ColumnIndexNode,
     bn.ConstantBooleanMatrixNode,
@@ -143,13 +144,14 @@ _always_matrix_types: Set[type] = {
     bn.ConstantRealMatrixNode,
     bn.ConstantSimplexMatrixNode,
     bn.ElementwiseMultiplyNode,
-    bn.ToMatrixNode,
+    bn.FillMatrixNode,
     bn.MatrixAddNode,
     bn.MatrixExpNode,
     bn.MatrixLogNode,
     bn.MatrixLog1mexpNode,
     bn.MatrixComplementNode,
     bn.MatrixScaleNode,
+    bn.ToMatrixNode,
     bn.TransposeNode,
 }
 
@@ -166,6 +168,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.DirichletNode: self._type_dirichlet,
             # Operators
             bn.AdditionNode: self._type_addition,
+            bn.BroadcastNode: self._type_broadcast,
             bn.ChoiceNode: self._type_choice,
             bn.CholeskyNode: self._type_cholesky,
             bn.ColumnIndexNode: self._type_column_index,
@@ -173,6 +176,9 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.ElementwiseMultiplyNode: self._type_binary_elementwise_op,
             bn.ExpM1Node: self._type_expm1,
             bn.ExpNode: self._type_exp,
+            # Fill matrix has same type rules as broadcast, so
+            # let's not duplicate the code.
+            bn.FillMatrixNode: self._type_broadcast,
             bn.IfThenElseNode: self._type_if,
             bn.LogNode: self._type_log,
             bn.MatrixAddNode: self._type_binary_elementwise_op,
@@ -540,6 +546,19 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             # (It should not happen because an all-constant matrix should
             # already be a TensorConstant node.)
             t = bt.Boolean
+        assert isinstance(t, bt.BMGMatrixType)
+        return t.with_dimensions(rows.value, columns.value)
+
+    def _type_broadcast(self, node: bn.BMGNode) -> bt.BMGLatticeType:
+        # We have the same logic for broadcast and fill matrix.
+        assert isinstance(node, bn.BroadcastNode) or isinstance(node, bn.FillMatrixNode)
+        assert len(node.inputs) == 3
+        val = node.inputs[0]
+        rows = node.inputs[1]
+        assert isinstance(rows, bn.NaturalNode)
+        columns = node.inputs[2]
+        assert isinstance(columns, bn.NaturalNode)
+        t = self[val]
         assert isinstance(t, bt.BMGMatrixType)
         return t.with_dimensions(rows.value, columns.value)
 

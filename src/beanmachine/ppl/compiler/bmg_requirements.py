@@ -53,6 +53,17 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.HalfNormalNode: [bt.PositiveReal],
     bn.StudentTNode: [bt.PositiveReal, bt.Real, bt.PositiveReal],
     # Operators
+    bn.BroadcastNode: [bt.any_requirement, bt.Natural, bt.Natural],
+    # Broadcast requires that its first operand be a matrix, that
+    # the other two operands be constants, and that the constants are
+    # a valid resizing of the given value. But since we will not
+    # generate a broadcast node unless those conditions are met,
+    # we don't need to check them.
+    bn.FillMatrixNode: [bt.any_requirement, bt.Natural, bt.Natural],
+    # Similarly FillMatrix requires that its first operand NOT be
+    # a matrix, that its others are constants. Again, since we will
+    # not generate this node unless those conditions are met, we
+    # don't check them.
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
     bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],

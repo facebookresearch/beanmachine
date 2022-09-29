@@ -954,6 +954,22 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_fill_matrix(
+        self, value: BMGNode, rows: bn.NaturalNode, columns: bn.NaturalNode
+    ) -> bn.FillMatrixNode:
+        node = bn.FillMatrixNode(value, rows, columns)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_broadcast(
+        self, value: BMGNode, rows: bn.NaturalNode, columns: bn.NaturalNode
+    ) -> bn.BroadcastNode:
+        node = bn.BroadcastNode(value, rows, columns)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_logsumexp(self, *inputs: BMGNode) -> bn.LogSumExpNode:
         node = bn.LogSumExpNode(list(inputs))
         self.add_node(node)
