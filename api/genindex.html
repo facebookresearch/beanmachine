@@ -238,7 +238,11 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_log">add_matrix_log() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_log1mexp">add_matrix_log1mexp() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_multiplication">add_matrix_multiplication() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_negate">add_matrix_negate() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_matrix_scale">add_matrix_scale() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
@@ -330,10 +334,10 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_transpose">add_transpose() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
-      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_uniform">add_uniform() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_uniform">add_uniform() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder.add_vector_index">add_vector_index() (beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder method)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.fix_additions.html#beanmachine.ppl.compiler.fix_additions.addition_fixer">addition_fixer() (in module beanmachine.ppl.compiler.fix_additions)</a>
@@ -2494,9 +2498,13 @@
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode attribute)</a>
 </li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixLog1mexpNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixLog1mexpNode attribute)</a>
+</li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixLogNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixLogNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixNegateNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixNegateNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode.inputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode attribute)</a>
 </li>
@@ -2937,9 +2945,13 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode">MatrixExpNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixLog1mexpNode">MatrixLog1mexpNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixLogNode">MatrixLogNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode">MatrixMultiplicationNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
+</li>
+      <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixNegateNode">MatrixNegateNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode">MatrixScaleNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
@@ -3244,6 +3256,8 @@
 </li>
       <li><a href="beanmachine.ppl.compiler.patterns.html#beanmachine.ppl.compiler.patterns.negate">negate() (in module beanmachine.ppl.compiler.patterns)</a>
 </li>
+      <li><a href="beanmachine.ppl.compiler.tensorizer_transformer.html#beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer.negate_can_be_tensorized">negate_can_be_tensorized() (beanmachine.ppl.compiler.tensorizer_transformer.Tensorizer method)</a>
+</li>
       <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.NegateNode">NegateNode (class in beanmachine.ppl.compiler.bmg_nodes)</a>
 </li>
       <li><a href="beanmachine.ppl.compiler.fix_arithmetic.html#beanmachine.ppl.compiler.fix_arithmetic.negative_real_multiplication_fixer">negative_real_multiplication_fixer() (in module beanmachine.ppl.compiler.fix_arithmetic)</a>
@@ -3505,9 +3519,13 @@
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixExpNode attribute)</a>
 </li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixLog1mexpNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixLog1mexpNode attribute)</a>
+</li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixLogNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixLogNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixMultiplicationNode attribute)</a>
+</li>
+        <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixNegateNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixNegateNode attribute)</a>
 </li>
         <li><a href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode.outputs">(beanmachine.ppl.compiler.bmg_nodes.MatrixScaleNode attribute)</a>
 </li>
