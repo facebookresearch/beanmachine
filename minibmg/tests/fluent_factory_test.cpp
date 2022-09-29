@@ -14,6 +14,10 @@ using namespace beanmachine::minibmg;
 
 namespace fluent_factory_test {
 
+// Note that node 0 isn't actually used anywhere.  That's because nodes 0 and 1
+// are the same, and the graph just uses the latest node.  Once we deduplicate
+// (remove common subexpressions), there will be only one node there instead of
+// two.
 std::string raw_json = R"({
   "comment": "created by graph_to_json",
   "nodes": [
@@ -31,7 +35,7 @@ std::string raw_json = R"({
     },
     {
       "in_nodes": [
-        0,
+        1,
         1
       ],
       "operator": "DISTRIBUTION_BETA",

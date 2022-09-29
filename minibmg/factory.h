@@ -86,6 +86,7 @@ class Graph::Factory {
  private:
   bool built = false;
   std::unordered_map<NodeId, Nodep> identifer_to_node;
+  std::unordered_map<Nodep, NodeId> node_to_identifier;
   std::vector<Nodep> queries;
   std::list<std::pair<Nodep, double>> observations;
   unsigned long next_identifier = 0;

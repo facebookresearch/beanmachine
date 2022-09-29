@@ -16,8 +16,15 @@ NodeId Graph::Factory::add_node(Nodep node) {
   if (built) {
     throw std::invalid_argument("Graph has already been built");
   }
+  // First, see if an equivalent node already exists.
+  auto lookup = this->node_to_identifier.find(node);
+  if (lookup != this->node_to_identifier.end()) {
+    return lookup->second;
+  }
+
   NodeId identifier{next_identifier++};
   identifer_to_node.insert({identifier, node});
+  node_to_identifier.insert({node, identifier});
   return identifier;
 }
 
