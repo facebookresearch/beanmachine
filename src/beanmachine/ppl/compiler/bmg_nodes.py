@@ -1190,6 +1190,16 @@ class MatrixComplementNode(UnaryOperatorNode):
         return "MatrixComplement(" + str(self.operand) + ")"
 
 
+class MatrixNegateNode(UnaryOperatorNode):
+    """This represents a negate operation on a matrix input"""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixNegate(" + str(self.operand) + ")"
+
+
 class Log10Node(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)

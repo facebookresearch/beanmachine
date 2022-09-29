@@ -1068,6 +1068,12 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    @memoize
+    def add_matrix_negate(self, matrix: BMGNode) -> BMGNode:
+        node = bn.MatrixNegateNode(matrix)
+        self.add_node(node)
+        return node
+
     def add_exp_product(self, *inputs: BMGNode) -> bn.ExpProductFactorNode:
         # Note that factors are NOT deduplicated; this method is not
         # memoized. We need to be able to add multiple factors to the same

@@ -36,6 +36,22 @@ class UnsupportedNodeFixer:
 
     _bmg: BMGraphBuilder
     _typer: LatticeTyper
+    _unsupported_nodes = [
+        bn.Chi2Node,
+        bn.DivisionNode,
+        bn.Exp2Node,
+        bn.IndexNode,
+        bn.ItemNode,
+        bn.Log10Node,
+        bn.Log1pNode,
+        bn.Log2Node,
+        bn.LogSumExpTorchNode,
+        bn.LogAddExpNode,
+        bn.SquareRootNode,
+        bn.SwitchNode,
+        bn.TensorNode,
+        bn.UniformNode,
+    ]
 
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         self._bmg = bmg
