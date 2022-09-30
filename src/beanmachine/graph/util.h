@@ -11,6 +11,7 @@
 #include <cmath>
 
 #include <boost/iterator/transform_iterator.hpp>
+#include <boost/range/irange.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <map>
@@ -305,6 +306,25 @@ class EnumClassIterable {
     return val != i.val;
   }
 };
+
+/*
+ * Iterables over integer ranges.
+ * Source: https://codereview.stackexchange.com/a/52217
+ */
+template <class Integer>
+decltype(auto) range(Integer first, Integer last) {
+  return boost::irange(first, last);
+}
+
+template <class Integer, class StepSize>
+decltype(auto) range(Integer first, Integer last, StepSize step_size) {
+  return boost::irange(first, last, step_size);
+}
+
+template <class Integer>
+decltype(auto) range(Integer last) {
+  return boost::irange(static_cast<Integer>(0), last);
+}
 
 } // namespace util
 } // namespace beanmachine

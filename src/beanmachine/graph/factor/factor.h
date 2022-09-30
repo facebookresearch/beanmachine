@@ -27,6 +27,15 @@ class Factor : public graph::Node {
   void backward() override {}
 
   graph::FactorType fac_type;
+
+  std::unique_ptr<Node> clone() override {
+    auto result = new_factor(fac_type, in_nodes);
+    std::copy( // TODO: next diff will move this into new_factor
+        in_nodes.begin(),
+        in_nodes.end(),
+        std::back_inserter(result->in_nodes));
+    return result;
+  }
 };
 
 } // namespace factor
