@@ -525,9 +525,11 @@ class TestStochasticVariationalInfer:
                     normal_normal_model.x(i): torch.tensor(1.0)
                     for i in range(num_samples)
                 },
-                optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
+                optimizer=lambda params: torch.optim.Adam(params, lr=5e-2),
             ).infer(
-                num_steps=50, subsample_factor=num_samples / num_total, num_samples=100
+                num_steps=50,
+                subsample_factor=num_samples / num_total,
+                num_samples=10,
             )
             mu_approx = world.get_guide_distribution(normal_normal_model.mu())
             assert (mu_approx.mean - expected_mean).norm() < 0.05
@@ -557,8 +559,12 @@ class TestStochasticVariationalInfer:
                     normal_normal_model.x(i): torch.tensor(1.0)
                     for i in range(num_samples)
                 },
-                optimizer=lambda params: torch.optim.Adam(params, lr=3e-2),
-            ).infer(num_steps=50, subsample_factor=1.0, num_samples=50)
+                optimizer=lambda params: torch.optim.Adam(params, lr=5e-2),
+            ).infer(
+                num_steps=50,
+                subsample_factor=1.0,
+                num_samples=10,
+            )
             mu_approx = world.get_guide_distribution(normal_normal_model.mu())
             assert (mu_approx.mean - expected_mean).norm() > 0.05 or (
                 mu_approx.stddev - expected_stddev
