@@ -190,6 +190,7 @@ class DOT {
       case OperatorType::TO_PROBABILITY:
         return "ToProb";
       case OperatorType::TO_NEG_REAL:
+      case OperatorType::TO_NEG_REAL_MATRIX:
         return "ToNegReal";
       case OperatorType::INDEX:
         return "Index";

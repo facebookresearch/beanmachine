@@ -1569,6 +1569,49 @@ TEST(testoperator, to_pos_real_matrix) {
   g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tm});
 }
 
+TEST(testoperator, to_neg_real_matrix) {
+  Graph g;
+  // Requires exactly one input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_NEG_REAL_MATRIX, std::vector<uint>{}),
+      std::invalid_argument);
+  // requires matrix input
+  uint three = g.add_constant_pos_real(3.0);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_NEG_REAL_MATRIX, std::vector<uint>{three}),
+      std::invalid_argument);
+
+  // Let's get a matrix of negative values
+  uint beta = g.add_distribution(
+      DistributionType::BETA,
+      AtomicType::PROBABILITY,
+      std::vector<uint>{three, three});
+  uint b1 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint l1 = g.add_operator(OperatorType::LOG, std::vector<uint>{b1});
+  uint two = g.add_constant_natural(2);
+  uint nrm = g.add_operator(
+      OperatorType::TO_MATRIX, std::vector<uint>{two, two, l1, l1, l1, l1});
+
+  // Requires exactly one input
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_NEG_REAL_MATRIX, std::vector<uint>{nrm, nrm}),
+      std::invalid_argument);
+
+  // Input must not be pos real matrix
+  uint four = g.add_constant_pos_real(4.0);
+  uint nm = g.add_operator(
+      OperatorType::TO_MATRIX,
+      std::vector<uint>{two, two, four, four, four, four});
+
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_NEG_REAL_MATRIX, std::vector<uint>{nm}),
+      std::invalid_argument);
+
+  g.add_operator(OperatorType::TO_NEG_REAL_MATRIX, std::vector<uint>{nrm});
+}
+
 TEST(testoperator, to_matrix) {
   Graph g;
   uint nat_one = g.add_constant_natural(1);

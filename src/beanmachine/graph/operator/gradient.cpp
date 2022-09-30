@@ -73,6 +73,12 @@ void ToNegReal::compute_gradients() {
   grad2 = in_nodes[0]->grad2;
 }
 
+void ToNegRealMatrix::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  Grad1 = in_nodes[0]->Grad1;
+  Grad2 = in_nodes[0]->Grad2;
+}
+
 void Negate::compute_gradients() {
   assert(in_nodes.size() == 1);
   grad1 = -1 * in_nodes[0]->grad1;

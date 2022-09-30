@@ -517,6 +517,13 @@ unique_ptr<Graph> make_graph_with_nodes_of_all_types() {
   uint neg_real =
       g->add_operator(OperatorType::TO_NEG_REAL, vector<uint>{real1});
 
+  uint ntm = g->add_operator(
+      OperatorType::TO_MATRIX,
+      vector<uint>{two, two, real1, real1, real1, real1});
+
+  uint neg_real_matrix =
+      g->add_operator(OperatorType::TO_NEG_REAL_MATRIX, vector<uint>{ntm});
+
   uint choice = g->add_operator(
       OperatorType::CHOICE, vector<uint>{zero_nat, real1, real2, real3});
 
