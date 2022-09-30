@@ -18,7 +18,7 @@ namespace distribution {
 Binomial::Binomial(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::BINOMIAL, sample_type) {
+    : Distribution(graph::DistributionType::BINOMIAL, sample_type, in_nodes) {
   // a Binomial has two parents -- natural, probability and outputs a natural
   if (sample_type != graph::AtomicType::NATURAL) {
     throw std::invalid_argument("Binomial produces natural number samples");

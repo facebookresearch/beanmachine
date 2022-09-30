@@ -29,12 +29,18 @@ class Distribution : public graph::Node {
     return result;
   }
 
-  Distribution(graph::DistributionType dist_type, graph::AtomicType sample_type)
-      : graph::Node(graph::NodeType::DISTRIBUTION),
+  Distribution(
+      graph::DistributionType dist_type,
+      graph::AtomicType sample_type,
+      const std::vector<Node*>& in_nodes)
+      : graph::Node(graph::NodeType::DISTRIBUTION, in_nodes),
         dist_type(dist_type),
         sample_type(sample_type) {}
-  Distribution(graph::DistributionType dist_type, graph::ValueType sample_type)
-      : graph::Node(graph::NodeType::DISTRIBUTION),
+  Distribution(
+      graph::DistributionType dist_type,
+      graph::ValueType sample_type,
+      const std::vector<Node*>& in_nodes)
+      : graph::Node(graph::NodeType::DISTRIBUTION, in_nodes),
         dist_type(dist_type),
         sample_type(sample_type) {}
   graph::NodeValue sample(std::mt19937& gen) const;

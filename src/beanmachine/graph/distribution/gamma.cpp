@@ -20,7 +20,7 @@ namespace distribution {
 using namespace graph;
 
 Gamma::Gamma(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::GAMMA, sample_type) {
+    : Distribution(DistributionType::GAMMA, sample_type, in_nodes) {
   // a Gamma distribution has two parents:
   // shape -> positive real; rate -> positive real
   if (sample_type != AtomicType::POS_REAL) {

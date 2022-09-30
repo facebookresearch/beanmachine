@@ -18,7 +18,7 @@ class MultiaryOperator : public Operator {
   MultiaryOperator(
       graph::OperatorType op_type,
       const std::vector<graph::Node*>& in_nodes)
-      : Operator(op_type) {
+      : Operator(op_type, in_nodes) {
     if (in_nodes.size() < 2) {
       throw std::invalid_argument(
           "expecting at least two parents for operator " +

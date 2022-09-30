@@ -118,7 +118,7 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
 }
 
 Pow::Pow(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::POW) {
+    : Operator(graph::OperatorType::POW, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("operator POW requires 2 parents");
   }
@@ -169,7 +169,7 @@ void Pow::eval(std::mt19937& /* gen */) {
 }
 
 ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::TO_MATRIX) {
+    : Operator(graph::OperatorType::TO_MATRIX, in_nodes) {
   if (in_nodes.size() < 3) {
     throw std::invalid_argument(
         "operator TO_MATRIX requires number of rows (m), number of columns (n), "
@@ -254,7 +254,7 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
 }
 
 Broadcast::Broadcast(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::BROADCAST) {
+    : Operator(graph::OperatorType::BROADCAST, in_nodes) {
   if (in_nodes.size() != 3) {
     throw std::invalid_argument(
         "operator BROADCAST requires number of rows (m), number of columns (n), "
@@ -353,7 +353,7 @@ void Broadcast::eval(std::mt19937& /* gen */) {
 }
 
 FillMatrix::FillMatrix(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::FILL_MATRIX) {
+    : Operator(graph::OperatorType::FILL_MATRIX, in_nodes) {
   if (in_nodes.size() != 3) {
     throw std::invalid_argument(
         "operator FILL_MATRIX requires number of rows (m), number of columns (n), "
@@ -410,7 +410,7 @@ void FillMatrix::eval(std::mt19937& /* gen */) {
 }
 
 LogProb::LogProb(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::LOG_PROB) {
+    : Operator(graph::OperatorType::LOG_PROB, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("operator LOG_PROB requires two input nodes");
   }

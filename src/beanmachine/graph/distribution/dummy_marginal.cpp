@@ -15,7 +15,10 @@ namespace beanmachine {
 namespace distribution {
 
 DummyMarginal::DummyMarginal(std::unique_ptr<graph::SubGraph> subgraph_ptr)
-    : Distribution(graph::DistributionType::DUMMY, graph::AtomicType::REAL) {
+    : Distribution(
+          graph::DistributionType::DUMMY,
+          graph::AtomicType::REAL,
+          in_nodes) {
   this->subgraph_ptr = std::move(subgraph_ptr);
 }
 

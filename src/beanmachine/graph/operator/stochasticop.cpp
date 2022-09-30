@@ -139,7 +139,7 @@ void IIdSample::_backward(bool skip_observed) {
 }
 
 Sample::Sample(const std::vector<graph::Node*>& in_nodes)
-    : StochasticOperator(graph::OperatorType::SAMPLE) {
+    : StochasticOperator(graph::OperatorType::SAMPLE, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("operator SAMPLE requires a single parent");
   }
@@ -163,7 +163,7 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
 }
 
 IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
-    : StochasticOperator(graph::OperatorType::IID_SAMPLE) {
+    : StochasticOperator(graph::OperatorType::IID_SAMPLE, in_nodes) {
   uint in_degree = static_cast<uint>(in_nodes.size());
   if (in_degree != 2 and in_degree != 3) {
     throw std::invalid_argument("operator IID_SAMPLE requires 2 or 3 parents");

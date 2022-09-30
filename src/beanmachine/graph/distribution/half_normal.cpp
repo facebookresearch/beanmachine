@@ -21,7 +21,7 @@ using namespace graph;
 Half_Normal::Half_Normal(
     ValueType sample_type,
     const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::HALF_NORMAL, sample_type) {
+    : Distribution(DistributionType::HALF_NORMAL, sample_type, in_nodes) {
   // a Half_Normal distribution has one parent
   // sigma -> positive real
   if (in_nodes.size() != 1) {

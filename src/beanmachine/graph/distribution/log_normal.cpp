@@ -19,7 +19,7 @@ namespace distribution {
 using namespace graph;
 
 LogNormal::LogNormal(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::LOG_NORMAL, sample_type) {
+    : Distribution(DistributionType::LOG_NORMAL, sample_type, in_nodes) {
   // a Log Normal distribution has two parents
   // mean of logarithm distribution -> real,
   // standard deviation of logarithm distribution -> positive real
