@@ -176,6 +176,10 @@ class Distribution : public graph::Node {
     throw std::runtime_error(
         "_matrix_sampler has not been implemented for this distribution.");
   }
+  virtual std::string to_string() override {
+    using namespace std;
+    return string(NAMEOF_ENUM(dist_type)) + "(" + in_nodes_string(this) + ")";
+  }
 };
 
 /* Returns a function (distribution::Distribution* d) -> d->log_prob(value). */

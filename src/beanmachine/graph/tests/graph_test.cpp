@@ -7,6 +7,7 @@
 
 #include <array>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <tuple>
 
@@ -670,6 +671,154 @@ TEST(testgraph, graph_copy_constructor) {
   auto g = make_graph_with_nodes_of_all_types();
   Graph g_copy(*g);
   ASSERT_EQ(g->to_string(), g_copy.to_string());
+}
+
+TEST(testgraph, test_node_to_string) {
+  auto g = make_graph_with_nodes_of_all_types();
+  stringstream strstr;
+  for (auto& node : g->nodes) {
+    strstr << node->to_string() << endl;
+  }
+  ASSERT_EQ(
+      strstr.str(),
+      R"(CONSTANT(boolean 1)
+CONSTANT(real -2.5)
+CONSTANT(natural 1)
+CONSTANT(natural 2)
+CONSTANT(probability 0.5)
+CONSTANT(positive real 2.5)
+CONSTANT(negative real -1.5)
+CONSTANT(matrix<probability> 0.6
+0.6)
+CONSTANT(matrix<positive real> 1 0
+0 1)
+CONSTANT(matrix<real>  0.680375  0.566198
+-0.211234   0.59688)
+CONSTANT(col_simplex_matrix<probability> 0.2
+0.8)
+CONSTANT(matrix<boolean> 1 0)
+CONSTANT(matrix<natural> 1
+2)
+CONSTANT(col_simplex_matrix<probability> 0.8
+0.2)
+CONSTANT(matrix<positive real> 10
+20
+30)
+CONSTANT(real -11)
+CONSTANT(real 0.5)
+CONSTANT(real 3)
+CONSTANT(positive real 3)
+CONSTANT(positive real 2.5)
+CONSTANT(probability 0.3)
+CONSTANT(real 0)
+CONSTANT(natural 0)
+CONSTANT(natural 1)
+CONSTANT(natural 2)
+CONSTANT(natural 3)
+CONSTANT(positive real 1e-10)
+ADD(21, 15)
+ADD(26, 18)
+LKJ_CHOLESKY(18)
+CAUCHY(27, 28)
+GEOMETRIC(20)
+POISSON(18)
+CATEGORICAL(13)
+NORMAL(15, 18)
+NORMAL(16, 19)
+PRODUCT(34, 35)
+BIMIXTURE(20, 34, 35)
+TABULAR(13)
+BERNOULLI(4)
+FLAT()
+SAMPLE(40)
+DIRICHLET(41)
+LOG_NORMAL(15, 18)
+HALF_NORMAL(18)
+FLAT()
+SAMPLE(45)
+FLAT()
+SAMPLE(47)
+MULTIVARIATE_NORMAL(46, 48)
+BERNOULLI_NOISY_OR(5)
+BERNOULLI_LOGIT(1)
+BETA(5, 5)
+BINOMIAL(3, 4)
+FLAT()
+NORMAL(1, 5)
+HALF_CAUCHY(5)
+STUDENT_T(5, 1, 5)
+GAMMA(5, 5)
+SAMPLE(39)
+SAMPLE(55)
+SAMPLE(53)
+SAMPLE(52)
+SAMPLE(58)
+IID_SAMPLE(39, 2, 3)
+IID_SAMPLE(55, 3, 3)
+IID_SAMPLE(53, 3)
+IID_SAMPLE(52, 3, 2)
+IID_SAMPLE(58, 3, 3)
+TO_REAL(63)
+TO_POS_REAL(62)
+COMPLEMENT(62)
+NEGATE(1)
+EXP(1)
+EXPM1(63)
+LOG(70)
+LOG1PEXP(75)
+LOG1MEXP(6)
+LOGSUMEXP(1, 60)
+MULTIPLY(1, 60, 78)
+ADD(1, 60, 69)
+PHI(60)
+LOGISTIC(1)
+IF_THEN_ELSE(59, 63, 76)
+IID_SAMPLE(34, 25, 24)
+IID_SAMPLE(34, 25, 24)
+ELEMENTWISE_MULTIPLY(84, 85)
+MATRIX_NEGATE(9)
+CONSTANT(negative real -1)
+TO_MATRIX(24, 23, 18, 18)
+TO_MATRIX(24, 23, 88, 88)
+LOGSUMEXP_VECTOR(89)
+LOGSUMEXP_VECTOR(90)
+POW(20, 19)
+TRANSPOSE(8)
+MATRIX_MULTIPLY(8, 9)
+MATRIX_SCALE(15, 9)
+MATRIX_ADD(9, 9)
+TO_PROBABILITY(15)
+INDEX(13, 22)
+COLUMN_INDEX(9, 22)
+BROADCAST_ADD(15, 9)
+TO_MATRIX(24, 24, 20, 20, 20, 20)
+TO_REAL_MATRIX(102)
+TO_POS_REAL_MATRIX(102)
+TO_NEG_REAL(15)
+CHOICE(22, 15, 16, 17)
+TO_INT(15)
+CONSTANT(matrix<real> 10  5  2
+ 5  3  2
+ 2  2  3)
+CHOLESKY(108)
+MATRIX_EXP(8)
+LOG_PROB(34, 15)
+MATRIX_SUM(8)
+MATRIX_LOG(8)
+LOG1P(15)
+MATRIX_LOG1P(8)
+CONSTANT(matrix<negative real> -2
+-1
+-3)
+MATRIX_LOG1MEXP(116)
+MATRIX_PHI(9)
+CONSTANT(matrix<probability> 0.2
+0.7)
+MATRIX_COMPLEMENT(119)
+FILL_MATRIX(105, 2, 3)
+BROADCAST(121, 3, 3)
+EXP_PRODUCT(60, 63, 70)
+)");
 }
 
 TEST(testgraph, test_node_cloning) {
