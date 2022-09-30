@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <stdexcept>
 #define _USE_MATH_DEFINES
 #include <cmath>
 // We must include cmath first thing with macro _USE_MATH_DEFINES
@@ -14,9 +13,11 @@
 // without the macro.
 
 #include <algorithm>
+#include <cstddef>
 #include <iomanip>
 #include <random>
 #include <sstream>
+#include <stdexcept>
 #include <thread>
 #include <variant>
 
@@ -228,6 +229,31 @@ std::string NodeValue::to_string() const {
     os << "Unsupported NodeValue";
   }
   return os.str();
+}
+
+Node::Node(
+    NodeType node_type,
+    NodeValue value,
+    const std::vector<Node*>& in_nodes)
+    : node_type(node_type), value(value), grad1(0), grad2(0) {
+  for (auto in_node : in_nodes) {
+    this->in_nodes.push_back(in_node);
+  }
+  // It might be tempting to set the `out_node` field in the `Node`
+  // constructor as well. However this would lead to a problem if the `Node`
+  // subclass' constructor threw an exception (for example because the in-nodes
+  // do not satisfy typing constraints), because then the node would be
+  // deallocated but a (now invalid) pointer to it would be kept in its (former)
+  // in-nodes.
+  // One possible solution would be to remove those invalid pointers
+  // from in-nodes' `out_node` fields in in `~Node`, but that would in turn
+  // cause problems when `Graph` is destructed, because it might happen that the
+  // in-nodes of the current node are deallocated first, in which case
+  // attempting to access their `out_node` field causes a crash.
+  // In any case, it
+  // makes more sense to set `out_nodes` when the node is added to the graph
+  // because out-nodes do seem to be more a property of a *graph* than of a
+  // *node*, as opposed to in-nodes which are a more intrinsic part of a node.
 }
 
 // TODO: the following is used in beta.cpp only. Does it really need to be here?
@@ -575,18 +601,11 @@ std::vector<Node*> Graph::convert_parent_ids(
 uint Graph::add_node(std::unique_ptr<Node> node) {
   uint index = static_cast<uint>(nodes.size());
   node->index = index;
+  for (auto in_node : node->in_nodes) {
+    in_node->out_nodes.push_back(node.get());
+  }
   nodes.push_back(std::move(node));
   return index;
-}
-
-uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
-  // Update the in/out nodes of this node and its parents
-  for (uint paridx : parents) {
-    Node* parent = nodes[paridx].get();
-    parent->out_nodes.push_back(node.get());
-    node->in_nodes.push_back(parent);
-  }
-  return add_node(std::move(node));
 }
 
 std::function<uint(uint)> Graph::remove_node(uint node_id) {
@@ -725,8 +744,7 @@ uint Graph::add_constant_natural(natural_t value) {
 
 uint Graph::add_constant(NodeValue value) {
   std::unique_ptr<ConstNode> node = std::make_unique<ConstNode>(value);
-  // constants don't have parents
-  return add_node(std::move(node), std::vector<uint>());
+  return add_node(std::move(node));
 }
 
 uint Graph::add_constant_probability(double value) {
@@ -813,7 +831,7 @@ uint Graph::add_distribution(
   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, ValueType(sample_type), parent_nodes);
   // and add the node to the graph
-  return add_node(std::move(node), parent_ids);
+  return add_node(std::move(node));
 }
 
 uint Graph::add_distribution(
@@ -825,21 +843,21 @@ uint Graph::add_distribution(
   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, sample_type, parent_nodes);
   // and add the node to the graph
-  return add_node(std::move(node), parent_ids);
+  return add_node(std::move(node));
 }
 
 uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   std::unique_ptr<Node> node =
       oper::OperatorFactory::create_op(op_type, parent_nodes);
-  return add_node(std::move(node), parent_ids);
+  return add_node(std::move(node));
 }
 
 uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   std::unique_ptr<Node> node =
       factor::Factor::new_factor(fac_type, parent_nodes);
-  uint node_id = add_node(std::move(node), parent_ids);
+  uint node_id = add_node(std::move(node));
   // factors are both stochastic nodes and observed nodes
   Node* node2 = check_node(node_id, NodeType::FACTOR);
   node2->is_observed = true;

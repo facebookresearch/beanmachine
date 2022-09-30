@@ -265,9 +265,16 @@ inline auto log_poisson_probability(unsigned k, double lambda) {
 inline std::runtime_error unsupported(const char* name) {
   return std::runtime_error(std::string(name) + " is unsupported");
 }
+
 template <typename T>
 void erase_position(std::vector<T>& vector, std::size_t index) {
   vector.erase(vector.begin() + index);
+}
+
+/* Remove all elements with a given value from vector. */
+template <typename T>
+void erase_by_value(std::vector<T>& vector, const T& value) {
+  vector.erase(std::remove(vector.begin(), vector.end(), value), vector.end());
 }
 
 /*
