@@ -32,7 +32,11 @@ inline std::size_t hash_combine(std::size_t a, std::size_t b, std::size_t c) {
 }
 
 inline std::size_t hash(const std::vector<Nodep>& in_nodes) {
-  return boost::hash_range(in_nodes.begin(), in_nodes.end());
+  std::size_t seed = 0;
+  for (auto n : in_nodes) {
+    boost::hash_combine(seed, n->cached_hash_value);
+  }
+  return seed;
 }
 
 } // namespace

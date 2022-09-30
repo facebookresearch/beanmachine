@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <memory>
 #include <unordered_map>
+#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/factory.h"
 #include "beanmachine/minibmg/node.h"
 #include "beanmachine/minibmg/operator.h"
@@ -50,13 +51,22 @@ namespace beanmachine::minibmg {
 
 using dynamic = folly::dynamic;
 
-Graph::Graph(
+Graph Graph::create(
     const std::vector<Nodep>& queries,
-    const std::list<std::pair<Nodep, double>>& observations)
-    : nodes{roots(queries, observations)},
-      queries{queries},
-      observations{observations} {
-  Graph::validate(nodes);
+    const std::list<std::pair<Nodep, double>>& observations) {
+  std::vector<Nodep> all_nodes = roots(queries, observations);
+  Graph::validate(all_nodes);
+  auto dedup_map = beanmachine::minibmg::dedup(all_nodes);
+  std::vector<Nodep> deduped_queries;
+  std::list<std::pair<Nodep, double>> deduped_observations;
+  for (auto q : queries) {
+    deduped_queries.push_back(dedup_map[q]);
+  }
+  for (auto p : observations) {
+    deduped_observations.push_back({dedup_map[p.first], p.second});
+  }
+  auto deduped_all_nodes = roots(deduped_queries, deduped_observations);
+  return Graph{deduped_all_nodes, deduped_queries, deduped_observations};
 }
 
 Graph::~Graph() {}
@@ -367,7 +377,7 @@ Graph json_to_graph(folly::dynamic d) {
     }
   }
 
-  return Graph{queries, observations};
+  return Graph::create(queries, observations);
 }
 
 } // namespace beanmachine::minibmg

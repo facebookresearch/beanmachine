@@ -87,6 +87,7 @@ const std::vector<std::vector<enum Type>> make_expected_parents() {
       Type::REAL, Type::REAL, Type::REAL, Type::REAL};
   result[(unsigned)Operator::IF_LESS] = {
       Type::REAL, Type::REAL, Type::REAL, Type::REAL};
+  result[(unsigned)Operator::DISTRIBUTION_HALF_NORMAL] = {Type::REAL};
   result[(unsigned)Operator::DISTRIBUTION_NORMAL] = {Type::REAL, Type::REAL};
   result[(unsigned)Operator::DISTRIBUTION_BETA] = {Type::REAL, Type::REAL};
   result[(unsigned)Operator::DISTRIBUTION_BERNOULLI] = {Type::REAL};
@@ -102,6 +103,7 @@ enum Type expected_result_type(enum Operator op) {
     case Operator::SUBTRACT:
     case Operator::MULTIPLY:
     case Operator::DIVIDE:
+    case Operator::NEGATE:
     case Operator::POW:
     case Operator::EXP:
     case Operator::LOG:
@@ -113,6 +115,7 @@ enum Type expected_result_type(enum Operator op) {
     case Operator::VARIABLE:
       return Type::REAL;
 
+    case Operator::DISTRIBUTION_HALF_NORMAL:
     case Operator::DISTRIBUTION_NORMAL:
     case Operator::DISTRIBUTION_BETA:
     case Operator::DISTRIBUTION_BERNOULLI:
@@ -196,10 +199,24 @@ Graph Graph::Factory::build() {
   if (built) {
     throw std::invalid_argument("Graph has already been built");
   }
-
-  // We preserve this->nodes so it can be used for lookup.
   built = true;
-  return Graph{queries, observations};
+  auto result = Graph::create(queries, observations);
+
+  // Update the identifier_to_node map to reflect the set of dedulplicated nodes
+  // in the graph.  This permits the caller to continue using this factory to
+  // map node identifiers to nodes in the now deduplicated graph.
+  std::unordered_map<Nodep, Nodep> dedup;
+  for (auto node : result.nodes) {
+    dedup.insert({node, node});
+  }
+
+  std::unordered_map<NodeId, Nodep> new_identifer_to_node;
+  for (auto p : identifer_to_node) {
+    new_identifer_to_node.insert({p.first, dedup[p.second]});
+  }
+
+  this->identifer_to_node = new_identifer_to_node;
+  return result;
 }
 
 Graph::Factory::~Factory() {

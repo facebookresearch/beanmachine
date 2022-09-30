@@ -20,7 +20,7 @@ enum class Operator {
   // Result: the given constant value (REAL)
   CONSTANT,
 
-  // A scalar variable.  Used for symbolid auto-differentiation (AD).
+  // A scalar variable.  Used for symbolic auto-differentiation (AD).
   VARIABLE,
 
   // Add two scalars.

@@ -21,7 +21,7 @@ class Graph : public Container {
   // valudates that the list of nodes so reached forms a valid graph, and
   // returns that graph.  Throws an exception if the nodes do not form a valid
   // graph.
-  Graph(
+  static Graph create(
       const std::vector<Nodep>& queries,
       const std::list<std::pair<Nodep, double>>& observations);
   ~Graph();
