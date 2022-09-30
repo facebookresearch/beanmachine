@@ -21,7 +21,7 @@ using namespace graph;
 HalfCauchy::HalfCauchy(
     ValueType sample_type,
     const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::HALF_CAUCHY, sample_type) {
+    : Distribution(DistributionType::HALF_CAUCHY, sample_type, in_nodes) {
   // a HalfCauchy distribution has one parent a scale which is positive real
   if (in_nodes.size() != 1) {
     throw std::invalid_argument(

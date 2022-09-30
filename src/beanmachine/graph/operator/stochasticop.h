@@ -16,8 +16,11 @@ namespace oper {
 
 class StochasticOperator : public Operator {
  public:
-  explicit StochasticOperator(graph::OperatorType op_type)
-      : Operator(op_type), transform_type(graph::TransformType::NONE) {}
+  explicit StochasticOperator(
+      graph::OperatorType op_type,
+      const std::vector<Node*>& in_nodes)
+      : Operator(op_type, in_nodes),
+        transform_type(graph::TransformType::NONE) {}
   ~StochasticOperator() override {}
 
   void eval(std::mt19937& gen) override {

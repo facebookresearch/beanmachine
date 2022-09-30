@@ -31,7 +31,7 @@ namespace distribution {
 using namespace graph;
 
 StudentT::StudentT(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::STUDENT_T, sample_type) {
+    : Distribution(DistributionType::STUDENT_T, sample_type, in_nodes) {
   // a StudentT distribution has three parents
   // n (degrees of freedom) > 0 ; l (location) -> real; scale -> positive real
   if (in_nodes.size() != 3) {

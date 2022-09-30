@@ -17,7 +17,7 @@ namespace distribution {
 Beta::Beta(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::BETA, sample_type) {
+    : Distribution(graph::DistributionType::BETA, sample_type, in_nodes) {
   // a Beta has two parents which are real numbers and it outputs a probability
   if (sample_type != graph::AtomicType::PROBABILITY) {
     throw std::invalid_argument("Beta produces probability samples");

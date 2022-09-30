@@ -18,7 +18,7 @@ namespace distribution {
 using namespace graph;
 
 Cauchy::Cauchy(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::CAUCHY, sample_type) {
+    : Distribution(DistributionType::CAUCHY, sample_type, in_nodes) {
   // a Cauchy distribution has two parents - a location and a scale which are
   // positive reals
   if (in_nodes.size() != 2) {

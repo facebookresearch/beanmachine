@@ -25,7 +25,7 @@ using namespace graph;
 LKJCholesky::LKJCholesky(
     graph::ValueType sample_type,
     const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::LKJ_CHOLESKY, sample_type) {
+    : Distribution(DistributionType::LKJ_CHOLESKY, sample_type, in_nodes) {
   // an LKJ distribution has one parent, the concentration/shape parameter of
   // the distribution
   if (in_nodes.size() != 1) {

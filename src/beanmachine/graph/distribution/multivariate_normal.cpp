@@ -16,7 +16,10 @@ namespace distribution {
 MultivariateNormal::MultivariateNormal(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::MULTIVARIATE_NORMAL, sample_type) {
+    : Distribution(
+          graph::DistributionType::MULTIVARIATE_NORMAL,
+          sample_type,
+          in_nodes) {
   // a multivariate normal has two parents which are a mean vector and a
   // covariance matrix
   // it outputs a (col) broadcast matrix

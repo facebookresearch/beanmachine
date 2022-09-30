@@ -17,8 +17,10 @@ class Factor : public graph::Node {
   static std::unique_ptr<Factor> new_factor(
       graph::FactorType fac_type,
       const std::vector<graph::Node*>& in_nodes);
-  explicit Factor(graph::FactorType fac_type)
-      : graph::Node(graph::NodeType::FACTOR), fac_type(fac_type) {}
+  explicit Factor(
+      graph::FactorType fac_type,
+      const std::vector<Node*>& in_nodes)
+      : graph::Node(graph::NodeType::FACTOR, in_nodes), fac_type(fac_type) {}
   bool is_stochastic() const override {
     return true;
   }

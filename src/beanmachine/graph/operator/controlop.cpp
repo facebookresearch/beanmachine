@@ -11,7 +11,7 @@ namespace beanmachine {
 namespace oper {
 
 IfThenElse::IfThenElse(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::IF_THEN_ELSE) {
+    : Operator(graph::OperatorType::IF_THEN_ELSE, in_nodes) {
   if (in_nodes.size() != 3) {
     throw std::invalid_argument(
         "operator IF_THEN_ELSE requires exactly three parents");
@@ -38,7 +38,7 @@ void IfThenElse::eval(std::mt19937& /* gen */) {
 }
 
 Choice::Choice(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::CHOICE) {
+    : Operator(graph::OperatorType::CHOICE, in_nodes) {
   if (in_nodes.size() < 2) {
     throw std::invalid_argument(
         "operator CHOICE requires at least two parents");
