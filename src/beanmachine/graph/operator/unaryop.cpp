@@ -256,7 +256,7 @@ void ToPosRealMatrix::eval(std::mt19937& /* gen */) {
   } else {
     assert(
         element_type == graph::AtomicType::POS_REAL or
-        element_type == graph::AtomicType::NEG_REAL or
+        element_type == graph::AtomicType::REAL or
         element_type == graph::AtomicType::PROBABILITY);
     value._matrix = parent_value._matrix;
   }
@@ -316,6 +316,51 @@ void ToNegReal::eval(std::mt19937& /* gen */) {
   // assigning to ensure that the usual boundary checks for negative reals
   // are made
   value = graph::NodeValue(graph::AtomicType::NEG_REAL, parent._double);
+}
+
+ToNegRealMatrix::ToNegRealMatrix(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::TO_NEG_REAL_MATRIX, in_nodes) {
+  assert(in_nodes.size() == 1);
+  const graph::ValueType parent_type = in_nodes[0]->value.type;
+  if (parent_type.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      parent_type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::invalid_argument(
+        "operator TO_NEG_REAL_MATRIX requires a matrix parent");
+  }
+
+  const graph::AtomicType element_type = parent_type.atomic_type;
+
+  if (element_type != graph::AtomicType::REAL and
+      element_type != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "operator TO_NEG_REAL_MATRIX requires a "
+        "real or negative real matrix parent");
+  }
+
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::NEG_REAL,
+      parent_type.rows,
+      parent_type.cols));
+}
+
+void ToNegRealMatrix::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::Node* parent = in_nodes[0];
+  const graph::NodeValue parent_value = parent->value;
+  const graph::ValueType parent_type = parent_value.type;
+
+  if (parent_type.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      parent_type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::runtime_error(
+        "invalid parent type " + parent_type.to_string() +
+        " for TO_NEG_REAL_MATRIX operator at node_id " + std::to_string(index));
+  }
+
+  assert(
+      parent_type.atomic_type == graph::AtomicType::REAL or
+      parent_type.atomic_type == graph::AtomicType::NEG_REAL);
+  value._matrix = parent_value._matrix;
 }
 
 Negate::Negate(const std::vector<graph::Node*>& in_nodes)

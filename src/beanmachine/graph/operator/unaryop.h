@@ -156,6 +156,20 @@ class ToNegReal : public UnaryOperator {
   }
 };
 
+class ToNegRealMatrix : public UnaryOperator {
+ public:
+  explicit ToNegRealMatrix(const std::vector<graph::Node*>& in_nodes);
+  ~ToNegRealMatrix() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ToNegRealMatrix>(in_nodes);
+  }
+};
+
 class Negate : public UnaryOperator {
  public:
   explicit Negate(const std::vector<graph::Node*>& in_nodes);

@@ -78,6 +78,10 @@ bool ::beanmachine::oper::OperatorFactory::factories_are_registered =
         &(ToNegReal::new_op)) &&
 
     OperatorFactory::register_op(
+        graph::OperatorType::TO_NEG_REAL_MATRIX,
+        &(ToNegRealMatrix::new_op)) &&
+
+    OperatorFactory::register_op(
         graph::OperatorType::NEGATE,
         &(Negate::new_op)) &&
 

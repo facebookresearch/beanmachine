@@ -89,6 +89,7 @@ PYBIND11_MODULE(graph, module) {
       .value("TO_REAL_MATRIX", OperatorType::TO_REAL_MATRIX)
       .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX)
       .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL)
+      .value("TO_NEG_REAL_MATRIX", OperatorType::TO_NEG_REAL_MATRIX)
       .value("CHOICE", OperatorType::CHOICE)
       .value("CHOLESKY", OperatorType::CHOLESKY)
       .value("MATRIX_EXP", OperatorType::MATRIX_EXP)

@@ -353,6 +353,7 @@ enum class OperatorType {
   TO_REAL_MATRIX,
   TO_POS_REAL_MATRIX,
   TO_NEG_REAL,
+  TO_NEG_REAL_MATRIX,
   CHOICE,
   TO_INT,
   CHOLESKY,
