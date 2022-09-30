@@ -153,7 +153,6 @@ TEST(testdistrib, bernoulli_noisy_or) {
   graph::ConstNode cnode1(p1);
   distribution::BernoulliNoisyOr dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
-  dnode1.in_nodes.push_back(&cnode1);
   auto zero = graph::NodeValue(false);
   auto one = graph::NodeValue(true);
 
@@ -164,8 +163,7 @@ TEST(testdistrib, bernoulli_noisy_or) {
   auto p2 = graph::NodeValue(graph::AtomicType::POS_REAL, 40.0);
   graph::ConstNode cnode2(p2);
   distribution::BernoulliNoisyOr dnode2(
-      graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
-  dnode2.in_nodes.push_back(&cnode2);
+      graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode2});
 
   EXPECT_EQ(-40, dnode2.log_prob(zero));
   EXPECT_NEAR(-4.248e-18, dnode2.log_prob(one), 0.001e-18);
@@ -184,8 +182,6 @@ TEST(testdistrib, tabular) {
   graph::ConstNode cnode2(graph::NodeValue{true});
   distribution::Tabular dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1, &cnode2});
-  dnode1.in_nodes.push_back(&cnode1);
-  dnode1.in_nodes.push_back(&cnode2);
   auto zero = graph::NodeValue(false);
   auto one = graph::NodeValue(true);
 
