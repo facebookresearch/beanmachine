@@ -23,7 +23,6 @@
         "node_modules/@bokeh/bokehjs/build/js/lib/*",
         "node_modules/@bokeh/bokehjs/build/js/types/*"
       ],
-      "compute-histogram/*": ["node_modules/compute-histogram/*"],
       "fast-kde/*": ["node_modules/fast-kde/*"],
       "ndarray/*": ["node_modules/ndarray/*"],
       "ndarray-fft/*": [

@@ -7,7 +7,7 @@
 
 import re
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import Optional, TypeVar
 
 from beanmachine.ppl.diagnostics.tools import JS_DIST_DIR
 from beanmachine.ppl.diagnostics.tools.utils import plotting_utils
@@ -38,8 +38,8 @@ class Base(ABC):
             js = f.read()
         return js
 
-    def show(self: T):
-        display(HTML(self.create_document()))
+    def show(self: T, name: Optional[str] = None):
+        display(HTML(self.create_document(name=name)))
 
     @abstractmethod
     def create_document(self: T) -> str:

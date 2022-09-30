@@ -12,9 +12,13 @@ from pathlib import Path
 
 
 if sys.version_info >= (3, 8):
+    # NOTE: We need to import NotRequired from typing_extensions until PEP 655 is
+    #       accepted, see https://peps.python.org/pep-0655/. This is to follow the
+    #       interface objects in JavaScript that allow keys to not be required using ?.
     from typing import TypedDict
+    from typing_extensions import NotRequired
 else:
-    from typing_extensions import TypedDict
+    from typing_extensions import NotRequired, TypedDict
 
 
 TOOLS_DIR = Path(__file__).parent.resolve()
