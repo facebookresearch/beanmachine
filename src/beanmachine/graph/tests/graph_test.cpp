@@ -6,6 +6,7 @@
  */
 
 #include <array>
+#include <iostream>
 #include <stdexcept>
 #include <tuple>
 
@@ -15,10 +16,12 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/util.h"
 
 using namespace beanmachine;
 using namespace std;
 using namespace graph;
+using namespace util;
 
 void populate_arithmetic_graph(unique_ptr<Graph>& g) {
   /*
@@ -669,6 +672,25 @@ TEST(testgraph, graph_copy_constructor) {
   ASSERT_EQ(g->to_string(), g_copy.to_string());
 }
 
+TEST(testgraph, test_node_cloning) {
+  auto g = make_graph_with_nodes_of_all_types();
+
+  Graph original_g_copy(*g);
+
+  // Duplicate all nodes
+  auto original_size = g->nodes.size();
+  for (auto node_id : range(original_size)) {
+    auto& node = g->nodes[node_id];
+    uint clone_id = g->duplicate(node);
+  }
+
+  for (auto node_id : range(original_size)) {
+    auto& original_node = g->nodes[node_id];
+    auto& clone_node = g->nodes[node_id + original_size];
+    ASSERT_TRUE(are_equal(*original_node, *clone_node));
+  }
+}
+
 TEST(testgraph, full_log_prob) {
   Graph g;
   uint a = g.add_constant_pos_real(5.0);
@@ -755,7 +777,8 @@ TEST(testgraph, bad_observations) {
   EXPECT_THROW(g.observe(o_sample_natural, nat_matrix), invalid_argument);
   EXPECT_THROW(g.observe(o_sample_natural, real_matrix), invalid_argument);
 
-  // Observe a natural(2, 1) to be a bool, double, natural, and (1, 2) matrices
+  // Observe a natural(2, 1) to be a bool, double, natural, and (1, 2)
+  // matrices
   uint o_iid_nat = g.add_operator(
       OperatorType::IID_SAMPLE,
       vector<uint>{d_binomial, c_natural_2, c_natural_1});

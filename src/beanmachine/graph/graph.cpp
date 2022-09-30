@@ -572,16 +572,21 @@ std::vector<Node*> Graph::convert_parent_ids(
   return parent_nodes;
 }
 
+uint Graph::add_node(std::unique_ptr<Node> node) {
+  uint index = static_cast<uint>(nodes.size());
+  node->index = index;
+  nodes.push_back(std::move(node));
+  return index;
+}
+
 uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
-  // Maintain the in/out nodes of this node and its parents
+  // Update the in/out nodes of this node and its parents
   for (uint paridx : parents) {
     Node* parent = nodes[paridx].get();
     parent->out_nodes.push_back(node.get());
     node->in_nodes.push_back(parent);
   }
-  uint index = node->index = static_cast<uint>(nodes.size());
-  nodes.push_back(std::move(node));
-  return index;
+  return add_node(std::move(node));
 }
 
 std::function<uint(uint)> Graph::remove_node(uint node_id) {
@@ -1277,6 +1282,12 @@ void Graph::reindex_nodes() {
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.
+  *this = other;
+}
+
+Graph& Graph::operator=(const Graph& other) {
+  // This copy assignment operator does not copy the inference results
+  // (if available) from the source graph.
   for (uint i = 0; i < static_cast<uint>(other.nodes.size()); i++) {
     Node* node = other.nodes[i].get();
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
@@ -1314,6 +1325,8 @@ Graph::Graph(const Graph& other) {
   master_graph = other.master_graph;
   agg_type = other.agg_type;
   agg_samples = other.agg_samples;
+
+  return *this;
 }
 
 void Graph::_compute_evaluation_and_inference_readiness_data() {
@@ -1519,6 +1532,58 @@ double Graph::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
     log_prob += node->log_prob();
   }
   return log_prob;
+}
+
+bool same_type(const Node& node1, const Node& node2) {
+  using namespace distribution;
+  using namespace oper;
+  using namespace factor;
+
+  try {
+    auto& dist1 = dynamic_cast<const Distribution&>(node1);
+    try {
+      auto& dist2 = dynamic_cast<const Distribution&>(node2);
+      return dist1.dist_type == dist2.dist_type;
+    } catch (std::bad_cast&) {
+      return false;
+    }
+  } catch (std::bad_cast&) {
+    try {
+      auto& operator1 = dynamic_cast<const Operator&>(node1);
+      try {
+        auto& operator2 = dynamic_cast<const Operator&>(node2);
+        return operator1.op_type == operator2.op_type;
+      } catch (std::bad_cast&) {
+        return false;
+      }
+    } catch (std::bad_cast&) {
+      try {
+        auto& factor1 = dynamic_cast<const Factor&>(node1);
+        try {
+          auto& factor2 = dynamic_cast<const Factor&>(node2);
+          return factor1.fac_type == factor2.fac_type;
+        } catch (std::bad_cast&) {
+          return false;
+        }
+      } catch (std::bad_cast&) {
+        try {
+          auto& constant1 = dynamic_cast<const ConstNode&>(node1);
+          try {
+            auto& constant2 = dynamic_cast<const ConstNode&>(node2);
+            return constant1.value == constant2.value;
+          } catch (std::bad_cast&) {
+            return false;
+          }
+        } catch (std::bad_cast&) {
+          return false;
+        }
+      }
+    }
+  }
+}
+
+bool are_equal(const Node& node1, const Node& node2) {
+  return same_type(node1, node2) and node1.in_nodes == node2.in_nodes;
 }
 
 } // namespace graph
