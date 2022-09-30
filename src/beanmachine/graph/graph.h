@@ -491,6 +491,10 @@ class Node {
       : node_type(node_type), value(value), grad1(0), grad2(0) {}
   virtual ~Node() {}
 
+  /*** Cloning ***/
+
+  virtual std::unique_ptr<Node> clone() = 0;
+
   /*** Evaluation and gradients ***/
 
   virtual bool is_stochastic() const {
@@ -602,6 +606,9 @@ class ConstNode : public Node {
   explicit ConstNode(NodeValue value) : Node(NodeType::CONSTANT, value) {}
   void eval(std::mt19937& /* unused */) override {}
   ~ConstNode() override {}
+  std::unique_ptr<Node> clone() override {
+    return std::make_unique<ConstNode>(value);
+  }
   bool needs_gradient() const override {
     return false;
   }
@@ -611,14 +618,16 @@ class ConstNode : public Node {
 // NOTE: the third kind of node -- Operator is defined in operator.h
 // NOTE: the fourth kind of node -- Factor is defined in factor.h
 
-struct Graph {
+class Graph {
+ public:
   Graph() {}
 
   /*
-  This copy constructor does not copy the inference results (if available)
-  from the source graph.
+  Copy constructor and copy assignment operator do not copy the inference
+  results (if available) from the source graph.
   */
   Graph(const Graph& other);
+  Graph& operator=(const Graph& other);
 
   ~Graph() {}
   std::string to_string() const;
@@ -941,7 +950,22 @@ struct Graph {
   Node* get_node(uint node_id);
   void check_node_id(uint node_id);
 
+  /*
+  Adds node to graph, assuming it is already properly connected to parents,
+  returning its new node id.
+  */
+  uint add_node(std::unique_ptr<Node> node);
+
+  /*
+  Adds node to graph, connecting it to given parents,
+  returning its new node id.
+  */
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
+
+  /* Clones given node and adds it to graph, returning its id. */
+  uint duplicate(const std::unique_ptr<Node>& node) {
+    return add_node(node->clone());
+  }
 
   /*
   Remove node from the graph.
@@ -1277,6 +1301,19 @@ struct Graph {
     void emit_tab(uint n);
   };
 };
+
+/*
+Indicates whether two nodes are of the same type
+(for example both are distributions with same DistributionType),
+regardless of in-nodes.
+*/
+bool same_type(const graph::Node& node1, const graph::Node& node2);
+
+/*
+Indicates whether two nodes are equal (same type and same in-nodes).
+This ignores out-nodes and node index.
+*/
+bool are_equal(const graph::Node& node1, const graph::Node& node2);
 
 } // namespace graph
 } // namespace beanmachine

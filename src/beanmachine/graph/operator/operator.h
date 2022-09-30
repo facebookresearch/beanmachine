@@ -8,7 +8,6 @@
 #pragma once
 #include <map>
 
-#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
@@ -19,6 +18,7 @@ class Operator : public graph::Node {
   explicit Operator(graph::OperatorType op_type)
       : graph::Node(graph::NodeType::OPERATOR), op_type(op_type) {}
   ~Operator() override {}
+  std::unique_ptr<Node> clone() override;
   bool is_stochastic() const override {
     return false;
   }
