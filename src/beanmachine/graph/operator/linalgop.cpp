@@ -33,7 +33,7 @@ namespace beanmachine {
 namespace oper {
 
 Transpose::Transpose(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::TRANSPOSE) {
+    : Operator(graph::OperatorType::TRANSPOSE, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("TRANSPOSE requires one parent node");
   }
@@ -57,7 +57,7 @@ void Transpose::eval(std::mt19937& /* gen */) {
 }
 
 MatrixMultiply::MatrixMultiply(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_MULTIPLY) {
+    : Operator(graph::OperatorType::MATRIX_MULTIPLY, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("MATRIX_MULTIPLY requires two parent nodes");
   }
@@ -100,7 +100,7 @@ void MatrixMultiply::eval(std::mt19937& /* gen */) {
 // implement the desired functionality
 
 MatrixScale::MatrixScale(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_SCALE) {
+    : Operator(graph::OperatorType::MATRIX_SCALE, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("MATRIX_SCALE requires two parent nodes");
   }
@@ -160,7 +160,7 @@ void MatrixScale::eval(std::mt19937& /* gen */) {
 
 ElementwiseMultiply::ElementwiseMultiply(
     const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::ELEMENTWISE_MULTIPLY) {
+    : Operator(graph::OperatorType::ELEMENTWISE_MULTIPLY, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument(
         "ELEMENTWISE_MULTIPLY requires two parent nodes");
@@ -196,7 +196,7 @@ void ElementwiseMultiply::eval(std::mt19937& /* gen */) {
 }
 
 MatrixAdd::MatrixAdd(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_ADD) {
+    : Operator(graph::OperatorType::MATRIX_ADD, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("MATRIX_ADD requires two parent nodes");
   }
@@ -234,7 +234,7 @@ void MatrixAdd::eval(std::mt19937& /* gen */) {
 }
 
 MatrixNegate::MatrixNegate(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_NEGATE) {
+    : Operator(graph::OperatorType::MATRIX_NEGATE, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_NEGATE requires one parent node");
   }
@@ -270,7 +270,7 @@ void MatrixNegate::eval(std::mt19937& /* gen */) {
 }
 
 Index::Index(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::INDEX) {
+    : Operator(graph::OperatorType::INDEX, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("INDEX requires two parent nodes");
   }
@@ -317,7 +317,7 @@ void Index::eval(std::mt19937& /* gen */) {
 }
 
 ColumnIndex::ColumnIndex(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::COLUMN_INDEX) {
+    : Operator(graph::OperatorType::COLUMN_INDEX, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("COLUMN_INDEX requires two parent nodes");
   }
@@ -364,7 +364,7 @@ void ColumnIndex::eval(std::mt19937& /* gen */) {
 }
 
 BroadcastAdd::BroadcastAdd(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::BROADCAST_ADD) {
+    : Operator(graph::OperatorType::BROADCAST_ADD, in_nodes) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("BROADCAST_ADD requires two parent nodes");
   }
@@ -395,7 +395,7 @@ void BroadcastAdd::eval(std::mt19937& /* gen */) {
 }
 
 Cholesky::Cholesky(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::CHOLESKY) {
+    : Operator(graph::OperatorType::CHOLESKY, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("CHOLESKY requires one parent node");
   }
@@ -426,7 +426,7 @@ void Cholesky::eval(std::mt19937& /* gen */) {
 }
 
 MatrixExp::MatrixExp(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_EXP) {
+    : Operator(graph::OperatorType::MATRIX_EXP, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_EXP requires one parent node");
   }
@@ -456,7 +456,7 @@ void MatrixExp::eval(std::mt19937& /* gen */) {
 }
 
 MatrixSum::MatrixSum(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_SUM) {
+    : Operator(graph::OperatorType::MATRIX_SUM, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_SUM requires one parent node");
   }
@@ -481,7 +481,7 @@ void MatrixSum::eval(std::mt19937& /* gen */) {
 }
 
 MatrixLog::MatrixLog(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_LOG) {
+    : Operator(graph::OperatorType::MATRIX_LOG, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_LOG requires one parent node");
   }
@@ -510,7 +510,7 @@ void MatrixLog::eval(std::mt19937& /* gen */) {
 }
 
 MatrixLog1p::MatrixLog1p(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_LOG1P) {
+    : Operator(graph::OperatorType::MATRIX_LOG1P, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_LOG1P requires one parent node");
   }
@@ -539,7 +539,7 @@ void MatrixLog1p::eval(std::mt19937& /* gen */) {
 }
 
 MatrixLog1mexp::MatrixLog1mexp(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_LOG1MEXP) {
+    : Operator(graph::OperatorType::MATRIX_LOG1MEXP, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_LOG1MEXP requires one parent node");
   }
@@ -565,7 +565,7 @@ void MatrixLog1mexp::eval(std::mt19937& /* gen */) {
 }
 
 MatrixPhi::MatrixPhi(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_PHI) {
+    : Operator(graph::OperatorType::MATRIX_PHI, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_PHI requires one parent node");
   }
@@ -591,7 +591,7 @@ void MatrixPhi::eval(std::mt19937& /* gen */) {
 }
 
 MatrixComplement::MatrixComplement(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::MATRIX_COMPLEMENT) {
+    : Operator(graph::OperatorType::MATRIX_COMPLEMENT, in_nodes) {
   if (in_nodes.size() != 1) {
     throw std::invalid_argument("MATRIX_COMPLEMENT requires one parent node");
   }

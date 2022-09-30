@@ -16,7 +16,7 @@ namespace distribution {
 Geometric::Geometric(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::GEOMETRIC, sample_type) {
+    : Distribution(graph::DistributionType::GEOMETRIC, sample_type, in_nodes) {
   if (sample_type != graph::AtomicType::NATURAL) {
     throw std::invalid_argument("Geometric produces natural valued samples");
   }

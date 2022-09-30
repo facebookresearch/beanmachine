@@ -15,7 +15,7 @@ namespace beanmachine {
 namespace factor {
 
 ExpProduct::ExpProduct(const std::vector<graph::Node*>& in_nodes)
-    : Factor(graph::FactorType::EXP_PRODUCT) {
+    : Factor(graph::FactorType::EXP_PRODUCT, in_nodes) {
   // an ExpProduct factor must have at least one parent
   if (in_nodes.size() < 1) {
     throw std::invalid_argument(

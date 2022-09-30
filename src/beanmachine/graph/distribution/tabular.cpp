@@ -18,7 +18,7 @@ namespace distribution {
 Tabular::Tabular(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::TABULAR, sample_type) {
+    : Distribution(graph::DistributionType::TABULAR, sample_type, in_nodes) {
   // check the sample datatype
   if (sample_type != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument("Tabular supports only boolean valued samples");
