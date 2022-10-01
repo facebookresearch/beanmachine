@@ -245,7 +245,10 @@ const PrettyResult pretty_print(std::vector<Nodep> roots) {
   unsigned next_temp = 1;
   for (auto n : sorted) {
     PrintedForm p = print(n, cache);
-    if (counts[n] > 1 && n->op != Operator::VARIABLE) {
+    // We do not dedup constants and variables in the printed form, as the
+    // printed form is simpler without doing do.
+    if (counts[n] > 1 && n->op != Operator::VARIABLE &&
+        n->op != Operator::CONSTANT) {
       std::string temp = fmt::format("temp_{}", next_temp++);
       std::string assignment = fmt::format("auto {} = {};", temp, p.string);
       prelude.push_back(assignment);
