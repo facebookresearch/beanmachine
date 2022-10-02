@@ -14,27 +14,38 @@
 namespace beanmachine {
 namespace oper {
 
+using namespace std;
+
+unique_ptr<graph::Node> Operator::clone() {
+  auto result = OperatorFactory::create_op(op_type, in_nodes);
+  std::copy( // TODO: next diff will move this into create_op
+      in_nodes.begin(),
+      in_nodes.end(),
+      std::back_inserter(result->in_nodes));
+  return result;
+}
+
 double Operator::log_prob() const {
-  throw std::runtime_error("log_prob is only defined for sample or iid sample");
+  throw runtime_error("log_prob is only defined for sample or iid sample");
 }
 
 void Operator::gradient_log_prob(
     const graph::Node* target_node,
     double& /* grad1 */,
     double& /* grad2 */) const {
-  throw std::runtime_error(
+  throw runtime_error(
       "gradient_log_prob is only defined for sample or iid sample");
 }
 
-void Operator::eval(std::mt19937& /* gen */) {
-  throw std::runtime_error(
+void Operator::eval(mt19937& /* gen */) {
+  throw runtime_error(
       "internal error: unexpected operator type " +
       std::to_string(static_cast<int>(op_type)) + " at node_id " +
       std::to_string(index));
 }
 
 void Operator::compute_gradients() {
-  throw std::runtime_error(
+  throw runtime_error(
       "internal error: unexpected operator type " +
       std::to_string(static_cast<int>(op_type)) + " at node_id " +
       std::to_string(index));
@@ -52,27 +63,27 @@ bool OperatorFactory::register_op(
   return false;
 }
 
-std::unique_ptr<Operator> OperatorFactory::create_op(
+unique_ptr<Operator> OperatorFactory::create_op(
     const graph::OperatorType op_type,
-    const std::vector<graph::Node*>& in_nodes) {
+    const vector<graph::Node*>& in_nodes) {
   int op_id = static_cast<int>(op_type);
   // Check OperatorFactory::factories_are_registered here to deactivate compiler
   // optimization on unused static is_registered variables.
   if (!OperatorFactory::factories_are_registered) {
-    throw std::runtime_error(
-        "internal error: unregistered operator type " + std::to_string(op_id));
+    throw runtime_error(
+        "internal error: unregistered operator type " + to_string(op_id));
   }
   auto iter = OperatorFactory::op_map().find(op_id);
   if (iter != OperatorFactory::op_map().end()) {
     return iter->second(in_nodes);
   }
-  throw std::runtime_error(
-      "internal error: unregistered operator type " + std::to_string(op_id));
+  throw runtime_error(
+      "internal error: unregistered operator type " + to_string(op_id));
   return nullptr;
 }
 
-std::map<int, OperatorFactory::builder_type>& OperatorFactory::op_map() {
-  static std::map<int, OperatorFactory::builder_type> operator_map;
+map<int, OperatorFactory::builder_type>& OperatorFactory::op_map() {
+  static map<int, OperatorFactory::builder_type> operator_map;
   return operator_map;
 }
 
