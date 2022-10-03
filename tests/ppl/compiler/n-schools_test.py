@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 # Planned additions:
 
 # TODO: It would be great to have another example based on Sepehr's bma model here:
-# https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/beanmachine/beanmachine/applications/fb/bma/bma_model.py
+# https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/applications/fb/bma/bma_model.py
 
 # TODO: It would be great to also have a test case based on the PPL bench version of n-schools that follows:
 # Start n-schools model
