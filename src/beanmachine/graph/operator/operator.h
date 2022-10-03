@@ -15,8 +15,10 @@ namespace oper {
 
 class Operator : public graph::Node {
  public:
-  explicit Operator(graph::OperatorType op_type)
-      : graph::Node(graph::NodeType::OPERATOR), op_type(op_type) {}
+  explicit Operator(
+      graph::OperatorType op_type,
+      const std::vector<Node*>& in_nodes)
+      : graph::Node(graph::NodeType::OPERATOR, in_nodes), op_type(op_type) {}
   ~Operator() override {}
   std::unique_ptr<Node> clone() override;
   bool is_stochastic() const override {

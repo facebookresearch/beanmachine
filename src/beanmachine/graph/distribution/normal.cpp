@@ -20,7 +20,7 @@ namespace distribution {
 using namespace graph;
 
 Normal::Normal(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::NORMAL, sample_type) {
+    : Distribution(DistributionType::NORMAL, sample_type, in_nodes) {
   // a Normal distribution has two parents
   // mean -> real, sigma -> positive real
   if (in_nodes.size() != 2) {

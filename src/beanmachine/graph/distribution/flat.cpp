@@ -15,7 +15,7 @@ namespace distribution {
 using namespace graph;
 
 Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::FLAT, sample_type) {
+    : Distribution(DistributionType::FLAT, sample_type, in_nodes) {
   // a Flat distribution has no parents
   if (in_nodes.size() != 0) {
     throw std::invalid_argument("Flat distribution has no parents");
@@ -23,7 +23,7 @@ Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
 }
 
 Flat::Flat(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::FLAT, sample_type) {
+    : Distribution(DistributionType::FLAT, sample_type, in_nodes) {
   // a Flat distribution has no parents
   if (in_nodes.size() != 0) {
     throw std::invalid_argument("Flat distribution has no parents");

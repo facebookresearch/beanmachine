@@ -485,10 +485,13 @@ class Node {
 
   /*** Constructors and destructor ***/
 
-  Node() {}
-  explicit Node(NodeType node_type)
+  // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
+  explicit Node(const std::vector<Node*>& in_nodes) {}
+  // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
+  Node(NodeType node_type, const std::vector<Node*>& in_nodes)
       : node_type(node_type), grad1(0), grad2(0) {}
-  Node(NodeType node_type, NodeValue value)
+  // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
+  Node(NodeType node_type, NodeValue value, const std::vector<Node*>& in_nodes)
       : node_type(node_type), value(value), grad1(0), grad2(0) {}
   virtual ~Node() {}
 
@@ -604,7 +607,7 @@ class Node {
 
 class ConstNode : public Node {
  public:
-  explicit ConstNode(NodeValue value) : Node(NodeType::CONSTANT, value) {}
+  explicit ConstNode(NodeValue value) : Node(NodeType::CONSTANT, value, {}) {}
   void eval(std::mt19937& /* unused */) override {}
   ~ConstNode() override {}
   std::unique_ptr<Node> clone() override {

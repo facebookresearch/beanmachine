@@ -16,7 +16,7 @@ namespace distribution {
 Bernoulli::Bernoulli(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::BERNOULLI, sample_type) {
+    : Distribution(graph::DistributionType::BERNOULLI, sample_type, in_nodes) {
   if (sample_type != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument("Bernoulli produces boolean valued samples");
   }

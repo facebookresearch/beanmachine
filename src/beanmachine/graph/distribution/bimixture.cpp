@@ -61,7 +61,7 @@ namespace distribution {
 using namespace graph;
 
 Bimixture::Bimixture(ValueType sample_type, const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::BIMIXTURE, sample_type) {
+    : Distribution(DistributionType::BIMIXTURE, sample_type, in_nodes) {
   // a Bimixture distribution has three parents:
   // [the probability of sampling from Dist_1, node for Dist_1, node for Dist_2]
   if (in_nodes.size() != 3) {

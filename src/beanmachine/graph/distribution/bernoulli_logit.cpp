@@ -22,7 +22,7 @@ using namespace graph;
 BernoulliLogit::BernoulliLogit(
     ValueType sample_type,
     const std::vector<Node*>& in_nodes)
-    : Distribution(DistributionType::BERNOULLI_LOGIT, sample_type) {
+    : Distribution(DistributionType::BERNOULLI_LOGIT, sample_type, in_nodes) {
   // a BernoulliLogit distribution has one parent which is a real value
   if (in_nodes.size() != 1) {
     throw std::invalid_argument(

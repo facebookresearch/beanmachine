@@ -55,11 +55,17 @@ ValueType get_unique_sample_type(const vector<Node*>& in_nodes) {
 //////////////// Product methods
 
 Product::Product(const vector<Node*>& in_nodes)
-    : Distribution(DistributionType::PRODUCT, get_unique_sample_type(in_nodes)),
+    : Distribution(
+          DistributionType::PRODUCT,
+          get_unique_sample_type(in_nodes),
+          in_nodes),
       in_distributions(vector_dynamic_cast<Distribution>(in_nodes)) {}
 
 Product::Product(AtomicType sample_type, const vector<Node*>& in_nodes)
-    : Distribution(DistributionType::PRODUCT, get_unique_sample_type(in_nodes)),
+    : Distribution(
+          DistributionType::PRODUCT,
+          get_unique_sample_type(in_nodes),
+          in_nodes),
       in_distributions(vector_dynamic_cast<Distribution>(in_nodes)) {
   check_required_sample_type_against_sample_type_from_parents(sample_type);
 }

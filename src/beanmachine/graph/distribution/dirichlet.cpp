@@ -17,7 +17,7 @@ namespace distribution {
 Dirichlet::Dirichlet(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::DIRICHLET, sample_type) {
+    : Distribution(graph::DistributionType::DIRICHLET, sample_type, in_nodes) {
   // a Dirichlet has one parent which is a positive real matrix
   // and outputs a col simplex matrix
   if (sample_type.atomic_type != graph::AtomicType::PROBABILITY) {

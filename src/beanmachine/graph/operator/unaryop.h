@@ -18,7 +18,7 @@ class UnaryOperator : public Operator {
   UnaryOperator(
       graph::OperatorType op_type,
       const std::vector<graph::Node*>& in_nodes)
-      : Operator(op_type) {
+      : Operator(op_type, in_nodes) {
     if (in_nodes.size() != 1) {
       throw std::invalid_argument(
           "expecting exactly a single parent for unary operator " +
