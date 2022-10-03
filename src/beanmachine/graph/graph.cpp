@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <stdexcept>
 #define _USE_MATH_DEFINES
 #include <cmath>
 // We must include cmath first thing with macro _USE_MATH_DEFINES
@@ -17,6 +16,7 @@
 #include <iomanip>
 #include <random>
 #include <sstream>
+#include <stdexcept>
 #include <thread>
 #include <variant>
 
@@ -572,16 +572,21 @@ std::vector<Node*> Graph::convert_parent_ids(
   return parent_nodes;
 }
 
+uint Graph::add_node(std::unique_ptr<Node> node) {
+  uint index = static_cast<uint>(nodes.size());
+  node->index = index;
+  nodes.push_back(std::move(node));
+  return index;
+}
+
 uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
-  // Maintain the in/out nodes of this node and its parents
+  // Update the in/out nodes of this node and its parents
   for (uint paridx : parents) {
     Node* parent = nodes[paridx].get();
     parent->out_nodes.push_back(node.get());
     node->in_nodes.push_back(parent);
   }
-  uint index = node->index = static_cast<uint>(nodes.size());
-  nodes.push_back(std::move(node));
-  return index;
+  return add_node(std::move(node));
 }
 
 std::function<uint(uint)> Graph::remove_node(uint node_id) {
@@ -1277,6 +1282,12 @@ void Graph::reindex_nodes() {
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.
+  *this = other;
+}
+
+Graph& Graph::operator=(const Graph& other) {
+  // This copy assignment operator does not copy the inference results
+  // (if available) from the source graph.
   for (uint i = 0; i < static_cast<uint>(other.nodes.size()); i++) {
     Node* node = other.nodes[i].get();
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
@@ -1314,6 +1325,8 @@ Graph::Graph(const Graph& other) {
   master_graph = other.master_graph;
   agg_type = other.agg_type;
   agg_samples = other.agg_samples;
+
+  return *this;
 }
 
 void Graph::_compute_evaluation_and_inference_readiness_data() {
@@ -1519,6 +1532,39 @@ double Graph::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
     log_prob += node->log_prob();
   }
   return log_prob;
+}
+
+bool are_equal(const Node& node1, const Node& node2) {
+  using namespace distribution;
+  using namespace oper;
+  using namespace factor;
+
+  auto const1 = dynamic_cast<const ConstNode*>(&node1);
+  if (const1 != nullptr) {
+    auto const2 = dynamic_cast<const ConstNode*>(&node2);
+    return const2 != nullptr and const1->value == const2->value;
+  }
+
+  if (auto dist1 = dynamic_cast<const Distribution*>(&node1)) {
+    auto dist2 = dynamic_cast<const Distribution*>(&node2);
+    return dist2 != nullptr and dist1->dist_type == dist2->dist_type and
+        node1.in_nodes == node2.in_nodes;
+  }
+
+  if (auto op1 = dynamic_cast<const Operator*>(&node1)) {
+    auto op2 = dynamic_cast<const Operator*>(&node2);
+    return op2 != nullptr and op1->op_type == op2->op_type and
+        node1.in_nodes == node2.in_nodes;
+  }
+
+  if (auto fac1 = dynamic_cast<const Factor*>(&node1)) {
+    auto fac2 = dynamic_cast<const Factor*>(&node2);
+    return fac2 != nullptr and fac1->fac_type == fac2->fac_type and
+        node1.in_nodes == node2.in_nodes;
+  }
+
+  throw std::invalid_argument(
+      "are_equal(const Node& node1, const Node& node2): node1 is not instance of any supported subclass");
 }
 
 } // namespace graph

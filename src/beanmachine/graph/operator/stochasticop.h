@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/transform/transform.h"

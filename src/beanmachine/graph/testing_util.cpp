@@ -6,22 +6,27 @@
  */
 
 #include <iostream>
+#include <typeinfo>
 
+#include "beanmachine/graph/distribution/distribution.h"
+#include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/testing_util.h"
 
 namespace beanmachine::util {
 
 using namespace std;
+using namespace graph;
 
 void test_nmc_against_nuts(
-    graph::Graph& graph,
+    Graph& graph,
     int num_rounds,
     int num_samples,
     int warmup_samples,
-    std::function<unsigned()> seed_getter,
-    std::function<void(double, double)> tester) {
+    function<unsigned()> seed_getter,
+    function<void(double, double)> tester) {
   if (graph.queries.empty()) {
     throw invalid_argument(
         "test_nmc_against_nuts requires at least one query in graph.");
@@ -30,10 +35,9 @@ void test_nmc_against_nuts(
   for (int i = 0; i != num_rounds; i++) {
     auto seed = seed_getter();
 
-    auto means_nmc =
-        graph.infer_mean(num_samples, graph::InferenceType::NMC, seed);
+    auto means_nmc = graph.infer_mean(num_samples, InferenceType::NMC, seed);
 
-    graph::NUTS nuts = graph::NUTS(graph);
+    NUTS nuts = NUTS(graph);
     auto samples = nuts.infer(num_samples, seed, warmup_samples);
     auto means_nuts = compute_means(samples);
 
@@ -54,9 +58,7 @@ void test_nmc_against_nuts(
        << endl;
 }
 
-double compute_mean_at_index(
-    std::vector<std::vector<graph::NodeValue>> samples,
-    std::size_t index) {
+double compute_mean_at_index(vector<vector<NodeValue>> samples, size_t index) {
   double mean = 0;
   for (size_t i = 0; i < samples.size(); i++) {
     assert(samples[i].size() > index);
@@ -67,13 +69,12 @@ double compute_mean_at_index(
   return mean;
 }
 
-std::vector<double> compute_means(
-    std::vector<std::vector<graph::NodeValue>> samples) {
+vector<double> compute_means(vector<vector<NodeValue>> samples) {
   if (samples.empty()) {
-    return std::vector<double>();
+    return vector<double>();
   }
   auto num_dims = samples[0].size();
-  auto means = std::vector<double>(num_dims);
+  auto means = vector<double>(num_dims);
   for (size_t i = 0; i != num_dims; i++) {
     means[i] = compute_mean_at_index(samples, i);
   }

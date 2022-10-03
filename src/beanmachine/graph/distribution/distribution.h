@@ -20,6 +20,15 @@ class Distribution : public graph::Node {
       graph::ValueType sample_type,
       const std::vector<graph::Node*>& in_nodes);
 
+  std::unique_ptr<Node> clone() override {
+    auto result = new_distribution(dist_type, sample_type, in_nodes);
+    std::copy( // TODO: next diff will move this into new_distribution
+        in_nodes.begin(),
+        in_nodes.end(),
+        std::back_inserter(result->in_nodes));
+    return result;
+  }
+
   Distribution(graph::DistributionType dist_type, graph::AtomicType sample_type)
       : graph::Node(graph::NodeType::DISTRIBUTION),
         dist_type(dist_type),
