@@ -39,7 +39,6 @@ TEST(testoperator, complement) {
   // complement of prob is 1-prob
   oper::Complement onode1(std::vector<Node*>{&cnode1});
   EXPECT_EQ(onode1.value.type, AtomicType::PROBABILITY);
-  onode1.in_nodes.push_back(&cnode1);
   std::mt19937 generator(31245);
   onode1.eval(generator);
   EXPECT_NEAR(onode1.value._double, 0.9, 0.001);
@@ -48,7 +47,6 @@ TEST(testoperator, complement) {
   ConstNode cnode3(b1);
   oper::Complement onode2(std::vector<Node*>{&cnode3});
   EXPECT_EQ(onode2.value.type, AtomicType::BOOLEAN);
-  onode2.in_nodes.push_back(&cnode3);
   onode2.eval(generator);
   EXPECT_EQ(onode2.value._bool, true);
 }

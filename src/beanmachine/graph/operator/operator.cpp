@@ -17,12 +17,7 @@ namespace oper {
 using namespace std;
 
 unique_ptr<graph::Node> Operator::clone() {
-  auto result = OperatorFactory::create_op(op_type, in_nodes);
-  std::copy( // TODO: next diff will move this into create_op
-      in_nodes.begin(),
-      in_nodes.end(),
-      std::back_inserter(result->in_nodes));
-  return result;
+  return OperatorFactory::create_op(op_type, in_nodes);
 }
 
 double Operator::log_prob() const {

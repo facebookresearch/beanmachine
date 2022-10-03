@@ -241,8 +241,9 @@ class NodeValue {
       case VariableType::SCALAR:
         switch (type.atomic_type) {
           case AtomicType::UNKNOWN:
-            throw std::invalid_argument(
-                "Trying to copy an NodeValue of unknown type.");
+            // This used to throw an error but that
+            // was unnecessarily restrictive.
+            break;
           case AtomicType::BOOLEAN:
             _bool = other._bool;
             break;
@@ -485,14 +486,14 @@ class Node {
 
   /*** Constructors and destructor ***/
 
-  // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
-  explicit Node(const std::vector<Node*>& in_nodes) {}
-  // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
+  explicit Node(const std::vector<Node*>& in_nodes)
+      : Node(NodeType(), NodeValue(), in_nodes) {}
+
   Node(NodeType node_type, const std::vector<Node*>& in_nodes)
-      : node_type(node_type), grad1(0), grad2(0) {}
-  // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
-  Node(NodeType node_type, NodeValue value, const std::vector<Node*>& in_nodes)
-      : node_type(node_type), value(value), grad1(0), grad2(0) {}
+      : Node(node_type, NodeValue(), in_nodes) {}
+
+  Node(NodeType node_type, NodeValue value, const std::vector<Node*>& in_nodes);
+
   virtual ~Node() {}
 
   /*** Cloning ***/
@@ -959,12 +960,6 @@ class Graph {
   returning its new node id.
   */
   uint add_node(std::unique_ptr<Node> node);
-
-  /*
-  Adds node to graph, connecting it to given parents,
-  returning its new node id.
-  */
-  uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
 
   /* Clones given node and adds it to graph, returning its id. */
   uint duplicate(const std::unique_ptr<Node>& node) {
