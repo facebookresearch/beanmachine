@@ -9,6 +9,8 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <boost/algorithm/string/join.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <list>
@@ -500,6 +502,11 @@ class Node {
 
   virtual std::unique_ptr<Node> clone() = 0;
 
+  /*** To string ***/
+
+  /* A conversion to string, mostly for debugging purposes. */
+  virtual std::string to_string() = 0;
+
   /*** Evaluation and gradients ***/
 
   virtual bool is_stochastic() const {
@@ -616,6 +623,9 @@ class ConstNode : public Node {
   }
   bool needs_gradient() const override {
     return false;
+  }
+  virtual std::string to_string() override {
+    return "CONSTANT(" + value.to_string() + ")";
   }
 };
 
@@ -1306,6 +1316,17 @@ Indicates whether two nodes are equal (same type and same in-nodes).
 This ignores out-nodes and node index.
 */
 bool are_equal(const graph::Node& node1, const graph::Node& node2);
+
+template <typename NodePtr>
+std::string in_nodes_string(const NodePtr& node) {
+  using boost::adaptors::transformed;
+  using boost::algorithm::join;
+  return join(
+      node->in_nodes | transformed([](const Node* node) {
+        return std::to_string(node->index);
+      }),
+      ", ");
+}
 
 } // namespace graph
 } // namespace beanmachine

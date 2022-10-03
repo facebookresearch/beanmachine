@@ -33,6 +33,11 @@ class Factor : public graph::Node {
   std::unique_ptr<Node> clone() override {
     return new_factor(fac_type, in_nodes);
   }
+
+  virtual std::string to_string() override {
+    using namespace std;
+    return string(NAMEOF_ENUM(fac_type)) + "(" + in_nodes_string(this) + ")";
+  }
 };
 
 } // namespace factor

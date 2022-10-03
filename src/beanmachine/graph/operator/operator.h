@@ -48,6 +48,11 @@ class Operator : public graph::Node {
 
   void backward() override {}
   graph::OperatorType op_type;
+
+  virtual std::string to_string() override {
+    using namespace std;
+    return string(NAMEOF_ENUM(op_type)) + "(" + in_nodes_string(this) + ")";
+  }
 };
 
 class OperatorFactory {
