@@ -144,9 +144,18 @@ NUTS for adapting step size in [2]. The implementation and notations follows [2]
 
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">MassMatrixAdapter</span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">MassMatrixAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Adapts the mass matrix.</p>
+<p>Adapts the mass matrix. The (inverse) mass matrix is initialized to identity
+and will be updated during adaptation windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix_size</strong> – The size of the mass matrix. This value should be the same</p></li>
+<li><p><strong>tensor.</strong> (<em>as the length of the flattened position</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="simple">
 <dt>Reference:</dt><dd><p>[1] “HMC algorithm parameters” from Stan Reference Manual
 <a class="reference external" href="https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric">https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric</a></p>
@@ -159,21 +168,19 @@ NUTS for adapting step size in [2]. The implementation and notations follows [2]
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums">
-<span class="sig-name descname"><span class="pre">initialize_momentums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">initialize_momentums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums" title="Permalink to this definition"></a></dt>
 <dd><p>Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
-is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
-for the first time, this also initializes their (inverse) mass matrices to
-the identity matrix.</p>
+is denoted as p in [1] and r in [2].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>positions</strong> – RVDict corresponding to the positions of the energy function.</p>
+<dd class="field-odd"><p><strong>positions</strong> – the positions of the energy function.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.step">
-<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.step" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.step" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

@@ -25,6 +25,7 @@ Submodules
    beanmachine.ppl.inference.proposer.single_site_ancestral_proposer
    beanmachine.ppl.inference.proposer.single_site_random_walk_proposer
    beanmachine.ppl.inference.proposer.single_site_uniform_proposer
+   beanmachine.ppl.inference.proposer.utils
 
 Module contents
 ---------------
