@@ -29,7 +29,7 @@ class DictToVecConverter(Generic[KeyType]):
         # compute the indicies that each of the entry corresponds to. e.g. for
         # keys[0], its value will correspond to flatten_vec[idxs[0] : idxs[1]]
         val_sizes = [example_dict[key].numel() for key in self._keys]
-        self._idxs = torch.cumsum(torch.tensor([0] + val_sizes), dim=0)
+        self._idxs = list(torch.cumsum(torch.tensor([0] + val_sizes), dim=0))
 
     def to_vec(self, dict_in: Dict[KeyType, torch.Tensor]) -> torch.Tensor:
         """Concatenate the entries of a dictionary to a flattened Tensor"""

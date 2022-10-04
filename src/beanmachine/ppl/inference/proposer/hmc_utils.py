@@ -105,60 +105,48 @@ class DualAverageAdapter:
 
 class MassMatrixAdapter:
     """
-    Adapts the mass matrix.
+    Adapts the mass matrix. The (inverse) mass matrix is initialized to identity
+    and will be updated during adaptation windows.
+
+    Args:
+        matrix_size: The size of the mass matrix. This value should be the same
+        as the length of the flattened position tensor.
 
     Reference:
         [1] "HMC algorithm parameters" from Stan Reference Manual
         https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric
     """
 
-    def __init__(self):
-        self.mass_inv: RVDict = {}  # inverse mass matrices, aka the inverse "metric"
-        self.momentum_dists = {}  # distribution objects for generating momentums
+    def __init__(self, matrix_size: int):
+        # inverse mass matrices, aka the inverse "metric"
+        self.mass_inv = torch.ones(matrix_size)
+        # distribution objects for generating momentums
+        self.momentum_dist = dist.Normal(0.0, self.mass_inv)
 
-        self._adapters = {}
+        self._adapter = WelfordCovariance(diagonal=True)
 
-    def initialize_momentums(self, positions: RVDict) -> RVDict:
+    def initialize_momentums(self, positions: torch.Tensor) -> torch.Tensor:
         """
         Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
-        is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
-        for the first time, this also initializes their (inverse) mass matrices to
-        the identity matrix.
+        is denoted as p in [1] and r in [2].
 
         Args:
-            positions: RVDict corresponding to the positions of the energy function.
+            positions: the positions of the energy function.
         """
-        momentums = {}
-        for node in positions:
-            # initialize M^{-1} for nodes that are seen for the first time
-            node_val = positions[node].flatten()
-            if node not in self.mass_inv:
-                self.mass_inv[node] = torch.ones_like(node_val)
-                self.momentum_dists[node] = dist.Normal(
-                    torch.zeros_like(node_val), torch.ones_like(node_val)
-                )
-            momentums[node] = self.momentum_dists[node].sample()
-        return momentums
+        return self.momentum_dist.sample().to(positions.dtype)
 
-    def step(self, positions: RVDict):
-        for node, z in positions.items():
-            if node not in self._adapters:
-                self._adapters[node] = WelfordCovariance(diagonal=True)
-            self._adapters[node].step(z.flatten())
+    def step(self, positions: torch.Tensor):
+        self._adapter.step(positions)
 
     def finalize(self) -> None:
-        for node, adapter in self._adapters.items():
-            try:
-                mass_inv = adapter.finalize()
-                self.momentum_dists[node] = dist.Normal(
-                    torch.zeros_like(mass_inv), torch.sqrt(mass_inv).reciprocal()
-                )
-                self.mass_inv[node] = mass_inv
-            except RuntimeError as e:
-                warnings.warn(str(e))
-                continue
+        try:
+            mass_inv = self._adapter.finalize()
+            self.momentum_dist = dist.Normal(0.0, torch.sqrt(mass_inv).reciprocal())
+            self.mass_inv = mass_inv
+        except RuntimeError as e:
+            warnings.warn(str(e))
         # reset adapters to get ready for the next window
-        self._adapters = {}
+        self._adapter = WelfordCovariance(diagonal=True)
 
 
 class WelfordCovariance:
