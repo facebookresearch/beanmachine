@@ -37,14 +37,13 @@ std::map<T, unsigned> count_predecessors_internal(
     counted.insert(node);
     nodes.push_back(node);
 
-    if (predecessor_counts.find(node) == predecessor_counts.end()) {
+    if (!predecessor_counts.contains(node)) {
       predecessor_counts[node] = 0;
     }
 
     for (auto succ : successors(node)) {
       to_count.push_back(succ);
-      auto found = predecessor_counts.find(succ);
-      if (found == predecessor_counts.end()) {
+      if (!predecessor_counts.contains(succ)) {
         predecessor_counts[succ] = 1;
       } else {
         predecessor_counts[succ] = predecessor_counts[succ] + 1;

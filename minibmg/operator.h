@@ -63,8 +63,7 @@ enum class Operator {
   // Result: REAL
   LGAMMA,
 
-  // The polygamma(x, n) function.  polygamma(x, 0) is also known as digamma(x)
-  // Note the order of parameters.
+  // The polygamma(n, x) function.  polygamma(0, x) is also known as digamma(x)
   // Result: REAL
   POLYGAMMA,
 

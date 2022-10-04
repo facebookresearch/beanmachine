@@ -39,6 +39,9 @@ class Reverse {
   Reverse<Underlying>& operator=(const Reverse<Underlying>& other);
   double as_double() const;
   void reverse(double initial_adjoint);
+  Underlying adjoint() {
+    return ptr->adjoint;
+  }
 };
 
 template <class Underlying>
@@ -78,6 +81,13 @@ requires Number<Underlying> Reverse<Underlying>::Reverse(
     std::shared_ptr<ReverseBody<Underlying>> body)
     : ptr{body} {}
 
+template <class Underlying>
+requires Number<Underlying> Reverse<Underlying>
+&Reverse<Underlying>::operator=(const Reverse<Underlying>& other) {
+  this->ptr = other.ptr;
+  return *this;
+}
+
 // This implementation of ReverseBody<Underlying> permits the precomputation of
 // the local derivative, and simply multiplies during the reverse phase to
 // implement the chain rule.  Although not necessarily storage efficient for
@@ -114,7 +124,7 @@ requires Number<Underlying> Reverse<Underlying>::Reverse(
 template <class Underlying>
 requires Number<Underlying>
 double Reverse<Underlying>::as_double() const {
-  return ptr->as_double();
+  return ptr->primal.as_double();
 }
 
 template <class Underlying>
