@@ -43,8 +43,8 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
 
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
 
-  const std::vector<Node*>& det_affected_nodes =
-      graph->get_det_affected_nodes(tgt_node);
+  const std::vector<Node*>& det_affected_operator_nodes =
+      graph->get_det_affected_operator_nodes(tgt_node);
 
   // Cast needed to access fields such as unconstrained_value:
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
@@ -58,7 +58,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     double x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
 
     // save old values
-    graph->save_old_values(det_affected_nodes);
+    graph->save_old_values(det_affected_operator_nodes);
     double old_x_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
     NodeValue old_x_k_value(AtomicType::POS_REAL, old_x_k);
     double old_sto_affected_nodes_log_prob =
@@ -79,7 +79,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
         sto_tgt_node->unconstrained_value._matrix.array() / x_sum;
 
     // propagate new value
-    graph->eval(det_affected_nodes);
+    graph->eval(det_affected_operator_nodes);
     double new_sto_affected_nodes_log_prob =
         compute_sto_affected_nodes_log_prob(tgt_node, param_a_k, new_x_k_value);
 
@@ -97,7 +97,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc);
     if (!accepted) {
       // revert
-      graph->restore_old_values(det_affected_nodes);
+      graph->restore_old_values(det_affected_operator_nodes);
       *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_x_k;
       x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
       sto_tgt_node->value._matrix =
@@ -111,7 +111,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     // TODO: identify code that depends on this, let it zero gradients
     // itself, and remove it from here since that's a long-distance,
     // implicit dependence that is hard to watch for.
-    graph->clear_gradients(det_affected_nodes);
+    graph->clear_gradients(det_affected_operator_nodes);
   } // k
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
@@ -165,7 +165,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / x_sum;
 
   // Propagate gradients
-  graph->compute_gradients(graph->get_det_affected_nodes(tgt_node));
+  graph->compute_gradients(graph->get_det_affected_operator_nodes(tgt_node));
 
   // We want to compute the gradient of log prob with respect to x_k.
   // The probability is the product of the probabilities of x_k

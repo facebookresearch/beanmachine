@@ -1363,7 +1363,7 @@ void Graph::_clear_evaluation_and_inference_readiness_data() {
   _unobserved_supp.clear();
   _unobserved_sto_supp.clear();
   _sto_affected_nodes.clear();
-  _det_affected_nodes.clear();
+  _det_affected_operator_nodes.clear();
   unobserved_support_index_by_node_id.clear();
   unobserved_sto_support_index_by_node_id.clear();
 }
@@ -1421,7 +1421,7 @@ void Graph::_compute_affected_nodes() {
     for (uint id : sto_node_ids) {
       sto_nodes.push_back(_node_ptrs[id]);
     }
-    _det_affected_nodes.push_back(det_nodes);
+    _det_affected_operator_nodes.push_back(det_nodes);
     _sto_affected_nodes.push_back(sto_nodes);
     if (_collect_performance_data) {
       profiler_data.det_supp_count[static_cast<uint>(node->index)] =
@@ -1430,8 +1430,9 @@ void Graph::_compute_affected_nodes() {
   }
 }
 
-const std::vector<Node*>& Graph::get_det_affected_nodes(uint node_id) {
-  return det_affected_nodes()[unobserved_sto_support_index_by_node_id[node_id]];
+const std::vector<Node*>& Graph::get_det_affected_operator_nodes(uint node_id) {
+  return det_affected_operator_nodes()
+      [unobserved_sto_support_index_by_node_id[node_id]];
 }
 
 const std::vector<Node*>& Graph::get_sto_affected_nodes(uint node_id) {
@@ -1440,16 +1441,16 @@ const std::vector<Node*>& Graph::get_sto_affected_nodes(uint node_id) {
 
 void Graph::revertibly_set_and_propagate(Node* node, const NodeValue& value) {
   save_old_value(node);
-  save_old_values(get_det_affected_nodes(node));
+  save_old_values(get_det_affected_operator_nodes(node));
   _old_sto_affected_nodes_log_prob =
       compute_log_prob_of(get_sto_affected_nodes(node));
   node->value = value;
-  eval(get_det_affected_nodes(node));
+  eval(get_det_affected_operator_nodes(node));
 }
 
 void Graph::revert_set_and_propagate(Node* node) {
   restore_old_value(node);
-  restore_old_values(get_det_affected_nodes(node));
+  restore_old_values(get_det_affected_operator_nodes(node));
 }
 
 void Graph::save_old_value(const Node* node) {
@@ -1536,7 +1537,7 @@ void Graph::clear_gradients(const std::vector<Node*>& nodes) {
 
 void Graph::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
   clear_gradients(node);
-  clear_gradients(get_det_affected_nodes(node));
+  clear_gradients(get_det_affected_operator_nodes(node));
   clear_gradients(get_sto_affected_nodes(node));
 }
 

@@ -1137,14 +1137,13 @@ class Graph {
   // the vector of the immediate stochastic descendants of
   // node with index i in the
   // support, and
-  // the vector of the intervening deterministic nodes
+  // the vector of the intervening deterministic operator nodes
   // between the i-th node and its immediate stochastic descendants.
-  // In other words, these are the cached results of
-  // invoking graph::compute_affected_nodes
-  // for each node.
 
  private:
-  CACHED_PRIVATE_PROPERTY(std::vector<std::vector<Node*>>, det_affected_nodes)
+  CACHED_PRIVATE_PROPERTY(
+      std::vector<std::vector<Node*>>,
+      det_affected_operator_nodes)
   CACHED_PRIVATE_PROPERTY(std::vector<std::vector<Node*>>, sto_affected_nodes)
 
 #undef CACHED_PROPERTY
@@ -1205,11 +1204,11 @@ class Graph {
   void collect_sample(InferConfig infer_config);
 
  public:
-  const std::vector<Node*>& get_det_affected_nodes(uint node_id);
+  const std::vector<Node*>& get_det_affected_operator_nodes(uint node_id);
   const std::vector<Node*>& get_sto_affected_nodes(uint node_id);
 
-  inline const std::vector<Node*>& get_det_affected_nodes(Node* node) {
-    return get_det_affected_nodes(node->index);
+  inline const std::vector<Node*>& get_det_affected_operator_nodes(Node* node) {
+    return get_det_affected_operator_nodes(node->index);
   }
 
   inline const std::vector<Node*>& get_sto_affected_nodes(Node* node) {

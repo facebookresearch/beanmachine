@@ -45,7 +45,7 @@ NMCScalarSingleSiteSteppingMethod::get_proposal_distribution(Node* tgt_node) {
 
   tgt_node->grad1 = 1;
   tgt_node->grad2 = 0;
-  graph->compute_gradients(graph->get_det_affected_nodes(tgt_node));
+  graph->compute_gradients(graph->get_det_affected_operator_nodes(tgt_node));
 
   double grad1 = 0;
   double grad2 = 0;
