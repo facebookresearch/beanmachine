@@ -27,7 +27,7 @@ class Container {
   Container() {}
   virtual ~Container();
 
-  std::unordered_map<const _BaseProperty*, void*> _container_map;
+  std::unordered_map<const _BaseProperty*, const void*> _container_map;
 };
 
 /*
@@ -38,7 +38,7 @@ class _BaseProperty {
  public:
   _BaseProperty() {}
 
-  virtual void _delete_value(void* valuep) const = 0;
+  virtual void _delete_value(const void* valuep) const = 0;
 
   virtual ~_BaseProperty() {}
 };
@@ -69,8 +69,8 @@ template <class DerivedPropertyType, class ContainerType, class ValueType>
 class Property : public _BaseProperty {
  public:
   static ValueType* get(const ContainerType& container);
-  void _delete_value(void* valuep) const override {
-    auto vp = (ValueType*)valuep;
+  void _delete_value(const void* valuep) const override {
+    auto vp = (const ValueType*)valuep;
     delete vp;
   }
 
@@ -105,14 +105,14 @@ ValueType* Property<DerivedPropertyType, ContainerType, ValueType>::get(
   if (found != map.end()) {
     return (ValueType*)found->second;
   }
-  auto result = property->create(container);
+  ValueType* result = property->create(container);
   // We cast away const to make the map mutable.  The API is still immutable, as
   // it is not possible for a client to observe a state transition (e.g. a
   // different state at two different times). That is because the client always
   // (only) sees the value in its constructed state.
   auto& mutable_map =
-      *const_cast<std::unordered_map<const _BaseProperty*, void*>*>(&map);
-  mutable_map[property] = result;
+      *const_cast<std::unordered_map<const _BaseProperty*, const void*>*>(&map);
+  mutable_map[property] = reinterpret_cast<const void*>(result);
   return result;
 }
 

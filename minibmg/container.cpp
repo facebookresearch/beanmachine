@@ -14,7 +14,7 @@ Container::~Container() {
   for (auto i = _container_map.begin(), end = _container_map.end(); i != end;
        ++i) {
     const _BaseProperty* const property = i->first;
-    void* value = i->second;
+    const void* value = i->second;
     property->_delete_value(value);
   }
 }
