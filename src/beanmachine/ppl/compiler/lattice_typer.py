@@ -156,6 +156,19 @@ _always_matrix_types: Set[type] = {
 }
 
 
+def _broadcast_size(left: bt.BMGMatrixType, right: bt.BMGMatrixType):
+    def helper(x, y):
+        return x == 1 or y == 1 or x == y
+
+    if not helper(left.rows, right.rows):
+        return None
+    if not helper(left.columns, right.columns):
+        return None
+    rows = left.rows if right.rows == 1 else right.rows
+    cols = left.columns if right.columns == 1 else right.columns
+    return (rows, cols)
+
+
 class LatticeTyper(TyperBase[bt.BMGLatticeType]):
 
     _dispatch: Dict[type, Callable]
@@ -220,19 +233,6 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         else:
             raise ValueError("unrecognized element type")
 
-    def __assert_can_be_broadcast_to(
-        self, small: bt.BMGMatrixType, big: bt.BMGMatrixType
-    ):
-        if small.rows == 1:
-            assert small.columns == 1 or small.columns == big.columns
-        else:
-            assert small.rows == big.rows
-
-        if small.columns == 1:
-            assert small.rows == 1 or small.rows == big.rows
-        else:
-            assert small.columns == big.columns
-
     def _type_binary_elementwise_op(
         self, node: bn.BinaryOperatorNode
     ) -> bt.BMGLatticeType:
@@ -240,21 +240,20 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         right_type = self[node.right]
         assert isinstance(left_type, bt.BMGMatrixType)
         assert isinstance(right_type, bt.BMGMatrixType)
-        r_count = right_type.columns * right_type.rows
-        l_count = left_type.columns * left_type.rows
-        if l_count < r_count:
-            self.__assert_can_be_broadcast_to(left_type, right_type)
-        else:
-            self.__assert_can_be_broadcast_to(right_type, left_type)
+        bsize = _broadcast_size(left_type, right_type)
+        if bsize is None:
+            return bt.Untypable
+        rows, cols = bsize
+
         op_type = bt.supremum(
             self._lattice_type_for_element_type(left_type.element_type),
             self._lattice_type_for_element_type(right_type.element_type),
         )
         if bt.supremum(op_type, bt.NegativeReal) == bt.NegativeReal:
-            return bt.NegativeRealMatrix(left_type.rows, left_type.columns)
+            return bt.NegativeRealMatrix(rows, cols)
         if bt.supremum(op_type, bt.PositiveReal) == bt.PositiveReal:
-            return bt.PositiveRealMatrix(left_type.rows, left_type.columns)
-        return bt.RealMatrix(left_type.rows, left_type.columns)
+            return bt.PositiveRealMatrix(rows, cols)
+        return bt.RealMatrix(rows, cols)
 
     _matrix_tpe_constructors = {
         bt.Real: lambda r, c: bt.RealMatrix(r, c),
