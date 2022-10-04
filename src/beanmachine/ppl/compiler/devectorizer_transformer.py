@@ -53,7 +53,11 @@ _tensor_constants = [
     bn.UntypedConstantNode,
 ]
 
-_tensor_valued_distributions = [bn.CategoricalNode, bn.DirichletNode]
+_tensor_valued_distributions = [
+    bn.CategoricalNode,
+    bn.DirichletNode,
+    bn.LKJCholeskyNode,
+]
 
 _indexable_node_types = [
     bn.ColumnIndexNode,

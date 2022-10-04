@@ -587,6 +587,28 @@ class UniformNode(DistributionNode):
         return f"Uniform({str(self.low)},{str(self.high)})"
 
 
+class LKJCholeskyNode(DistributionNode):
+
+    """The LKJ distribution produces correlation matrices of
+    size dim x dim according to a concentration parameter eta.
+    This is the Cholesky factorization of that distribution,
+    so that L L^T ~ LKJ(eta) for L ~ LKJCholesky(eta)."""
+
+    def __init__(self, dim: BMGNode, eta: BMGNode):
+        DistributionNode.__init__(self, [dim, eta])
+
+    @property
+    def dim(self) -> BMGNode:
+        return self.inputs[0]
+
+    @property
+    def eta(self) -> BMGNode:
+        return self.inputs[1]
+
+    def __str__(self) -> str:
+        return f"LKJCholesky({str(self.dim)}, {str(self.eta)})"
+
+
 # ####
 # #### Operators
 # ####

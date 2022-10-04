@@ -127,6 +127,7 @@ def _node_factories(bmg: BMGraphBuilder) -> Dict[Type, Callable]:
         bn.InvertNode: bmg.add_invert,
         bn.LessThanNode: bmg.add_less_than,
         bn.LessThanEqualNode: bmg.add_less_than_equal,
+        bn.LKJCholeskyNode: bmg.add_lkj_cholesky,
         bn.LogAddExpNode: bmg.add_logaddexp,
         bn.LogisticNode: bmg.add_logistic,
         bn.Log10Node: bmg.add_log10,

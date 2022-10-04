@@ -49,6 +49,9 @@ class GeneratedGraph:
         self.query_to_query_id[node] = query_id
 
     def _inputs(self, node: bn.BMGNode) -> List[int]:
+        if isinstance(node, bn.LKJCholeskyNode):
+            # The LKJ dimension parameter has already been folded into the sample type
+            return [self.node_to_graph_id[node.inputs[1]]]
         return [self.node_to_graph_id[x] for x in node.inputs]
 
     def _add_factor(self, node: bn.FactorNode) -> None:

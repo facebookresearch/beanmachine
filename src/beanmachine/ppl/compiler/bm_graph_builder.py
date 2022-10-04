@@ -468,6 +468,14 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    @memoize
+    def add_lkj_cholesky(self, dim: BMGNode, eta: BMGNode) -> bn.LKJCholeskyNode:
+        if isinstance(dim, bn.ConstantNode) and isinstance(dim.value, int):
+            assert dim.value >= 2
+        node = bn.LKJCholeskyNode(dim, eta)
+        self.add_node(node)
+        return node
+
     # ####
     # #### Graph accumulation for operators
     # ####
