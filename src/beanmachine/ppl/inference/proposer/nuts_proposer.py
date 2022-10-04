@@ -9,23 +9,23 @@ import torch
 from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
 from beanmachine.ppl.inference.proposer.nnc import nnc_jit
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import RVDict, World
+from beanmachine.ppl.world import World
 
 
 class _TreeNode(NamedTuple):
-    positions: RVDict
-    momentums: RVDict
-    pe_grad: RVDict
+    positions: torch.Tensor
+    momentums: torch.Tensor
+    pe_grad: torch.Tensor
 
 
 class _Tree(NamedTuple):
     left: _TreeNode
     right: _TreeNode
-    proposal: RVDict
+    proposal: torch.Tensor
     pe: torch.Tensor
-    pe_grad: RVDict
+    pe_grad: torch.Tensor
     log_weight: torch.Tensor
-    sum_momentums: RVDict
+    sum_momentums: torch.Tensor
     sum_accept_prob: torch.Tensor
     num_proposals: torch.Tensor
     turned_or_diverged: torch.Tensor
@@ -36,7 +36,7 @@ class _TreeArgs(NamedTuple):
     direction: torch.Tensor
     step_size: torch.Tensor
     initial_energy: torch.Tensor
-    mass_inv: RVDict
+    mass_inv: torch.Tensor
 
 
 class NUTSProposer(HMCProposer):
@@ -105,16 +105,16 @@ class NUTSProposer(HMCProposer):
 
     def _is_u_turning(
         self,
-        mass_inv: RVDict,
-        left_momentums: RVDict,
-        right_momentums: RVDict,
-        sum_momentums: RVDict,
+        mass_inv: torch.Tensor,
+        left_momentums: torch.Tensor,
+        right_momentums: torch.Tensor,
+        sum_momentums: torch.Tensor,
     ) -> torch.Tensor:
         """The generalized U-turn condition, as described in [2] Appendix 4.2"""
-        left_r = torch.cat([left_momentums[node] for node in mass_inv])
-        right_r = torch.cat([right_momentums[node] for node in mass_inv])
-        rho = torch.cat([mass_inv[node] * sum_momentums[node] for node in mass_inv])
-        return (torch.dot(left_r, rho) <= 0) or (torch.dot(right_r, rho) <= 0)
+        rho = mass_inv * sum_momentums
+        return (torch.dot(left_momentums, rho) <= 0) or (
+            torch.dot(right_momentums, rho) <= 0
+        )
 
     def _build_tree_base_case(self, root: _TreeNode, args: _TreeArgs) -> _Tree:
         """Base case of the recursive tree building algorithm: take a single leapfrog
@@ -179,7 +179,7 @@ class NUTSProposer(HMCProposer):
         old_tree: _Tree,
         new_tree: _Tree,
         direction: torch.Tensor,
-        mass_inv: RVDict,
+        mass_inv: torch.Tensor,
         biased: bool,
     ) -> _Tree:
         """Combine the old tree and the new tree into a single (large) tree. The new
@@ -215,10 +215,8 @@ class NUTSProposer(HMCProposer):
         else:
             left_tree, right_tree = old_tree, new_tree
 
-        sum_momentums = {
-            node: left_tree.sum_momentums[node] + right_tree.sum_momentums[node]
-            for node in left_tree.sum_momentums
-        }
+        sum_momentums = left_tree.sum_momentums + right_tree.sum_momentums
+
         turned_or_diverged = new_tree.turned_or_diverged or self._is_u_turning(
             mass_inv,
             left_tree.left.momentums,
@@ -228,10 +226,7 @@ class NUTSProposer(HMCProposer):
         # More robust U-turn condition
         # https://discourse.mc-stan.org/t/nuts-misses-u-turns-runs-in-circles-until-max-treedepth/9727
         if not turned_or_diverged and right_tree.num_proposals > 1:
-            extended_sum_momentums = {
-                node: left_tree.sum_momentums[node] + right_tree.left.momentums[node]
-                for node in sum_momentums
-            }
+            extended_sum_momentums = left_tree.sum_momentums + right_tree.left.momentums
             turned_or_diverged = self._is_u_turning(
                 mass_inv,
                 left_tree.left.momentums,
@@ -239,10 +234,9 @@ class NUTSProposer(HMCProposer):
                 extended_sum_momentums,
             )
         if not turned_or_diverged and left_tree.num_proposals > 1:
-            extended_sum_momentums = {
-                node: right_tree.sum_momentums[node] + left_tree.right.momentums[node]
-                for node in sum_momentums
-            }
+            extended_sum_momentums = (
+                right_tree.sum_momentums + left_tree.right.momentums
+            )
             turned_or_diverged = self._is_u_turning(
                 mass_inv,
                 left_tree.right.momentums,
@@ -267,8 +261,8 @@ class NUTSProposer(HMCProposer):
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
-            self._positions = self._to_unconstrained(
-                {node: world[node] for node in self._target_rvs}
+            self._positions = self._dict2vec.to_vec(
+                self._to_unconstrained({node: world[node] for node in self._target_rvs})
             )
             self._pe, self._pe_grad = self._potential_grads(self._positions)
 
@@ -317,7 +311,8 @@ class NUTSProposer(HMCProposer):
                 break
 
         if tree.proposal is not self._positions:
-            self.world = self.world.replace(self._to_unconstrained.inv(tree.proposal))
+            positions_dict = self._dict2vec.to_dict(tree.proposal)
+            self.world = self.world.replace(self._to_unconstrained.inv(positions_dict))
             self._positions, self._pe, self._pe_grad = (
                 tree.proposal,
                 tree.pe,

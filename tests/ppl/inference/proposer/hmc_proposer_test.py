@@ -41,10 +41,8 @@ def test_potential_grads(hmc):
     pe, pe_grad = hmc._potential_grads(hmc._positions)
     assert isinstance(pe, torch.Tensor)
     assert pe.numel() == 1
-    for node, z in hmc._positions.items():
-        assert node in pe_grad
-        assert isinstance(pe_grad[node], torch.Tensor)
-        assert pe_grad[node].shape == z.shape
+    assert isinstance(pe_grad, torch.Tensor)
+    assert pe_grad.shape == hmc._positions.shape
 
 
 def test_kinetic_grads(hmc):
@@ -53,10 +51,8 @@ def test_kinetic_grads(hmc):
     assert isinstance(ke, torch.Tensor)
     assert ke.numel() == 1
     ke_grad = hmc._kinetic_grads(momentums, hmc._mass_inv)
-    for node, z in hmc._positions.items():
-        assert node in ke_grad
-        assert isinstance(ke_grad[node], torch.Tensor)
-        assert len(ke_grad[node]) == z.numel()
+    assert isinstance(ke_grad, torch.Tensor)
+    assert ke_grad.shape == hmc._positions.shape
 
 
 def test_leapfrog_step(hmc):
@@ -65,8 +61,8 @@ def test_leapfrog_step(hmc):
     new_positions, new_momentums, pe, pe_grad = hmc._leapfrog_step(
         hmc._positions, momentums, step_size, hmc._mass_inv
     )
-    assert momentums == new_momentums
-    assert new_positions == hmc._positions
+    assert torch.allclose(momentums, new_momentums)
+    assert torch.allclose(hmc._positions, new_positions)
 
 
 @pytest.mark.parametrize(

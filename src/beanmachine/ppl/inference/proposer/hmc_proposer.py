@@ -5,7 +5,7 @@
 
 import math
 import warnings
-from typing import Callable, cast, Optional, Set, Tuple
+from typing import Callable, Optional, Set, Tuple
 
 import torch
 from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
@@ -16,8 +16,9 @@ from beanmachine.ppl.inference.proposer.hmc_utils import (
     WindowScheme,
 )
 from beanmachine.ppl.inference.proposer.nnc import nnc_jit
+from beanmachine.ppl.inference.proposer.utils import DictToVecConverter
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import RVDict, World
+from beanmachine.ppl.world import World
 
 
 class HMCProposer(BaseProposer):
@@ -64,9 +65,12 @@ class HMCProposer(BaseProposer):
         self.world = initial_world
         self._target_rvs = target_rvs
         self._to_unconstrained = RealSpaceTransform(initial_world, target_rvs)
-        self._positions = self._to_unconstrained(
+        # concatenate and flatten the positions into a single tensor
+        positions_dict = self._to_unconstrained(
             {node: initial_world[node] for node in self._target_rvs}
         )
+        self._dict2vec = DictToVecConverter(positions_dict)
+        self._positions = self._dict2vec.to_vec(positions_dict)
         # cache pe and pe_grad to prevent re-computation
         self._pe, self._pe_grad = self._potential_grads(self._positions)
         # initialize parameters
@@ -75,7 +79,7 @@ class HMCProposer(BaseProposer):
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
         # we need mass matrix adapter to sample momentums
-        self._mass_matrix_adapter = MassMatrixAdapter()
+        self._mass_matrix_adapter = MassMatrixAdapter(len(self._positions))
         if self.adapt_step_size:
             self.step_size = self._find_reasonable_step_size(
                 torch.as_tensor(initial_step_size),
@@ -104,43 +108,44 @@ class HMCProposer(BaseProposer):
         return self._mass_matrix_adapter.initialize_momentums
 
     @property
-    def _mass_inv(self) -> RVDict:
+    def _mass_inv(self) -> torch.Tensor:
         return self._mass_matrix_adapter.mass_inv
 
-    def _kinetic_energy(self, momentums: RVDict, mass_inv: RVDict) -> torch.Tensor:
+    def _kinetic_energy(
+        self, momentums: torch.Tensor, mass_inv: torch.Tensor
+    ) -> torch.Tensor:
         """Returns the kinetic energy KE = 1/2 * p^T @ M^{-1} @ p (equation 2.6 in [1])"""
-        r = torch.cat([momentums[node] for node in mass_inv])
-        r_scale = torch.cat([mass_inv[node] * momentums[node] for node in mass_inv])
-        return torch.dot(r, r_scale) / 2
+        r_scale = mass_inv * momentums
+        return torch.dot(momentums, r_scale) / 2
 
-    def _kinetic_grads(self, momentums: RVDict, mass_inv: RVDict) -> RVDict:
+    def _kinetic_grads(
+        self, momentums: torch.Tensor, mass_inv: torch.Tensor
+    ) -> torch.Tensor:
         """Returns a dictionary of gradients of kinetic energy function with respect to
         the momentum at each site, computed as M^{-1} @ p"""
-        grads = {}
-        for node, r in momentums.items():
-            grads[node] = mass_inv[node] * r
-        return grads
+        return mass_inv * momentums
 
-    def _potential_energy(self, positions: RVDict) -> torch.Tensor:
+    def _potential_energy(self, positions: torch.Tensor) -> torch.Tensor:
         """Returns the potential energy PE = - L(world) (the joint log likelihood of the
         current values)"""
-        constrained_vals = self._to_unconstrained.inv(positions)
+        positions_dict = self._dict2vec.to_dict(positions)
+        constrained_vals = self._to_unconstrained.inv(positions_dict)
         log_joint = self.world.replace(constrained_vals).log_prob()
         log_joint = log_joint - self._to_unconstrained.log_abs_det_jacobian(
-            constrained_vals, positions
+            constrained_vals, positions_dict
         )
         return -log_joint
 
-    def _potential_grads(self, positions: RVDict) -> Tuple[torch.Tensor, RVDict]:
+    def _potential_grads(
+        self, positions: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Returns potential energy as well as a dictionary of its gradient with
         respect to the value at each site."""
-        nodes, values = zip(*positions.items())
-        for value in values:
-            value.requires_grad = True
+        positions.requires_grad = True
 
         try:
             pe = self._potential_energy(positions)
-            grads = torch.autograd.grad(pe, values)
+            grads = torch.autograd.grad(pe, positions)[0]
         # We return NaN on Cholesky factorization errors which can be gracefully
         # handled by NUTS/HMC.
         # TODO: Change to torch.linalg.LinAlgError when in release.
@@ -152,24 +157,21 @@ class HMCProposer(BaseProposer):
                     " If automatic recovery does not happen, plese file an issue"
                     " at https://github.com/facebookresearch/beanmachine/issues/."
                 )
-                grads = [torch.full_like(v, float("nan")) for v in values]
+                grads = torch.full_like(positions, float("nan"))
                 pe = torch.tensor(
                     float("nan"), device=grads[0].device, dtype=grads[0].dtype
                 )
             else:
                 raise e
 
-        grads = dict(zip(nodes, grads))
-
-        for value in values:
-            value.requires_grad = False
+        positions.requires_grad = False
         return pe.detach(), grads
 
     def _hamiltonian(
         self,
-        positions: RVDict,
-        momentums: RVDict,
-        mass_inv: RVDict,
+        positions: torch.Tensor,
+        momentums: torch.Tensor,
+        mass_inv: torch.Tensor,
         pe: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Returns the value of Hamiltonian equation (equatino 2.5 in [1]). This function
@@ -182,12 +184,12 @@ class HMCProposer(BaseProposer):
 
     def _leapfrog_step(
         self,
-        positions: RVDict,
-        momentums: RVDict,
+        positions: torch.Tensor,
+        momentums: torch.Tensor,
         step_size: torch.Tensor,
-        mass_inv: RVDict,
-        pe_grad: Optional[RVDict] = None,
-    ) -> Tuple[RVDict, RVDict, torch.Tensor, RVDict]:
+        mass_inv: torch.Tensor,
+        pe_grad: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Performs a single leapfrog integration (alson known as the velocity Verlet
         method) as described in equation 2.28-2.30 in [1]. If the values of potential
         grads of the current world is provided, then we only needs to compute the
@@ -195,30 +197,25 @@ class HMCProposer(BaseProposer):
         if pe_grad is None:
             _, pe_grad = self._potential_grads(positions)
 
-        new_momentums = {}
-        for node, r in momentums.items():
-            new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
+        new_momentums = momentums - step_size * pe_grad / 2
         ke_grad = self._kinetic_grads(new_momentums, mass_inv)
 
-        new_positions = {}
-        for node, z in positions.items():
-            new_positions[node] = z + step_size * ke_grad[node].reshape(z.shape)
+        new_positions = positions + step_size * ke_grad
 
         pe, pe_grad = self._potential_grads(new_positions)
-        for node, r in new_momentums.items():
-            new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
+        new_momentums = new_momentums - step_size * pe_grad / 2
 
         return new_positions, new_momentums, pe, pe_grad
 
     def _leapfrog_updates(
         self,
-        positions: RVDict,
-        momentums: RVDict,
+        positions: torch.Tensor,
+        momentums: torch.Tensor,
         trajectory_length: float,
         step_size: torch.Tensor,
-        mass_inv: RVDict,
-        pe_grad: Optional[RVDict] = None,
-    ) -> Tuple[RVDict, RVDict, torch.Tensor, RVDict]:
+        mass_inv: torch.Tensor,
+        pe_grad: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Run multiple iterations of leapfrog integration until the length of the
         trajectory is greater than the specified trajectory_length."""
         # we should run at least 1 step
@@ -228,14 +225,14 @@ class HMCProposer(BaseProposer):
                 positions, momentums, step_size, mass_inv, pe_grad
             )
         # pyre-ignore[61]: `pe` may not be initialized here.
-        return positions, momentums, pe, cast(RVDict, pe_grad)
+        return positions, momentums, pe, pe_grad
 
     def _find_reasonable_step_size(
         self,
         initial_step_size: torch.Tensor,
-        positions: RVDict,
+        positions: torch.Tensor,
         pe: torch.Tensor,
-        pe_grad: RVDict,
+        pe_grad: torch.Tensor,
     ) -> torch.Tensor:
         """A heuristic of finding a reasonable initial step size (epsilon) as introduced
         in Algorithm 4 of [2]."""
@@ -284,8 +281,8 @@ class HMCProposer(BaseProposer):
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
-            self._positions = self._to_unconstrained(
-                {node: world[node] for node in self._target_rvs}
+            self._positions = self._dict2vec.to_vec(
+                self._to_unconstrained({node: world[node] for node in self._target_rvs})
             )
             self._pe, self._pe_grad = self._potential_grads(self._positions)
         momentums = self._initialize_momentums(self._positions)
@@ -308,7 +305,8 @@ class HMCProposer(BaseProposer):
         self._alpha = torch.clamp(torch.exp(-delta_energy), max=1.0)
         # accept/reject new world
         if torch.bernoulli(self._alpha):
-            self.world = self.world.replace(self._to_unconstrained.inv(positions))
+            positions_dict = self._dict2vec.to_dict(positions)
+            self.world = self.world.replace(self._to_unconstrained.inv(positions_dict))
             # update cache
             self._positions, self._pe, self._pe_grad = positions, pe, pe_grad
         return self.world, torch.zeros_like(self._alpha)
