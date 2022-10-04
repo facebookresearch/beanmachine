@@ -69,7 +69,7 @@ void include_children(const Node* node, std::list<uint>& queue) {
 }
 
 std::tuple<std::vector<uint>, std::vector<uint>>
-Graph::compute_affected_operator_nodes(
+Graph::compute_det_affected_operator_nodes_and_sto_affected_nodes(
     uint root_id,
     const std::set<uint>& ordered_support_node_ids) {
   return _compute_nodes_until_stochastic(

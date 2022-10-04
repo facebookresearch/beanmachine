@@ -47,8 +47,9 @@ void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
     if (node->is_stochastic() and node_is_not_observed) {
       std::vector<uint> det_nodes;
       std::vector<uint> sto_nodes;
-      std::tie(det_nodes, sto_nodes) = compute_affected_operator_nodes(
-          node_id, ordered_support_operator_node_ids);
+      std::tie(det_nodes, sto_nodes) =
+          compute_det_affected_operator_nodes_and_sto_affected_nodes(
+              node_id, ordered_support_operator_node_ids);
       pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
       cache_logodds[node_id] = NAN; // nan => needs to be re-computed
       for (auto sto : sto_nodes) {

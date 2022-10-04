@@ -492,8 +492,9 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
       compute_ordered_support_operator_node_ids();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = compute_affected_operator_nodes(
-      src_idx, ordered_support_operator_node_ids);
+  std::tie(det_nodes, sto_nodes) =
+      compute_det_affected_operator_nodes_and_sto_affected_nodes(
+          src_idx, ordered_support_operator_node_ids);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     // passing generator for signature,
@@ -530,8 +531,9 @@ double Graph::log_prob(uint src_idx) {
       compute_ordered_support_operator_node_ids();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = compute_affected_operator_nodes(
-      src_idx, ordered_support_operator_node_ids);
+  std::tie(det_nodes, sto_nodes) =
+      compute_det_affected_operator_nodes_and_sto_affected_nodes(
+          src_idx, ordered_support_operator_node_ids);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
@@ -1418,8 +1420,9 @@ void Graph::_collect_affected_operator_nodes() {
     auto det_nodes = util::make_reserved_vector<Node*>(nodes.size());
     auto sto_nodes = util::make_reserved_vector<Node*>(nodes.size());
 
-    std::tie(det_node_ids, sto_node_ids) = compute_affected_operator_nodes(
-        node->index, _ordered_support_operator_node_ids);
+    std::tie(det_node_ids, sto_node_ids) =
+        compute_det_affected_operator_nodes_and_sto_affected_nodes(
+            node->index, _ordered_support_operator_node_ids);
     for (uint id : det_node_ids) {
       det_nodes.push_back(_node_ptrs[id]);
     }

@@ -848,22 +848,24 @@ class Graph {
   included in result if it is in support and is stochastic.
   */
   std::tuple<std::vector<uint>, std::vector<uint>>
-  compute_affected_operator_nodes(
+  compute_det_affected_operator_nodes_and_sto_affected_nodes(
       uint node_id,
       const std::set<uint>& ordered_support_node_ids);
 
   /*
-  This function is almost the same as `compute_affected_operator_nodes` above,
-  with a few key differences:
+  This function is almost the same as
+  `compute_det_affected_operator_nodes_and_sto_affected_nodes` above, with a few
+  key differences:
 
   1. the deterministic nodes among the nodes returned by
-  `compute_affected_operator_nodes` only include operator deterministic nodes,
-  which have values which need to be re-calculated during inference. This
-  function returns *all* the deterministic nodes between the current node and
-  its stochastic children, including distribution nodes, constants, etc
+  `compute_det_affected_operator_nodes_and_sto_affected_nodes` only include
+  operator deterministic nodes, which have values which need to be re-calculated
+  during inference. This function returns *all* the deterministic nodes between
+  the current node and its stochastic children, including distribution nodes,
+  constants, etc
 
-  2. `compute_affected_operator_nodes` includes the current stochastic node,
-  while this function only includes its children
+  2. `compute_det_affected_operator_nodes_and_sto_affected_nodes` includes the
+  current stochastic node, while this function only includes its children
 
   :param node_id: the id (index in topological order) of the node for which we
   are computing the descendants
