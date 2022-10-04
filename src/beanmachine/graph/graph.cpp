@@ -1430,14 +1430,12 @@ void Graph::_compute_affected_nodes() {
   }
 }
 
-const std::vector<Node*>& Graph::get_det_affected_nodes(Node* node) {
-  return det_affected_nodes()
-      [unobserved_sto_support_index_by_node_id[node->index]];
+const std::vector<Node*>& Graph::get_det_affected_nodes(uint node_id) {
+  return det_affected_nodes()[unobserved_sto_support_index_by_node_id[node_id]];
 }
 
-const std::vector<Node*>& Graph::get_sto_affected_nodes(Node* node) {
-  return sto_affected_nodes()
-      [unobserved_sto_support_index_by_node_id[node->index]];
+const std::vector<Node*>& Graph::get_sto_affected_nodes(uint node_id) {
+  return sto_affected_nodes()[unobserved_sto_support_index_by_node_id[node_id]];
 }
 
 void Graph::revertibly_set_and_propagate(Node* node, const NodeValue& value) {

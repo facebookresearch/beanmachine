@@ -175,8 +175,6 @@ std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
     Graph& graph,
     uint node_id) {
   std::set<uint> supp_ids = graph.compute_full_ordered_support_node_ids();
-  std::vector<uint> det_node_ids;
-  std::vector<uint> sto_node_ids;
   return graph.compute_children(node_id, supp_ids);
 }
 

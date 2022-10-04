@@ -1133,10 +1133,11 @@ class Graph {
   CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_sto_supp)
 
   // These vectors are the same size as unobserved_sto_support.
-  // The i-th elements are vectors of nodes which are
-  // respectively the vector of
-  // the immediate stochastic descendants of node with index i in the
-  // support, and the vector of the intervening deterministic nodes
+  // The i-th elements are vectors of nodes which are respectively
+  // the vector of the immediate stochastic descendants of
+  // node with index i in the
+  // support, and
+  // the vector of the intervening deterministic nodes
   // between the i-th node and its immediate stochastic descendants.
   // In other words, these are the cached results of
   // invoking graph::compute_affected_nodes
@@ -1204,9 +1205,16 @@ class Graph {
   void collect_sample(InferConfig infer_config);
 
  public:
-  const std::vector<Node*>& get_det_affected_nodes(Node* node);
+  const std::vector<Node*>& get_det_affected_nodes(uint node_id);
+  const std::vector<Node*>& get_sto_affected_nodes(uint node_id);
 
-  const std::vector<Node*>& get_sto_affected_nodes(Node* node);
+  inline const std::vector<Node*>& get_det_affected_nodes(Node* node) {
+    return get_det_affected_nodes(node->index);
+  }
+
+  inline const std::vector<Node*>& get_sto_affected_nodes(Node* node) {
+    return get_sto_affected_nodes(node->index);
+  }
 
   // Sets a given node to a new value and
   // updates its deterministically affected nodes.
