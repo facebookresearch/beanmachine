@@ -110,4 +110,5 @@ class Sampler(Generator[World, Optional[World], None]):
         tb: Optional[TracebackType] = None,
     ) -> NoReturn:
         """Use the default error handling behavior (thorw Exception as-is)"""
+        # pyre-fixme[7]: Function declared non-returnable, but got `None`.
         super().throw(typ, val, tb)
