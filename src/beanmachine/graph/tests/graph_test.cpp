@@ -1015,6 +1015,6 @@ TEST(testgraph, eval_and_update_backgrad) {
   g.observe(y, 100.0);
   g.query(x_sq);
   g.nodes[x]->value._double = 2.0;
-  g.eval_and_update_backgrad(g.supp());
+  g.eval_and_update_backgrad(g.ordered_support_operator_nodes());
   EXPECT_NEAR(g.nodes[x]->back_grad1, 3.76, 1e-5);
 }

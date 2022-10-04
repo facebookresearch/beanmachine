@@ -1135,7 +1135,7 @@ class Graph {
   // observed, directly or indirectly. We keep both node ids and node pointer
   // forms.
   CACHED_PUBLIC_PROPERTY(std::set<uint>, ordered_support_operator_node_ids)
-  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, supp)
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, ordered_support_operator_nodes)
 
   // Nodes in support that are not directly observed. Note that
   // the order of nodes in this vector matters! We must enumerate

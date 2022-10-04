@@ -549,7 +549,7 @@ double Graph::full_log_prob() {
   _ensure_evaluation_and_inference_readiness();
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
-  for (auto node : supp()) {
+  for (auto node : ordered_support_operator_nodes()) {
     if (node->is_stochastic()) {
       sum_log_prob += node->log_prob();
       if (node->node_type == NodeType::OPERATOR) {
@@ -1363,7 +1363,7 @@ void Graph::_compute_evaluation_and_inference_readiness_data() {
 void Graph::_clear_evaluation_and_inference_readiness_data() {
   _node_ptrs.clear();
   _ordered_support_operator_node_ids.clear();
-  _supp.clear();
+  _ordered_support_operator_nodes.clear();
   _unobserved_supp.clear();
   _unobserved_sto_supp.clear();
   _sto_affected_nodes.clear();
@@ -1379,18 +1379,18 @@ void Graph::_collect_node_ptrs() {
 }
 
 void Graph::_collect_support() {
-  _supp.reserve(nodes.size());
+  _ordered_support_operator_nodes.reserve(nodes.size());
   _ordered_support_operator_node_ids =
       compute_ordered_support_operator_node_ids();
   for (uint node_id : _ordered_support_operator_node_ids) {
-    _supp.push_back(_node_ptrs[node_id]);
+    _ordered_support_operator_nodes.push_back(_node_ptrs[node_id]);
   }
 
   unobserved_support_index_by_node_id = std::vector<size_t>(nodes.size(), 0);
   unobserved_sto_support_index_by_node_id =
       std::vector<size_t>(nodes.size(), 0);
 
-  for (auto node : _supp) {
+  for (auto node : _ordered_support_operator_nodes) {
     uint node_id = node->index;
     bool node_is_not_observed = observed.find(node->index) == observed.end();
     if (node_is_not_observed) {
