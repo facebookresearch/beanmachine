@@ -4,7 +4,8 @@ requires = ["setuptools", "wheel", "pybind11>=2.6.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py"
+addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py --ignore=src/beanmachine/paic2/externals --ignore=externals"
+markers = "paic2: marks tests as dependent on the paic2 platform"
 filterwarnings = [
     # By default, all warnings are treated as errors
     "error",
@@ -32,3 +33,8 @@ filterwarnings = [
 
 [tool.usort]
 first_party_detection=false
+
+[tool.ufmt]
+excludes = [
+    "src/beanmachine/paic2/externals/", "src/beanmachine/paic2/test/world_test.py"
+]
