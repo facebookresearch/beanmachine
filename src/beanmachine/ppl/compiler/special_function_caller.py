@@ -416,7 +416,7 @@ class SpecialFunctionCaller:
             dist.HalfNormal: self._dist_halfnormal,
             # TODO: Independent
             # TODO: Kumaraswamy
-            # TODO: LKJCholesky
+            dist.LKJCholesky: self._dist_lkj_cholesky,
             # TODO: Laplace
             # TODO: LogNormal
             # TODO: LowRankMultivariateNormal
@@ -727,6 +727,8 @@ class SpecialFunctionCaller:
             args = [distribution.scale]
         elif isinstance(distribution, dist.HalfNormal):
             args = [distribution.scale]
+        elif isinstance(distribution, dist.LKJCholesky):
+            args = [distribution.dim, distribution.concentration]
         elif isinstance(distribution, dist.Normal):
             args = [distribution.mean, distribution.stddev]
         elif isinstance(distribution, dist.Poisson):
@@ -840,6 +842,16 @@ class SpecialFunctionCaller:
 
     def _dist_uniform(self, low: BMGNode, high: BMGNode, validate_args=None) -> BMGNode:
         return self._bmg.add_uniform(low, high)
+
+    def _dist_lkj_cholesky(self, dim: BMGNode, eta: BMGNode) -> BMGNode:
+        if (
+            isinstance(dim, bn.ConstantNode)
+            and isinstance(dim.value, int)
+            and dim.value >= 2
+        ):
+            return self._bmg.add_lkj_cholesky(dim, eta)
+        else:
+            raise ValueError("LKJ Cholesky distribution must have dimension >= 2")
 
     #
     # Methods on distributions

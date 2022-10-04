@@ -180,6 +180,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             # let's not duplicate the code.
             bn.FillMatrixNode: self._type_broadcast,
             bn.IfThenElseNode: self._type_if,
+            bn.LKJCholeskyNode: self._type_lkj_cholesky,
             bn.LogNode: self._type_log,
             bn.MatrixAddNode: self._type_binary_elementwise_op,
             bn.MatrixMultiplicationNode: self._type_matrix_multiplication,
@@ -585,6 +586,13 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         assert isinstance(t, bt.BMGMatrixType)
         assert self.is_matrix(op)
         return bt.RealMatrix(t.columns, t.rows)
+
+    def _type_lkj_cholesky(self, node: bn.LKJCholeskyNode) -> bt.BMGLatticeType:
+        dim = node.dim
+        assert isinstance(dim, bn.ConstantNode)
+        dim_value = dim.value
+        assert isinstance(dim_value, int)
+        return bt.RealMatrix(dim_value, dim_value)
 
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> bt.BMGLatticeType:
         # If there is any input node whose type cannot be determined, then *none*

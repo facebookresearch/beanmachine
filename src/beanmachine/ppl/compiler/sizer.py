@@ -242,6 +242,7 @@ class Sizer(TyperBase[Size]):
             bn.LogSumExpNode: self._size_log_sum_exp_node,
             bn.LogSumExpVectorNode: self._size_log_sum_exp_vector_node,
             bn.LogSumExpTorchNode: self._size_log_sum_exp_torch_node,
+            bn.LKJCholeskyNode: self._size_lkj_cholesky,
         }
         # TODO:
         # ColumnIndexNode
@@ -396,6 +397,13 @@ class Sizer(TyperBase[Size]):
         else:
             # TODO: we can't compute the size at compile time but we don't have a way to represent dynamic sizes in Size right now
             return Unsized
+
+    def _size_lkj_cholesky(self, node: bn.LKJCholeskyNode) -> Size:
+        dim = node.dim
+        assert isinstance(dim, bn.ConstantNode)
+        dim_value = dim.value
+        assert isinstance(dim_value, int) and dim_value >= 2
+        return Size([dim_value, dim_value])
 
     # This implements the abstract base type method.
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> Size:

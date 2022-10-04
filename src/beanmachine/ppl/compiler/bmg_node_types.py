@@ -19,7 +19,7 @@ from beanmachine.graph import (
     ValueType,
     VariableType,
 )
-from beanmachine.ppl.compiler.bmg_types import SimplexMatrix
+from beanmachine.ppl.compiler.bmg_types import RealMatrix, SimplexMatrix
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
@@ -46,6 +46,7 @@ _dist_types = {
     bn.HalfNormalNode: (dt.HALF_NORMAL, AtomicType.POS_REAL),
     bn.StudentTNode: (dt.STUDENT_T, AtomicType.REAL),
     bn.PoissonNode: (dt.POISSON, AtomicType.NATURAL),
+    bn.LKJCholeskyNode: (dt.LKJ_CHOLESKY, None),
 }
 
 
@@ -61,6 +62,16 @@ def dist_type(node: bn.DistributionNode) -> Tuple[dt, Any]:
             simplex.columns,
         )
         return dt.DIRICHLET, element_type
+    elif t is bn.LKJCholeskyNode:
+        matrix = LatticeTyper()[node]
+        assert isinstance(matrix, RealMatrix)
+        element_type = ValueType(
+            VariableType.BROADCAST_MATRIX,
+            AtomicType.REAL,
+            matrix.rows,
+            matrix.columns,
+        )
+        return dt.LKJ_CHOLESKY, element_type
     return _dist_types[t]
 
 

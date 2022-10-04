@@ -82,7 +82,12 @@ class GeneratedGraphCPP:
         self._code.append(f"uint q{query_id} = g.query(n{graph_id});")
 
     def _inputs(self, node: bn.BMGNode) -> str:
-        inputs = ", ".join("n" + str(self.node_to_graph_id[x]) for x in node.inputs)
+        if isinstance(node, bn.LKJCholeskyNode):
+            # The LKJ dimension parameter has already been folded into the sample type
+            input_seq = [self.node_to_graph_id[node.inputs[1]]]
+        else:
+            input_seq = (self.node_to_graph_id[x] for x in node.inputs)
+        inputs = ", ".join("n" + str(x) for x in input_seq)
         return "std::vector<uint>({" + inputs + "})"
 
     def _add_factor(self, node: bn.FactorNode) -> None:
