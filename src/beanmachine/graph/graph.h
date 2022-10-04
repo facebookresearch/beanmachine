@@ -879,7 +879,8 @@ class Graph {
   descendants). The current node is included in result if it is in support and
   is stochastic.
   */
-  std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
+  std::tuple<std::vector<uint>, std::vector<uint>>
+  compute_det_affected_nodes_and_sto_affected_nodes_except_self(
       uint node_id,
       const std::set<uint>& ordered_support_node_ids);
 

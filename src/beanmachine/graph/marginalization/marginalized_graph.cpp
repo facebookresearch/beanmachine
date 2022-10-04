@@ -16,7 +16,8 @@
 namespace beanmachine {
 namespace graph {
 
-std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
+std::tuple<std::vector<uint>, std::vector<uint>>
+compute_det_affected_nodes_and_sto_affected_nodes_except_self(
     Graph& graph,
     uint node_id);
 
@@ -104,7 +105,8 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
   std::vector<uint> det_node_ids;
   std::vector<uint> sto_node_ids;
   std::tie(det_node_ids, sto_node_ids) =
-      compute_children(graph, discrete_sample->index);
+      compute_det_affected_nodes_and_sto_affected_nodes_except_self(
+          graph, discrete_sample->index);
 
   // create MarginalDistribution
   std::unique_ptr<distribution::DummyMarginal> marginal_distribution_ptr =
@@ -169,12 +171,14 @@ returns <deterministic_node_ids, stochastic_node_ids>
 1. deterministic_node_ids are all of the deterministic nodes up until the
 2. stochastic_node_ids children are reached
 */
-std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
+std::tuple<std::vector<uint>, std::vector<uint>>
+compute_det_affected_nodes_and_sto_affected_nodes_except_self(
     Graph& graph,
     uint node_id) {
   std::set<uint> ordered_support_operator_node_ids =
       graph.compute_ordered_support_node_ids();
-  return graph.compute_children(node_id, ordered_support_operator_node_ids);
+  return graph.compute_det_affected_nodes_and_sto_affected_nodes_except_self(
+      node_id, ordered_support_operator_node_ids);
 }
 
 /*

@@ -76,7 +76,8 @@ Graph::compute_det_affected_operator_nodes_and_sto_affected_nodes(
       root_id, ordered_support_node_ids, true, true);
 }
 
-std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_children(
+std::tuple<std::vector<uint>, std::vector<uint>>
+Graph::compute_det_affected_nodes_and_sto_affected_nodes_except_self(
     uint root_id,
     const std::set<uint>& ordered_support_node_ids) {
   return _compute_nodes_until_stochastic(

@@ -196,7 +196,9 @@ TEST(testgraph, full_support) {
   // deterministic nodes consist of all nodes
   // (constants, distributions, operators, etc)
   // stochastic node only includes children
-  std::tie(det_nodes, sto_nodes) = g.compute_children(coin, full_support);
+  std::tie(det_nodes, sto_nodes) =
+      g.compute_det_affected_nodes_and_sto_affected_nodes_except_self(
+          coin, full_support);
   expected_det_nodes = {coin_real, coin_plus_five, normal2};
   expected_sto_nodes = {n2};
   EXPECT_EQ(det_nodes, expected_det_nodes);
