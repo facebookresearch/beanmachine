@@ -777,19 +777,26 @@ class Graph {
   std::vector<double>& get_elbo() {
     return elbo_vals;
   }
+
   /*
-  The support of a graph is the set of operator and factor nodes that
-  are needed to determine the value of query and observed variables. In other
-  words, it is the set of queried and observed variables themselves plus their
-  ancestors that are operator and factor nodes.
-  */
-  std::set<uint> compute_ordered_support_node_ids();
-  /*
-  The full support of a graph includes *all* nodes, including
+  The support of a graph includes *all* nodes, including
   distribution nodes and constant nodes, that are needed to determine the value
   of query and observed variables
   */
-  std::set<uint> compute_full_ordered_support_node_ids();
+  std::set<uint> compute_ordered_support_node_ids();
+
+  /*
+  The support of a graph includes *all* nodes, including
+  distribution nodes and constant nodes, that are needed to determine the value
+  of query and observed variables.
+  Here we obtain the node ids of support nodes that are operator nodes
+  (these are the ones with values associated with them that need to
+  be re-evaluated with ancestor values change).
+  // TODO: previously this was described as containing factors
+  // but they should probably not be part of this since they
+  // are similar to distributions and don't have associated values.
+  */
+  std::set<uint> compute_ordered_support_operator_node_ids();
 
   std::set<uint> compute_ordered_support_node_ids_with_operators_only_choice(
       bool operator_factor_only);
@@ -840,24 +847,30 @@ class Graph {
   we don't return descendants of stochastic descendants). The current node is
   included in result if it is in support and is stochastic.
   */
-  std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
+  std::tuple<std::vector<uint>, std::vector<uint>>
+  compute_affected_operator_nodes(
       uint node_id,
       const std::set<uint>& ordered_support_node_ids);
 
   /*
-  This function is almost the same as `compute_affected_nodes` above, with
-  a few key differences:
+  This function is almost the same as `compute_affected_operator_nodes` above,
+  with a few key differences:
+
   1. the deterministic nodes among the nodes returned by
-`compute_affected_nodes` only include operator deterministic nodes, which have
-  values which need to be re-calculated during inference. This function returns
-  *all* the deterministic nodes between the current node and its stochastic
-  children, including distribution nodes, constants, etc
-  2. `compute_affected_nodes` includes the current stochastic node, while this
-  function only includes its children
+  `compute_affected_operator_nodes` only include operator deterministic nodes,
+  which have values which need to be re-calculated during inference. This
+  function returns *all* the deterministic nodes between the current node and
+  its stochastic children, including distribution nodes, constants, etc
+
+  2. `compute_affected_operator_nodes` includes the current stochastic node,
+  while this function only includes its children
+
   :param node_id: the id (index in topological order) of the node for which we
   are computing the descendants
-  :param ordered_support_node_ids: the set of indices of the distribution
-  support.
+
+  :param ordered_support_operator_node_ids: the set of indices of the
+  distribution support.
+
   :returns: vector of all intermediate deterministic nodes and vector of
   stochastic nodes and immediate stochastic descendants of the current node and
   in the support (that is to say, we don't return descendants of stochastic
@@ -1043,7 +1056,7 @@ class Graph {
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
   void _test_backgrad(
-      std::set<uint>& ordered_support_node_ids,
+      std::set<uint>& ordered_support_operator_node_ids,
       std::vector<DoubleMatrix*>& grad1);
 
   ProfilerData profiler_data;
@@ -1121,7 +1134,7 @@ class Graph {
   // The support is the set of all nodes in the graph that are queried or
   // observed, directly or indirectly. We keep both node ids and node pointer
   // forms.
-  CACHED_PUBLIC_PROPERTY(std::set<uint>, supp_ids)
+  CACHED_PUBLIC_PROPERTY(std::set<uint>, ordered_support_operator_node_ids)
   CACHED_PUBLIC_PROPERTY(std::vector<Node*>, supp)
 
   // Nodes in support that are not directly observed. Note that
@@ -1192,9 +1205,9 @@ class Graph {
 
   void _collect_node_ptrs();
 
-  void _compute_support();
+  void _collect_support();
 
-  void _compute_affected_nodes();
+  void _collect_affected_operator_nodes();
 
  public:
   void generate_sample();

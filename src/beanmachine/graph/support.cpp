@@ -16,19 +16,13 @@ namespace graph {
 
 using namespace std;
 
-// the support of a graph is the set of operator and factor nodes that are
-// needed to determine the value of query and observed variables.
-// In other words, it is the set of queried and observed variables themselves
-// plus their ancestors that are operator and factor nodes.
-// TODO: not sure about factors since they are akin to distributions; check
-// this.
+// set of queried and observed variables and *all* ancestors
 std::set<uint> Graph::compute_ordered_support_node_ids() {
-  return compute_ordered_support_node_ids_with_operators_only_choice(true);
+  return compute_ordered_support_node_ids_with_operators_only_choice(false);
 }
 
-// set of queried and observed variables and *all* ancestors
-std::set<uint> Graph::compute_full_ordered_support_node_ids() {
-  return compute_ordered_support_node_ids_with_operators_only_choice(false);
+std::set<uint> Graph::compute_ordered_support_operator_node_ids() {
+  return compute_ordered_support_node_ids_with_operators_only_choice(true);
 }
 
 std::set<uint>
@@ -55,7 +49,7 @@ Graph::compute_ordered_support_node_ids_with_operators_only_choice(
       continue;
     }
     visited.insert(node_id);
-    const Node* node = nodes[node_id].get();
+    auto& node = nodes[node_id];
     if (!operator_factor_only or
         (node->node_type == NodeType::OPERATOR or
          node->node_type == NodeType::FACTOR)) {
@@ -74,7 +68,8 @@ void include_children(const Node* node, std::list<uint>& queue) {
   }
 }
 
-std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_nodes(
+std::tuple<std::vector<uint>, std::vector<uint>>
+Graph::compute_affected_operator_nodes(
     uint root_id,
     const std::set<uint>& ordered_support_node_ids) {
   return _compute_nodes_until_stochastic(

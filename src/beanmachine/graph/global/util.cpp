@@ -17,7 +17,7 @@ void set_default_transforms(Graph& g) {
   // to transform all variables to the unconstrained space
   // POS_REAL variables -> LOG transform
   // PROBABILITY variables -> SIGMOID transform
-  for (uint node_id : g.compute_ordered_support_node_ids()) {
+  for (uint node_id : g.compute_ordered_support_operator_node_ids()) {
     // @lint-ignore CLANGTIDY
     auto node = g.nodes[node_id].get();
     if (node->is_stochastic() and !node->is_observed) {

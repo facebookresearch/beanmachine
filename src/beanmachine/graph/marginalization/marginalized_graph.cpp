@@ -105,8 +105,6 @@ void marginalize_graph(Graph& graph, uint discrete_sample_node_id) {
   std::vector<uint> sto_node_ids;
   std::tie(det_node_ids, sto_node_ids) =
       compute_children(graph, discrete_sample->index);
-  // TODO: do we need to rename the above compute_affected_nodes,
-  // or even use Graph's methods for that instead of computing it ourselves?
 
   // create MarginalDistribution
   std::unique_ptr<distribution::DummyMarginal> marginal_distribution_ptr =
@@ -174,8 +172,9 @@ returns <deterministic_node_ids, stochastic_node_ids>
 std::tuple<std::vector<uint>, std::vector<uint>> compute_children(
     Graph& graph,
     uint node_id) {
-  std::set<uint> supp_ids = graph.compute_full_ordered_support_node_ids();
-  return graph.compute_children(node_id, supp_ids);
+  std::set<uint> ordered_support_operator_node_ids =
+      graph.compute_ordered_support_node_ids();
+  return graph.compute_children(node_id, ordered_support_operator_node_ids);
 }
 
 /*
