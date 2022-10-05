@@ -148,7 +148,7 @@ class HMCProposer(BaseProposer):
             grads = torch.autograd.grad(pe, positions)[0]
         # We return NaN on Cholesky factorization errors which can be gracefully
         # handled by NUTS/HMC.
-        except torch.linalg.LinAlgError as e:
+        except RuntimeError as e:
             err_msg = str(e)
             if "singular U" in err_msg or "input is not positive-definite" in err_msg:
                 warnings.warn(
