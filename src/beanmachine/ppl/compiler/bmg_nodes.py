@@ -1515,6 +1515,14 @@ class ToNegativeRealNode(UnaryOperatorNode):
         return "ToNegReal(" + str(self.operand) + ")"
 
 
+class ToNegativeRealMatrixNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "ToNegRealMatrix(" + str(self.operand) + ")"
+
+
 class LogSumExpVectorNode(UnaryOperatorNode):
     # BMG supports a log-sum-exp operator that takes a one-column tensor.
     def __init__(self, operand: BMGNode):

@@ -209,6 +209,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
             bn.ToMatrixNode: self._type_to_matrix,
+            bn.ToNegativeRealMatrixNode: self._type_to_neg_real_matrix,
             bn.ToPositiveRealMatrixNode: self._type_to_pos_real_matrix,
             bn.ToRealMatrixNode: self._type_to_real_matrix,
             bn.VectorIndexNode: self._type_index,
@@ -577,6 +578,15 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         assert isinstance(t, bt.BMGMatrixType)
         assert self.is_matrix(op)
         return bt.PositiveRealMatrix(t.rows, t.columns)
+
+    def _type_to_neg_real_matrix(
+        self, node: bn.ToNegativeRealMatrixNode
+    ) -> bt.BMGLatticeType:
+        op = node.operand
+        t = self[op]
+        assert isinstance(t, bt.BMGMatrixType)
+        assert self.is_matrix(op)
+        return bt.NegativeRealMatrix(t.rows, t.columns)
 
     def _type_transpose(self, node: bn.TransposeNode) -> bt.BMGLatticeType:
         op = node.operand

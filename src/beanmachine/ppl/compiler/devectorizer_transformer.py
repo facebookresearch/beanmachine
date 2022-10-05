@@ -35,6 +35,7 @@ _unary_tensor_ops = [
     bn.MatrixNegateNode,
     bn.MatrixSumNode,
     bn.TransposeNode,
+    bn.ToNegativeRealMatrixNode,
     bn.ToPositiveRealMatrixNode,
     bn.ToRealMatrixNode,
     bn.CholeskyNode,

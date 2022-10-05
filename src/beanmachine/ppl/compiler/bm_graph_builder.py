@@ -838,6 +838,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_to_negative_real_matrix(self, operand: BMGNode) -> BMGNode:
+        node = bn.ToNegativeRealMatrixNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_cholesky(self, operand: BMGNode) -> BMGNode:
         node = bn.CholeskyNode(operand)
         self.add_node(node)
