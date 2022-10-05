@@ -5,16 +5,19 @@
 
 import math
 import unittest
-from functools import partial
 
 import beanmachine.ppl as bm
 import gpytorch
 import torch
-import torch.distributions as dist
-from beanmachine.ppl.experimental.gp import likelihoods
-from beanmachine.ppl.experimental.gp.kernels import PeriodicKernel, ScaleKernel
+from beanmachine.ppl.experimental.gp import (
+    bm_sample_from_prior,
+    make_prior_random_variables,
+)
 from beanmachine.ppl.experimental.gp.models import SimpleGP
+from gpytorch import likelihoods
 from gpytorch.distributions import MultivariateNormal
+from gpytorch.kernels import PeriodicKernel, ScaleKernel
+from gpytorch.priors import UniformPrior
 
 
 class Regression(SimpleGP):
@@ -36,48 +39,33 @@ class Regression(SimpleGP):
 
 
 class InferenceTests(unittest.TestCase):
-    def setUp(self):
-        @bm.random_variable
-        def outputscale_prior():
-            return dist.Uniform(torch.tensor(1.0), torch.tensor(2.0))
-
-        @bm.random_variable
-        def lengthscale_prior():
-            return dist.Uniform(torch.tensor([0.01]), torch.tensor([0.5]))
-
-        @bm.random_variable
-        def period_length_prior():
-            return dist.Uniform(torch.tensor([0.05]), torch.tensor([2.5]))
-
-        self.outputscale_prior = outputscale_prior
-        self.lengthscale_prior = lengthscale_prior
-        self.period_length_prior = period_length_prior
-
-    @unittest.skip("Flaky timeout.")
     def test_simple_regression(self):
         torch.manual_seed(1)
         n_samples = 100
-        x = torch.linspace(0, 1, 10)
-        y = torch.sin(x * (2 * math.pi))
+        x_train = torch.linspace(0, 1, 10)
+        y_train = torch.sin(x_train * (2 * math.pi))
 
         kernel = ScaleKernel(
             base_kernel=PeriodicKernel(
-                period_length_prior=self.period_length_prior,
-                lengthscale_prior=self.lengthscale_prior,
+                period_length_prior=UniformPrior(0.5, 1.5),
+                lengthscale_prior=UniformPrior(0.01, 1.5),
             ),
-            outputscale_prior=self.outputscale_prior,
+            outputscale_prior=UniformPrior(0.01, 2.0),
         )
         likelihood = likelihoods.GaussianLikelihood()
+        likelihood.noise = 1e-4
 
-        gp = Regression(x, y, kernel, likelihood)
-        gp_prior = partial(gp, x)
-        obs = {gp.likelihood(gp_prior): y}
-        queries = [
-            self.outputscale_prior(),
-            self.lengthscale_prior(),
-            self.period_length_prior(),
-        ]
-        samples = bm.SingleSiteNoUTurnSampler().infer(
+        gp = Regression(x_train, y_train, kernel, likelihood)
+        name_to_rv = make_prior_random_variables(gp)
+
+        @bm.random_variable
+        def y():
+            sampled_model = bm_sample_from_prior(gp.to_pyro_random_module(), name_to_rv)
+            return sampled_model.likelihood(sampled_model(x_train))
+
+        queries = list(name_to_rv.values())
+        obs = {y(): y_train}
+        samples = bm.GlobalNoUTurnSampler(nnc_compile=False).infer(
             queries, obs, n_samples, num_chains=1
         )
 
@@ -85,17 +73,19 @@ class InferenceTests(unittest.TestCase):
         x_test = torch.linspace(0, 1, 21).unsqueeze(-1)
         y_test = torch.sin(x_test * (2 * math.pi)).squeeze(0)
         gp.eval()
-        s = samples.get_chain(0)  # noqa: E741
-        lengthscale_samples = s[self.lengthscale_prior()]
-        outputscale_samples = s[self.outputscale_prior()]
-        period_length_samples = s[self.period_length_prior()]
-        gp.bm_load_samples(
+        s = samples.get_chain(0)
+        lengthscale_samples = s[name_to_rv["kernel.base_kernel.lengthscale_prior"]]
+        outputscale_samples = s[name_to_rv["kernel.outputscale_prior"]]
+        period_length_samples = s[name_to_rv["kernel.base_kernel.period_length_prior"]]
+        gp.pyro_load_from_samples(
             {
-                "kernel.outputscale": outputscale_samples,
-                "kernel.base_kernel.lengthscale": lengthscale_samples.unsqueeze(-1),
-                "kernel.base_kernel.period_length": period_length_samples.unsqueeze(-1),
+                "kernel.outputscale_prior": outputscale_samples,
+                "kernel.base_kernel.lengthscale_prior": lengthscale_samples,
+                "kernel.base_kernel.period_length_prior": period_length_samples,
             }
         )
         expanded_x_test = x_test.unsqueeze(0).repeat(n_samples, 1, 1)
-        output = gp(expanded_x_test.detach())
-        assert (y_test - output.mean.squeeze(0).mean(0)).abs().mean().item() < 1.0
+        output = gp.likelihood(gp(expanded_x_test.detach()))
+        assert (
+            (y_test.squeeze() - output.mean.squeeze().mean(0)).abs().mean() < 1.0
+        ).item()

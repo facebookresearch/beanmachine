@@ -28,6 +28,8 @@ filterwarnings = [
     "default:PyTorch tensors are hashed by memory address instead of value.*:UserWarning",
     # Arviz warns against the use of deprecated methods, due to the recent release of matplotlib v3.6.0
     "default:The register_cmap function will be deprecated in a future version.*:PendingDeprecationWarning",
+    # gpytorch < 1.9.0 uses torch.triangular_solve
+    "default:torch.triangular_solve is deprecated*:UserWarning",
 ]
 
 [tool.usort]
