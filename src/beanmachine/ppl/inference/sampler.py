@@ -77,13 +77,14 @@ class Sampler(Generator[World, Optional[World], None]):
                 accepted = torch.rand_like(accept_log_prob).log() < accept_log_prob
                 if accepted:
                     world = new_world
-            except RuntimeError as e:
+            except torch.linalg.LinAlgError as e:
                 if "singular U" in str(e) or "input is not positive-definite" in str(e):
                     # since it's normal to run into cholesky error during GP, instead of
                     # throwing an error, we simply skip current proposer (which is
                     # equivalent to a rejection) and will retry in the next iteration
                     warnings.warn(f"Proposal rejected: {e}", RuntimeWarning)
-                    continue
+                    accepted = False
+                    accept_log_prob = -torch.inf
                 else:
                     raise e
 
