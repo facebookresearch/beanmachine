@@ -168,6 +168,7 @@ _broadcast_the_inputs: Set[type] = {
     bn.SampleNode,
     bn.SquareRootNode,
     bn.StudentTNode,
+    bn.ToNegativeRealMatrixNode,
     bn.ToPositiveRealMatrixNode,
     bn.ToRealMatrixNode,
     bn.UniformNode,

@@ -240,7 +240,7 @@ class RequirementsFixer:
         assert node_type != requirement
         assert bt.is_convertible_to(node_type, requirement)
 
-        # Converting anything to real matrix or positive real matrix is easy;
+        # Converting anything to real matrix or positive/negative real matrix is easy;
         # there's already a node for that so just insert it on the edge
         # whose requirement is not met, and the requirement will be met.
 
@@ -253,6 +253,9 @@ class RequirementsFixer:
 
         if isinstance(requirement, bt.RealMatrix):
             return self.bmg.add_to_real_matrix(node)
+
+        if isinstance(requirement, bt.NegativeRealMatrix):
+            return self.bmg.add_to_negative_real_matrix(node)
 
         # TODO: We do not yet handle the case where we are converting from
         # a matrix of bools to a matrix of naturals or probabilities because

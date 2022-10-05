@@ -110,6 +110,7 @@ _operator_types = {
     bn.ToIntNode: OperatorType.TO_INT,
     bn.ToMatrixNode: OperatorType.TO_MATRIX,
     bn.ToNegativeRealNode: OperatorType.TO_NEG_REAL,
+    bn.ToNegativeRealMatrixNode: OperatorType.TO_NEG_REAL_MATRIX,
     bn.ToRealMatrixNode: OperatorType.TO_REAL_MATRIX,
     bn.ToRealNode: OperatorType.TO_REAL,
     bn.ToPositiveRealMatrixNode: OperatorType.TO_POS_REAL_MATRIX,

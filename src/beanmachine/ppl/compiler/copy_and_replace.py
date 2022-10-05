@@ -162,6 +162,7 @@ def _node_factories(bmg: BMGraphBuilder) -> Dict[Type, Callable]:
         bn.SwitchNode: bmg.add_switch,
         bn.SumNode: bmg.add_sum,
         bn.ToMatrixNode: bmg.add_to_matrix,
+        bn.ToNegativeRealMatrixNode: bmg.add_to_negative_real_matrix,
         bn.ToPositiveRealMatrixNode: bmg.add_to_positive_real_matrix,
         bn.ToRealMatrixNode: bmg.add_to_real_matrix,
         bn.TransposeNode: bmg.add_transpose,
