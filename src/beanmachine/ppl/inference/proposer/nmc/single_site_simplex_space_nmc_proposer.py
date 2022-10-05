@@ -8,12 +8,12 @@ from typing import Tuple
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
-    SingleSiteAncestralProposer,
-)
-from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
+from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     hessian_of_log_prob,
     is_valid,
+)
+from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
+    SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
@@ -65,7 +65,7 @@ class SingleSiteSimplexSpaceNMCProposer(SingleSiteAncestralProposer):
             1 - ((node_val_reshaped * node_val_reshaped) * (hessian_diag_minus_max))
         ).reshape(node_val.shape)
 
-        mean = world.get_variable(self.node).distribution.mean
+        mean = self._transform(world.get_variable(self.node).distribution.mean)
 
         predicted_alpha = torch.where(
             predicted_alpha < -1 * min_alpha_value, mean, predicted_alpha

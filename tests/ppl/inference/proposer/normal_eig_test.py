@@ -7,7 +7,7 @@
 import unittest
 
 import torch
-from beanmachine.ppl.legacy.inference.proposer.normal_eig import NormalEig
+from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
 from torch.distributions.multivariate_normal import MultivariateNormal
 
 

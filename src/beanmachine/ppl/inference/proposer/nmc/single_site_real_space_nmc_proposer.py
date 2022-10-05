@@ -8,16 +8,16 @@ from typing import NamedTuple, Optional, Tuple, Union
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
-    SingleSiteAncestralProposer,
-)
-from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
+from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     hessian_of_log_prob,
     is_scalar,
     is_valid,
     soft_abs_inverse,
 )
-from beanmachine.ppl.legacy.inference.proposer.normal_eig import NormalEig
+from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
+from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
+    SingleSiteAncestralProposer,
+)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import World
@@ -46,7 +46,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         super().__init__(node)
         self.alpha_: Union[float, torch.Tensor] = alpha
         self.beta_: Union[float, torch.Tensor] = beta
-        self.learning_rate_ = torch.tensor(0.0)
+        self.learning_rate_ = None
         self.running_mean_, self.running_var_ = torch.tensor(0.0), torch.tensor(0.0)
         self.accepted_samples_ = 0
         # cached proposal args
@@ -92,8 +92,9 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         Returns:
             The proposal distribution.
         """
-        frac_dist = self._sample_frac_dist(world)
-        self.learning_rate_ = frac_dist
+        if self.learning_rate_ is None:
+            self.learning_rate_ = self._sample_frac_dist(world)
+        frac_dist = self.learning_rate_
 
         if self._proposal_args is not None and len(world.latent_nodes) == 1:
             return self._get_proposal_distribution_from_args(

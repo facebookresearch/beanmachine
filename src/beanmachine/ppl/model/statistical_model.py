@@ -9,7 +9,6 @@ from typing import Callable, Union
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.vi.variational_world import VariationalWorld
-from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import get_world_context
 from typing_extensions import ParamSpec
@@ -103,8 +102,6 @@ class StatisticalModel:
             world = get_world_context()
             if world is None:
                 return StatisticalModel.get_func_key(wrapper, args, **kwargs)
-            elif isinstance(world, World) and world.get_cache_functionals():
-                return world.update_cached_functionals(f, *args, **kwargs)
             else:
                 return f(*args, **kwargs)
 

@@ -141,7 +141,7 @@ def hessian_of_log_prob(
     hessian_fn: Callable,
     transform: dist.Transform = dist.identity_transform,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    y = transformed_node_val.clone()
+    y = transformed_node_val.detach().clone()
     y.requires_grad = True
     x = transform.inv(y)
     world_with_grad = world.replace({node: x})

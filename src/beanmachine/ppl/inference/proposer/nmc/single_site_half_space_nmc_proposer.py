@@ -8,12 +8,12 @@ from typing import Tuple
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
-    SingleSiteAncestralProposer,
-)
-from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
+from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     hessian_of_log_prob,
     is_valid,
+)
+from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
+    SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
@@ -63,11 +63,15 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
             condition, predicted_alpha, torch.tensor(1.0).to(dtype=predicted_beta.dtype)
         )
         node_var = world.get_variable(self.node)
-        mean = (
-            node_var.distribution.mean.reshape(-1)
-            if is_valid(node_var.distribution.mean)
-            else torch.ones_like(predicted_beta)
-        )
+        try:
+            mean = (
+                node_var.distribution.mean.reshape(-1)
+                if is_valid(node_var.distribution.mean)
+                else torch.ones_like(predicted_beta)
+            )
+        except NotImplementedError:
+            # sometimes distribution.mean throws NotImplementedError
+            mean = torch.ones_like(predicted_beta)
         predicted_beta = torch.where(condition, predicted_beta, mean)
         predicted_alpha = predicted_alpha.reshape(node_val.shape)
         predicted_beta = predicted_beta.reshape(node_val.shape)

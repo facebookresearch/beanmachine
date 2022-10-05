@@ -23,7 +23,6 @@ from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,
 )
 from beanmachine.ppl.inference.utils import seed, VerboseLevel
-from beanmachine.ppl.legacy.inference import RejectionSampling
 
 
 __all__ = [
@@ -31,7 +30,6 @@ __all__ = [
     "CompositionalInference",
     "GlobalHamiltonianMonteCarlo",
     "GlobalNoUTurnSampler",
-    "RejectionSampling",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
     "SingleSiteNewtonianMonteCarlo",
