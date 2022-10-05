@@ -121,6 +121,8 @@
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.base_single_site_mh_proposer.html">beanmachine.ppl.inference.proposer.base_single_site_mh_proposer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.hmc_proposer.html">beanmachine.ppl.inference.proposer.hmc_proposer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.hmc_utils.html">beanmachine.ppl.inference.proposer.hmc_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils.html">beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.normal_eig.html">beanmachine.ppl.inference.proposer.normal_eig module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.nuts_proposer.html">beanmachine.ppl.inference.proposer.nuts_proposer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.sequential_proposer.html">beanmachine.ppl.inference.proposer.sequential_proposer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.html">beanmachine.ppl.inference.proposer.single_site_ancestral_proposer module</a></li>
@@ -361,14 +363,6 @@ inference.</p></li>
 in target_rvs.  Should be implemented by the specific inference algorithm.</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.inference.RejectionSampling">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">RejectionSampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_attempts_per_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.RejectionSampling" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.abstract_infer.AbstractMCInference</span></code></p>
-<p>Inference object for rejection sampling inference. ABC inference
-algorithms will inherit from this class, and override the single_inference_step method</p>
 </dd></dl>
 
 <dl class="py class">

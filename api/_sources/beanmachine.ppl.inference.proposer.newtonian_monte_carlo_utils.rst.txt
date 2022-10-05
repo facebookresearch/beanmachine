@@ -1,0 +1,7 @@
+beanmachine.ppl.inference.proposer.newtonian\_monte\_carlo\_utils module
+========================================================================
+
+.. automodule:: beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
