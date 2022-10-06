@@ -8,9 +8,10 @@
 
 import unittest
 
-from beanmachine.ppl.compiler.testlib.conjugate_models import BetaBernoulliOpsModel
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
+
+from .testlib.conjugate_models import BetaBernoulliOpsModel
 
 
 class BetaBernoulliWithOpsConjugateTest(unittest.TestCase):

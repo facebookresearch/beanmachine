@@ -4,7 +4,9 @@ requires = ["setuptools", "wheel", "pybind11>=2.6.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py"
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
 filterwarnings = [
     # By default, all warnings are treated as errors
     "error",
