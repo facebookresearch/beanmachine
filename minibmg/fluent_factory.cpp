@@ -14,7 +14,7 @@ void Graph::FluentFactory::observe(const Traced& sample, double value) {
   if (sample.op() != Operator::SAMPLE) {
     throw std::invalid_argument("can only observe a sample");
   }
-  for (auto n : observations) {
+  for (const auto& n : observations) {
     if (n.first == sample.node) {
       throw std::invalid_argument("sample already observed");
     }
@@ -33,35 +33,35 @@ Graph Graph::FluentFactory::build() {
   return Graph::create(queries, observations);
 }
 
-Distribution half_normal(Value stddev) {
-  return Distribution{std::make_shared<const OperatorNode>(
+FluentDistribution half_normal(Value stddev) {
+  return FluentDistribution{std::make_shared<const OperatorNode>(
       std::vector<Nodep>{stddev.node},
       Operator::DISTRIBUTION_HALF_NORMAL,
       Type::DISTRIBUTION)};
 }
 
-Distribution normal(Value mean, Value stddev) {
-  return Distribution{std::make_shared<const OperatorNode>(
+FluentDistribution normal(Value mean, Value stddev) {
+  return FluentDistribution{std::make_shared<const OperatorNode>(
       std::vector<Nodep>{mean.node, stddev.node},
       Operator::DISTRIBUTION_NORMAL,
       Type::DISTRIBUTION)};
 }
 
-Distribution beta(Value a, Value b) {
-  return Distribution{std::make_shared<OperatorNode>(
+FluentDistribution beta(Value a, Value b) {
+  return FluentDistribution{std::make_shared<OperatorNode>(
       std::vector<Nodep>{a.node, b.node},
       Operator::DISTRIBUTION_BETA,
       Type::DISTRIBUTION)};
 }
 
-Distribution bernoulli(Value p) {
-  return Distribution{std::make_shared<OperatorNode>(
+FluentDistribution bernoulli(Value p) {
+  return FluentDistribution{std::make_shared<OperatorNode>(
       std::vector<Nodep>{p.node},
       Operator::DISTRIBUTION_BERNOULLI,
       Type::DISTRIBUTION)};
 }
 
-Value sample(const Distribution& d, std::string rvid) {
+Value sample(const FluentDistribution& d, std::string rvid) {
   return Value{std::make_shared<SampleNode>(d.node, rvid)};
 }
 

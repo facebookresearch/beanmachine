@@ -24,7 +24,7 @@ std::map<T, unsigned> count_predecessors_internal(
   std::map<T, unsigned> predecessor_counts;
   std::list<T> to_count;
   std::set<T> counted;
-  for (auto node : root_nodes) {
+  for (const auto& node : root_nodes) {
     to_count.push_back(node);
   }
 
@@ -37,14 +37,13 @@ std::map<T, unsigned> count_predecessors_internal(
     counted.insert(node);
     nodes.push_back(node);
 
-    if (predecessor_counts.find(node) == predecessor_counts.end()) {
+    if (!predecessor_counts.contains(node)) {
       predecessor_counts[node] = 0;
     }
 
-    for (auto succ : successors(node)) {
+    for (const auto& succ : successors(node)) {
       to_count.push_back(succ);
-      auto found = predecessor_counts.find(succ);
-      if (found == predecessor_counts.end()) {
+      if (!predecessor_counts.contains(succ)) {
         predecessor_counts[succ] = 1;
       } else {
         predecessor_counts[succ] = predecessor_counts[succ] + 1;
@@ -82,7 +81,7 @@ bool topological_sort_internal(
     auto node = ready.back();
     ready.pop_back();
     result.push_back(node);
-    for (auto succ : successors(node)) {
+    for (const auto& succ : successors(node)) {
       auto count = predecessor_counts[succ];
       count--;
       predecessor_counts[succ] = count;

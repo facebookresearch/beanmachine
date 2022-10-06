@@ -17,10 +17,10 @@ namespace beanmachine::minibmg {
 using Value = Traced;
 
 // For distributions
-class Distribution {
+class FluentDistribution {
  public:
   Nodep node;
-  /* implicit */ Distribution(Nodep node) : node{node} {
+  /* implicit */ FluentDistribution(Nodep node) : node{node} {
     if (node->type != Type::DISTRIBUTION) {
       throw std::invalid_argument("node is not a value");
     }
@@ -30,15 +30,15 @@ class Distribution {
   }
 };
 
-Distribution half_normal(Value stddev);
+FluentDistribution half_normal(Value stddev);
 
-Distribution normal(Value mean, Value stddev);
+FluentDistribution normal(Value mean, Value stddev);
 
-Distribution beta(Value a, Value b);
+FluentDistribution beta(Value a, Value b);
 
-Distribution bernoulli(Value p);
+FluentDistribution bernoulli(Value p);
 
-Value sample(const Distribution& d, std::string rvid = make_fresh_rvid());
+Value sample(const FluentDistribution& d, std::string rvid = make_fresh_rvid());
 
 class Graph::FluentFactory {
  public:
