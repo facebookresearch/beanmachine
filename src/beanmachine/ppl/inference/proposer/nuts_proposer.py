@@ -80,6 +80,7 @@ class NUTSProposer(HMCProposer):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        full_mass_matrix: bool = False,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = True,
@@ -93,6 +94,7 @@ class NUTSProposer(HMCProposer):
             initial_step_size=initial_step_size,
             adapt_step_size=adapt_step_size,
             adapt_mass_matrix=adapt_mass_matrix,
+            full_mass_matrix=full_mass_matrix,
             target_accept_prob=target_accept_prob,
             nnc_compile=False,  # we will use NNC at NUTS level, not at HMC level
         )
@@ -111,7 +113,7 @@ class NUTSProposer(HMCProposer):
         sum_momentums: torch.Tensor,
     ) -> torch.Tensor:
         """The generalized U-turn condition, as described in [2] Appendix 4.2"""
-        rho = mass_inv * sum_momentums
+        rho = self._scale_r(sum_momentums, mass_inv)
         return (torch.dot(left_momentums, rho) <= 0) or (
             torch.dot(right_momentums, rho) <= 0
         )

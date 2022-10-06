@@ -45,6 +45,7 @@ class GlobalNoUTurnSampler(BaseInference):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        full_mass_matrix: bool = False,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = True,
@@ -54,6 +55,7 @@ class GlobalNoUTurnSampler(BaseInference):
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
+        self.full_mass_matrix = full_mass_matrix
         self.multinomial_sampling = multinomial_sampling
         self.target_accept_prob = target_accept_prob
         self.nnc_compile = nnc_compile
@@ -78,6 +80,7 @@ class GlobalNoUTurnSampler(BaseInference):
                 self.initial_step_size,
                 self.adapt_step_size,
                 self.adapt_mass_matrix,
+                self.full_mass_matrix,
                 self.multinomial_sampling,
                 self.target_accept_prob,
                 self.nnc_compile,
@@ -118,6 +121,7 @@ class SingleSiteNoUTurnSampler(BaseInference):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        full_mass_matrix: bool = False,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = False,
@@ -127,6 +131,7 @@ class SingleSiteNoUTurnSampler(BaseInference):
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
+        self.full_mass_matrix = full_mass_matrix
         self.multinomial_sampling = multinomial_sampling
         self.target_accept_prob = target_accept_prob
         self.nnc_compile = nnc_compile
@@ -153,6 +158,7 @@ class SingleSiteNoUTurnSampler(BaseInference):
                     self.initial_step_size,
                     self.adapt_step_size,
                     self.adapt_mass_matrix,
+                    self.full_mass_matrix,
                     self.multinomial_sampling,
                     self.target_accept_prob,
                     self.nnc_compile,
