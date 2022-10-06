@@ -1,3 +1,8 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 from typing import List, Set, Tuple
 
 import torch
@@ -111,36 +116,90 @@ class MixedHMCProposer(BaseProposer):
         # initialize parameters
         self.trajectory_length = trajectory_length
 
+    def continuous_update(self, positions, momentums, trajectory_length, pe_grad):
+        step_size = self.hmc_kernel.step_size
+        mass_inv = self.hmc_kernel._mass_inv
+        positions, momentums, pe, pe_grad = self.hmc_kernel._leapfrog_updates(
+            positions, momentums, trajectory_length, step_size, mass_inv, pe_grad
+        )
+        return positions, momentums, pe, pe_grad
+
     def discrete_update(
-        self, world: World, idx: torch.Tensor, ke_discrete
-    ) -> Tuple[World, torch.Tensor]:
-        if world is not self.world:
-            self.world = world
-
-        disc_logprob = torch.as_tensor(0.0)
-
+        self, world: World, idx: torch.Tensor, ke_discrete, delta_potential_energy
+    ) -> Tuple[World, torch.Tensor, torch.Tensor]:
         n = self._disc_target_rvs[idx]
         discrete_kernel = SingleSiteUniformProposer(n)
-        world, lp = discrete_kernel.propose(self.world)
-        disc_logprob.add_(lp)
+        proposed_world, new_lp = discrete_kernel.propose(self.world)
 
-        if ke_discrete + disc_logprob > 0:
-            self.world = world
+        delta_discrete_energy = proposed_world.log_prob() - world.log_prob()
+        accept = ke_discrete > delta_discrete_energy
+        if accept:
+            delta_potential_energy.add_(delta_discrete_energy)
+            ke_discrete.subtract_(delta_discrete_energy)
+            world = proposed_world
 
-        return self.world, disc_logprob
+        return world, ke_discrete, delta_potential_energy
 
     def propose(self, world: World) -> Tuple[World, torch.Tensor]:
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
 
+        positions = self.hmc_kernel._positions
+        momentums = self.hmc_kernel._initialize_momentums(positions)
+        hmc_pe, hmc_pe_grad = self.hmc_kernel._pe, self.hmc_kernel._pe_grad
+        current_energy = self.hmc_kernel._hamiltonian(
+            positions, momentums, self.hmc_kernel._mass_inv, hmc_pe
+        )
+        self.hmc_kernel.step_size = self.hmc_kernel._find_reasonable_step_size(
+            torch.as_tensor(self.step_size),
+            positions,
+            hmc_pe,
+            hmc_pe_grad,
+        )
+
+        delta_potential_energy = torch.as_tensor(0.0)
+
         ke_discrete = dist.Exponential(1).expand((self.num_discretes,)).sample()
         arrival_times = dist.Uniform(0, 1).expand((self.num_discretes,)).sample()
+        arrival_times, _ = arrival_times.sort()
         idx = arrival_times.argmin()
+        total_time = (
+            self.num_discrete_updates - 1
+        ) // self.num_discretes + arrival_times
+        total_time = total_time[(self.num_discrete_updates - 1) % self.num_discretes]
+        trajectory_length = self.trajectory_length / total_time
 
-        self.world, cont_logprob = self.hmc_kernel.propose(self.world)
-        self.world, disc_logprob = self.discrete_update(
-            self.world, idx, ke_discrete[idx]
+        for _ in range(self.num_discrete_updates):
+            positions, momentums, hmc_pe, hmc_pe_grad = self.continuous_update(
+                positions, momentums, trajectory_length, hmc_pe_grad
+            )
+
+            positions_dict = self.hmc_kernel._dict2vec.to_dict(positions)
+            world = world.replace(self.hmc_kernel._to_unconstrained.inv(positions_dict))
+            world, k, delta_potential_energy = self.discrete_update(
+                world, idx, ke_discrete[idx], delta_potential_energy
+            )
+            ke_discrete[idx] = k
+            arrival_times[idx] = 1
+            idx = arrival_times.argmin()
+
+        new_energy = self.hmc_kernel._hamiltonian(
+            positions, momentums, self.hmc_kernel._mass_inv, hmc_pe
         )
+        delta_energy = torch.nan_to_num(
+            new_energy - current_energy - delta_potential_energy,
+            float("inf"),
+        )
+        alpha = torch.clamp(torch.exp(-delta_energy), max=1.0)
+        if torch.bernoulli(alpha):
+            self.world = world.replace(
+                self.hmc_kernel._to_unconstrained.inv(positions_dict)
+            )
+            (
+                self.hmc_kernel._positions,
+                self.hmc_kernel._pe,
+                self.hmc_kernel._pe_grad,
+            ) = (positions, hmc_pe, hmc_pe_grad)
 
         return self.world, torch.as_tensor(0.0)
