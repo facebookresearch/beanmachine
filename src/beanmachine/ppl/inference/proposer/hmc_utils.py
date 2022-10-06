@@ -117,13 +117,15 @@ class MassMatrixAdapter:
         https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric
     """
 
-    def __init__(self, matrix_size: int):
+    def __init__(self, matrix_size: int, full_mass_matrix: bool = False):
         # inverse mass matrices, aka the inverse "metric"
         self.mass_inv = torch.ones(matrix_size)
         # distribution objects for generating momentums
-        self.momentum_dist = dist.Normal(0.0, self.mass_inv)
-
-        self._adapter = WelfordCovariance(diagonal=True)
+        self.momentum_dist: dist.Distribution = dist.Normal(0.0, self.mass_inv)
+        if full_mass_matrix:
+            self.mass_inv = torch.diag(self.mass_inv)
+        self.diagonal = not full_mass_matrix
+        self._adapter = WelfordCovariance(diagonal=self.diagonal)
 
     def initialize_momentums(self, positions: torch.Tensor) -> torch.Tensor:
         """
@@ -141,12 +143,19 @@ class MassMatrixAdapter:
     def finalize(self) -> None:
         try:
             mass_inv = self._adapter.finalize()
-            self.momentum_dist = dist.Normal(0.0, torch.sqrt(mass_inv).reciprocal())
+            if self.diagonal:
+                self.momentum_dist = dist.Normal(
+                    torch.zeros_like(mass_inv), torch.sqrt(mass_inv).reciprocal()
+                )
+            else:
+                self.momentum_dist = dist.MultivariateNormal(
+                    torch.zeros_like(mass_inv.diag()), precision_matrix=mass_inv
+                )
             self.mass_inv = mass_inv
         except RuntimeError as e:
             warnings.warn(str(e))
         # reset adapters to get ready for the next window
-        self._adapter = WelfordCovariance(diagonal=True)
+        self._adapter = WelfordCovariance(diagonal=self.diagonal)
 
 
 class WelfordCovariance:

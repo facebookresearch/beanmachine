@@ -36,6 +36,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        full_mass_matrix: bool = False,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = False,
     ):
@@ -43,6 +44,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
+        self.full_mass_matrix = full_mass_matrix
         self.target_accept_prob = target_accept_prob
         self.nnc_compile = nnc_compile
         self._proposer = None
@@ -65,6 +67,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
                 self.initial_step_size,
                 self.adapt_step_size,
                 self.adapt_mass_matrix,
+                self.full_mass_matrix,
                 self.target_accept_prob,
                 self.nnc_compile,
             )
@@ -96,6 +99,7 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        full_mass_matrix: bool = False,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = True,
     ):
@@ -103,6 +107,7 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
+        self.full_mass_matrix = full_mass_matrix
         self.target_accept_prob = target_accept_prob
         self.nnc_compile = nnc_compile
         self._proposers = {}
@@ -127,6 +132,7 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
                     self.initial_step_size,
                     self.adapt_step_size,
                     self.adapt_mass_matrix,
+                    self.full_mass_matrix,
                     self.target_accept_prob,
                     self.nnc_compile,
                 )

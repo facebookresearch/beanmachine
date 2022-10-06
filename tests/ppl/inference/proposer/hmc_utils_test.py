@@ -96,14 +96,15 @@ def test_large_window_scheme(num_adaptive_samples):
         assert win2 == win1 * 2
 
 
-def test_mass_matrix_adapter():
+@pytest.mark.parametrize("full_mass_matrix", [True, False])
+def test_mass_matrix_adapter(full_mass_matrix):
     model = SampleModel()
     world = World()
     world.call(model.bar())
     positions_dict = RealSpaceTransform(world, world.latent_nodes)(dict(world))
     dict2vec = DictToVecConverter(positions_dict)
     positions = dict2vec.to_vec(positions_dict)
-    mass_matrix_adapter = MassMatrixAdapter(len(positions))
+    mass_matrix_adapter = MassMatrixAdapter(len(positions), full_mass_matrix)
     momentums = mass_matrix_adapter.initialize_momentums(positions)
     assert isinstance(momentums, torch.Tensor)
     assert momentums.shape == positions.shape
@@ -116,6 +117,13 @@ def test_mass_matrix_adapter():
 
     # mass matrix adapter has seen less than 2 samples, so mass_inv is not updated
     assert torch.allclose(mass_inv_old, mass_matrix_adapter.mass_inv)
+
+    # check the size of the matrix
+    matrix_width = len(positions)
+    if full_mass_matrix:
+        assert mass_inv_old.shape == (matrix_width, matrix_width)
+    else:
+        assert mass_inv_old.shape == (matrix_width,)
 
 
 def test_diagonal_welford_covariance():

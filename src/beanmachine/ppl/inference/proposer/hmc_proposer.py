@@ -59,6 +59,7 @@ class HMCProposer(BaseProposer):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        full_mass_matrix: bool = False,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = True,
     ):
@@ -79,7 +80,9 @@ class HMCProposer(BaseProposer):
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
         # we need mass matrix adapter to sample momentums
-        self._mass_matrix_adapter = MassMatrixAdapter(len(self._positions))
+        self._mass_matrix_adapter = MassMatrixAdapter(
+            len(self._positions), full_mass_matrix
+        )
         if self.adapt_step_size:
             self.step_size = self._find_reasonable_step_size(
                 torch.as_tensor(initial_step_size),
@@ -111,11 +114,18 @@ class HMCProposer(BaseProposer):
     def _mass_inv(self) -> torch.Tensor:
         return self._mass_matrix_adapter.mass_inv
 
+    def _scale_r(self, momentums: torch.Tensor, mass_inv: torch.Tensor) -> torch.Tensor:
+        """Return the momentums (r) scaled by M^{-1} @ r"""
+        if self._mass_matrix_adapter.diagonal:
+            return mass_inv * momentums
+        else:
+            return mass_inv @ momentums
+
     def _kinetic_energy(
         self, momentums: torch.Tensor, mass_inv: torch.Tensor
     ) -> torch.Tensor:
         """Returns the kinetic energy KE = 1/2 * p^T @ M^{-1} @ p (equation 2.6 in [1])"""
-        r_scale = mass_inv * momentums
+        r_scale = self._scale_r(momentums, mass_inv)
         return torch.dot(momentums, r_scale) / 2
 
     def _kinetic_grads(
@@ -123,7 +133,7 @@ class HMCProposer(BaseProposer):
     ) -> torch.Tensor:
         """Returns a dictionary of gradients of kinetic energy function with respect to
         the momentum at each site, computed as M^{-1} @ p"""
-        return mass_inv * momentums
+        return self._scale_r(momentums, mass_inv)
 
     def _potential_energy(self, positions: torch.Tensor) -> torch.Tensor:
         """Returns the potential energy PE = - L(world) (the joint log likelihood of the
