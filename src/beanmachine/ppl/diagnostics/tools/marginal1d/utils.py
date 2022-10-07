@@ -422,7 +422,7 @@ def create_figure_grid(figures: typing.Figures) -> Row:
         A Bokeh layout object.
     """
     toolbar = plotting_utils.create_toolbar(figures=list(figures.values()))
-    return Row(children=[*list(figures.values()), toolbar])
+    return Row(children=[*list(figures.values()), toolbar], css_classes=["bk-loading"])
 
 
 def create_view(widgets: typing.Widgets, figures: typing.Figures) -> Tabs:
@@ -445,10 +445,15 @@ def create_view(widgets: typing.Widgets, figures: typing.Figures) -> Tabs:
         child=Column(
             children=[
                 widgets["rv_select"],
-                create_figure_grid(figures),
-                widgets["bw_factor_slider"],
-                widgets["bw_div"],
-                widgets["hdi_slider"],
+                Column(
+                    children=[
+                        create_figure_grid(figures),
+                        widgets["bw_factor_slider"],
+                        widgets["bw_div"],
+                        widgets["hdi_slider"],
+                    ],
+                    css_classes=["bm-tool-loading", "arcs"],
+                ),
             ],
         ),
         title="Marginal 1D",

@@ -10,9 +10,7 @@ from typing import TypeVar
 from beanmachine.ppl.diagnostics.tools.marginal1d import utils
 from beanmachine.ppl.diagnostics.tools.utils.base import Base
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from bokeh.embed import file_html
 from bokeh.models.callbacks import CustomJS
-from bokeh.resources import INLINE
 
 
 T = TypeVar("T", bound="Marginal1d")
@@ -34,10 +32,12 @@ class Marginal1d(Base):
         The list of random variables string names for the given model.
     num_chains : int
         The number of chains of the model.
+    num_draws : int
+        The number of draws for each chain of the model.
     palette : List[str]
         A list of color values used for the glyphs in the figures. The colors are
         specifically chosen from the Colorblind palette defined in Bokeh.
-    js : str
+    tool_js : str
         The JavaScript callbacks needed to render the Bokeh tool independently from
         a Python server.
     """
@@ -92,11 +92,22 @@ class Marginal1d(Base):
             bw_factor=bw_factor,
         )
 
+        # Create the view of the tool and serialize it into HTML using static resources
+        # from Bokeh. Embedding the tool in this manner prevents external CDN calls for
+        # JavaScript resources, and prevents the user from having to know where the
+        # Bokeh server is.
+        tool_view = utils.create_view(figures=figures, widgets=widgets)
+
         # Create callbacks for the tool using JavaScript.
         callback_js = f"""
             const rvName = widgets.rv_select.value;
             const rvData = data[rvName].flat();
             let bw = 0.0;
+            // Remove the CSS classes that dim the tool output on initial load.
+            const toolTab = toolView.tabs[0];
+            const toolChildren = toolTab.child.children;
+            const dimmedComponent = toolChildren[1];
+            dimmedComponent.css_classes = [];
             try {{
               bw = marginal1d.update(
                 rvData,
@@ -108,7 +119,7 @@ class Marginal1d(Base):
                 tooltips,
               );
             }} catch (error) {{
-              {self.js}
+              {self.tool_js}
               bw = marginal1d.update(
                 rvData,
                 rvName,
@@ -130,10 +141,12 @@ class Marginal1d(Base):
             "sources": sources,
             "figures": figures,
             "tooltips": tooltips,
+            "toolView": tool_view,
         }
 
         # Each widget requires slightly different JS, except for the sliders.
         rv_select_js = f"""
+            console.log(toolView);
             const bwFactor = 1.0;
             const hdiProbability = 0.89;
             widgets.bw_factor_slider.value = bwFactor;
@@ -156,10 +169,4 @@ class Marginal1d(Base):
         widgets["bw_factor_slider"].js_on_change("value", slider_callback)
         widgets["hdi_slider"].js_on_change("value", slider_callback)
 
-        # Create the view of the tool and serialize it into HTML using static resources
-        # from Bokeh. Embedding the tool in this manner prevents external CDN calls for
-        # JavaScript resources, and prevents the user from having to know where the
-        # Bokeh server is.
-        tool_view = utils.create_view(figures=figures, widgets=widgets)
-        output = file_html(tool_view, resources=INLINE)
-        return output
+        return tool_view
