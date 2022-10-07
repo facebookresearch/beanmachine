@@ -24,6 +24,9 @@ class Operator : public graph::Node {
   bool is_stochastic() const override {
     return false;
   }
+  bool is_mutable() const override {
+    return true;
+  }
   double log_prob() const override;
   void eval(std::mt19937& gen) override;
 

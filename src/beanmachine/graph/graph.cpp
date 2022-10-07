@@ -349,18 +349,19 @@ std::string Graph::to_string() const {
   return os.str();
 }
 
-void Graph::eval_and_update_backgrad(const std::vector<Node*>& ordered_supp) {
+void Graph::eval_and_update_backgrad(
+    const std::vector<Node*>& mutable_support) {
   // generator doesn't matter for det nodes
   // TODO: add default generator
   std::mt19937 generator(12131);
-  for (auto node : ordered_supp) {
+  for (auto node : mutable_support) {
     node->reset_backgrad();
     if (!node->is_stochastic()) {
       node->eval(generator);
     }
   }
 
-  for (auto it = ordered_supp.rbegin(); it != ordered_supp.rend(); ++it) {
+  for (auto it = mutable_support.rbegin(); it != mutable_support.rend(); ++it) {
     Node* node = *it;
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
@@ -401,7 +402,9 @@ void Graph::eval_and_grad(
   std::mt19937 generator(seed);
   for (uint node_id = src_idx + 1; node_id <= tgt_idx; node_id++) {
     Node* node = nodes[node_id].get();
-    node->eval(generator);
+    if (node->is_mutable()) {
+      node->eval(generator);
+    }
     node->compute_gradients();
     if (node->index == tgt_idx) {
       value = node->value;
@@ -417,18 +420,14 @@ void Graph::eval_and_grad(
 }
 
 void Graph::_test_backgrad(
-    std::set<uint>& ordered_support_operator_node_ids,
+    std::set<uint>& mutable_support,
     std::vector<DoubleMatrix*>& grad1) {
-  for (auto it = ordered_support_operator_node_ids.begin();
-       it != ordered_support_operator_node_ids.end();
-       ++it) {
+  for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
     Node* node = nodes[*it].get();
     node->reset_backgrad();
   }
   grad1.clear();
-  for (auto it = ordered_support_operator_node_ids.rbegin();
-       it != ordered_support_operator_node_ids.rend();
-       ++it) {
+  for (auto it = mutable_support.rbegin(); it != mutable_support.rend(); ++it) {
     Node* node = nodes[*it].get();
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
@@ -446,24 +445,20 @@ void Graph::_test_backgrad(
 }
 
 void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
-  std::set<uint> ordered_support_operator_node_ids =
-      compute_ordered_support_operator_node_ids();
-  _test_backgrad(ordered_support_operator_node_ids, grad1);
+  std::set<uint> mutable_support = compute_mutable_support();
+  _test_backgrad(mutable_support, grad1);
 }
 
 void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
   std::mt19937 generator(seed);
-  std::set<uint> ordered_support_operator_node_ids =
-      compute_ordered_support_operator_node_ids();
-  for (auto it = ordered_support_operator_node_ids.begin();
-       it != ordered_support_operator_node_ids.end();
-       ++it) {
+  std::set<uint> mutable_support = compute_mutable_support();
+  for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
     Node* node = nodes[*it].get();
     if (!node->is_observed) {
       node->eval(generator);
     }
   }
-  _test_backgrad(ordered_support_operator_node_ids, grad1);
+  _test_backgrad(mutable_support, grad1);
 }
 
 void set_value(Eigen::MatrixXd& variable, double value) {
@@ -488,13 +483,11 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   src_node->grad1 = 1;
   src_node->grad2 = 0;
 
-  auto ordered_support_operator_node_ids =
-      compute_ordered_support_operator_node_ids();
+  auto mutable_support = compute_mutable_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
   std::tie(det_nodes, sto_nodes) =
-      compute_det_affected_operator_nodes_and_sto_affected_nodes(
-          src_idx, ordered_support_operator_node_ids);
+      compute_affected_nodes(src_idx, mutable_support);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     // passing generator for signature,
@@ -527,13 +520,11 @@ double Graph::log_prob(uint src_idx) {
   if (not src_node->is_stochastic()) {
     throw std::runtime_error("log_prob only supported on stochastic nodes");
   }
-  auto ordered_support_operator_node_ids =
-      compute_ordered_support_operator_node_ids();
+  auto mutable_support = compute_mutable_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
   std::tie(det_nodes, sto_nodes) =
-      compute_det_affected_operator_nodes_and_sto_affected_nodes(
-          src_idx, ordered_support_operator_node_ids);
+      compute_affected_nodes(src_idx, mutable_support);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
@@ -551,7 +542,7 @@ double Graph::full_log_prob() {
   _ensure_evaluation_and_inference_readiness();
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
-  for (auto node : ordered_support_operator_nodes()) {
+  for (auto node : mutable_support_ptrs()) {
     if (node->is_stochastic()) {
       sum_log_prob += node->log_prob();
       if (node->node_type == NodeType::OPERATOR) {
@@ -1364,14 +1355,14 @@ void Graph::_compute_evaluation_and_inference_readiness_data() {
 
 void Graph::_clear_evaluation_and_inference_readiness_data() {
   _node_ptrs.clear();
-  _ordered_support_operator_node_ids.clear();
-  _ordered_support_operator_nodes.clear();
-  _unobserved_supp.clear();
-  _unobserved_sto_supp.clear();
+  _mutable_support.clear();
+  _mutable_support_ptrs.clear();
+  _unobserved_mutable_support.clear();
+  _unobserved_sto_mutable_support.clear();
   _sto_affected_nodes.clear();
   _det_affected_operator_nodes.clear();
-  unobserved_support_index_by_node_id.clear();
-  unobserved_sto_support_index_by_node_id.clear();
+  unobserved_mutable_support_index_by_node_id.clear();
+  unobserved_sto_mutable_support_index_by_node_id.clear();
 }
 
 void Graph::_collect_node_ptrs() {
@@ -1381,29 +1372,30 @@ void Graph::_collect_node_ptrs() {
 }
 
 void Graph::_collect_support() {
-  _ordered_support_operator_nodes.reserve(nodes.size());
-  _ordered_support_operator_node_ids =
-      compute_ordered_support_operator_node_ids();
-  for (uint node_id : _ordered_support_operator_node_ids) {
-    _ordered_support_operator_nodes.push_back(_node_ptrs[node_id]);
+  _mutable_support_ptrs.reserve(nodes.size());
+  _mutable_support = compute_mutable_support();
+  for (uint node_id : _mutable_support) {
+    _mutable_support_ptrs.push_back(_node_ptrs[node_id]);
   }
 
-  unobserved_support_index_by_node_id = std::vector<size_t>(nodes.size(), 0);
-  unobserved_sto_support_index_by_node_id =
+  unobserved_mutable_support_index_by_node_id =
+      std::vector<size_t>(nodes.size(), 0);
+  unobserved_sto_mutable_support_index_by_node_id =
       std::vector<size_t>(nodes.size(), 0);
 
-  for (auto node : _ordered_support_operator_nodes) {
+  for (auto node : _mutable_support_ptrs) {
     uint node_id = node->index;
     bool node_is_not_observed = observed.find(node->index) == observed.end();
     if (node_is_not_observed) {
       // NOLINTNEXTLINE
-      unobserved_support_index_by_node_id[node_id] = _unobserved_supp.size();
-      _unobserved_supp.push_back(node);
+      unobserved_mutable_support_index_by_node_id[node_id] =
+          _unobserved_mutable_support.size();
+      _unobserved_mutable_support.push_back(node);
       if (node->is_stochastic()) {
         // NOLINTNEXTLINE
-        unobserved_sto_support_index_by_node_id[node_id] =
-            _unobserved_sto_supp.size();
-        _unobserved_sto_supp.push_back(node);
+        unobserved_sto_mutable_support_index_by_node_id[node_id] =
+            _unobserved_sto_mutable_support.size();
+        _unobserved_sto_mutable_support.push_back(node);
       }
     }
   }
@@ -1414,15 +1406,14 @@ void Graph::_collect_support() {
 // and intervening deterministic nodes.
 // Because this can be expensive, we compute those sets once and cache them.
 void Graph::_collect_affected_operator_nodes() {
-  for (Node* node : _unobserved_sto_supp) {
+  for (Node* node : _unobserved_sto_mutable_support) {
     auto det_node_ids = util::make_reserved_vector<uint>(nodes.size());
     auto sto_node_ids = util::make_reserved_vector<uint>(nodes.size());
     auto det_nodes = util::make_reserved_vector<Node*>(nodes.size());
     auto sto_nodes = util::make_reserved_vector<Node*>(nodes.size());
 
     std::tie(det_node_ids, sto_node_ids) =
-        compute_det_affected_operator_nodes_and_sto_affected_nodes(
-            node->index, _ordered_support_operator_node_ids);
+        compute_affected_nodes(node->index, _mutable_support);
     for (uint id : det_node_ids) {
       det_nodes.push_back(_node_ptrs[id]);
     }
@@ -1440,11 +1431,12 @@ void Graph::_collect_affected_operator_nodes() {
 
 const std::vector<Node*>& Graph::get_det_affected_operator_nodes(uint node_id) {
   return det_affected_operator_nodes()
-      [unobserved_sto_support_index_by_node_id[node_id]];
+      [unobserved_sto_mutable_support_index_by_node_id[node_id]];
 }
 
 const std::vector<Node*>& Graph::get_sto_affected_nodes(uint node_id) {
-  return sto_affected_nodes()[unobserved_sto_support_index_by_node_id[node_id]];
+  return sto_affected_nodes()
+      [unobserved_sto_mutable_support_index_by_node_id[node_id]];
 }
 
 void Graph::revertibly_set_and_propagate(Node* node, const NodeValue& value) {

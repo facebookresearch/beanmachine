@@ -752,7 +752,6 @@ TEST(testgradient, matrix_add_grad) {
   sample_node->Grad1 = Eigen::MatrixXd::Ones(2, 1);
   sample_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
   auto add_node = g1.get_node(add);
-  cm_node->eval(gen);
   sample_node->eval(gen);
   sample_node->compute_gradients();
   add_node->eval(gen);

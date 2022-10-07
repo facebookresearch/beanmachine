@@ -38,11 +38,17 @@ class Distribution : public graph::Node {
       : graph::Node(graph::NodeType::DISTRIBUTION, in_nodes),
         dist_type(dist_type),
         sample_type(sample_type) {}
+  bool is_stochastic() const override {
+    return false;
+  }
+  bool is_mutable() const override {
+    return false;
+  }
   graph::NodeValue sample(std::mt19937& gen) const;
   void sample(std::mt19937& gen, graph::NodeValue& sample_value) const;
   void eval(std::mt19937& /* */) override {
     throw std::runtime_error(
-        "internal error: eval() is not implemented for distribution");
+        "internal error: eval() should not be used for Distribution nodes.");
   }
 
   virtual double log_prob(const graph::NodeValue& value) const = 0;

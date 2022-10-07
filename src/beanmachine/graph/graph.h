@@ -509,9 +509,14 @@ class Node {
 
   /*** Evaluation and gradients ***/
 
-  virtual bool is_stochastic() const {
-    return false;
-  }
+  virtual bool is_stochastic() const = 0;
+
+  /* A mutable node is a node whose value or log prob needs to be
+     updated when a node affecting them changes its value.
+     See Graph::compute_support Graph::compute_affected_nodes
+     for more information.
+  */
+  virtual bool is_mutable() const = 0;
 
   /*
    Evaluate the node and store the result in `value` if appropriate
@@ -616,8 +621,17 @@ class Node {
 class ConstNode : public Node {
  public:
   explicit ConstNode(NodeValue value) : Node(NodeType::CONSTANT, value, {}) {}
-  void eval(std::mt19937& /* unused */) override {}
   ~ConstNode() override {}
+  bool is_stochastic() const override {
+    return false;
+  }
+  bool is_mutable() const override {
+    return false;
+  }
+  void eval(std::mt19937& /* */) override {
+    throw std::runtime_error(
+        "internal error: eval() should not be used for ConstNodes.");
+  }
   std::unique_ptr<Node> clone() override {
     return std::make_unique<ConstNode>(value);
   }
@@ -781,117 +795,61 @@ class Graph {
   /*
   The support of a graph includes *all* nodes, including
   distribution nodes and constant nodes, that are needed to determine the value
-  of query and observed variables
-  */
-  std::set<uint> compute_ordered_support_node_ids();
-
-  /*
-  The support of a graph includes *all* nodes, including
-  distribution nodes and constant nodes, that are needed to determine the value
   of query and observed variables.
-  Here we obtain the node ids of support nodes that are operator nodes
-  (these are the ones with values associated with them that need to
-  be re-evaluated with ancestor values change).
-  // TODO: previously this was described as containing factors
-  // but they should probably not be part of this since they
-  // are similar to distributions and don't have associated values.
+  This is a set of node ids *topologically ordered*,
+  that is, if a support node A is an ancestor to support node B,
+  then A appears before B in the support set.
   */
-  std::set<uint> compute_ordered_support_operator_node_ids();
-
-  std::set<uint> compute_ordered_support_node_ids_with_operators_only_choice(
-      bool operator_factor_only);
+  std::set<uint> compute_support();
 
   /*
-  Computes the _affected nodes_ of a root node.
-
-  Intuitively, these are the immediate, local descendants of the root node
-  whose values or probabilities must be recalculated when
-  the root node value changes.
-
-  In a Bayesian network, which only contains stochastic nodes,
-  the affected nodes would be the root node itself (since its probability
-  changes according to its value) and its _children_ (whose probabilities
-  also change since the root node is a parent and helps determining
-  their probabilities).
-
-  This is also essentially the case in BMG, but with one caveat:
-  because BMG represents the deterministic computation of
-  these children's distributions as explicit deterministic nodes in the graph,
-  the nodes that would be the root node children in a Bayesian network are not
-  root node children in BMG (since there are intervening deterministic
-  nodes between the root note and these stochastic would-be children).
-  For this reason, one needs to traverse these deterministic nodes
-  until the stochastic would-be children are found.
-  And because these deterministic nodes participate directly
-  in the re-calculation of would-be children,
-  they are also included in the set of affected nodes.
-
-  Moreover, stochastic and deterministic
-  affected nodes are returned in two separate collections
-  since client code will often need to manipulate them very differently,
-  typically re-computing the *values* of deterministic nodes,
-  and re-computing the *probability* of stochastic nodes.
-
-  The method guarantees to return the deterministic node in
-  a topologically sorted order from the source.
-  This ensures that evaluating these nodes individually
-  in the given order produces the correct global result.
-
-  :param node_id: the id (index in topological order) of the node for which
-  we are computing the descendants
-  :param ordered_support_node_ids: the (ordered) set of indices of the
-  distribution support.
-  :returns: vector of intervening operator deterministic
-  nodes and vector of stochastic nodes that are operators and immediate
-  stochastic descendants of the current node and in the support (that is to say,
-  we don't return descendants of stochastic descendants). The current node is
-  included in result if it is in support and is stochastic.
+  The *mutable* support is a subset of the support
+  in which nodesare *mutable*, that is,
+  they either have associated values or log probs that
+  contribute to the joint probability based on their in-nodes,
+  and need to be updated when a node affecting them changes value.
+  Like the support set, this is also topologically ordered.
+  As of October 2022, this means excluding constant and distribution nodes,
+  because they have fixed values and do not *directly* contribute to the joint
+  probability (distributions contribute through samples).
   */
-  std::tuple<std::vector<uint>, std::vector<uint>>
-  compute_det_affected_operator_nodes_and_sto_affected_nodes(
-      uint node_id,
-      const std::set<uint>& ordered_support_node_ids);
+  std::set<uint> compute_mutable_support();
+
+  std::set<uint> _compute_support_given_mutable_choice(bool mutable_only);
 
   /*
-  This function is almost the same as
-  `compute_det_affected_operator_nodes_and_sto_affected_nodes` above, with a few
-  key differences:
+  Given a node id N and a set of node ids S,
+  computes node ids in S *affected* by the value of N.
+  Set S must be topologically ordered.
 
-  1. the deterministic nodes among the nodes returned by
-  `compute_det_affected_operator_nodes_and_sto_affected_nodes` only include
-  operator deterministic nodes, which have values which need to be re-calculated
-  during inference. This function returns *all* the deterministic nodes between
-  the current node and its stochastic children, including distribution nodes,
-  constants, etc
+  A node M is *affected* by N
+  if M is a descendant of N and there is a path from N to M
+  without any intermediary stochastic nodes.
 
-  2. `compute_det_affected_operator_nodes_and_sto_affected_nodes` includes the
-  current stochastic node, while this function only includes its children
+  Intuitively, affected nodes are those whose value or log probability
+  need to be updated once the value of N changes in order to keep
+  the graph consistency.
 
-  :param node_id: the id (index in topological order) of the node for which we
-  are computing the descendants
-
-  :param ordered_support_operator_node_ids: the set of indices of the
-  distribution support.
-
-  :returns: vector of all intermediate deterministic nodes and vector of
-  stochastic nodes and immediate stochastic descendants of the current node and
-  in the support (that is to say, we don't return descendants of stochastic
-  descendants). The current node is included in result if it is in support and
-  is stochastic.
+  The affected nodes are returned in a pair of containers.
+  The first one contains the deterministic affected nodes,
+  and the second one contains the stochastic affected nodes.
   */
-  std::tuple<std::vector<uint>, std::vector<uint>>
-  compute_det_affected_nodes_and_sto_affected_nodes_except_self(
+  std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
       uint node_id,
-      const std::set<uint>& ordered_support_node_ids);
+      const std::set<uint>& ordered_node_ids);
 
   std::tuple<std::vector<uint>, std::vector<uint>>
-  _compute_nodes_until_stochastic(
+  compute_affected_nodes_except_self(
       uint node_id,
-      const std::set<uint>& ordered_support_node_ids,
-      bool affected_only,
+      const std::set<uint>& ordered_node_ids);
+
+  std::tuple<std::vector<uint>, std::vector<uint>> _compute_affected_nodes(
+      uint node_id,
+      const std::set<uint>& ordered_node_ids,
       bool include_root_node);
 
-  void eval_and_update_backgrad(const std::vector<Node*>& ordered_supp);
+  void eval_and_update_backgrad(const std::vector<Node*>& mutable_support);
+
   /*
   Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
@@ -1043,13 +1001,6 @@ class Graph {
       uint steps_per_iter,
       std::mt19937& gen,
       uint elbo_samples);
-  /*
-  Evaluate the full log probability over the support of the graph.
-  :param ordered_supp: node pointers in the support in topological
-  order.
-  :returns: The sum of log_prob of stochastic nodes in the
-  support.
-  */
 
   // TODO: Review what members of this class can be made static.
 
@@ -1059,7 +1010,7 @@ class Graph {
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
   void _test_backgrad(
-      std::set<uint>& ordered_support_operator_node_ids,
+      std::set<uint>& mutable_support,
       std::vector<DoubleMatrix*>& grad1);
 
   ProfilerData profiler_data;
@@ -1134,21 +1085,20 @@ class Graph {
   // every node in the graph up front and then look it up when we need it.
   CACHED_PUBLIC_PROPERTY(std::vector<Node*>, node_ptrs)
 
-  // The support is the set of all nodes in the graph that are queried or
-  // observed, directly or indirectly. We keep both node ids and node pointer
-  // forms.
-  CACHED_PUBLIC_PROPERTY(std::set<uint>, ordered_support_operator_node_ids)
-  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, ordered_support_operator_nodes)
+  // The set of mutable support nodes in the graph.
+  // We keep both node ids and node pointer forms.
+  CACHED_PUBLIC_PROPERTY(std::set<uint>, mutable_support)
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, mutable_support_ptrs)
 
-  // Nodes in support that are not directly observed. Note that
-  // the order of nodes in this vector matters! We must enumerate
-  // them in order from lowest node identifier to highest.
-  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_supp)
+  // Nodes in mutable support that are not directly observed.
+  // As usual, topologically ordered
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_mutable_support)
 
-  // Nodes in unobserved_supp that are stochastic; similarly, order matters.
-  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_sto_supp)
+  // Nodes in unobserved_mutable_support that are stochastic.
+  // As usual, topologically ordered
+  CACHED_PUBLIC_PROPERTY(std::vector<Node*>, unobserved_sto_mutable_support)
 
-  // These vectors are the same size as unobserved_sto_support.
+  // These vectors are the same size as unobserved_sto_mutable_support.
   // The i-th elements are vectors of nodes which are respectively
   // the vector of the immediate stochastic descendants of
   // node with index i in the
@@ -1166,22 +1116,22 @@ class Graph {
 #undef CACHED_PUBLIC_PROPERTY
 #undef CACHED_PRIVATE_PROPERTY
 
-  // Because unobserved_supp and unobserved_sto_supp do not contain
-  // all nodes in the graph, it does not hold that a node id
-  // is the same as its index in these vectors.
-  // The vectors below map node ids to indices in
-  // unobserved_supp and unobserved_sto_supp respectively.
+  // Because unobserved_mutable_support and unobserved_sto_mutable_support do
+  // not contain all nodes in the graph, it does not hold that a node id is the
+  // same as its index in these vectors. The vectors below map node ids to
+  // indices in unobserved_mutable_support and unobserved_sto_mutable_support
+  // respectively.
   //
   // Note that, since not all nodes are in these vectors, some
   // elements of these index-mapping vectors should never be accessed.
   // That is, client code must be sure a node is
   // a support node (a stochastic support node, respectively)
   // before using the values in
-  // unobserved_support_index_by_node_id
-  // (unobserved_sto_support_index_by_node_id respectively).
+  // unobserved_mutable_support_index_by_node_id
+  // (unobserved_sto_mutable_support_index_by_node_id respectively).
  private:
-  std::vector<size_t> unobserved_support_index_by_node_id;
-  std::vector<size_t> unobserved_sto_support_index_by_node_id;
+  std::vector<size_t> unobserved_mutable_support_index_by_node_id;
+  std::vector<size_t> unobserved_sto_mutable_support_index_by_node_id;
 
  private:
   bool ready_for_evaluation_and_inference = false;

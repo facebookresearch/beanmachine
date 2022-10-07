@@ -24,6 +24,9 @@ class Factor : public graph::Node {
   bool is_stochastic() const override {
     return true;
   }
+  bool is_mutable() const override {
+    return true;
+  }
   void eval(std::mt19937& /* gen */) override {}
   void compute_gradients() override {}
   void backward() override {}

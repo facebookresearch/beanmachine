@@ -39,7 +39,7 @@ std::vector<Stepper*>& SequentialSingleSiteStepper::get_steppers() {
 }
 
 void SequentialSingleSiteStepper::make_steppers() {
-  for (auto tgt_node : mh->graph->unobserved_sto_supp()) {
+  for (auto tgt_node : mh->graph->unobserved_sto_mutable_support()) {
     auto single_site_stepping_method =
         find_applicable_single_site_stepping_method(tgt_node);
     steppers.push_back(
