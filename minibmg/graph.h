@@ -9,7 +9,7 @@
 
 #include <folly/json.h>
 #include <list>
-#include "beanmachine/minibmg/container.h"
+#include "beanmachine/minibmg/graph_properties/container.h"
 #include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {

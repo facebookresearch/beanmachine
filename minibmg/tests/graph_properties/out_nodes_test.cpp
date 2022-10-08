@@ -7,8 +7,8 @@
 
 #include <gtest/gtest.h>
 #include <list>
+#include "beanmachine/minibmg/graph_properties/out_nodes.h"
 #include "beanmachine/minibmg/minibmg.h"
-#include "beanmachine/minibmg/out_nodes.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;

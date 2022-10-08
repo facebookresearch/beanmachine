@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/out_nodes.h"
+#include "beanmachine/minibmg/graph_properties/out_nodes.h"
 #include <exception>
 #include <list>
 #include <map>

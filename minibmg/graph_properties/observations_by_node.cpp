@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/observations_by_node.h"
+#include "beanmachine/minibmg/graph_properties/observations_by_node.h"
 
 namespace {
 

@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "beanmachine/minibmg/container.h"
+#include "beanmachine/minibmg/graph_properties/container.h"
 
 using namespace ::beanmachine::minibmg;
 
