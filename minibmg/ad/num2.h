@@ -11,8 +11,11 @@
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <unordered_map>
+#include <vector>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
+#include "beanmachine/minibmg/dedup.h"
 
 namespace beanmachine::minibmg {
 
@@ -239,5 +242,27 @@ requires Number<Underlying> std::string to_string(const Num2<Underlying>& x) {
 }
 
 static_assert(Number<Num2<Real>>);
+
+template <class Underlying>
+requires Number<Underlying>
+class DedupHelper<Num2<Underlying>> {
+  DedupHelper<Underlying> helper{};
+
+ public:
+  std::vector<Nodep> find_roots(const Num2<Underlying>& num2) const {
+    std::vector<Nodep> result = helper.find_roots(num2.primal);
+    for (auto& n : helper.find_roots(num2.derivative1)) {
+      result.push_back(n);
+    }
+    return result;
+  }
+  Num2<Underlying> rewrite(
+      const Num2<Underlying>& num2,
+      const std::unordered_map<Nodep, Nodep>& map) const {
+    auto new_primal = helper.rewrite(num2.primal, map);
+    auto new_derivative1 = helper.rewrite(num2.derivative1, map);
+    return {new_primal, new_derivative1};
+  }
+};
 
 } // namespace beanmachine::minibmg
