@@ -25,17 +25,14 @@ const std::vector<Nodep> roots(
     const std::vector<Nodep>& queries,
     const std::list<std::pair<Nodep, double>>& observations) {
   std::list<Nodep> roots;
-  for (auto n : queries) {
+  for (auto& n : queries) {
     roots.push_back(n);
   }
-  for (auto p : observations) {
+  for (auto& p : observations) {
     if (p.first->op != Operator::SAMPLE) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
     roots.push_front(p.first);
-  }
-  for (auto n : queries) {
-    roots.push_back(n);
   }
   std::vector<Nodep> all_nodes;
   if (!topological_sort<Nodep>(roots, &in_nodes, all_nodes)) {
@@ -45,28 +42,56 @@ const std::vector<Nodep> roots(
   return all_nodes;
 }
 
+struct QueriesAndObservations {
+  std::vector<Nodep> queries;
+  std::list<std::pair<Nodep, double>> observations;
+  ~QueriesAndObservations() {}
+};
+
 } // namespace
 
 namespace beanmachine::minibmg {
+
+template <>
+class DedupHelper<QueriesAndObservations> {
+ public:
+  std::vector<Nodep> find_roots(const QueriesAndObservations& qo) const {
+    std::vector<Nodep> roots;
+    for (auto& q : qo.observations) {
+      roots.push_back(q.first);
+    }
+    for (auto& n : qo.queries) {
+      roots.push_back(n);
+    }
+    return roots;
+  }
+  QueriesAndObservations rewrite(
+      const QueriesAndObservations& qo,
+      const std::unordered_map<Nodep, Nodep>& map) const {
+    DedupHelper<std::vector<Nodep>> h1{};
+    DedupHelper<std::list<std::pair<Nodep, double>>> h2{};
+    return QueriesAndObservations{
+        h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map)};
+  }
+};
 
 using dynamic = folly::dynamic;
 
 Graph Graph::create(
     const std::vector<Nodep>& queries,
     const std::list<std::pair<Nodep, double>>& observations) {
-  std::vector<Nodep> all_nodes = roots(queries, observations);
+  for (auto& p : observations) {
+    if (p.first->op != Operator::SAMPLE) {
+      throw std::invalid_argument(fmt::format("can only observe a sample"));
+    }
+  }
+
+  auto qo0 = QueriesAndObservations{queries, observations};
+  auto qo1 = dedup(qo0);
+
+  std::vector<Nodep> all_nodes = roots(qo1.queries, qo1.observations);
   Graph::validate(all_nodes);
-  auto dedup_map = beanmachine::minibmg::dedup(all_nodes);
-  std::vector<Nodep> deduped_queries;
-  std::list<std::pair<Nodep, double>> deduped_observations;
-  for (auto q : queries) {
-    deduped_queries.push_back(dedup_map[q]);
-  }
-  for (auto p : observations) {
-    deduped_observations.push_back({dedup_map[p.first], p.second});
-  }
-  auto deduped_all_nodes = roots(deduped_queries, deduped_observations);
-  return Graph{deduped_all_nodes, deduped_queries, deduped_observations};
+  return Graph{all_nodes, qo1.queries, qo1.observations};
 }
 
 Graph::~Graph() {}
@@ -158,7 +183,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   dynamic a = dynamic::array;
 
   unsigned long next_identifier = 0;
-  for (auto node : g) {
+  for (auto& node : g) {
     // assign node identifiers sequentially.  They are called "sequence" in the
     // generated json.
     auto identifier = next_identifier++;
@@ -184,7 +209,7 @@ folly::dynamic graph_to_json(const Graph& g) {
       default: {
         auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
         dynamic in_nodes = dynamic::array;
-        for (auto pred : n->in_nodes) {
+        for (auto& pred : n->in_nodes) {
           in_nodes.push_back(node_to_identifier[pred]);
         }
         dyn_node["in_nodes"] = in_nodes;
@@ -206,7 +231,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   result["observations"] = observations;
 
   dynamic queries = dynamic::array;
-  for (auto q : g.queries) {
+  for (auto& q : g.queries) {
     queries.push_back(node_to_identifier[q]);
   }
   result["queries"] = queries;
@@ -317,7 +342,7 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("missing in_nodes.");
         }
         std::vector<Nodep> in_nodes;
-        for (auto in_nodev : in_nodesv) {
+        for (auto& in_nodev : in_nodesv) {
           if (!in_nodev.isInt()) {
             throw JsonError("missing in_node for operator.");
           }
@@ -342,7 +367,7 @@ Graph json_to_graph(folly::dynamic d) {
   std::vector<Nodep> queries;
   auto query_nodes = d["queries"];
   if (query_nodes.isArray()) {
-    for (auto query : query_nodes) {
+    for (auto& query : query_nodes) {
       if (!query.isInt()) {
         throw JsonError("bad query value.");
       }
@@ -358,7 +383,7 @@ Graph json_to_graph(folly::dynamic d) {
   std::list<std::pair<Nodep, double>> observations;
   auto observation_nodes = d["observations"];
   if (observation_nodes.isArray()) {
-    for (auto obs : observation_nodes) {
+    for (auto& obs : observation_nodes) {
       auto node = obs["node"];
       if (!node.isInt()) {
         throw JsonError("bad observation node.");
@@ -367,8 +392,8 @@ Graph json_to_graph(folly::dynamic d) {
       if (!identifier_to_node.contains(node_i)) {
         throw JsonError(fmt::format("bad in_node {} for observation.", node_i));
       }
-      auto obs_node = identifier_to_node[node_i];
-      auto value = obs["value"];
+      auto& obs_node = identifier_to_node[node_i];
+      auto& value = obs["value"];
       if (!node.isDouble() && !node.isInt()) {
         throw JsonError("bad value for observation.");
       }

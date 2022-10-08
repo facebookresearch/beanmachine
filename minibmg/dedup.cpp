@@ -114,8 +114,8 @@ Nodep rewrite(Nodep node, const NodeValueMap<Nodep>& map) {
       auto op = std::dynamic_pointer_cast<const OperatorNode>(node);
       std::vector<Nodep> in_nodes;
       bool changed = false;
-      for (Nodep in_node : op->in_nodes) {
-        Nodep replacement = map.at(in_node);
+      for (auto& in_node : op->in_nodes) {
+        auto& replacement = map.at(in_node);
         if (replacement != in_node) {
           changed = true;
         }
@@ -136,7 +136,7 @@ namespace beanmachine::minibmg {
 // Take a set of root nodes as input, and return a map of deduplicated nodes,
 // which maps from a node in the transitive closure of the input to a
 // corresponding node in the transitive closure of the deduplicated graph.
-std::unordered_map<Nodep, Nodep> dedup(std::vector<Nodep> roots) {
+std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots) {
   // a value-based, map, which treats semantically identical nodes as the same.
   NodeValueMap<Nodep> map;
 
@@ -150,7 +150,7 @@ std::unordered_map<Nodep, Nodep> dedup(std::vector<Nodep> roots) {
     throw std::invalid_argument("graph has a cycle");
   }
   std::reverse(sorted.begin(), sorted.end());
-  for (auto node : sorted) {
+  for (auto& node : sorted) {
     auto found = map.find(node);
     if (found != map.end()) {
       map.insert({node, found->second});
