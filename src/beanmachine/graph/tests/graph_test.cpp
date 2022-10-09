@@ -1018,3 +1018,101 @@ TEST(testgraph, eval_and_update_backgrad) {
   g.eval_and_update_backgrad(g.mutable_support_ptrs());
   EXPECT_NEAR(g.nodes[x]->back_grad1, 3.76, 1e-5);
 }
+
+void test_duplicate_subgraph(
+    Graph& g,
+    const vector<NodeID>& subgraph_node_ids,
+    const string& expected_g_printout) {
+  auto subgraph_nodes = from_id_to_ptr(g, subgraph_node_ids);
+  duplicate_subgraph(g, subgraph_nodes);
+  EXPECT_EQ(g.to_string(), expected_g_printout);
+}
+
+TEST(testgraph, duplicate_subgraph_basic1) {
+  Graph g;
+  auto c1 = g.add_constant_real(10.0);
+  auto c2 = g.add_constant_real(20.0);
+  auto plus = g.add_operator(OperatorType::ADD, {c1, c2});
+  auto exp = g.add_operator(OperatorType::EXP, {plus});
+  auto times = g.add_operator(OperatorType::MULTIPLY, {plus, c1});
+
+  auto subgraph_node_ids = vector<NodeID>({c1, c2, exp, times});
+
+  auto expected_g_printout =
+      R"(Node 0 type 1 parents [ ] children [ 2 4 ] real 10
+Node 1 type 1 parents [ ] children [ 2 ] real 20
+Node 2 type 3 parents [ 0 1 ] children [ 3 4 7 8 ] real 0
+Node 3 type 3 parents [ 2 ] children [ ] positive real 1e-10
+Node 4 type 3 parents [ 2 0 ] children [ ] real 0
+Node 5 type 1 parents [ ] children [ 8 ] real 10
+Node 6 type 1 parents [ ] children [ ] real 20
+Node 7 type 3 parents [ 2 ] children [ ] positive real 1e-10
+Node 8 type 3 parents [ 2 5 ] children [ ] real 0
+)";
+
+  test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);
+}
+
+TEST(testgraph, duplicate_subgraph_basic2) {
+  Graph g;
+  auto c1 = g.add_constant_real(10.0);
+  auto c2 = g.add_constant_real(20.0);
+  auto plus = g.add_operator(OperatorType::ADD, {c1, c2});
+  auto exp = g.add_operator(OperatorType::EXP, {plus});
+  auto times = g.add_operator(OperatorType::MULTIPLY, {plus, c1});
+
+  auto subgraph_node_ids = vector<NodeID>({plus, times});
+
+  auto expected_g_printout =
+      R"(Node 0 type 1 parents [ ] children [ 2 4 5 6 ] real 10
+Node 1 type 1 parents [ ] children [ 2 5 ] real 20
+Node 2 type 3 parents [ 0 1 ] children [ 3 4 ] real 0
+Node 3 type 3 parents [ 2 ] children [ ] positive real 1e-10
+Node 4 type 3 parents [ 2 0 ] children [ ] real 0
+Node 5 type 3 parents [ 0 1 ] children [ 6 ] real 0
+Node 6 type 3 parents [ 5 0 ] children [ ] real 0
+)";
+
+  test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);
+}
+
+TEST(testgraph, duplicate_empty_subgraph) {
+  Graph g;
+  auto c1 = g.add_constant_real(10.0);
+  auto c2 = g.add_constant_real(20.0);
+  auto plus = g.add_operator(OperatorType::ADD, {c1, c2});
+  auto exp = g.add_operator(OperatorType::EXP, {plus});
+  auto times = g.add_operator(OperatorType::MULTIPLY, {plus, c1});
+
+  auto subgraph_node_ids = vector<NodeID>({});
+
+  auto expected_g_printout = g.to_string();
+
+  test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);
+}
+
+TEST(testgraph, duplicate_full_graph) {
+  Graph g;
+  auto c1 = g.add_constant_real(10.0);
+  auto c2 = g.add_constant_real(20.0);
+  auto plus = g.add_operator(OperatorType::ADD, {c1, c2});
+  auto exp = g.add_operator(OperatorType::EXP, {plus});
+  auto times = g.add_operator(OperatorType::MULTIPLY, {plus, c1});
+
+  auto subgraph_node_ids = vector<NodeID>({c1, c2, plus, exp, times});
+
+  auto expected_g_printout =
+      R"(Node 0 type 1 parents [ ] children [ 2 4 ] real 10
+Node 1 type 1 parents [ ] children [ 2 ] real 20
+Node 2 type 3 parents [ 0 1 ] children [ 3 4 ] real 0
+Node 3 type 3 parents [ 2 ] children [ ] positive real 1e-10
+Node 4 type 3 parents [ 2 0 ] children [ ] real 0
+Node 5 type 1 parents [ ] children [ 7 9 ] real 10
+Node 6 type 1 parents [ ] children [ 7 ] real 20
+Node 7 type 3 parents [ 5 6 ] children [ 8 9 ] real 0
+Node 8 type 3 parents [ 7 ] children [ ] positive real 1e-10
+Node 9 type 3 parents [ 7 5 ] children [ ] real 0
+)";
+
+  test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);
+}

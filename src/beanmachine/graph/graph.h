@@ -1317,5 +1317,27 @@ std::string in_nodes_string(const NodePtr& node) {
       ", ");
 }
 
+/*
+Creates a copy of a subgraph in a graph.
+More specifically,
+given a *topologically ordered* set S of nodes in graph
+for each node N in S:
+  C <- clone N
+  clone_of[N] <- C
+  redirects each in-node I of C to clone_of[I]
+  add C to graph
+Note that it is important that S be topologically ordered
+so that each in-node I of C that happens to be in S
+will have already been cloned when it is redirected.
+*/
+void duplicate_subgraph(
+    Graph& graph,
+    const std::vector<Node*>& subgraph_ordered_nodes);
+
+/* Returns a vector of Node * from a vector of node ids for given graph. */
+std::vector<Node*> from_id_to_ptr(
+    const Graph& graph,
+    const std::vector<NodeID>& node_ids);
+
 } // namespace graph
 } // namespace beanmachine
