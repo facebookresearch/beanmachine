@@ -12,8 +12,8 @@
 namespace beanmachine {
 namespace graph {
 
-using DeterministicAncestors = std::vector<std::vector<uint>>;
-using StochasticAncestors = std::vector<std::vector<uint>>;
+using DeterministicAncestors = std::vector<std::vector<NodeID>>;
+using StochasticAncestors = std::vector<std::vector<NodeID>>;
 
 /*
 Returns two vectors of vectors of node ids.

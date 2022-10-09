@@ -27,20 +27,20 @@ MutableSupport Graph::compute_mutable_support() {
 Support Graph::_compute_support_given_mutable_choice(bool mutable_only) {
   // we will do a standard BFS except that we are doing a BFS
   // in the reverse direction of the graph edges
-  std::set<uint> visited;
-  std::list<uint> queue;
+  std::set<NodeID> visited;
+  std::list<NodeID> queue;
   Support support;
   // initialize BFS queue with all the observed and queried nodes since the
   // parents of these nodes define the support of the graph
-  for (uint node_id : observed) {
+  for (auto node_id : observed) {
     queue.push_back(node_id);
   }
-  for (uint node_id : queries) {
+  for (auto node_id : queries) {
     queue.push_back(node_id);
   }
   // BFS loop
   while (not queue.empty()) {
-    uint node_id = queue.front();
+    auto node_id = queue.front();
     queue.pop_front();
     if (visited.find(node_id) != visited.end()) {
       continue;
@@ -58,22 +58,22 @@ Support Graph::_compute_support_given_mutable_choice(bool mutable_only) {
 }
 
 AffectedNodes Graph::compute_affected_nodes(
-    uint root_id,
+    NodeID root_id,
     const OrderedNodeIDs& ordered_node_ids) {
   return _compute_affected_nodes(root_id, ordered_node_ids, true);
 }
 
 AffectedNodes Graph::compute_affected_nodes_except_self(
-    uint root_id,
+    NodeID root_id,
     const OrderedNodeIDs& ordered_node_ids) {
   return _compute_affected_nodes(root_id, ordered_node_ids, false);
 }
 
 AffectedNodes Graph::_compute_affected_nodes(
-    uint root_id,
+    NodeID root_id,
     const OrderedNodeIDs& ordered_node_ids,
     bool include_root_node) {
-  auto include = [&](uint node_id) {
+  auto include = [&](NodeID node_id) {
     return ordered_node_ids.find(node_id) != ordered_node_ids.end() and
         (include_root_node or (node_id != root_id));
   };
@@ -81,8 +81,8 @@ AffectedNodes Graph::_compute_affected_nodes(
 }
 
 AffectedNodes Graph::_compute_affected_nodes(
-    uint root_id,
-    function<bool(uint node_id)> include) {
+    NodeID root_id,
+    function<bool(NodeID node_id)> include) {
   // check for the validity of root_id
   if (root_id >= nodes.size()) {
     throw std::out_of_range(
@@ -93,10 +93,10 @@ AffectedNodes Graph::_compute_affected_nodes(
   StochasticAffectedNodes sto_affected_nodes;
   // we will do a BFS starting from the current node
   // and ending at stochastic nodes
-  std::set<uint> visited;
-  std::list<uint> queue({root_id});
+  std::set<NodeID> visited;
+  std::list<NodeID> queue({root_id});
   while (not queue.empty()) {
-    uint node_id = queue.front();
+    auto node_id = queue.front();
     queue.pop_front();
     if (visited.contains(node_id)) {
       continue;
@@ -156,8 +156,8 @@ collect_deterministic_and_stochastic_ancestors(Graph& graph) {
         sto_set.insert(parent_sto_anc.begin(), parent_sto_anc.end());
       }
     }
-    std::vector<uint>& node_det_anc = det_anc[node->index]; // NOLINT
-    std::vector<uint>& node_sto_anc = sto_anc[node->index]; // NOLINT
+    std::vector<NodeID>& node_det_anc = det_anc[node->index]; // NOLINT
+    std::vector<NodeID>& node_sto_anc = sto_anc[node->index]; // NOLINT
     node_det_anc.insert(node_det_anc.end(), det_set.begin(), det_set.end());
     node_sto_anc.insert(node_sto_anc.end(), sto_set.begin(), sto_set.end());
   }

@@ -467,6 +467,8 @@ struct InferConfig {
         keep_warmup(keep_warmup) {}
 };
 
+using NodeID = uint;
+
 class Node {
  public:
   /*** Structural properties ***/
@@ -477,7 +479,7 @@ class Node {
 
   /*** Stateful properties (to be eventually moved out) ***/
 
-  uint index; // index in Graph::nodes
+  NodeID index; // index in Graph::nodes
   bool is_observed = false;
   NodeValue value;
   double grad1;
@@ -647,12 +649,12 @@ class ConstNode : public Node {
 // NOTE: the third kind of node -- Operator is defined in operator.h
 // NOTE: the fourth kind of node -- Factor is defined in factor.h
 
-using OrderedNodeIDs = std::set<uint>;
+using OrderedNodeIDs = std::set<NodeID>;
 using Support = OrderedNodeIDs;
 using MutableSupport = OrderedNodeIDs;
 
-using DeterministicAffectedNodes = std::vector<uint>;
-using StochasticAffectedNodes = std::vector<uint>;
+using DeterministicAffectedNodes = std::vector<NodeID>;
+using StochasticAffectedNodes = std::vector<NodeID>;
 using AffectedNodes =
     std::tuple<DeterministicAffectedNodes, StochasticAffectedNodes>;
 
@@ -671,41 +673,41 @@ class Graph {
   std::string to_string() const;
   std::string to_dot() const;
   // Graph builder APIs -> return the node number
-  uint add_constant(bool value);
-  uint add_constant(double value);
-  uint add_constant(natural_t value);
-  uint add_constant(NodeValue value);
-  uint add_constant_bool(bool value);
-  uint add_constant_real(double value);
-  uint add_constant_natural(natural_t value);
-  uint add_constant_probability(double value);
-  uint add_constant_pos_real(double value);
-  uint add_constant_neg_real(double value);
-  uint add_constant_bool_matrix(Eigen::MatrixXb& value);
-  uint add_constant_real_matrix(Eigen::MatrixXd& value);
-  uint add_constant_natural_matrix(Eigen::MatrixXn& value);
-  uint add_constant_pos_matrix(Eigen::MatrixXd& value);
-  uint add_constant_neg_matrix(Eigen::MatrixXd& value);
-  uint add_constant_probability_matrix(Eigen::MatrixXd& value);
-  uint add_constant_col_simplex_matrix(Eigen::MatrixXd& value);
-  uint add_distribution(
+  NodeID add_constant(bool value);
+  NodeID add_constant(double value);
+  NodeID add_constant(natural_t value);
+  NodeID add_constant(NodeValue value);
+  NodeID add_constant_bool(bool value);
+  NodeID add_constant_real(double value);
+  NodeID add_constant_natural(natural_t value);
+  NodeID add_constant_probability(double value);
+  NodeID add_constant_pos_real(double value);
+  NodeID add_constant_neg_real(double value);
+  NodeID add_constant_bool_matrix(Eigen::MatrixXb& value);
+  NodeID add_constant_real_matrix(Eigen::MatrixXd& value);
+  NodeID add_constant_natural_matrix(Eigen::MatrixXn& value);
+  NodeID add_constant_pos_matrix(Eigen::MatrixXd& value);
+  NodeID add_constant_neg_matrix(Eigen::MatrixXd& value);
+  NodeID add_constant_probability_matrix(Eigen::MatrixXd& value);
+  NodeID add_constant_col_simplex_matrix(Eigen::MatrixXd& value);
+  NodeID add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,
-      std::vector<uint> parents);
-  uint add_distribution(
+      std::vector<NodeID> parents);
+  NodeID add_distribution(
       DistributionType dist_type,
       ValueType sample_type,
-      std::vector<uint> parents);
-  uint add_operator(OperatorType op, std::vector<uint> parents);
-  uint add_factor(FactorType fac_type, std::vector<uint> parents);
+      std::vector<NodeID> parents);
+  NodeID add_operator(OperatorType op, std::vector<NodeID> parents);
+  NodeID add_factor(FactorType fac_type, std::vector<NodeID> parents);
   // inference related
-  void observe(uint var, bool val);
-  void observe(uint var, double val);
-  void observe(uint var, natural_t val);
-  void observe(uint var, Eigen::MatrixXb& val);
-  void observe(uint var, Eigen::MatrixXd& val);
-  void observe(uint var, Eigen::MatrixXn& val);
-  void observe(uint var, NodeValue val);
+  void observe(NodeID var, bool val);
+  void observe(NodeID var, double val);
+  void observe(NodeID var, natural_t val);
+  void observe(NodeID var, Eigen::MatrixXb& val);
+  void observe(NodeID var, Eigen::MatrixXd& val);
+  void observe(NodeID var, Eigen::MatrixXn& val);
+  void observe(NodeID var, NodeValue val);
   /*
   Customize the type of transformation applied to a (set of)
   stochasitc node(s)
@@ -714,12 +716,12 @@ class Graph {
   */
   void customize_transformation(
       TransformType transform_type,
-      std::vector<uint> node_ids);
+      std::vector<NodeID> node_ids);
   /*
   Removes all observations added to the graph.
   */
   void remove_observations();
-  uint query(uint var); // returns the index of the query in the samples
+  NodeID query(NodeID var); // returns the index of the query in the samples
   /*
   Draw Monte Carlo samples from the posterior distribution using a single chain.
 
@@ -844,21 +846,21 @@ class Graph {
   and the second one contains the stochastic affected nodes.
   */
   AffectedNodes compute_affected_nodes(
-      uint node_id,
+      NodeID node_id,
       const OrderedNodeIDs& ordered_node_ids);
 
   AffectedNodes compute_affected_nodes_except_self(
-      uint node_id,
+      NodeID node_id,
       const OrderedNodeIDs& ordered_node_ids);
 
   AffectedNodes _compute_affected_nodes(
-      uint node_id,
+      NodeID node_id,
       const OrderedNodeIDs& ordered_node_ids,
       bool include_root_node);
 
   AffectedNodes _compute_affected_nodes(
-      uint node_id,
-      std::function<bool(uint descendant_id)> include);
+      NodeID node_id,
+      std::function<bool(NodeID descendant_id)> include);
 
   void eval_and_update_backgrad(const std::vector<Node*>& mutable_support);
 
@@ -874,8 +876,8 @@ class Graph {
   :param grad2: Output value of second gradient.
   */
   void eval_and_grad(
-      uint tgt_idx,
-      uint src_idx,
+      NodeID tgt_idx,
+      NodeID src_idx,
       uint seed,
       NodeValue& value,
       double& grad1,
@@ -905,7 +907,7 @@ class Graph {
   :param grad1: Output value of first gradient (double)
   :param grad2: Output value of the second gradient (double)
   */
-  void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
+  void gradient_log_prob(NodeID src_idx, double& grad1, double& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
   the sum of logprob of all stochastic descendants in the support
@@ -914,7 +916,7 @@ class Graph {
   :param src_idx: source node
   :returns: The sum of log_prob of source node and all stochastic descendants.
   */
-  double log_prob(uint src_idx);
+  double log_prob(NodeID src_idx);
   /*
   Evaluate the full log probability over the support of the graph.
   :returns: The sum of log_prob of stochastic nodes in the support.
@@ -927,7 +929,7 @@ class Graph {
   // because transform_test.cpp uses the node pointer to then obtain a pointer
   // to the value of the node and mutates that value to see what happens.
   // We should consider trying to find a safer way to test this functionality.
-  Node* check_node(uint node_id, NodeType node_type);
+  Node* check_node(NodeID node_id, NodeType node_type);
   friend class GlobalState;
   // TODO: create Samples class and remove the following friend classes
   friend class GlobalMH;
@@ -946,19 +948,19 @@ class Graph {
   // "inside" Graph so they would have such access,
   // but Graph should be not depend on any algorithms,
   // so all this needs to be cleaned up.
-  Node* check_observed_node(uint node_id, bool is_scalar);
+  Node* check_observed_node(NodeID node_id, bool is_scalar);
   void add_observe(Node* node, NodeValue val);
-  Node* get_node(uint node_id);
-  void check_node_id(uint node_id);
+  Node* get_node(NodeID node_id);
+  void check_node_id(NodeID node_id);
 
   /*
   Adds node to graph, assuming it is already properly connected to parents,
   returning its new node id.
   */
-  uint add_node(std::unique_ptr<Node> node);
+  NodeID add_node(std::unique_ptr<Node> node);
 
   /* Clones given node and adds it to graph, returning its id. */
-  uint duplicate(const std::unique_ptr<Node>& node) {
+  NodeID duplicate(const std::unique_ptr<Node>& node) {
     return add_node(node->clone());
   }
 
@@ -969,11 +971,12 @@ class Graph {
   original node ids to new node ids.
   If the node is observed or in query, it stops being so.
   */
-  std::function<uint(uint)> remove_node(uint node_id);
-  std::function<uint(uint)> remove_node(std::unique_ptr<Node>& node);
+  std::function<NodeID(NodeID)> remove_node(NodeID node_id);
+  std::function<NodeID(NodeID)> remove_node(std::unique_ptr<Node>& node);
 
-  std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
-  std::vector<uint> get_parent_ids(
+  std::vector<Node*> convert_parent_ids(
+      const std::vector<NodeID>& parents) const;
+  std::vector<NodeID> get_parent_ids(
       const std::vector<Node*>& parent_nodes) const;
   void _infer(
       uint num_samples,
@@ -989,11 +992,11 @@ class Graph {
 
   uint thread_index;
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
-  std::set<uint> observed; // set of observed nodes
+  std::set<NodeID> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
   // cache of the queried nodes while the former gives the order of nodes
   // queried
-  std::vector<uint> queries; // list of queried node ids
+  std::vector<NodeID> queries; // list of queried node ids
   std::vector<std::vector<NodeValue>> samples;
   std::vector<std::vector<std::vector<NodeValue>>> samples_allchains;
   std::vector<double> means;
@@ -1183,8 +1186,8 @@ class Graph {
   void collect_sample(InferConfig infer_config);
 
  public:
-  const std::vector<Node*>& get_det_affected_operator_nodes(uint node_id);
-  const std::vector<Node*>& get_sto_affected_nodes(uint node_id);
+  const std::vector<Node*>& get_det_affected_operator_nodes(NodeID node_id);
+  const std::vector<Node*>& get_sto_affected_nodes(NodeID node_id);
 
   inline const std::vector<Node*>& get_det_affected_operator_nodes(Node* node) {
     return get_det_affected_operator_nodes(node->index);
@@ -1290,7 +1293,7 @@ class Graph {
     void gen_distribution_stats(Counts_t counts);
     void gen_factor_stats(Counts_t counts);
     void gen_constant_stats(Matrix_t counts);
-    void gen_roots_and_terminals(uint node_id);
+    void gen_roots_and_terminals(NodeID node_id);
 
     void emit(String_t output, char banner = '\0');
     void emit_tab(uint n);
