@@ -420,7 +420,7 @@ void Graph::eval_and_grad(
 }
 
 void Graph::_test_backgrad(
-    std::set<uint>& mutable_support,
+    MutableSupport& mutable_support,
     std::vector<DoubleMatrix*>& grad1) {
   for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
     Node* node = nodes[*it].get();
@@ -445,13 +445,13 @@ void Graph::_test_backgrad(
 }
 
 void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
-  std::set<uint> mutable_support = compute_mutable_support();
+  auto mutable_support = compute_mutable_support();
   _test_backgrad(mutable_support, grad1);
 }
 
 void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
   std::mt19937 generator(seed);
-  std::set<uint> mutable_support = compute_mutable_support();
+  auto mutable_support = compute_mutable_support();
   for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
     Node* node = nodes[*it].get();
     if (!node->is_observed) {

@@ -647,6 +647,15 @@ class ConstNode : public Node {
 // NOTE: the third kind of node -- Operator is defined in operator.h
 // NOTE: the fourth kind of node -- Factor is defined in factor.h
 
+using OrderedNodeIDs = std::set<uint>;
+using Support = OrderedNodeIDs;
+using MutableSupport = OrderedNodeIDs;
+
+using DeterministicAffectedNodes = std::vector<uint>;
+using StochasticAffectedNodes = std::vector<uint>;
+using AffectedNodes =
+    std::tuple<DeterministicAffectedNodes, StochasticAffectedNodes>;
+
 class Graph {
  public:
   Graph() {}
@@ -800,7 +809,7 @@ class Graph {
   that is, if a support node A is an ancestor to support node B,
   then A appears before B in the support set.
   */
-  std::set<uint> compute_support();
+  Support compute_support();
 
   /*
   The *mutable* support is a subset of the support
@@ -813,9 +822,9 @@ class Graph {
   because they have fixed values and do not *directly* contribute to the joint
   probability (distributions contribute through samples).
   */
-  std::set<uint> compute_mutable_support();
+  MutableSupport compute_mutable_support();
 
-  std::set<uint> _compute_support_given_mutable_choice(bool mutable_only);
+  Support _compute_support_given_mutable_choice(bool mutable_only);
 
   /*
   Given a node id N and a set of node ids S,
@@ -834,19 +843,22 @@ class Graph {
   The first one contains the deterministic affected nodes,
   and the second one contains the stochastic affected nodes.
   */
-  std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
+  AffectedNodes compute_affected_nodes(
       uint node_id,
-      const std::set<uint>& ordered_node_ids);
+      const OrderedNodeIDs& ordered_node_ids);
 
-  std::tuple<std::vector<uint>, std::vector<uint>>
-  compute_affected_nodes_except_self(
+  AffectedNodes compute_affected_nodes_except_self(
       uint node_id,
-      const std::set<uint>& ordered_node_ids);
+      const OrderedNodeIDs& ordered_node_ids);
 
-  std::tuple<std::vector<uint>, std::vector<uint>> _compute_affected_nodes(
+  AffectedNodes _compute_affected_nodes(
       uint node_id,
-      const std::set<uint>& ordered_node_ids,
+      const OrderedNodeIDs& ordered_node_ids,
       bool include_root_node);
+
+  AffectedNodes _compute_affected_nodes(
+      uint node_id,
+      std::function<bool(uint descendant_id)> include);
 
   void eval_and_update_backgrad(const std::vector<Node*>& mutable_support);
 
@@ -1010,7 +1022,7 @@ class Graph {
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
   void _test_backgrad(
-      std::set<uint>& mutable_support,
+      MutableSupport& mutable_support,
       std::vector<DoubleMatrix*>& grad1);
 
   ProfilerData profiler_data;
@@ -1087,7 +1099,7 @@ class Graph {
 
   // The set of mutable support nodes in the graph.
   // We keep both node ids and node pointer forms.
-  CACHED_PUBLIC_PROPERTY(std::set<uint>, mutable_support)
+  CACHED_PUBLIC_PROPERTY(MutableSupport, mutable_support)
   CACHED_PUBLIC_PROPERTY(std::vector<Node*>, mutable_support_ptrs)
 
   // Nodes in mutable support that are not directly observed.
@@ -1117,8 +1129,8 @@ class Graph {
 #undef CACHED_PRIVATE_PROPERTY
 
   // Because unobserved_mutable_support and unobserved_sto_mutable_support do
-  // not contain all nodes in the graph, it does not hold that a node id is the
-  // same as its index in these vectors. The vectors below map node ids to
+  // not contain all nodes in the graph, it does not hold that a node id is
+  // the same as its index in these vectors. The vectors below map node ids to
   // indices in unobserved_mutable_support and unobserved_sto_mutable_support
   // respectively.
   //
@@ -1142,9 +1154,10 @@ class Graph {
   // intermediate internal data structures).
   // The data structures are built only the first time the method is invoked.
   // After that, the method is simply ensuring they are built.
-  // Note that this assumes the graph has not changed since the last invocation.
-  // If the graph does change, client code can set field "ready" to false
-  // and then invoke this method.
+  // Note that this assumes the graph has not changed since the last
+  // invocation.
+  // If the graph does change, field "ready_for_evaluation_and_inference"
+  // must be set to false.
   void _ensure_evaluation_and_inference_readiness() {
     if (not ready_for_evaluation_and_inference) {
       _compute_evaluation_and_inference_readiness_data();
