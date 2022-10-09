@@ -381,18 +381,18 @@ void Graph::eval_and_update_backgrad(
 }
 
 void Graph::eval_and_grad(
-    uint tgt_idx,
-    uint src_idx,
-    uint seed,
+    NodeID tgt_idx,
+    NodeID src_idx,
+    NodeID seed,
     NodeValue& value,
     double& grad1,
     double& grad2) {
   // TODO: used for testing only, should integrate it with
   // whatever code is actually being used for eval and grad.
-  if (src_idx >= static_cast<uint>(nodes.size())) {
+  if (src_idx >= static_cast<NodeID>(nodes.size())) {
     throw std::out_of_range("src_idx " + std::to_string(src_idx));
   }
-  if (tgt_idx >= static_cast<uint>(nodes.size()) or tgt_idx <= src_idx) {
+  if (tgt_idx >= static_cast<NodeID>(nodes.size()) or tgt_idx <= src_idx) {
     throw std::out_of_range("tgt_idx " + std::to_string(tgt_idx));
   }
   // initialize the gradients of the source node to get the computation started
@@ -400,7 +400,7 @@ void Graph::eval_and_grad(
   src_node->grad1 = 1;
   src_node->grad2 = 0;
   std::mt19937 generator(seed);
-  for (uint node_id = src_idx + 1; node_id <= tgt_idx; node_id++) {
+  for (NodeID node_id = src_idx + 1; node_id <= tgt_idx; node_id++) {
     Node* node = nodes[node_id].get();
     if (node->is_mutable()) {
       node->eval(generator);
@@ -413,7 +413,7 @@ void Graph::eval_and_grad(
     }
   }
   // reset all the gradients including the source node
-  for (uint node_id = src_idx; node_id <= tgt_idx; node_id++) {
+  for (NodeID node_id = src_idx; node_id <= tgt_idx; node_id++) {
     Node* node = nodes[node_id].get();
     node->grad1 = node->grad2 = 0;
   }
@@ -468,7 +468,7 @@ void set_value(double& variable, double value) {
   variable = value;
 }
 
-void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
+void Graph::gradient_log_prob(NodeID src_idx, double& grad1, double& grad2) {
   // TODO: As of May 2021, this method is being used for testing only.
   // Refactor code so that we test the code actually being used for the
   // normal functionality of the class.
@@ -484,8 +484,8 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   src_node->grad2 = 0;
 
   auto mutable_support = compute_mutable_support();
-  std::vector<uint> det_nodes;
-  std::vector<uint> sto_nodes;
+  std::vector<NodeID> det_nodes;
+  std::vector<NodeID> sto_nodes;
   std::tie(det_nodes, sto_nodes) =
       compute_affected_nodes(src_idx, mutable_support);
   for (auto node_id : det_nodes) {
@@ -514,15 +514,15 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   }
 }
 
-double Graph::log_prob(uint src_idx) {
+double Graph::log_prob(NodeID src_idx) {
   // TODO: also used in tests only
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
     throw std::runtime_error("log_prob only supported on stochastic nodes");
   }
   auto mutable_support = compute_mutable_support();
-  std::vector<uint> det_nodes;
-  std::vector<uint> sto_nodes;
+  std::vector<NodeID> det_nodes;
+  std::vector<NodeID> sto_nodes;
   std::tie(det_nodes, sto_nodes) =
       compute_affected_nodes(src_idx, mutable_support);
   for (auto node_id : det_nodes) {
@@ -580,12 +580,12 @@ double Graph::full_log_prob() {
 std::vector<Node*> Graph::convert_parent_ids(
     // TODO: this does not have to apply to parents only; make it a more general
     // function from ids to nodes.
-    const std::vector<uint>& parent_ids) const {
+    const std::vector<NodeID>& parent_ids) const {
   // check that the parent ids are valid indices and convert them to
   // an array of Node* pointers
   std::vector<Node*> parent_nodes;
-  for (uint parent_id : parent_ids) {
-    if (parent_id >= static_cast<uint>(nodes.size())) {
+  for (NodeID parent_id : parent_ids) {
+    if (parent_id >= static_cast<NodeID>(nodes.size())) {
       throw std::out_of_range(
           "parent node_id " + std::to_string(parent_id) + "must be less than " +
           std::to_string(nodes.size()));
@@ -595,8 +595,8 @@ std::vector<Node*> Graph::convert_parent_ids(
   return parent_nodes;
 }
 
-uint Graph::add_node(std::unique_ptr<Node> node) {
-  uint index = static_cast<uint>(nodes.size());
+NodeID Graph::add_node(std::unique_ptr<Node> node) {
+  NodeID index = static_cast<NodeID>(nodes.size());
   node->index = index;
   for (auto in_node : node->in_nodes) {
     in_node->out_nodes.push_back(node.get());
@@ -605,11 +605,11 @@ uint Graph::add_node(std::unique_ptr<Node> node) {
   return index;
 }
 
-std::function<uint(uint)> Graph::remove_node(uint node_id) {
+std::function<NodeID(NodeID)> Graph::remove_node(NodeID node_id) {
   return remove_node(nodes[node_id]);
 }
 
-std::function<uint(uint)> Graph::remove_node(std::unique_ptr<Node>& node) {
+std::function<NodeID(NodeID)> Graph::remove_node(std::unique_ptr<Node>& node) {
   if (!node->out_nodes.empty()) {
     throw std::invalid_argument(
         "Attempt to remove node with out-nodes. Node id = " +
@@ -643,7 +643,7 @@ std::function<uint(uint)> Graph::remove_node(std::unique_ptr<Node>& node) {
 
   // Map from old to new ids reflects that fact that
   // nodes with greater ids were shifted down one position:
-  auto from_old_to_new_id = [removed_index{node_id}, max_id](uint id) {
+  auto from_old_to_new_id = [removed_index{node_id}, max_id](NodeID id) {
     if (id == removed_index) {
       throw std::invalid_argument(
           "Looking up new id for old id after removed graph node "
@@ -659,20 +659,20 @@ std::function<uint(uint)> Graph::remove_node(std::unique_ptr<Node>& node) {
   return from_old_to_new_id;
 }
 
-void Graph::check_node_id(uint node_id) {
-  if (node_id >= static_cast<uint>(nodes.size())) {
+void Graph::check_node_id(NodeID node_id) {
+  if (node_id >= static_cast<NodeID>(nodes.size())) {
     throw std::out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
         std::to_string(nodes.size()));
   }
 }
 
-Node* Graph::get_node(uint node_id) {
+Node* Graph::get_node(NodeID node_id) {
   check_node_id(node_id);
   return nodes[node_id].get();
 }
 
-Node* Graph::check_node(uint node_id, NodeType node_type) {
+Node* Graph::check_node(NodeID node_id, NodeType node_type) {
   Node* node = get_node(node_id);
   if (node->node_type != node_type) {
     throw std::invalid_argument(
@@ -683,7 +683,7 @@ Node* Graph::check_node(uint node_id, NodeType node_type) {
   return node;
 }
 
-Node* Graph::check_observed_node(uint node_id, bool is_scalar) {
+Node* Graph::check_observed_node(NodeID node_id, bool is_scalar) {
   Node* node = get_node(node_id);
   if (node->node_type != NodeType::OPERATOR) {
     throw std::invalid_argument(
@@ -715,83 +715,83 @@ Node* Graph::check_observed_node(uint node_id, bool is_scalar) {
   return node;
 }
 
-uint Graph::add_constant(bool value) {
+NodeID Graph::add_constant(bool value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_bool(bool value) {
+NodeID Graph::add_constant_bool(bool value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant(double value) {
+NodeID Graph::add_constant(double value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_real(double value) {
+NodeID Graph::add_constant_real(double value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant(natural_t value) {
+NodeID Graph::add_constant(natural_t value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_natural(natural_t value) {
+NodeID Graph::add_constant_natural(natural_t value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant(NodeValue value) {
+NodeID Graph::add_constant(NodeValue value) {
   std::unique_ptr<ConstNode> node = std::make_unique<ConstNode>(value);
   return add_node(std::move(node));
 }
 
-uint Graph::add_constant_probability(double value) {
+NodeID Graph::add_constant_probability(double value) {
   if (value < 0 or value > 1) {
     throw std::invalid_argument("probability must be between 0 and 1");
   }
   return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
-uint Graph::add_constant_pos_real(double value) {
+NodeID Graph::add_constant_pos_real(double value) {
   if (value < 0) {
     throw std::invalid_argument("pos_real must be >=0");
   }
   return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
-uint Graph::add_constant_neg_real(double value) {
+NodeID Graph::add_constant_neg_real(double value) {
   if (value > 0) {
     throw std::invalid_argument("neg_real must be <=0");
   }
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
-uint Graph::add_constant_bool_matrix(Eigen::MatrixXb& value) {
+NodeID Graph::add_constant_bool_matrix(Eigen::MatrixXb& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_real_matrix(Eigen::MatrixXd& value) {
+NodeID Graph::add_constant_real_matrix(Eigen::MatrixXd& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_natural_matrix(Eigen::MatrixXn& value) {
+NodeID Graph::add_constant_natural_matrix(Eigen::MatrixXn& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
+NodeID Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
     throw std::invalid_argument("All elements in pos_matrix must be >=0");
   }
   return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
-uint Graph::add_constant_neg_matrix(Eigen::MatrixXd& value) {
+NodeID Graph::add_constant_neg_matrix(Eigen::MatrixXd& value) {
   if ((value.array() > 0).any()) {
     throw std::invalid_argument("All elements in neg_matrix must be <=0");
   }
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
-uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
+NodeID Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
     throw std::invalid_argument(
         "All elements in col_simplex_matrix must be >=0");
@@ -811,7 +811,7 @@ uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
       value));
 }
 
-uint Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
+NodeID Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any() or (value.array() > 1).any()) {
     throw std::invalid_argument(
         "All elements in probability_matrix must be between 0 and 1");
@@ -819,10 +819,10 @@ uint Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
   return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
-uint Graph::add_distribution(
+NodeID Graph::add_distribution(
     DistributionType dist_type,
     AtomicType sample_type,
-    std::vector<uint> parent_ids) {
+    std::vector<NodeID> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   // create a distribution node
   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
@@ -831,10 +831,10 @@ uint Graph::add_distribution(
   return add_node(std::move(node));
 }
 
-uint Graph::add_distribution(
+NodeID Graph::add_distribution(
     DistributionType dist_type,
     ValueType sample_type,
-    std::vector<uint> parent_ids) {
+    std::vector<NodeID> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   // create a distribution node
   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
@@ -843,18 +843,20 @@ uint Graph::add_distribution(
   return add_node(std::move(node));
 }
 
-uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
+NodeID Graph::add_operator(
+    OperatorType op_type,
+    std::vector<NodeID> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   std::unique_ptr<Node> node =
       oper::OperatorFactory::create_op(op_type, parent_nodes);
   return add_node(std::move(node));
 }
 
-uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
+NodeID Graph::add_factor(FactorType fac_type, std::vector<NodeID> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   std::unique_ptr<Node> node =
       factor::Factor::new_factor(fac_type, parent_nodes);
-  uint node_id = add_node(std::move(node));
+  NodeID node_id = add_node(std::move(node));
   // factors are both stochastic nodes and observed nodes
   Node* node2 = check_node(node_id, NodeType::FACTOR);
   node2->is_observed = true;
@@ -862,12 +864,12 @@ uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
   return node_id;
 }
 
-void Graph::observe(uint node_id, bool value) {
+void Graph::observe(NodeID node_id, bool value) {
   // A bool can only be a bool NodeValue, so we can just pass it along.
   observe(node_id, NodeValue(value));
 }
 
-void Graph::observe(uint node_id, double value) {
+void Graph::observe(NodeID node_id, double value) {
   Node* node = check_observed_node(node_id, true);
   switch (node->value.type.atomic_type) {
     case AtomicType::REAL:
@@ -885,12 +887,12 @@ void Graph::observe(uint node_id, double value) {
   add_observe(node, NodeValue(node->value.type.atomic_type, value));
 }
 
-void Graph::observe(uint node_id, natural_t value) {
+void Graph::observe(NodeID node_id, natural_t value) {
   // A natural can only be a natural NodeValue, so we can just pass it along.
   observe(node_id, NodeValue(value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXd& value) {
+void Graph::observe(NodeID node_id, Eigen::MatrixXd& value) {
   Node* node = check_observed_node(node_id, false);
   // We know that we have a matrix value; is it the right shape?
   if (value.rows() != node->value.type.rows or
@@ -916,7 +918,7 @@ void Graph::observe(uint node_id, Eigen::MatrixXd& value) {
   add_observe(node, NodeValue(node->value.type, value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXb& value) {
+void Graph::observe(NodeID node_id, Eigen::MatrixXb& value) {
   Node* node = check_observed_node(node_id, false);
   if (value.rows() != node->value.type.rows or
       value.cols() != node->value.type.cols or
@@ -927,7 +929,7 @@ void Graph::observe(uint node_id, Eigen::MatrixXb& value) {
   add_observe(node, NodeValue(node->value.type, value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXn& value) {
+void Graph::observe(NodeID node_id, Eigen::MatrixXn& value) {
   Node* node = check_observed_node(node_id, false);
   // We know that we have a matrix value; is it the right shape?
   if (value.rows() != node->value.type.rows or
@@ -939,7 +941,7 @@ void Graph::observe(uint node_id, Eigen::MatrixXn& value) {
   add_observe(node, NodeValue(node->value.type, value));
 }
 
-void Graph::observe(uint node_id, NodeValue value) {
+void Graph::observe(NodeID node_id, NodeValue value) {
   Node* node = check_observed_node(
       node_id, value.type.variable_type == VariableType::SCALAR);
   if (node->value.type != value.type) {
@@ -960,7 +962,7 @@ void Graph::add_observe(Node* node, NodeValue value) {
 
 void Graph::customize_transformation(
     TransformType customized_type,
-    std::vector<uint> node_ids) {
+    std::vector<NodeID> node_ids) {
   if (common_transformations.empty()) {
     common_transformations[TransformType::LOG] =
         std::make_unique<transform::Log>();
@@ -1015,7 +1017,7 @@ void Graph::remove_observations() {
   }
 }
 
-uint Graph::query(uint node_id) {
+NodeID Graph::query(NodeID node_id) {
   Node* node = get_node(node_id);
   NodeType t = node->node_type;
   if (t != NodeType::CONSTANT and t != NodeType::OPERATOR) {
@@ -1033,10 +1035,10 @@ uint Graph::query(uint node_id) {
   // very short.
   auto it = std::find(queries.begin(), queries.end(), node_id);
   if (it != queries.end()) {
-    return static_cast<uint>(it - queries.begin());
+    return static_cast<NodeID>(it - queries.begin());
   }
   queries.push_back(node_id);
-  return static_cast<uint>(queries.size() - 1); // the index is 0-based
+  return static_cast<NodeID>(queries.size() - 1); // the index is 0-based
 }
 
 void Graph::collect_log_prob(double log_prob) {
@@ -1064,7 +1066,7 @@ void Graph::collect_sample() {
         ? this->samples
         : master_graph->samples_allchains[thread_index];
     std::vector<NodeValue> sample;
-    for (uint node_id : queries) {
+    for (NodeID node_id : queries) {
       sample.push_back(nodes[node_id]->value);
     }
     sample_collector.push_back(sample);
@@ -1076,8 +1078,8 @@ void Graph::collect_sample() {
         ? this->means
         : master_graph->means_allchains[thread_index];
     assert(mean_collector.size() == queries.size());
-    uint pos = 0;
-    for (uint node_id : queries) {
+    NodeID pos = 0;
+    for (NodeID node_id : queries) {
       NodeValue value = nodes[node_id]->value;
       if (value.type == AtomicType::BOOLEAN) {
         mean_collector[pos] += double(value._bool) / agg_samples;
@@ -1260,7 +1262,7 @@ std::vector<std::vector<double>>& Graph::variational(
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
   }
-  for (uint node_id : queries) {
+  for (NodeID node_id : queries) {
     Node* node = nodes[node_id].get();
     if (not node->is_stochastic()) {
       throw std::invalid_argument(
@@ -1275,9 +1277,9 @@ std::vector<std::vector<double>>& Graph::variational(
                              // field, but a value returned by cavi.
 }
 
-std::vector<uint> Graph::get_parent_ids(
+std::vector<NodeID> Graph::get_parent_ids(
     const std::vector<Node*>& parent_nodes) const {
-  std::vector<uint> parent_ids;
+  std::vector<NodeID> parent_ids;
   for (auto node : parent_nodes) {
     parent_ids.push_back(node->index);
   }
@@ -1285,7 +1287,7 @@ std::vector<uint> Graph::get_parent_ids(
 }
 
 void Graph::reindex_nodes() {
-  uint index = 0;
+  NodeID index = 0;
   for (auto const& node : nodes) {
     if (node) {
       node->index = index;
@@ -1303,9 +1305,9 @@ Graph::Graph(const Graph& other) {
 Graph& Graph::operator=(const Graph& other) {
   // This copy assignment operator does not copy the inference results
   // (if available) from the source graph.
-  for (uint i = 0; i < static_cast<uint>(other.nodes.size()); i++) {
+  for (NodeID i = 0; i < static_cast<NodeID>(other.nodes.size()); i++) {
     Node* node = other.nodes[i].get();
-    std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
+    std::vector<NodeID> parent_ids = get_parent_ids(node->in_nodes);
     switch (node->node_type) {
       case NodeType::CONSTANT: {
         NodeValue value_copy = NodeValue(node->value);
@@ -1334,7 +1336,7 @@ Graph& Graph::operator=(const Graph& other) {
       }
     }
   }
-  for (uint node_id : other.queries) {
+  for (NodeID node_id : other.queries) {
     query(node_id);
   }
   master_graph = other.master_graph;
@@ -1366,7 +1368,8 @@ void Graph::_clear_evaluation_and_inference_readiness_data() {
 }
 
 void Graph::_collect_node_ptrs() {
-  for (uint node_id = 0; node_id < static_cast<uint>(nodes.size()); node_id++) {
+  for (NodeID node_id = 0; node_id < static_cast<NodeID>(nodes.size());
+       node_id++) {
     _node_ptrs.push_back(nodes[node_id].get());
   }
 }
@@ -1374,7 +1377,7 @@ void Graph::_collect_node_ptrs() {
 void Graph::_collect_support() {
   _mutable_support_ptrs.reserve(nodes.size());
   _mutable_support = compute_mutable_support();
-  for (uint node_id : _mutable_support) {
+  for (NodeID node_id : _mutable_support) {
     _mutable_support_ptrs.push_back(_node_ptrs[node_id]);
   }
 
@@ -1384,7 +1387,7 @@ void Graph::_collect_support() {
       std::vector<size_t>(nodes.size(), 0);
 
   for (auto node : _mutable_support_ptrs) {
-    uint node_id = node->index;
+    NodeID node_id = node->index;
     bool node_is_not_observed = observed.find(node->index) == observed.end();
     if (node_is_not_observed) {
       // NOLINTNEXTLINE
@@ -1407,34 +1410,35 @@ void Graph::_collect_support() {
 // Because this can be expensive, we compute those sets once and cache them.
 void Graph::_collect_affected_operator_nodes() {
   for (Node* node : _unobserved_sto_mutable_support) {
-    auto det_node_ids = util::make_reserved_vector<uint>(nodes.size());
-    auto sto_node_ids = util::make_reserved_vector<uint>(nodes.size());
+    auto det_node_ids = util::make_reserved_vector<NodeID>(nodes.size());
+    auto sto_node_ids = util::make_reserved_vector<NodeID>(nodes.size());
     auto det_nodes = util::make_reserved_vector<Node*>(nodes.size());
     auto sto_nodes = util::make_reserved_vector<Node*>(nodes.size());
 
     std::tie(det_node_ids, sto_node_ids) =
         compute_affected_nodes(node->index, _mutable_support);
-    for (uint id : det_node_ids) {
+    for (NodeID id : det_node_ids) {
       det_nodes.push_back(_node_ptrs[id]);
     }
-    for (uint id : sto_node_ids) {
+    for (NodeID id : sto_node_ids) {
       sto_nodes.push_back(_node_ptrs[id]);
     }
     _det_affected_operator_nodes.push_back(det_nodes);
     _sto_affected_nodes.push_back(sto_nodes);
     if (_collect_performance_data) {
-      profiler_data.det_supp_count[static_cast<uint>(node->index)] =
+      profiler_data.det_supp_count[node->index] =
           static_cast<int>(det_nodes.size());
     }
   }
 }
 
-const std::vector<Node*>& Graph::get_det_affected_operator_nodes(uint node_id) {
+const std::vector<Node*>& Graph::get_det_affected_operator_nodes(
+    NodeID node_id) {
   return det_affected_operator_nodes()
       [unobserved_sto_mutable_support_index_by_node_id[node_id]];
 }
 
-const std::vector<Node*>& Graph::get_sto_affected_nodes(uint node_id) {
+const std::vector<Node*>& Graph::get_sto_affected_nodes(NodeID node_id) {
   return sto_affected_nodes()
       [unobserved_sto_mutable_support_index_by_node_id[node_id]];
 }
