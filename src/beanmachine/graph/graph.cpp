@@ -33,13 +33,14 @@ namespace beanmachine {
 namespace graph {
 
 using namespace util;
+using namespace std;
 
 NATURAL_TYPE NATURAL_ZERO = 0ull;
 NATURAL_TYPE NATURAL_ONE = 1ull;
 
-std::string ValueType::to_string() const {
-  std::string vtype;
-  std::string atype;
+string ValueType::to_string() const {
+  string vtype;
+  string atype;
   switch (atomic_type) {
     case AtomicType::UNKNOWN:
       atype = "unknown";
@@ -104,7 +105,7 @@ NodeValue::NodeValue(AtomicType type, double value)
     default:
       // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
       // values
-      throw std::invalid_argument(
+      throw invalid_argument(
           "expect probability, pos_real, neg_real or real type with floating point value");
   }
 }
@@ -157,20 +158,20 @@ NodeValue::NodeValue(ValueType type) : type(type) {
             Eigen::MatrixXn::Constant(type.rows, type.cols, (natural_t)0);
         break;
       default:
-        throw std::invalid_argument("Unsupported types for BROADCAST_MATRIX.");
+        throw invalid_argument("Unsupported types for BROADCAST_MATRIX.");
     }
   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
     _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) / type.rows;
   } else if (type.variable_type == VariableType::SCALAR) {
     this->init_scalar(type.atomic_type);
   } else {
-    throw std::invalid_argument("Unsupported variable type.");
+    throw invalid_argument("Unsupported variable type.");
   }
 }
 
-std::string NodeValue::to_string() const {
-  std::ostringstream os;
-  std::string type_str = type.to_string() + " ";
+string NodeValue::to_string() const {
+  ostringstream os;
+  string type_str = type.to_string() + " ";
   if (type.variable_type == VariableType::SCALAR) {
     switch (type.atomic_type) {
       case AtomicType::UNKNOWN:
@@ -231,10 +232,7 @@ std::string NodeValue::to_string() const {
   return os.str();
 }
 
-Node::Node(
-    NodeType node_type,
-    NodeValue value,
-    const std::vector<Node*>& in_nodes)
+Node::Node(NodeType node_type, NodeValue value, const vector<Node*>& in_nodes)
     : node_type(node_type),
       in_nodes{in_nodes.begin(), in_nodes.end()},
       value(value),
@@ -322,7 +320,7 @@ void Node::to_scalar() {
       value._matrix.setZero(0, 0);
       break;
     default:
-      throw std::runtime_error("unsupported AtomicType to cast to scalar");
+      throw runtime_error("unsupported AtomicType to cast to scalar");
   }
 }
 
@@ -332,8 +330,8 @@ Eigen::MatrixXd Node::log_prob_iid(const graph::NodeValue& value) const {
   return temp; // fine because of move semantics
 }
 
-std::string Graph::to_string() const {
-  std::ostringstream os;
+string Graph::to_string() const {
+  ostringstream os;
   for (auto const& node : nodes) {
     os << "Node " << node->index << " type "
        << static_cast<int>(node->node_type) << " parents [ ";
@@ -344,16 +342,15 @@ std::string Graph::to_string() const {
     for (Node* child : node->out_nodes) {
       os << child->index << " ";
     }
-    os << "] " << node->value.to_string() << std::endl;
+    os << "] " << node->value.to_string() << endl;
   }
   return os.str();
 }
 
-void Graph::eval_and_update_backgrad(
-    const std::vector<Node*>& mutable_support) {
+void Graph::eval_and_update_backgrad(const vector<Node*>& mutable_support) {
   // generator doesn't matter for det nodes
   // TODO: add default generator
-  std::mt19937 generator(12131);
+  mt19937 generator(12131);
   for (auto node : mutable_support) {
     node->reset_backgrad();
     if (!node->is_stochastic()) {
@@ -390,16 +387,16 @@ void Graph::eval_and_grad(
   // TODO: used for testing only, should integrate it with
   // whatever code is actually being used for eval and grad.
   if (src_idx >= static_cast<NodeID>(nodes.size())) {
-    throw std::out_of_range("src_idx " + std::to_string(src_idx));
+    throw out_of_range("src_idx " + std::to_string(src_idx));
   }
   if (tgt_idx >= static_cast<NodeID>(nodes.size()) or tgt_idx <= src_idx) {
-    throw std::out_of_range("tgt_idx " + std::to_string(tgt_idx));
+    throw out_of_range("tgt_idx " + std::to_string(tgt_idx));
   }
   // initialize the gradients of the source node to get the computation started
   Node* src_node = nodes[src_idx].get();
   src_node->grad1 = 1;
   src_node->grad2 = 0;
-  std::mt19937 generator(seed);
+  mt19937 generator(seed);
   for (NodeID node_id = src_idx + 1; node_id <= tgt_idx; node_id++) {
     Node* node = nodes[node_id].get();
     if (node->is_mutable()) {
@@ -421,7 +418,7 @@ void Graph::eval_and_grad(
 
 void Graph::_test_backgrad(
     MutableSupport& mutable_support,
-    std::vector<DoubleMatrix*>& grad1) {
+    vector<DoubleMatrix*>& grad1) {
   for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
     Node* node = nodes[*it].get();
     node->reset_backgrad();
@@ -441,16 +438,16 @@ void Graph::_test_backgrad(
       node->backward();
     }
   }
-  std::reverse(grad1.begin(), grad1.end());
+  reverse(grad1.begin(), grad1.end());
 }
 
-void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
+void Graph::test_grad(vector<DoubleMatrix*>& grad1) {
   auto mutable_support = compute_mutable_support();
   _test_backgrad(mutable_support, grad1);
 }
 
-void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
-  std::mt19937 generator(seed);
+void Graph::eval_and_grad(vector<DoubleMatrix*>& grad1, uint seed) {
+  mt19937 generator(seed);
   auto mutable_support = compute_mutable_support();
   for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
     Node* node = nodes[*it].get();
@@ -477,23 +474,21 @@ void Graph::gradient_log_prob(NodeID src_idx, double& grad1, double& grad2) {
   // be moved to the testing code.
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
-    throw std::runtime_error(
-        "gradient_log_prob only supported on stochastic nodes");
+    throw runtime_error("gradient_log_prob only supported on stochastic nodes");
   }
   src_node->grad1 = 1;
   src_node->grad2 = 0;
 
   auto mutable_support = compute_mutable_support();
-  std::vector<NodeID> det_nodes;
-  std::vector<NodeID> sto_nodes;
-  std::tie(det_nodes, sto_nodes) =
-      compute_affected_nodes(src_idx, mutable_support);
+  vector<NodeID> det_nodes;
+  vector<NodeID> sto_nodes;
+  tie(det_nodes, sto_nodes) = compute_affected_nodes(src_idx, mutable_support);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     // passing generator for signature,
     // but it is irrelevant for deterministic nodes.
     // TODO: can we make signature use a default generator then?
-    std::mt19937 generator(12131);
+    mt19937 generator(12131);
     node->eval(generator);
     node->compute_gradients();
   }
@@ -518,16 +513,15 @@ double Graph::log_prob(NodeID src_idx) {
   // TODO: also used in tests only
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
-    throw std::runtime_error("log_prob only supported on stochastic nodes");
+    throw runtime_error("log_prob only supported on stochastic nodes");
   }
   auto mutable_support = compute_mutable_support();
-  std::vector<NodeID> det_nodes;
-  std::vector<NodeID> sto_nodes;
-  std::tie(det_nodes, sto_nodes) =
-      compute_affected_nodes(src_idx, mutable_support);
+  vector<NodeID> det_nodes;
+  vector<NodeID> sto_nodes;
+  tie(det_nodes, sto_nodes) = compute_affected_nodes(src_idx, mutable_support);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
-    std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+    mt19937 generator(12131); // seed is irrelevant for deterministic ops
     node->eval(generator);
   }
   double log_prob = 0.0;
@@ -541,7 +535,7 @@ double Graph::log_prob(NodeID src_idx) {
 double Graph::full_log_prob() {
   _ensure_evaluation_and_inference_readiness();
   double sum_log_prob = 0.0;
-  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+  mt19937 generator(12131); // seed is irrelevant for deterministic ops
   for (auto node : mutable_support_ptrs()) {
     if (node->is_stochastic()) {
       sum_log_prob += node->log_prob();
@@ -577,16 +571,16 @@ double Graph::full_log_prob() {
 // Note that methods for determining support and affected nodes are in
 // support.cpp, for not a very clear reason.
 
-std::vector<Node*> Graph::convert_parent_ids(
+vector<Node*> Graph::convert_parent_ids(
     // TODO: this does not have to apply to parents only; make it a more general
     // function from ids to nodes.
-    const std::vector<NodeID>& parent_ids) const {
+    const vector<NodeID>& parent_ids) const {
   // check that the parent ids are valid indices and convert them to
   // an array of Node* pointers
-  std::vector<Node*> parent_nodes;
+  vector<Node*> parent_nodes;
   for (NodeID parent_id : parent_ids) {
     if (parent_id >= static_cast<NodeID>(nodes.size())) {
-      throw std::out_of_range(
+      throw out_of_range(
           "parent node_id " + std::to_string(parent_id) + "must be less than " +
           std::to_string(nodes.size()));
     }
@@ -595,23 +589,23 @@ std::vector<Node*> Graph::convert_parent_ids(
   return parent_nodes;
 }
 
-NodeID Graph::add_node(std::unique_ptr<Node> node) {
+NodeID Graph::add_node(unique_ptr<Node> node) {
   NodeID index = static_cast<NodeID>(nodes.size());
   node->index = index;
   for (auto in_node : node->in_nodes) {
     in_node->out_nodes.push_back(node.get());
   }
-  nodes.push_back(std::move(node));
+  nodes.push_back(move(node));
   return index;
 }
 
-std::function<NodeID(NodeID)> Graph::remove_node(NodeID node_id) {
+function<NodeID(NodeID)> Graph::remove_node(NodeID node_id) {
   return remove_node(nodes[node_id]);
 }
 
-std::function<NodeID(NodeID)> Graph::remove_node(std::unique_ptr<Node>& node) {
+function<NodeID(NodeID)> Graph::remove_node(unique_ptr<Node>& node) {
   if (!node->out_nodes.empty()) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "Attempt to remove node with out-nodes. Node id = " +
         std::to_string(node->index));
   }
@@ -619,7 +613,7 @@ std::function<NodeID(NodeID)> Graph::remove_node(std::unique_ptr<Node>& node) {
   auto equal_to_node = [&](Node* node2) { return node2->index == node->index; };
   for (auto& other_node : nodes) {
     if (other_node != node) {
-      std::erase_if(other_node->out_nodes, equal_to_node);
+      erase_if(other_node->out_nodes, equal_to_node);
     }
   }
 
@@ -645,12 +639,12 @@ std::function<NodeID(NodeID)> Graph::remove_node(std::unique_ptr<Node>& node) {
   // nodes with greater ids were shifted down one position:
   auto from_old_to_new_id = [removed_index{node_id}, max_id](NodeID id) {
     if (id == removed_index) {
-      throw std::invalid_argument(
+      throw invalid_argument(
           "Looking up new id for old id after removed graph node "
           "but given id is the one for the removed node");
     }
     if (id > max_id) {
-      throw std::invalid_argument(
+      throw invalid_argument(
           "Looking up new id for old id that is actually greater than maximum old id.");
     }
     return id > removed_index ? id - 1 : id;
@@ -661,7 +655,7 @@ std::function<NodeID(NodeID)> Graph::remove_node(std::unique_ptr<Node>& node) {
 
 void Graph::check_node_id(NodeID node_id) {
   if (node_id >= static_cast<NodeID>(nodes.size())) {
-    throw std::out_of_range(
+    throw out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
         std::to_string(nodes.size()));
   }
@@ -675,7 +669,7 @@ Node* Graph::get_node(NodeID node_id) {
 Node* Graph::check_node(NodeID node_id, NodeType node_type) {
   Node* node = get_node(node_id);
   if (node->node_type != node_type) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "node_id " + std::to_string(node_id) + "expected type " +
         std::to_string(static_cast<int>(node_type)) + " but actual type " +
         std::to_string(static_cast<int>(node->node_type)));
@@ -686,29 +680,27 @@ Node* Graph::check_node(NodeID node_id, NodeType node_type) {
 Node* Graph::check_observed_node(NodeID node_id, bool is_scalar) {
   Node* node = get_node(node_id);
   if (node->node_type != NodeType::OPERATOR) {
-    throw std::invalid_argument(
-        "only SAMPLE and IID_SAMPLE nodes may be observed");
+    throw invalid_argument("only SAMPLE and IID_SAMPLE nodes may be observed");
   }
   oper::Operator* op = static_cast<oper::Operator*>(node);
   if (op->op_type != OperatorType::SAMPLE and
       op->op_type != OperatorType::IID_SAMPLE) {
-    throw std::invalid_argument(
-        "only SAMPLE and IID_SAMPLE nodes may be observed");
+    throw invalid_argument("only SAMPLE and IID_SAMPLE nodes may be observed");
   }
   if (observed.find(node_id) != observed.end()) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "duplicate observe for node_id " + std::to_string(node_id));
   }
 
   if (is_scalar && node->value.type.variable_type != VariableType::SCALAR) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "a matrix-valued sample may not be observed with a single value");
   }
 
   if (!is_scalar &&
       node->value.type.variable_type != VariableType::BROADCAST_MATRIX &&
       node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "a scalar-valued sample may not be observed with a matrix value");
   }
 
@@ -740,27 +732,27 @@ NodeID Graph::add_constant_natural(natural_t value) {
 }
 
 NodeID Graph::add_constant(NodeValue value) {
-  std::unique_ptr<ConstNode> node = std::make_unique<ConstNode>(value);
-  return add_node(std::move(node));
+  unique_ptr<ConstNode> node = make_unique<ConstNode>(value);
+  return add_node(move(node));
 }
 
 NodeID Graph::add_constant_probability(double value) {
   if (value < 0 or value > 1) {
-    throw std::invalid_argument("probability must be between 0 and 1");
+    throw invalid_argument("probability must be between 0 and 1");
   }
   return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
 NodeID Graph::add_constant_pos_real(double value) {
   if (value < 0) {
-    throw std::invalid_argument("pos_real must be >=0");
+    throw invalid_argument("pos_real must be >=0");
   }
   return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
 NodeID Graph::add_constant_neg_real(double value) {
   if (value > 0) {
-    throw std::invalid_argument("neg_real must be <=0");
+    throw invalid_argument("neg_real must be <=0");
   }
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
@@ -779,28 +771,27 @@ NodeID Graph::add_constant_natural_matrix(Eigen::MatrixXn& value) {
 
 NodeID Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
-    throw std::invalid_argument("All elements in pos_matrix must be >=0");
+    throw invalid_argument("All elements in pos_matrix must be >=0");
   }
   return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
 NodeID Graph::add_constant_neg_matrix(Eigen::MatrixXd& value) {
   if ((value.array() > 0).any()) {
-    throw std::invalid_argument("All elements in neg_matrix must be <=0");
+    throw invalid_argument("All elements in neg_matrix must be <=0");
   }
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
 NodeID Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
-    throw std::invalid_argument(
-        "All elements in col_simplex_matrix must be >=0");
+    throw invalid_argument("All elements in col_simplex_matrix must be >=0");
   }
   bool invalid_colsum =
       ((value.colwise().sum().array() - 1.0).abs() > PRECISION * value.rows())
           .any();
   if (invalid_colsum) {
-    throw std::invalid_argument("All cols in col_simplex_matrix must sum to 1");
+    throw invalid_argument("All cols in col_simplex_matrix must sum to 1");
   }
   return add_constant(NodeValue(
       ValueType(
@@ -813,7 +804,7 @@ NodeID Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
 
 NodeID Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any() or (value.array() > 1).any()) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "All elements in probability_matrix must be between 0 and 1");
   }
   return add_constant(NodeValue(AtomicType::PROBABILITY, value));
@@ -822,41 +813,38 @@ NodeID Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
 NodeID Graph::add_distribution(
     DistributionType dist_type,
     AtomicType sample_type,
-    std::vector<NodeID> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+    vector<NodeID> parent_ids) {
+  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   // create a distribution node
-  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+  unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, ValueType(sample_type), parent_nodes);
   // and add the node to the graph
-  return add_node(std::move(node));
+  return add_node(move(node));
 }
 
 NodeID Graph::add_distribution(
     DistributionType dist_type,
     ValueType sample_type,
-    std::vector<NodeID> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+    vector<NodeID> parent_ids) {
+  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   // create a distribution node
-  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+  unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, sample_type, parent_nodes);
   // and add the node to the graph
-  return add_node(std::move(node));
+  return add_node(move(node));
 }
 
-NodeID Graph::add_operator(
-    OperatorType op_type,
-    std::vector<NodeID> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  std::unique_ptr<Node> node =
+NodeID Graph::add_operator(OperatorType op_type, vector<NodeID> parent_ids) {
+  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  unique_ptr<Node> node =
       oper::OperatorFactory::create_op(op_type, parent_nodes);
-  return add_node(std::move(node));
+  return add_node(move(node));
 }
 
-NodeID Graph::add_factor(FactorType fac_type, std::vector<NodeID> parent_ids) {
-  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
-  std::unique_ptr<Node> node =
-      factor::Factor::new_factor(fac_type, parent_nodes);
-  NodeID node_id = add_node(std::move(node));
+NodeID Graph::add_factor(FactorType fac_type, vector<NodeID> parent_ids) {
+  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  unique_ptr<Node> node = factor::Factor::new_factor(fac_type, parent_nodes);
+  NodeID node_id = add_node(move(node));
   // factors are both stochastic nodes and observed nodes
   Node* node2 = check_node(node_id, NodeType::FACTOR);
   node2->is_observed = true;
@@ -881,7 +869,7 @@ void Graph::observe(NodeID node_id, double value) {
       // TODO: Add checks that the observed value is in range.
       break;
     default:
-      throw std::invalid_argument(
+      throw invalid_argument(
           "observe expected " + node->value.type.to_string());
   }
   add_observe(node, NodeValue(node->value.type.atomic_type, value));
@@ -897,8 +885,7 @@ void Graph::observe(NodeID node_id, Eigen::MatrixXd& value) {
   // We know that we have a matrix value; is it the right shape?
   if (value.rows() != node->value.type.rows or
       value.cols() != node->value.type.cols) {
-    throw std::invalid_argument(
-        "observe expected " + node->value.type.to_string());
+    throw invalid_argument("observe expected " + node->value.type.to_string());
   }
   switch (node->value.type.atomic_type) {
     case AtomicType::REAL:
@@ -911,7 +898,7 @@ void Graph::observe(NodeID node_id, Eigen::MatrixXd& value) {
       // TODO: Check that an observed simplex is given a simplex.
       break;
     default:
-      throw std::invalid_argument(
+      throw invalid_argument(
           "observe expected " + node->value.type.to_string());
   }
 
@@ -923,7 +910,7 @@ void Graph::observe(NodeID node_id, Eigen::MatrixXb& value) {
   if (value.rows() != node->value.type.rows or
       value.cols() != node->value.type.cols or
       node->value.type.atomic_type != AtomicType::BOOLEAN) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "observe expected a " + node->value.type.to_string());
   }
   add_observe(node, NodeValue(node->value.type, value));
@@ -935,7 +922,7 @@ void Graph::observe(NodeID node_id, Eigen::MatrixXn& value) {
   if (value.rows() != node->value.type.rows or
       value.cols() != node->value.type.cols or
       node->value.type.atomic_type != AtomicType::NATURAL) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "observe expected a " + node->value.type.to_string());
   }
   add_observe(node, NodeValue(node->value.type, value));
@@ -945,7 +932,7 @@ void Graph::observe(NodeID node_id, NodeValue value) {
   Node* node = check_observed_node(
       node_id, value.type.variable_type == VariableType::SCALAR);
   if (node->value.type != value.type) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "observe expected " + node->value.type.to_string() + " but got " +
         value.type.to_string());
   }
@@ -962,22 +949,21 @@ void Graph::add_observe(Node* node, NodeValue value) {
 
 void Graph::customize_transformation(
     TransformType customized_type,
-    std::vector<NodeID> node_ids) {
+    vector<NodeID> node_ids) {
   if (common_transformations.empty()) {
-    common_transformations[TransformType::LOG] =
-        std::make_unique<transform::Log>();
+    common_transformations[TransformType::LOG] = make_unique<transform::Log>();
     common_transformations[TransformType::SIGMOID] =
-        std::make_unique<transform::Sigmoid>();
+        make_unique<transform::Sigmoid>();
   }
   auto iter = common_transformations.find(customized_type);
   if (iter == common_transformations.end()) {
-    throw std::invalid_argument("Unsupported transformation type.");
+    throw invalid_argument("Unsupported transformation type.");
   }
   Transformation* transform_ptr = common_transformations[customized_type].get();
   for (auto node_id : node_ids) {
     auto node = check_node(node_id, NodeType::OPERATOR);
     if (not node->is_stochastic()) {
-      throw std::invalid_argument(
+      throw invalid_argument(
           "Transformation only applies to Stochastic Operators.");
     }
     auto sto_node = static_cast<oper::StochasticOperator*>(node);
@@ -985,18 +971,17 @@ void Graph::customize_transformation(
     switch (customized_type) {
       case TransformType::LOG:
         if (sto_node->value.type.atomic_type != AtomicType::POS_REAL) {
-          throw std::invalid_argument(
-              "Log transformation requires POS_REAL value.");
+          throw invalid_argument("Log transformation requires POS_REAL value.");
         }
         break;
       case TransformType::SIGMOID:
         if (sto_node->value.type.atomic_type != AtomicType::PROBABILITY) {
-          throw std::invalid_argument(
+          throw invalid_argument(
               "Sigmoid transformation requires PROBABILITY value.");
         }
         break;
       default:
-        throw std::invalid_argument("Unsupported transformation type.");
+        throw invalid_argument("Unsupported transformation type.");
     }
     sto_node->transform = transform_ptr;
     sto_node->transform_type = customized_type;
@@ -1021,7 +1006,7 @@ NodeID Graph::query(NodeID node_id) {
   Node* node = get_node(node_id);
   NodeType t = node->node_type;
   if (t != NodeType::CONSTANT and t != NodeType::OPERATOR) {
-    throw std::invalid_argument(
+    throw invalid_argument(
         "Query of node_id " + std::to_string(node_id) +
         " expected a node of type " +
         std::to_string(static_cast<int>(NodeType::CONSTANT)) + " or " +
@@ -1033,7 +1018,7 @@ NodeID Graph::query(NodeID node_id) {
   //
   // This is a linear search but the vector of queries is almost always
   // very short.
-  auto it = std::find(queries.begin(), queries.end(), node_id);
+  auto it = find(queries.begin(), queries.end(), node_id);
   if (it != queries.end()) {
     return static_cast<NodeID>(it - queries.begin());
   }
@@ -1048,7 +1033,7 @@ void Graph::collect_log_prob(double log_prob) {
   logprob_collector.push_back(log_prob);
 }
 
-std::vector<std::vector<double>>& Graph::get_log_prob() {
+vector<vector<double>>& Graph::get_log_prob() {
   // TODO: clarify the meaning of log_prob_vals and log_prob_allchains
   // so we can check correctness of this method
 
@@ -1065,7 +1050,7 @@ void Graph::collect_sample() {
     auto& sample_collector = (master_graph == nullptr)
         ? this->samples
         : master_graph->samples_allchains[thread_index];
-    std::vector<NodeValue> sample;
+    vector<NodeValue> sample;
     for (NodeID node_id : queries) {
       sample.push_back(nodes[node_id]->value);
     }
@@ -1092,7 +1077,7 @@ void Graph::collect_sample() {
       } else if (value.type == AtomicType::NATURAL) {
         mean_collector[pos] += double(value._natural) / agg_samples;
       } else {
-        throw std::runtime_error(
+        throw runtime_error(
             "Mean aggregation only supported for "
             "boolean/real/probability/natural-valued nodes");
       }
@@ -1109,10 +1094,10 @@ void Graph::_infer(
     uint seed,
     InferConfig infer_config) {
   if (queries.size() == 0) {
-    throw std::runtime_error("no nodes queried for inference");
+    throw runtime_error("no nodes queried for inference");
   }
   if (num_samples < 1) {
-    throw std::runtime_error("num_samples can't be zero");
+    throw runtime_error("num_samples can't be zero");
   }
   if (algorithm == InferenceType::REJECTION) {
     rejection(num_samples, seed, infer_config);
@@ -1123,11 +1108,11 @@ void Graph::_infer(
   } else if (algorithm == InferenceType::NUTS) {
     nuts(num_samples, seed, infer_config);
   } else {
-    throw std::invalid_argument("unsupported inference algorithm.");
+    throw invalid_argument("unsupported inference algorithm.");
   }
 }
 
-std::vector<std::vector<NodeValue>>&
+vector<vector<NodeValue>>&
 Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   InferConfig infer_config = InferConfig();
   // TODO: why don't the initialization below to be done for _infer?
@@ -1143,7 +1128,7 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   return samples;
 }
 
-std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
+vector<vector<vector<NodeValue>>>& Graph::infer(
     uint num_samples,
     InferenceType algorithm,
     uint seed,
@@ -1152,10 +1137,10 @@ std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
   agg_type = AggregationType::NONE;
   samples.clear();
   samples_allchains.clear();
-  samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
+  samples_allchains.resize(n_chains, vector<vector<NodeValue>>());
   log_prob_vals.clear();
   log_prob_allchains.clear();
-  log_prob_allchains.resize(n_chains, std::vector<double>());
+  log_prob_allchains.resize(n_chains, vector<double>());
   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
   _produce_performance_report(num_samples, algorithm, seed);
   return samples_allchains;
@@ -1168,13 +1153,13 @@ void Graph::_infer_parallel(
     uint n_chains,
     InferConfig infer_config) {
   if (n_chains < 1) {
-    throw std::runtime_error("n_chains can't be zero");
+    throw runtime_error("n_chains can't be zero");
   }
   master_graph = this;
   thread_index = 0;
   // clone graphs
-  std::vector<Graph*> graph_copies;
-  std::vector<uint> seedvec;
+  vector<Graph*> graph_copies;
+  vector<uint> seedvec;
   for (uint i = 0; i < n_chains; i++) {
     if (i > 0) {
       Graph* g_ptr = new Graph(*this);
@@ -1188,24 +1173,24 @@ void Graph::_infer_parallel(
   assert(graph_copies.size() == n_chains);
   assert(seedvec.size() == n_chains);
   // start threads
-  std::vector<std::thread> threads;
-  std::exception_ptr e = nullptr;
+  vector<thread> threads;
+  exception_ptr e = nullptr;
   for (uint i = 0; i < n_chains; i++) {
-    std::thread infer_thread([&e,
-                              &graph_copies,
-                              i,
-                              num_samples,
-                              algorithm,
-                              &seedvec,
-                              infer_config]() {
+    thread infer_thread([&e,
+                         &graph_copies,
+                         i,
+                         num_samples,
+                         algorithm,
+                         &seedvec,
+                         infer_config]() {
       try {
         graph_copies[i]->_infer(
             num_samples, algorithm, seedvec[i], infer_config);
       } catch (...) {
-        e = std::current_exception();
+        e = current_exception();
       }
     });
-    threads.push_back(std::move(infer_thread));
+    threads.push_back(move(infer_thread));
   }
   assert(threads.size() == n_chains);
   // join threads
@@ -1219,11 +1204,11 @@ void Graph::_infer_parallel(
   threads.clear();
   master_graph = nullptr;
   if (e != nullptr) {
-    std::rethrow_exception(e);
+    rethrow_exception(e);
   }
 }
 
-std::vector<double>&
+vector<double>&
 Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   InferConfig infer_config = InferConfig();
   agg_type = AggregationType::MEAN;
@@ -1236,7 +1221,7 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   return means;
 }
 
-std::vector<std::vector<double>>& Graph::infer_mean(
+vector<vector<double>>& Graph::infer_mean(
     uint num_samples,
     InferenceType algorithm,
     uint seed,
@@ -1247,39 +1232,38 @@ std::vector<std::vector<double>>& Graph::infer_mean(
   means.clear();
   means.resize(queries.size(), 0.0);
   means_allchains.clear();
-  means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
+  means_allchains.resize(n_chains, vector<double>(queries.size(), 0.0));
   log_prob_vals.clear();
   log_prob_allchains.clear();
   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
   return means_allchains;
 }
 
-std::vector<std::vector<double>>& Graph::variational(
+vector<vector<double>>& Graph::variational(
     uint num_iters,
     uint steps_per_iter,
     uint seed,
     uint elbo_samples) {
   if (queries.size() == 0) {
-    throw std::runtime_error("no nodes queried for inference");
+    throw runtime_error("no nodes queried for inference");
   }
   for (NodeID node_id : queries) {
     Node* node = nodes[node_id].get();
     if (not node->is_stochastic()) {
-      throw std::invalid_argument(
+      throw invalid_argument(
           "only sample nodes may be queried in "
           "variational inference");
     }
   }
   elbo_vals.clear();
-  std::mt19937 generator(seed);
+  mt19937 generator(seed);
   cavi(num_iters, steps_per_iter, generator, elbo_samples);
   return variational_params; // TODO: this should have been defined as a
                              // field, but a value returned by cavi.
 }
 
-std::vector<NodeID> Graph::get_parent_ids(
-    const std::vector<Node*>& parent_nodes) const {
-  std::vector<NodeID> parent_ids;
+vector<NodeID> Graph::get_parent_ids(const vector<Node*>& parent_nodes) const {
+  vector<NodeID> parent_ids;
   for (auto node : parent_nodes) {
     parent_ids.push_back(node->index);
   }
@@ -1307,7 +1291,7 @@ Graph& Graph::operator=(const Graph& other) {
   // (if available) from the source graph.
   for (NodeID i = 0; i < static_cast<NodeID>(other.nodes.size()); i++) {
     Node* node = other.nodes[i].get();
-    std::vector<NodeID> parent_ids = get_parent_ids(node->in_nodes);
+    vector<NodeID> parent_ids = get_parent_ids(node->in_nodes);
     switch (node->node_type) {
       case NodeType::CONSTANT: {
         NodeValue value_copy = NodeValue(node->value);
@@ -1332,7 +1316,7 @@ Graph& Graph::operator=(const Graph& other) {
         break;
       }
       default: {
-        throw std::invalid_argument("Trying to copy a node of unknown type.");
+        throw invalid_argument("Trying to copy a node of unknown type.");
       }
     }
   }
@@ -1381,10 +1365,9 @@ void Graph::_collect_support() {
     _mutable_support_ptrs.push_back(_node_ptrs[node_id]);
   }
 
-  unobserved_mutable_support_index_by_node_id =
-      std::vector<size_t>(nodes.size(), 0);
+  unobserved_mutable_support_index_by_node_id = vector<size_t>(nodes.size(), 0);
   unobserved_sto_mutable_support_index_by_node_id =
-      std::vector<size_t>(nodes.size(), 0);
+      vector<size_t>(nodes.size(), 0);
 
   for (auto node : _mutable_support_ptrs) {
     NodeID node_id = node->index;
@@ -1415,7 +1398,7 @@ void Graph::_collect_affected_operator_nodes() {
     auto det_nodes = util::make_reserved_vector<Node*>(nodes.size());
     auto sto_nodes = util::make_reserved_vector<Node*>(nodes.size());
 
-    std::tie(det_node_ids, sto_node_ids) =
+    tie(det_node_ids, sto_node_ids) =
         compute_affected_nodes(node->index, _mutable_support);
     for (NodeID id : det_node_ids) {
       det_nodes.push_back(_node_ptrs[id]);
@@ -1432,13 +1415,12 @@ void Graph::_collect_affected_operator_nodes() {
   }
 }
 
-const std::vector<Node*>& Graph::get_det_affected_operator_nodes(
-    NodeID node_id) {
+const vector<Node*>& Graph::get_det_affected_operator_nodes(NodeID node_id) {
   return det_affected_operator_nodes()
       [unobserved_sto_mutable_support_index_by_node_id[node_id]];
 }
 
-const std::vector<Node*>& Graph::get_sto_affected_nodes(NodeID node_id) {
+const vector<Node*>& Graph::get_sto_affected_nodes(NodeID node_id) {
   return sto_affected_nodes()
       [unobserved_sto_mutable_support_index_by_node_id[node_id]];
 }
@@ -1462,7 +1444,7 @@ void Graph::save_old_value(const Node* node) {
   _old_values[node->index] = node->value;
 }
 
-void Graph::save_old_values(const std::vector<Node*>& nodes) {
+void Graph::save_old_values(const vector<Node*>& nodes) {
   pd_begin(ProfilerEvent::NMC_SAVE_OLD);
   _ensure_old_values_has_the_right_size();
   for (Node* node : nodes) {
@@ -1481,7 +1463,7 @@ void Graph::restore_old_value(Node* node) {
   node->value = _old_values[node->index];
 }
 
-void Graph::restore_old_values(const std::vector<Node*>& det_nodes) {
+void Graph::restore_old_values(const vector<Node*>& det_nodes) {
   pd_begin(ProfilerEvent::NMC_RESTORE_OLD);
   _check_old_values_are_valid();
   for (Node* node : det_nodes) {
@@ -1490,7 +1472,7 @@ void Graph::restore_old_values(const std::vector<Node*>& det_nodes) {
   pd_finish(ProfilerEvent::NMC_RESTORE_OLD);
 }
 
-void Graph::compute_gradients(const std::vector<Node*>& det_nodes) {
+void Graph::compute_gradients(const vector<Node*>& det_nodes) {
   pd_begin(ProfilerEvent::NMC_COMPUTE_GRADS);
   for (Node* node : det_nodes) {
     node->compute_gradients();
@@ -1498,9 +1480,9 @@ void Graph::compute_gradients(const std::vector<Node*>& det_nodes) {
   pd_finish(ProfilerEvent::NMC_COMPUTE_GRADS);
 }
 
-void Graph::eval(const std::vector<Node*>& det_nodes) {
+void Graph::eval(const vector<Node*>& det_nodes) {
   pd_begin(ProfilerEvent::NMC_EVAL);
-  std::mt19937 gen(12131); // seed doesn't matter
+  mt19937 gen(12131); // seed doesn't matter
   // because operators are deterministic - TODO: clean it
   for (Node* node : det_nodes) {
     node->eval(gen);
@@ -1525,13 +1507,13 @@ void Graph::clear_gradients(Node* node) {
       break;
     }
     default:
-      throw std::runtime_error(
+      throw runtime_error(
           "clear_gradients invoked for nodes of an unsupported variable type " +
           std::to_string(int(node->value.type.variable_type)));
   }
 }
 
-void Graph::clear_gradients(const std::vector<Node*>& nodes) {
+void Graph::clear_gradients(const vector<Node*>& nodes) {
   pd_begin(ProfilerEvent::NMC_CLEAR_GRADS);
   for (Node* node : nodes) {
     clear_gradients(node);
@@ -1547,7 +1529,7 @@ void Graph::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
 
 // Computes the log probability with respect to a given
 // set of stochastic nodes.
-double Graph::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
+double Graph::compute_log_prob_of(const vector<Node*>& sto_nodes) {
   double log_prob = 0;
   for (Node* node : sto_nodes) {
     log_prob += node->log_prob();
@@ -1584,7 +1566,7 @@ bool are_equal(const Node& node1, const Node& node2) {
         node1.in_nodes == node2.in_nodes;
   }
 
-  throw std::invalid_argument(
+  throw invalid_argument(
       "are_equal(const Node& node1, const Node& node2): node1 is not instance of any supported subclass");
 }
 
