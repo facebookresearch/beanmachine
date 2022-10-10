@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include "beanmachine/minibmg/fluent_factory.h"
 #include "beanmachine/minibmg/graph.h"
-#include "beanmachine/minibmg/observations_by_node.h"
+#include "beanmachine/minibmg/graph_properties/observations_by_node.h"
 
 using namespace ::testing;
 using namespace beanmachine::minibmg;

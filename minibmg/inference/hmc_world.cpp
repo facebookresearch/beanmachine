@@ -14,8 +14,8 @@
 #include "beanmachine/minibmg/distribution/distribution.h"
 #include "beanmachine/minibmg/eval.h"
 #include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/graph_properties/observations_by_node.h"
 #include "beanmachine/minibmg/node.h"
-#include "beanmachine/minibmg/observations_by_node.h"
 #include "beanmachine/minibmg/operator.h"
 
 namespace {

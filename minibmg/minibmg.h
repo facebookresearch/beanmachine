@@ -8,6 +8,7 @@
 #pragma once
 
 #include "beanmachine/minibmg/factory.h"
+#include "beanmachine/minibmg/fluent_factory.h"
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/node.h"
 #include "beanmachine/minibmg/operator.h"

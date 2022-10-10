@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/container.h"
+#include "beanmachine/minibmg/graph_properties/container.h"
 
 namespace beanmachine::minibmg {
 
