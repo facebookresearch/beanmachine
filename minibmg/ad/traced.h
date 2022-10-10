@@ -12,6 +12,7 @@
 #include <vector>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
+#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
@@ -71,6 +72,19 @@ bool is_constant(const Traced& x, const double& value);
 std::string to_string(const Traced& x);
 
 static_assert(Number<Traced>);
+
+template <>
+class DedupHelper<Traced> {
+ public:
+  std::vector<Nodep> find_roots(const Traced& t) const {
+    return {t.node};
+  }
+  Traced rewrite(const Traced& t, const std::unordered_map<Nodep, Nodep>& map)
+      const {
+    const auto& f = map.find(t.node);
+    return (f == map.end()) ? t : Traced(f->second);
+  }
+};
 
 } // namespace beanmachine::minibmg
 

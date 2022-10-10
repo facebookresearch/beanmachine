@@ -186,4 +186,21 @@ requires Number<T> EvalResult<T> eval_graph(
   return {log_prob, queries};
 }
 
+template <class Underlying>
+requires Number<Underlying>
+class DedupHelper<EvalResult<Underlying>> {
+  DedupHelper<Underlying> helper{};
+
+ public:
+  std::vector<Nodep> find_roots(const EvalResult<Underlying>& e) const {
+    return helper.find_roots(e.log_prob);
+  }
+  EvalResult<Underlying> rewrite(
+      const EvalResult<Underlying>& e,
+      const std::unordered_map<Nodep, Nodep>& map) const {
+    auto new_log_prob = helper.rewrite(e.log_prob, map);
+    return {new_log_prob, e.queries};
+  }
+};
+
 } // namespace beanmachine::minibmg
