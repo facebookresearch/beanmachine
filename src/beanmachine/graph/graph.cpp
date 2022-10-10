@@ -1570,5 +1570,33 @@ bool are_equal(const Node& node1, const Node& node2) {
       "are_equal(const Node& node1, const Node& node2): node1 is not instance of any supported subclass");
 }
 
+void duplicate_subgraph(
+    Graph& graph,
+    const vector<Node*>& subgraph_ordered_nodes) {
+  auto clone_of = std::map<const Node*, Node*>();
+  for (Node* subgraph_node : subgraph_ordered_nodes) {
+    auto clone = subgraph_node->clone();
+    for (auto i : range(clone->in_nodes.size())) {
+      auto original_and_clone = clone_of.find(clone->in_nodes[i]);
+      if (original_and_clone != clone_of.end()) {
+        clone->in_nodes[i] = original_and_clone->second;
+      }
+    }
+    clone_of[subgraph_node] = clone.get();
+    graph.add_node(std::move(clone));
+  }
+}
+
+vector<Node*> from_id_to_ptr(
+    const Graph& graph,
+    const vector<NodeID>& node_ids) {
+  vector<Node*> result;
+  for (auto node_id : node_ids) {
+    assert(graph.nodes.size() >= node_id);
+    result.push_back(graph.nodes[node_id].get());
+  }
+  return result;
+}
+
 } // namespace graph
 } // namespace beanmachine
