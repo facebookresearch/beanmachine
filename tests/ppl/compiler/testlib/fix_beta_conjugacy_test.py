@@ -11,12 +11,13 @@ import random
 import pytest
 import scipy
 import torch
-from beanmachine.ppl.compiler.testlib.conjugate_models import (
+from beanmachine.ppl.inference.bmg_inference import BMGInference
+
+from .conjugate_models import (
     BetaBernoulliBasicModel,
     BetaBernoulliOpsModel,
     BetaBernoulliScaleHyperParameters,
 )
-from beanmachine.ppl.inference.bmg_inference import BMGInference
 
 
 _alpha = 2.0

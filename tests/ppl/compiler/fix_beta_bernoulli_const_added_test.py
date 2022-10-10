@@ -9,11 +9,10 @@
 
 import unittest
 
-from beanmachine.ppl.compiler.testlib.conjugate_models import (
-    BetaBernoulliScaleHyperParameters,
-)
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
+
+from .testlib.conjugate_models import BetaBernoulliScaleHyperParameters
 
 
 class BetaBernoulliWithScaledHPConjugateTest(unittest.TestCase):
