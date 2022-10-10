@@ -1,14 +1,6 @@
 beanmachine.ppl.compiler package
 ================================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   beanmachine.ppl.compiler.testlib
-
 Submodules
 ----------
 
