@@ -9,11 +9,12 @@ import shutil
 import uuid
 from os import PathLike
 from pathlib import Path
-from typing import Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import mdformat  # @manual=fbsource//third-party/pypi/mdformat:mdformat
 import nbformat
 import pandas as pd
+from lxml import etree
 from nbformat.notebooknode import NotebookNode
 
 try:
@@ -30,439 +31,90 @@ OVERVIEW_DIR = DOCS_DIR.joinpath("overview")
 TUTORIALS_DIR = OVERVIEW_DIR.joinpath("tutorials")
 
 
-def load_nbs_to_convert() -> Dict[str, Dict[str, str]]:
-    """Load the metadata and list of notebooks to convert to mdx.
+def load_nb_metadata() -> Dict[str, Dict[str, str]]:
+    """
+    Load the metadata and list of notebooks that are to be converted to MDX.
 
     Args:
         None
 
     Returns:
         Dict[str, Dict[str, str]]: A dictionary of metadata needed to convert notebooks
-        to mdx.
-
+            to MDX. Only those notebooks that are listed in the `tutorials.json` file
+            will be included in the Docusaurus MDX output.
     """
     tutorials_json_path = WEBSITE_DIR.joinpath("tutorials.json")
     with open(str(tutorials_json_path), "r") as f:
         tutorials_data = json.load(f)
-
     return tutorials_data
 
 
-def load_notebook(path: Union[PathLike, str]) -> NotebookNode:
-    """Load the given notebook into memory.
+def load_notebook(path: PathLike) -> NotebookNode:
+    """
+    Load the given notebook into memory.
 
     Args:
-        path (Union[PathLike, str]): Path to the notebook.
+        path (PathLike): Path to the Jupyter notebook.
 
     Returns:
-        NotebookNode: `nbformat` object.
-
+        NotebookNode: `nbformat` object, which contains all the notebook cells in it.
     """
     if isinstance(path, PathLike):
         path = str(path)
     with open(path, "r") as f:
         nb_str = f.read()
         nb = nbformat.reads(nb_str, nbformat.NO_CONVERT)
-
     return nb
 
 
-def transform_markdown_cell(
-    cell: NotebookNode,
-    img_folder: Union[PathLike, str],
-) -> str:
-    """Transform the given Jupyter markdown cell.
+def create_folders(path: PathLike) -> Tuple[str, PathLike]:
+    """
+    Create asset folders for the tutorial.
 
     Args:
-        cell (NotebookNode): Jupyter markdown cell object.
-        img_folder (Union[PathLike, str]): Image folder path.
+        path (PathLike): Path to the Jupyter notebook.
 
     Returns:
-        str: Transformed markdown object suitable for inclusion in mdx files.
-
+        Tuple[str, PathLike]: Returns a tuple with the filename to use for the MDX file
+            and the path for the MDX assets folder.
     """
-    img_folder = Path(img_folder)
-    cell_source = cell["source"]
-
-    # Check if the cell is displaying an image.
-    if cell_source[0] == "!":
-        # Change the path to always be `assets/img/...`
-        start = cell_source.find("(") + 1
-        stop = cell_source.find(")")
-        old_img_path = (LIB_DIR / "tutorials" / Path(cell_source[start:stop])).resolve()
-        name = old_img_path.name
-        img_path_str = f"assets/img/{name}"
-        cell_source = cell_source[:start] + img_path_str + cell_source[stop:]
-        # Copy the image to the folder where the markdown can access it.
-        new_img_path = str(img_folder.joinpath(name))
-        shutil.copy(str(old_img_path), new_img_path)
-
-    # Wrap lines using black's default of 88 characters.
-    new_cell_source = mdformat.text(
-        cell_source,
-        options={"wrap": 88},
-        extensions={"myst"},
-    )
-
-    # We will attempt to handle inline style attributes written in HTML by converting
-    # them to something React can consume.
-    token = "style="
-    pattern = re.compile(f'{token}"([^"]*)"')
-    found_patterns = re.findall(pattern, new_cell_source)
-    for found_pattern in found_patterns:
-        react_style_string = json.dumps(
-            dict(
-                [
-                    [t.strip() for t in token.strip().split(":")]
-                    for token in found_pattern.split(";")
-                    if token
-                ]
-            )
-        )
-        react_style_string = f"{{{react_style_string}}}"
-        new_cell_source = new_cell_source.replace(found_pattern, react_style_string)
-        new_cell_source = new_cell_source.replace('"{{', "{{").replace('}}"', "}}")
-    return f"{new_cell_source}\n\n"
-
-
-def transform_code_cell(  # noqa: C901 (flake8 too complex)
-    cell: NotebookNode,
-    plot_data_folder: Union[PathLike, str],
-    filename: Union[PathLike, str],
-) -> Dict[str, Union[str, bool]]:
-    """Transform the given Jupyter code cell.
-
-    Args:
-        cell (NotebookNode): Jupyter code cell object.
-        plot_data_folder (Union[PathLike, str]): Path to the `plot_data` folder for the
-            tutorial.
-        filename (str): File name to use for the mdx and jsx output.
-
-    Returns:
-        Tuple[str, str]: First object is for mdx inclusion, and the second is for jsx if
-        a bokeh plot was found.
-
-    """
-    plot_data_folder = Path(plot_data_folder).resolve()
-    # Data display priority.
-    priorities = [
-        "text/markdown",
-        "application/javascript",
-        "image/png",
-        "image/jpeg",
-        "image/svg+xml",
-        "image/gif",
-        "image/bmp",
-        "text/latex",
-        "text/html",
-        "application/vnd.jupyter.widget-view+json",  # tqdm progress bars
-        "text/plain",
-    ]
-
-    bokeh_flag = False
-    plotly_flag = False
-
-    mdx_output = ""
-    jsx_output = ""
-    link_btn = "../../../../website/src/components/LinkButtons.jsx"
-    cell_out = "../../../../website/src/components/CellOutput.jsx"
-    plot_out = "../../../../website/src/components/Plotting.jsx"
-    components_output = f'import LinkButtons from "{link_btn}";\n'
-    components_output += f'import CellOutput from "{cell_out}";\n'
-
-    # Handle cell input.
-    cell_source = cell.get("source", "")
-    mdx_output += f"```python\n{cell_source}\n```\n\n"
-
-    # Handle cell outputs.
-    cell_outputs = cell.get("outputs", [])
-    if cell_outputs:
-        # Create a list of all the data types in the outputs of the cell. These values
-        # are similar to the ones in the priorities variable.
-        cell_output_dtypes = [
-            list(cell_output.get("data", {}).keys()) for cell_output in cell_outputs
-        ]
-
-        # Order the output of the cell's data types using the priorities list.
-        ordered_cell_output_dtypes = [
-            sorted(
-                set(dtypes).intersection(set(priorities)),
-                key=lambda dtype: priorities.index(dtype),
-            )
-            for dtypes in cell_output_dtypes
-        ]
-
-        # Create a list of the cell output types. We will handle each one differently
-        # for inclusion in the mdx string. Types include:
-        # - "display_data"
-        # - "execute_result"
-        # - "stream"
-        # - "error"
-        cell_output_types = [cell_output["output_type"] for cell_output in cell_outputs]
-
-        # We handle bokeh and plotly figures differently, so check to see if the output
-        # contains on of these plot types.
-        if "plotly" in str(cell_output_dtypes):
-            plotly_flag = True
-        if "bokeh" in str(cell_output_dtypes):
-            bokeh_flag = True
-
-        # Cycle through the cell outputs and transform them for inclusion in the mdx
-        # string.
-        display_data_outputs = []
-        for i, cell_output in enumerate(cell_outputs):
-            data_object = (
-                ordered_cell_output_dtypes[i][0]
-                if ordered_cell_output_dtypes[i]
-                # Handle "stream" cell output type.
-                else "text/plain"
-            )
-            data_category, data_type = data_object.split("/")
-            cell_output_data = cell_output.get("data", {}).get(data_object, "")
-            cell_output_type = cell_output_types[i]
-
-            # Handle "display_data".
-            if cell_output_type == "display_data":
-                if not bokeh_flag and not plotly_flag:
-                    # Handle binary images.
-                    if data_category == "image":
-                        if data_type in ["png", "jpeg", "gif", "bmp"]:
-                            mdx_output += (
-                                f"![](data:{data_object};base64,{cell_output_data})\n\n"
-                            )
-                    # TODO: Handle svg images.
-
-                    # Handle tqdm progress bars.
-                    if data_type == "vnd.jupyter.widget-view+json":
-                        cell_output_data = cell_output["data"]["text/plain"]
-                        display_data_outputs.append(cell_output_data)
-
-                # Handle plotly images.
-                if plotly_flag:
-                    components_output += f'import {{PlotlyFigure}} from "{plot_out}";\n'
-                    cell_output_data = cell_output["data"]
-                    for key, value in cell_output_data.items():
-                        if key == "application/vnd.plotly.v1+json":
-                            # Save the plotly JSON data.
-                            file_name = "PlotlyFigure" + str(uuid.uuid4())
-                            file_path = str(
-                                plot_data_folder.joinpath(f"{file_name}.json")
-                            )
-                            with open(file_path, "w") as f:
-                                json.dump(value, f, indent=2)
-
-                            # Add the Plotly figure to the MDX output.
-                            path_to_data = f"./assets/plot_data/{file_name}.json"
-                            mdx_output += (
-                                f"<PlotlyFigure data={{require('{path_to_data}')}} "
-                                "/>\n\n"
-                            )
-
-                # Handle bokeh images.
-                if bokeh_flag:
-                    components_output += f'import {{BokehFigure}} from "{plot_out}";\n'
-                    # Ignore any HTML data objects. The bokeh object we want is a
-                    # `application/javascript` object. We will also ignore the first
-                    # bokeh output, which is an image indicating that bokeh is loading.
-                    bokeh_ignore = (
-                        data_object == "text/html"
-                        or "HTML_MIME_TYPE" in cell_output_data
-                    )
-                    if bokeh_ignore:
-                        continue
-                    if data_object == "application/javascript":
-                        # Parse the cell source to create a name for the component. This
-                        # will be used as the id for the div as well as it being added
-                        # to the JSON data.
-                        plot_name = cell_source.split("\n")[-1]
-                        token = "show("
-                        plot_name = plot_name[plot_name.find(token) + len(token) : -1]
-                        div_name = plot_name.replace("_", "-")
-                        # Parse the javascript for the bokeh JSON data.
-                        flag = "const docs_json = "
-                        json_string = list(
-                            filter(
-                                lambda line: line.startswith(flag),
-                                [
-                                    line.strip()
-                                    for line in cell_output_data.splitlines()
-                                ],
-                            )
-                        )[0]
-                        # Ignore the const definition and the ending ; from the line.
-                        json_string = json_string[len(flag) : -1]
-                        json_data = json.loads(json_string)
-                        # The js from bokeh in the notebook is nested in a single key,
-                        # hence the reason why we do this.
-                        json_data = json_data[list(json_data.keys())[0]]
-                        js = {}
-                        js["target_id"] = div_name
-                        js["root_id"] = json_data["roots"]["root_ids"][0]
-                        js["doc"] = {
-                            "defs": json_data["defs"],
-                            "roots": json_data["roots"],
-                            "title": json_data["title"],
-                            "version": json_data["version"],
-                        }
-                        js["version"] = json_data["version"]
-                        # Save the bokeh JSON data.
-                        file_path = str(plot_data_folder.joinpath(f"{div_name}.json"))
-                        with open(file_path, "w") as f:
-                            json.dump(js, f, indent=2)
-
-                            # Add the Bokeh figure to the MDX output.
-                        path_to_data = f"./assets/plot_data/{div_name}.json"
-                        mdx_output += (
-                            f"<BokehFigure data={{require('{path_to_data}')}} />\n\n"
-                        )
-
-            # Handle "execute_result".
-            if cell_output_type == "execute_result":
-                # Handle binary images.
-                if data_category == "image":
-                    if data_type in ["png", "jpeg", "gif", "bmp"]:
-                        mdx_output += (
-                            f"![](data:{data_object};base64,{cell_output_data})\n\n"
-                        )
-                    # TODO: Handle svg images.
-
-                if data_category == "text":
-                    # Handle HTML.
-                    if data_type == "html":
-                        # Handle pandas DataFrames. There is a scoped style tag in the
-                        # DataFrame output that uses the class name `dataframe` to style
-                        # the output. We will use this token to determine if a pandas
-                        # DataFrame is being displayed.
-                        if "dataframe" in cell_output_data:
-                            df = pd.read_html(cell_output_data, flavor="lxml")
-                            # NOTE: The return is a list of dataframes and we only care
-                            #       about the first one.
-                            md_df = df[0]
-                            for column in md_df.columns:
-                                if column.startswith("Unnamed"):
-                                    md_df.rename(columns={column: ""}, inplace=True)
-                            # Remove the index if it is just a range, and output to
-                            # markdown.
-                            md = ""
-                            if isinstance(md_df.index, pd.RangeIndex):
-                                md = md_df.to_markdown(showindex=False)
-                            elif not isinstance(md_df.index, pd.RangeIndex):
-                                md = md_df.to_markdown()
-                            mdx_output += f"\n{md}\n\n"
-
-                    # Handle plain text.
-                    if data_type == "plain":
-                        cell_output_data = "\n".join(
-                            [line for line in cell_output_data.splitlines() if line]
-                        )
-                        display_data_outputs.append(cell_output_data)
-                    # Handle markdown.
-                    if data_type == "markdown":
-                        mdx_output += f"{cell_output_data}\n\n"
-
-            # Handle "stream".
-            if cell_output_type == "stream":
-                # Ignore if the output is an error.
-                if cell_output["name"] == "stderr":
-                    continue
-                cell_output_data = cell_output.get("text", None)
-                if cell_output_data is not None:
-                    cell_output_data = "\n".join(
-                        [line for line in cell_output_data.splitlines() if line]
-                    )
-                    display_data_outputs.append(cell_output_data)
-
-        if display_data_outputs:
-            cell_output_data = "\n".join(display_data_outputs)
-            mdx_output += f"<CellOutput>\n{{`{cell_output_data}`}}\n</CellOutput>\n\n"
-
-    return {
-        "mdx": mdx_output,
-        "jsx": jsx_output,
-        "components": components_output,
-        "bokeh": bokeh_flag,
-        "plotly": plotly_flag,
-    }
-
-
-def find_frontmatter_ending(mdx: str, stop_looking_after: int = 10) -> int:
-    """Find the line number where the mdx frontmatter ends.
-
-    Args:
-        mdx (str): String representation of the mdx file.
-        stop_looking_after (int): Optional, default is 10. Number of lines to stop
-        looking for the end of the frontmatter.
-
-    Returns:
-        int: The next line where the frontmatter ending is found.
-
-    Raises:
-        IndexError: No markdown frontmatter was found.
-
-    """
-    indices = []
-    still_looking = 0
-    lines = mdx.splitlines()
-    for i, line in enumerate(lines):
-        still_looking += 1
-        if still_looking >= stop_looking_after:
-            break
-        if line == "---":
-            indices.append(i)
-            still_looking = 0
-        if i == len(line) - 1:
-            break
-
-    if not indices:
-        msg = "No markdown frontmatter found in the tutorial."
-        raise IndexError(msg)
-
-    return max(indices) + 1
-
-
-def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
-    """Transform the given Jupyter notebook into strings suitable for mdx and jsx files.
-
-    Args:
-        path (Union[str, PathLike]): Path to the Jupyter notebook.
-
-    Returns:
-        Tuple[str, str]: mdx string, jsx string
-
-    """
-    # Ensure the given path is a pathlib.PosixPath object.
-    path = Path(path).resolve()
-
-    # Load all metadata for notebooks that should be included in the documentation.
-    nb_metadata = load_nbs_to_convert()
-
-    # Create the assets folder for the given tutorial.
     tutorial_folder_name = path.stem
     filename = "".join([token.title() for token in tutorial_folder_name.split("_")])
     tutorial_folder = TUTORIALS_DIR.joinpath(tutorial_folder_name)
-    assets_folder = tutorial_folder.joinpath("assets")
-    img_folder = assets_folder.joinpath("img")
-    plot_data_folder = assets_folder.joinpath("plot_data")
+    assets_folder = tutorial_folder / "assets"
+    img_folder = assets_folder / "img"
+    plot_data_folder = assets_folder / "plot_data"
     if not tutorial_folder.exists():
         tutorial_folder.mkdir(parents=True, exist_ok=True)
     if not img_folder.exists():
         img_folder.mkdir(parents=True, exist_ok=True)
     if not plot_data_folder.exists():
         plot_data_folder.mkdir(parents=True, exist_ok=True)
+    return filename, assets_folder
 
-    # Load the notebook.
-    nb = load_notebook(path)
 
-    # Begin to build the mdx string.
-    mdx = ""
-    # Add the frontmatter to the mdx string. This is the part between the `---` lines
+def create_frontmatter(path: PathLike, nb_metadata: Dict[str, str]) -> str:
+    """
+    Create frontmatter for the resulting MDX file.
+
+    The frontmatter is the data between the `---` lines in an MDX file.
+
+    Args:
+        path (PathLike): Path to the Jupyter notebook.
+        nb_metadata (Dict[str, str]): The metadata associated with the given notebook.
+            Metadata is defined in the `tutorials.json` file.
+
+    Returns:
+        str: MDX formatted frontmatter.
+    """
+    # Add the frontmatter to the MDX string. This is the part between the `---` lines
     # that define the tutorial sidebar_label information.
     frontmatter = "\n".join(
         ["---"]
         + [
             f"{key}: {value}"
             for key, value in nb_metadata.get(
-                tutorial_folder_name,
+                path.stem,
                 {
                     "title": "",
                     "sidebar_label": "",
@@ -475,81 +127,683 @@ def transform_notebook(path: Union[str, PathLike]) -> Tuple[str, str]:
         ]
         + ["---"]
     )
-    frontmatter_line = len(frontmatter.splitlines())
-    mdx += f"{frontmatter}\n"
+    mdx = mdformat.text(frontmatter, options={"wrap": 88}, extensions={"myst"})
+    return f"{mdx}\n"
 
-    # Create the JSX and components strings.
-    jsx = ""
-    components = set()
 
-    # Cycle through each cell in the notebook.
-    bokeh_flags = []
-    plotly_flags = []
+def create_imports() -> str:
+    """
+    Create the imports needed for displaying buttons, and interactive plots in MDX.
+
+    Returns:
+        str: MDX formatted imports.
+    """
+    link_btn = "../../../../website/src/components/LinkButtons.jsx"
+    cell_out = "../../../../website/src/components/CellOutput.jsx"
+    plot_out = "../../../../website/src/components/Plotting.jsx"
+    imports = f'import LinkButtons from "{link_btn}";\n'
+    imports += f'import CellOutput from "{cell_out}";\n'
+    imports += f'import {{BokehFigure, PlotlyFigure}} from "{plot_out}";\n'
+    return f"{imports}\n"
+
+
+def create_buttons(nb_metadata: Dict[str, str], tutorial_folder_name: str) -> str:
+    """
+    Create buttons that link to Colab and GitHub for the tutorial.
+
+    Args:
+        nb_metadata (Dict[str, str]): Metadata for the tutorial.
+        tutorial_folder_name (str): The name of the tutorial folder where the MDX
+            converted files exist. This is typically just the name of the Jupyter
+            notebook file.
+
+    Returns:
+        str: MDX formatted buttons.
+    """
+    github_url = nb_metadata[tutorial_folder_name]["github"]
+    colab_url = nb_metadata[tutorial_folder_name]["colab"]
+    return f'<LinkButtons\n  githubUrl="{github_url}"\n  colabUrl="{colab_url}"\n/>\n\n'
+
+
+def handle_images_found_in_markdown(
+    markdown: str,
+    new_img_dir: PathLike,
+    lib_dir: PathLike,
+) -> str:
+    """
+    Update image paths in the Markdown, and copy the image to the docs location.
+
+    The pattern we search for in the Markdown is
+    ``![alt-text](path/to/image.png "title")`` with two groups:
+
+    - group 1 = path/to/image.png
+    - group 2 = "title"
+
+    The first group (the path to the image from the original notebook) will be replaced
+    with ``assets/img/{name}`` where the name is `image.png` from the example above. The
+    original image will also be copied to the new location
+    ``{new_img_dir}/assets/img/{name}``, which can be directly read into the MDX file.
+
+    Args:
+        markdown (str): Markdown where we look for Markdown flavored images.
+        new_img_dir (PathLike): Path where images are copied to for display in the
+            MDX file.
+        lib_dir (PathLike): The location for the Bean Machine repo.
+
+    Returns:
+        str: The original Markdown with new paths for images.
+    """
+    markdown_image_pattern = re.compile(r"""!\[[^\]]*\]\((.*?)(?=\"|\))(\".*\")?\)""")
+    searches = list(re.finditer(markdown_image_pattern, markdown))
+
+    # Return the given Markdown if no images are found.
+    if not searches:
+        return markdown
+
+    # Convert the given Markdown to a list so we can delete the old path with the new
+    # standard path.
+    markdown_list = list(markdown)
+    for search in searches:
+        # Find the old image path and replace it with the new one.
+        old_path, _ = search.groups()
+        start, end = re.search(old_path, markdown).span()
+        old_path = Path(old_path)
+        name = old_path.name.strip()
+        new_path = f"assets/img/{name}"
+        del markdown_list[start:end]
+        markdown_list.insert(start, new_path)
+
+        # Copy the original image to the new location.
+        if old_path.exists():
+            old_img_path = old_path
+        else:
+            # Here we assume the original image exists in the same directory as the
+            # notebook, which should be in the tutorials folder of the library.
+            old_img_path = (lib_dir / "tutorials" / old_path).resolve()
+        new_img_path = str(new_img_dir / name)
+        shutil.copy(str(old_img_path), new_img_path)
+
+    return "".join(markdown_list)
+
+
+def transform_style_attributes(markdown: str) -> str:
+    """
+    Convert HTML style attributes to something React can consume.
+
+    Args:
+        markdown (str): Markdown where we look for HTML style attributes.
+
+    Returns:
+        str: The original Markdown with new React style attributes.
+    """
+    # Finds all instances of `style="attr: value; ..."`.
+    token = "style="
+    pattern = re.compile(f"""{token}["'`]([^"]*)["'`]""")
+    found_patterns = re.findall(pattern, markdown)
+    if not found_patterns:
+        return markdown
+
+    for found_pattern in found_patterns:
+        # Step 1: splits "attr: value; ..." to
+        #                ["attr: value", ..."].
+        step1 = [token.strip() for token in found_pattern.split(";") if token]
+
+        # Step 2: splits ["attr: value", ...] to
+        #                [["attr", "value"], ...].
+        step2 = [
+            list(map(lambda token: token.strip(), tokens.split(":")))
+            for tokens in step1
+        ]
+
+        # Step 3: converts [["attr", "value"], ...] to
+        #                  '{"attr": "value", ...}'.
+        step3 = json.dumps(dict(step2))
+
+        # Step 4 wraps the JSON object in {}, so we end up with a string of the form;
+        #        '{{"attr": "value", ...}}'.
+        step4 = f"{{{step3}}}"
+
+        # Step 5 replaces the old style data with the React style data, and clean the
+        #        string for inclusion in the final Markdown.
+        markdown = markdown.replace(found_pattern, step4)
+        markdown = markdown.replace('"{{', "{{").replace('}}"', "}}")
+    return markdown
+
+
+def handle_markdown_cell(
+    cell: NotebookNode,
+    new_img_dir: PathLike,
+    lib_dir: PathLike,
+) -> str:
+    """
+    Handle the given Jupyter Markdown cell and convert it to MDX.
+
+    Args:
+        cell (NotebookNode): Jupyter Markdown cell object.
+        new_img_dir (PathLike): Path where images are copied to for display in the
+            Markdown cell.
+        lib_dir (PathLike): The location for the Bean Machine library.
+
+    Returns:
+        str: Transformed Markdown object suitable for inclusion in MDX.
+    """
+    markdown = cell["source"]
+
+    # Update image paths in the Markdown and copy them to the Markdown tutorials folder.
+    markdown = handle_images_found_in_markdown(markdown, new_img_dir, lib_dir)
+
+    # We will attempt to handle inline style attributes written in HTML by converting
+    # them to something React can consume.
+    markdown = transform_style_attributes(markdown)
+
+    # Remove any HTML comments from the Markdown. They are fine to keep in the
+    # notebooks, but are not really useful in the MDX.
+    markdown = re.sub("(<!--.*?-->)", "", markdown, flags=re.DOTALL)
+    mdx = mdformat.text(markdown, options={"wrap": 88}, extensions={"myst"})
+    return f"{mdx}\n"
+
+
+def handle_cell_input(cell: NotebookNode, language: str) -> str:
+    """
+    Create a Markdown cell block using the given cell source, and the language.
+
+    The given language will determine cell input syntax styles. Docusaurus uses Prism as
+    the syntax highlighter, https://prismjs.com. See the Docusaurus documentation for
+    more information on code blocks
+    https://docusaurus.io/docs/markdown-features/code-blocks.
+
+    Args:
+        cell (NotebookNode): A notebook cell.
+        language (str): Language specifier for syntax highlighting.
+
+    Returns:
+        str: Code block formatted Markdown string.
+    """
+    cell_source = cell.get("source", "")
+    return f"```{language}\n{cell_source}\n```\n\n"
+
+
+def transform_bokeh_json(json_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Transform Bokeh JSON found in a cell output to something BokehJS can consume.
+
+    Args:
+        json_data (Dict[str, Any]): JSON data found in a notebook's cell output that is
+            for Bokeh.
+
+    Returns:
+        Dict[str, Any]: Reorganized JSON output for BokehJS.
+    """
+    key = list(json_data.keys())[0]
+    data = json_data[key]
+    json_tx = {}
+    json_tx["target_id"] = key
+    json_tx["root_id"] = data["roots"]["root_ids"][0]
+    json_tx["doc"] = {
+        "defs": data["defs"],
+        "roots": data["roots"],
+        "title": data["title"],
+        "version": data["version"],
+    }
+    json_tx["version"] = data["version"]
+    return json_tx
+
+
+def handle_bokeh(
+    values: List[Dict[int, NotebookNode]],
+    plot_data_folder: PathLike,
+) -> List[Tuple[int, str]]:
+    """
+    Convert Bokeh `show` outputs and Applications to MDX.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        plot_data_folder (PathLike): Path to the folder where plot data should be
+            stored.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = []
+    for value in values:
+        index = value["index"]
+        data = value["data"]
+        app_flag = data.startswith("<!DOCTYPE html>")
+        # Handle Bokeh `show` outputs.
+        if not app_flag:
+            # Parse the JavaScript for the Bokeh JSON data. The BokehJS output is
+            # standardized, so we can make the following assumption for finding the
+            # right spot to for the JSON data. Also, this is pure JavaScript so
+            # parsing it with lxml is not an option.
+            json_string = list(
+                filter(
+                    lambda line: line.startswith("const docs_json = "),
+                    [line.strip() for line in data.splitlines() if line],
+                )
+            )[0]
+
+            # Ignore the `const` definition and the ending `;` from the line.
+            json_string = json_string[len("const docs_json = ") : -1]
+            # json_data = {str(uuid.uuid4()): json.loads(json_string)}
+            json_data = json.loads(json_string)
+
+        # Handle Bokeh Applications.
+        if app_flag:
+            # Bokeh Application objects are rendered in the notebook as HTML. This
+            # HTML is saved in the output cell, which we parse below using lxml and
+            # xpaths.
+            doc = etree.HTML(data)
+            scripts = doc.xpath("//body/script[@type='application/json']")
+            script = scripts[0]
+            script = "".join(script.itertext())
+            # Unescape characters. If we skip this step, then the JSON read in by
+            # the React BokehFigure object will error in the browser.
+            script = script.replace("&amp;", "&")
+            script = script.replace("&lt;", "<")
+            script = script.replace("&gt;", ">")
+            script = script.replace("&quot;", '"')
+            script = script.replace("&#x27;", "'")
+            script = script.replace("&#x60;", "`")
+            json_data = json.loads(script)
+
+        # Shuffle the data so we can save it in a format BokehJS will be able to
+        # consume later.
+        js = transform_bokeh_json(json_data)
+        file_name = js["target_id"]
+        # Save the Bokeh JSON data to disk. It will be read by React when loaded in
+        # Docusaurus.
+        file_path = str(plot_data_folder / f"{file_name}.json")
+        with open(file_path, "w") as f:
+            json.dump(js, f, indent=2)
+
+        # Add the Bokeh figure to the MDX output.
+        path_to_data = f"./assets/plot_data/{file_name}.json"
+        output.append(
+            (index, f"<BokehFigure data={{require('{path_to_data}')}} />\n\n")
+        )
+    return output
+
+
+def handle_image(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+    """
+    Convert embedded images to string MDX can consume.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = []
+    for value in values:
+        index = value["index"]
+        mime_type = value["mime_type"]
+        img = value["data"]
+        output.append((index, f"![](data:image/{mime_type};base64,{img})\n\n"))
+    return output
+
+
+def handle_markdown(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+    """
+    Convert and format Markdown for MDX.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = []
+    for value in values:
+        index = value["index"]
+        markdown = value["data"]
+        markdown = mdformat.text(markdown, options={"wrap": 88}, extensions={"myst"})
+        output.append((index, f"{markdown}\n\n"))
+    return output
+
+
+def handle_pandas(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+    """
+    Handle how to display pandas DataFrames.
+
+    There is a scoped style tag in the DataFrame output that uses the class name
+    `dataframe` to style the output. We will use this token to determine if a pandas
+    DataFrame is being displayed.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = []
+    for value in values:
+        index = value["index"]
+        data = value["data"]
+        df = pd.read_html(data, flavor="lxml")
+        # NOTE: The return is a list of dataframes and we only care about the first
+        #       one.
+        md_df = df[0]
+        for column in md_df.columns:
+            if column.startswith("Unnamed"):
+                md_df.rename(columns={column: ""}, inplace=True)
+        # Remove the index if it is just a range, and output to markdown.
+        mdx = ""
+        if isinstance(md_df.index, pd.RangeIndex):
+            mdx = md_df.to_markdown(index=False)
+        elif not isinstance(md_df.index, pd.RangeIndex):
+            mdx = md_df.to_markdown()
+        output.append((index, f"\n{mdx}\n\n"))
+    return output
+
+
+def handle_plain(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+    """
+    Handle how to plain cell output should be displayed in MDX.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = []
+    for value in values:
+        index = value["index"]
+        data = value["data"]
+        data = [line.strip() for line in data.splitlines() if line]
+        data = [datum for datum in data if datum]
+        if data:
+            data = "\n".join([line for line in value["data"].splitlines() if line])
+            output.append(
+                (index, f"<CellOutput>\n{{\n  `{data}`\n}}\n</CellOutput>\n\n")
+            )
+    return output
+
+
+def handle_plotly(
+    values: List[Dict[str, NotebookNode]],
+    plot_data_folder: PathLike,
+) -> List[Tuple[int, str]]:
+    """
+    Convert Plotly outputs to MDX.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        plot_data_folder (PathLike): Path to the folder where plot data should be
+            stored.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = []
+    for value in values:
+        index = value["index"]
+        data = value["data"]
+        file_name = str(uuid.uuid4())
+        file_path = str(plot_data_folder / f"{file_name}.json")
+        path_to_data = f"./assets/plot_data/{file_name}.json"
+        output.append(
+            (index, f"<PlotlyFigure data={{require('{path_to_data}')}} />\n\n")
+        )
+        with open(file_path, "w") as f:
+            json.dump(data, f, indent=2)
+    return output
+
+
+def handle_tqdm(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+    """
+    Handle the output of tqdm.
+
+    tqdm will be displayed as separate CellOutput React components if we do not
+    aggregate them all into a single CellOutput object, which is what this method does.
+
+    Args:
+        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+
+    Returns:
+        List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
+            the index where the output occurred from the cell, and the second entry of
+            the tuple is the MDX formatted string.
+    """
+    output = sorted(values, key=lambda item: item["index"])
+    index = output[0]["index"]
+    md = "\n".join([item["data"] for item in output if item["data"]])
+    return [(index, f"<CellOutput>\n{{\n  `{md}`\n}}\n</CellOutput>\n\n")]
+
+
+def handle_cell_outputs(  # noqa: C901 (flake8 too complex)
+    cell: NotebookNode,
+    plot_data_folder: PathLike,
+) -> str:
+    """
+    Handle cell outputs and convert to MDX.
+
+    Args:
+        cell (NotebookNode): The cell where the outputs need converting.
+        plot_data_folder (PathLike): Path to the folder where plot data should be
+            stored.
+
+    Returns:
+        str: MDX formatted cell output.
+    """
+    mdx = ""
+
+    # Return an empty string if there are no actual cell outputs.
+    cell_outputs = cell.get("outputs", [])
+    if not cell_outputs:
+        return mdx
+
+    # Data display priority. Below lists the priority for displaying data from cell
+    # outputs. Cells can output many different items, and some will output a fallback
+    # display, e.g. text/plain if text/html is not working. The below priorities help
+    # ensure the output in the MDX file shows the best representation of the cell
+    # output.
+    priorities = [
+        "text/markdown",
+        "image/png",  # matplotlib output.
+        "application/vnd.jupyter.widget-view+json",  # tqdm progress bars.
+        "application/vnd.bokehjs_load.v0+json",  # Bokeh loading output.
+        "application/vnd.bokehjs_exec.v0+json",  # Bokeh `show` outputs.
+        "application/vnd.plotly.v1+json",  # Plotly
+        "text/html",
+        "stream",
+        "text/plain",
+    ]
+
+    # We will use the below cell output data types for prioritizing the output shown in
+    # the MDX file.
+    cell_output_dtypes = [
+        list(cell_output["data"].keys())
+        if "data" in cell_output
+        else [cell_output["output_type"]]
+        for cell_output in cell_outputs
+    ]
+    prioritized_cell_output_dtypes = [
+        sorted(
+            set(dtypes).intersection(set(priorities)),
+            key=lambda dtype: priorities.index(dtype),
+        )
+        for dtypes in cell_output_dtypes
+    ]
+    plotly_flags = [
+        any(map(lambda output: "plotly" in output, outputs))
+        for outputs in cell_output_dtypes
+    ]
+
+    # We will loop over all cell outputs and bucket them into the appropriate key in the
+    # dictionary below for further processing. Doing it in this way helps aggregate like
+    # outputs together e.g. tqdm outputs.
+    cell_outputs_to_process = {
+        "bokeh": [],
+        "image": [],
+        "markdown": [],
+        "pandas": [],
+        "plain": [],
+        "plotly": [],
+        "tqdm": [],
+    }
+    for i, cell_output in enumerate(cell_outputs):
+        prioritized_data_dtype = prioritized_cell_output_dtypes[i][0]
+        # If there is no `data` key in the cell_output, then it may be an error that
+        # needs to be handled. Even if it is not an error, the data is stored in a
+        # different key if no `data` key if found.
+        data = (
+            cell_output["data"][prioritized_data_dtype]
+            if "data" in cell_output
+            else cell_output["text"]
+        )
+
+        # Bokeh.
+        if prioritized_data_dtype == "application/vnd.bokehjs_load.v0+json":
+            # Ignore the BokehJS loading output.
+            continue
+        if prioritized_data_dtype == "application/vnd.bokehjs_exec.v0+json":
+            # Bokeh `show` outputs.
+            data = cell_output["data"]["application/javascript"]
+            cell_outputs_to_process["bokeh"].append({"index": i, "data": data})
+        if prioritized_data_dtype == "text/html" and "Bokeh Application" in data:
+            # Bokeh applications.
+            cell_outputs_to_process["bokeh"].append({"index": i, "data": data})
+
+        # Images.
+        if prioritized_data_dtype.startswith("image"):
+            if not plotly_flags[i]:
+                cell_outputs_to_process["image"].append(
+                    {"index": i, "data": data, "mime_type": prioritized_data_dtype},
+                )
+            # Plotly outputs a static image, but we can use the JSON in the cell
+            # output to create interactive plots using a React component.
+            if plotly_flags[i]:
+                data = cell_output["data"]["application/vnd.plotly.v1+json"]
+                cell_outputs_to_process["plotly"].append({"index": i, "data": data})
+
+        # Plain.
+        if prioritized_data_dtype in ["text/plain", "stream"]:
+            # Ignore error outputs.
+            if "name" in cell_output and cell_output["name"] == "stderr":
+                continue
+            # Ignore matplotlib legend text output.
+            if prioritized_data_dtype == "text/plain" and "matplotlib" in data:
+                continue
+            cell_outputs_to_process["plain"].append({"index": i, "data": data})
+
+        # Markdown.
+        if prioritized_data_dtype == "text/markdown":
+            cell_outputs_to_process["markdown"].append({"index": i, "data": data})
+
+        # Pandas DataFrames.
+        if "dataframe" in data:
+            cell_outputs_to_process["pandas"].append({"index": i, "data": data})
+
+        # tqdm.
+        if prioritized_data_dtype == "application/vnd.jupyter.widget-view+json":
+            data = cell_output["data"]["text/plain"]
+            cell_outputs_to_process["tqdm"].append({"index": i, "data": data})
+
+    # Now we process all aggregated cell outputs into a single output for the type.
+    processed_mdx = []
+    for key, values in cell_outputs_to_process.items():
+        if not values:
+            continue
+        if key == "bokeh":
+            processed_mdx.extend(handle_bokeh(values, plot_data_folder))
+        if key == "image":
+            processed_mdx.extend(handle_image(values))
+        if key == "markdown":
+            processed_mdx.extend(handle_markdown(values))
+        if key == "pandas":
+            processed_mdx.extend(handle_pandas(values))
+        if key == "plain":
+            processed_mdx.extend(handle_plain(values))
+        if key == "plotly":
+            processed_mdx.extend(handle_plotly(values, plot_data_folder))
+        if key == "tqdm":
+            processed_mdx.extend(handle_tqdm(values))
+
+    # Ensure the same ordering of the MDX happens as was found in the original cell
+    # output.
+    processed_mdx = sorted(processed_mdx, key=lambda item: item[0])
+    md = "\n".join([item[1] for item in processed_mdx])
+    return md
+
+
+def handle_code_cell(cell: NotebookNode, plot_data_folder: PathLike) -> str:
+    """
+    Handle code cells in Jupyter notebooks and convert them to MDX.
+
+    Args:
+        cell (NotebookNode): A Jupyter notebook cell that contains code.
+        plot_data_folder (PathLike): Path to the folder where plot data should be
+            stored.
+
+    Returns:
+        str: MDX formatted code cell.
+    """
+    cell_input_mdx = handle_cell_input(cell, "python")
+    cell_output_mdx = handle_cell_outputs(cell, plot_data_folder)
+    return cell_input_mdx + cell_output_mdx
+
+
+def transform_notebook(path: PathLike) -> str:
+    """
+    Transform a notebook located at the given path into MDX.
+
+    Args:
+        path (PathLike): Path to the Jupyter notebook tutorial.
+
+    Returns:
+        str: MDX formatted string.
+    """
+    filename, assets_folder = create_folders(path)
+    img_folder = assets_folder / "img"
+    plot_data_folder = assets_folder / "plot_data"
+    save_folder = assets_folder.joinpath("..").resolve()
+    nb = load_notebook(path)
+    nb_metadata = load_nb_metadata()
+    mdx = ""
+    mdx += create_frontmatter(path, nb_metadata)
+    mdx += create_imports()
+    mdx += create_buttons(nb_metadata, path.stem)
     for cell in nb["cells"]:
         cell_type = cell["cell_type"]
 
-        # Handle markdown cell objects.
+        # Handle a Markdown cell.
         if cell_type == "markdown":
-            mdx += transform_markdown_cell(cell, img_folder)
+            mdx += handle_markdown_cell(cell, img_folder, LIB_DIR)
 
-        # Handle code cell objects.
+        # Handle a code cell.
         if cell_type == "code":
-            tx = transform_code_cell(cell, plot_data_folder, filename)
-            mdx += str(tx["mdx"])
-            jsx += str(tx["jsx"])
-            bokeh_flags.append(tx["bokeh"])
-            plotly_flags.append(tx["plotly"])
-            for component in str(tx["components"]).splitlines():
-                components.add(component)
+            mdx += handle_code_cell(cell, plot_data_folder)
 
-    # Add the JSX template object to the jsx string. Only include the plotting component
-    # that is needed.
-    bokeh_flag = any(bokeh_flags)
-    plotly_flag = any(plotly_flags)
-    plotting_fp = "../../../../website/src/components/Plotting.jsx"
-    JSX_TEMPLATE = ["import React from 'react';"]
-    if bokeh_flag:
-        JSX_TEMPLATE.append(f"import {{ BokehFigure }} from '{plotting_fp}';")
-    if plotly_flag:
-        JSX_TEMPLATE.append(f"import {{ PlotlyFigure }} from '{plotting_fp}';")
-
-    jsx = "\n".join([item for item in JSX_TEMPLATE if item]) + "\n\n" + jsx
-    # Remove the last line since it is blank.
-    jsx = "\n".join(jsx.splitlines()[:-1])
-
-    # Add the react components needed to display bokeh objects in the mdx string.
-    mdx = mdx.splitlines()
-    mdx[frontmatter_line:frontmatter_line] = list(components) + [""]
-    # Add the react components needed to display links to GitHub and Colab.
-    idx = frontmatter_line + len(components) + 1
-    glk = nb_metadata[tutorial_folder_name]["github"]
-    clk = nb_metadata[tutorial_folder_name]["colab"]
-    mdx[idx:idx] = (
-        f'<LinkButtons\n  githubUrl="{glk}"\n  colabUrl="{clk}"\n/>\n\n'
-    ).splitlines()
-    mdx = "\n".join(mdx)
-
-    # Write the mdx file to disk.
-    mdx_filename = str(tutorial_folder.joinpath(f"{filename}.mdx"))
-    with open(mdx_filename, "w") as f:
+    # Write the MDX file to disk.
+    save_path = f"{str(save_folder / filename)}.mdx"
+    with open(save_path, "w") as f:
         f.write(mdx)
 
-    # Write the jsx file to disk.
-    jsx_filename = str(tutorial_folder.joinpath(f"{filename}.jsx"))
-    with open(jsx_filename, "w") as f:
-        f.write(jsx)
-
-    # Return the mdx and jsx strings for debugging purposes.
-    return mdx, jsx
+    # Return the string for debugging purposes.
+    return mdx
 
 
 if __name__ == "__main__":
-    tutorials_metadata = load_nbs_to_convert()
+    tutorials_metadata = load_nb_metadata()
     print("--------------------------------------------")
     print("Converting tutorial notebooks into mdx files")
     print("--------------------------------------------")
     for _, value in tutorials_metadata.items():
         path = (LIB_DIR / value["nb_path"]).resolve()
         print(f"{path.stem}")
-        mdx, jsx = transform_notebook(path)
+        mdx = transform_notebook(path)
     print("")
