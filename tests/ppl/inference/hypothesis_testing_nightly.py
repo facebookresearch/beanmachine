@@ -7,7 +7,7 @@ import unittest
 from sys import float_info
 
 import torch.distributions as dist
-from beanmachine.ppl.testlib.hypothesis_testing import (
+from ..testlib.hypothesis_testing import (
     inverse_normal_cdf,
     mean_equality_hypothesis_confidence_interval,
     mean_equality_hypothesis_test,

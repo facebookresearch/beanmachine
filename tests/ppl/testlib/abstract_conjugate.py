@@ -20,11 +20,12 @@ from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormal
 from beanmachine.ppl.inference import utils
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.testlib.hypothesis_testing import (
+from torch import Tensor, tensor
+
+from .hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,
     variance_equality_hypothesis_confidence_interval,
 )
-from torch import Tensor, tensor
 
 
 class AbstractConjugateTests(metaclass=ABCMeta):

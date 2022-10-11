@@ -73,7 +73,7 @@ If you would like to run the builtin unit tests:
 
 ```bash
 python -m pip install "beanmachine[test]"
-pytest .
+pytest
 ```
 
 ## License
