@@ -82,69 +82,15 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # After:
+        # We do not yet insert a broadcast node. Demonstrate here
+        # that the compiler gives a reasonable error message.
 
-        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_graph(queries, observations)
+
         expected = """
-digraph "graph" {
-  N00[label=0.0];
-  N01[label=1.0];
-  N02[label=Normal];
-  N03[label=Sample];
-  N04[label=Sample];
-  N05[label=Normal];
-  N06[label=Sample];
-  N07[label=Normal];
-  N08[label=Sample];
-  N09[label=Sample];
-  N10[label=Sample];
-  N11[label=Normal];
-  N12[label=Sample];
-  N13[label=Normal];
-  N14[label=Sample];
-  N15[label=2];
-  N16[label=1];
-  N17[label=ToMatrix];
-  N18[label=ToMatrix];
-  N19[label=MatrixAdd];
-  N20[label=Query];
-  N00 -> N02;
-  N01 -> N02;
-  N01 -> N05;
-  N01 -> N07;
-  N01 -> N11;
-  N01 -> N13;
-  N02 -> N03;
-  N02 -> N04;
-  N02 -> N09;
-  N02 -> N10;
-  N03 -> N05;
-  N04 -> N07;
-  N05 -> N06;
-  N06 -> N17;
-  N07 -> N08;
-  N08 -> N17;
-  N09 -> N11;
-  N10 -> N13;
-  N11 -> N12;
-  N12 -> N18;
-  N13 -> N14;
-  N14 -> N18;
-  N15 -> N17;
-  N15 -> N18;
-  N16 -> N17;
-  N16 -> N18;
-  N17 -> N19;
-  N18 -> N19;
-  N19 -> N20;
-}
-"""
+The left of a matrix add is required to be a 2 x 2 real matrix but is a 2 x 1 real matrix.
+The right of a matrix add is required to be a 2 x 2 real matrix but is a 1 x 2 real matrix."""
+
+        observed = str(ex.exception)
         self.assertEqual(expected.strip(), observed.strip())
-
-        # BMG
-
-        with self.assertRaises(ValueError):
-            g, _ = BMGInference().to_graph(queries, observations)
-        # observed = g.to_dot()
-        # expected = ""
-        # self.assertEqual(expected.strip(), observed.strip())
