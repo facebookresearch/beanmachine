@@ -338,11 +338,13 @@ class RequirementsFixer:
         edge: str,
     ) -> bn.BMGNode:
         result = None
-        node_is_scalar = node_dim[0] == 1 and node_dim[1] == 1
-        requires_scalar = dim_req[0] == 1 and dim_req[1] == 1
+        req_rows, req_cols = dim_req
+        node_rows, node_cols = node_dim
+        node_is_scalar = node_rows == 1 and node_cols == 1
+        requires_scalar = req_rows == 1 and req_cols == 1
         if requires_scalar and node_is_scalar:
             result = self.bmg.add_to_real(node)
-        elif node_dim[0] == dim_req[0] and node_dim[1] == dim_req[1]:
+        elif node_rows == req_rows and node_cols == req_cols:
             result = self.bmg.add_to_real_matrix(node)
 
         if result is None:
@@ -350,7 +352,7 @@ class RequirementsFixer:
                 Violation(
                     node,
                     self._typer[node],
-                    bt.RealMatrix(1, 1),
+                    bt.RealMatrix(req_rows, req_cols),
                     consumer,
                     edge,
                     self.bmg.execution_context.node_locations(consumer),

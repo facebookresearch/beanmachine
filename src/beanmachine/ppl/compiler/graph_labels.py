@@ -205,6 +205,7 @@ _node_error_labels = {
     bn.LogSumExpVectorNode: "logsumexp",
     bn.LogAddExpNode: "logaddexp",
     bn.LShiftNode: "'left shift' (<<)",
+    bn.MatrixAddNode: "matrix add",
     bn.MatrixMultiplicationNode: "matrix multiplication (@)",
     bn.MatrixScaleNode: "matrix scale",
     bn.ModNode: "modulus (%)",

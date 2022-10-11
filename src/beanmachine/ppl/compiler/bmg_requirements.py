@@ -35,7 +35,15 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # what their inputs are.
 
 _known_requirements: Dict[type, List[bt.Requirement]] = {
-    # TODO See comment below regarding RealMatrix
+    # TODO: This is wrong in several ways.
+    # First, RealMatrix does not meet the contract of a requirement;
+    # in particular, it cannot be printed out by the requirement diagnostic
+    # in gen_to_dot.
+    # Second, it is too strict; the requirement on matrix add is actually
+    # that the two operands be any double matrix (real, neg real,
+    # pos real or probability).
+    # Third, this requirement is too weak; we are missing the requirement
+    # that the operands have the same element type and shape.
     bn.ElementwiseMultiplyNode: [bt.RealMatrix, bt.RealMatrix],
     bn.Observation: [bt.any_requirement],
     bn.Query: [bt.any_requirement],
@@ -68,16 +76,6 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
     bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],
-    # TODO: This is wrong in several ways.
-    # First, RealMatrix does not meet the contract of a requirement;
-    # in particular, it cannot be printed out by the requirement diagnostic
-    # in gen_to_dot.
-    # Second, it is too strict; the requirement on matrix add is actually
-    # that the two operands be any double matrix (real, neg real,
-    # pos real or probability).
-    # Third, this requirement is too weak; we are missing the requirement
-    # that the operands have the same element type and shape.
-    bn.MatrixAddNode: [bt.RealMatrix, bt.RealMatrix],
     bn.MatrixExpNode: [bt.any_real_matrix],
     bn.MatrixLogNode: [bt.any_pos_real_matrix],
     bn.MatrixLog1mexpNode: [bt.any_real_matrix],
@@ -127,6 +125,7 @@ class EdgeRequirements:
             # TODO: bn.MatrixMultiplyNode: self._requirements_matrix_multiply,
             # see comment above
             bn.MatrixComplementNode: self._requrirements_matrix_complement,
+            bn.MatrixAddNode: self._requirements_matrix_add,
             bn.MatrixScaleNode: self._requirements_matrix_scale,
             bn.MultiplicationNode: self._requirements_multiplication,
             bn.NegateNode: self._requirements_exp_neg,
@@ -446,6 +445,12 @@ class EdgeRequirements:
         if isinstance(it, bt.SimplexMatrix):
             req = [bt.SimplexMatrix]
         return req
+
+    def _requirements_matrix_add(self, node: bn.MatrixAddNode) -> List[bt.Requirement]:
+        # Matrix add requires that both operands be the same as the output type.
+        it = self.typer[node]
+        assert isinstance(it, bt.BMGMatrixType)
+        return [it, it]
 
     def _requirements_matrix_scale(
         self, node: bn.MatrixScaleNode
