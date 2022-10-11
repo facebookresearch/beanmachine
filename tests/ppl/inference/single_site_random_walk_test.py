@@ -207,9 +207,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             mu=torch.tensor(0.0), std=torch.tensor(1.0), sigma=torch.ones(1)
         )
         mh = bm.SingleSiteRandomWalk(step_size=4)
-        p_key = model.normal_p()
+        p_key = model.theta()
         queries = [p_key]
-        observations = {model.normal(): torch.tensor(100.0)}
+        observations = {model.x(): torch.tensor(100.0)}
         predictions = mh.infer(queries, observations, 100, num_adaptive_samples=30)
         predictions = predictions.get_chain()[p_key]
         self.assertIn(True, [45 < pred < 55 for pred in predictions])
@@ -223,9 +223,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
         )
         mh = bm.SingleSiteRandomWalk(step_size=10)
-        p_key = model.normal_p()
+        p_key = model.theta()
         queries = [p_key]
-        observations = {model.normal(): torch.tensor(100.0)}
+        observations = {model.x(): torch.tensor(100.0)}
         predictions = mh.infer(queries, observations, 100)
         predictions = predictions.get_chain()[p_key]
         self.assertIn(True, [45 < pred < 55 for pred in predictions])
@@ -235,9 +235,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             mu=torch.zeros(2), std=torch.ones(2), sigma=torch.ones(2)
         )
         mh = bm.SingleSiteRandomWalk(step_size=10)
-        p_key = model.normal_p()
+        p_key = model.theta()
         queries = [p_key]
-        observations = {model.normal(): torch.tensor([100.0, -100.0])}
+        observations = {model.x(): torch.tensor([100.0, -100.0])}
         predictions = mh.infer(queries, observations, 100)
         predictions = predictions.get_chain()[p_key]
         self.assertIn(True, [45 < pred[0] < 55 for pred in predictions])
@@ -248,9 +248,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             shape=torch.ones(1), rate=torch.ones(1), mu=torch.ones(1)
         )
         mh = bm.SingleSiteRandomWalk(step_size=4.0)
-        p_key = model.gamma()
+        p_key = model.theta()
         queries = [p_key]
-        observations = {model.normal(): torch.tensor([100.0])}
+        observations = {model.x(): torch.tensor([100.0])}
         predictions = mh.infer(queries, observations, 100)
         predictions = predictions.get_chain()[p_key]
         """
@@ -285,9 +285,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
     def test_single_site_random_walk_simplex_support_rate(self):
         model = CategoricalDirichletModel(alpha=torch.tensor([1.0, 10.0]))
         mh = bm.SingleSiteRandomWalk(step_size=1.0)
-        p_key = model.dirichlet()
+        p_key = model.theta()
         queries = [p_key]
-        observations = {model.categorical(): torch.tensor([1.0, 1.0, 1.0])}
+        observations = {model.x(): torch.tensor([1.0, 1.0, 1.0])}
         predictions = mh.infer(queries, observations, 50)
         predictions = predictions.get_chain()[p_key]
         """

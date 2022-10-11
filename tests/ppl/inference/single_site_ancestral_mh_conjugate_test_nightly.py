@@ -6,6 +6,7 @@
 import unittest
 
 import beanmachine.ppl as bm
+
 from ..testlib.abstract_conjugate import AbstractConjugateTests
 
 

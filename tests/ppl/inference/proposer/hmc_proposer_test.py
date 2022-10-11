@@ -6,25 +6,23 @@
 import beanmachine.ppl as bm
 import pytest
 import torch
-import torch.distributions as dist
+from beanmachine.ppl.examples.hierarchical_models import UniformNormalModel
 from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
 from beanmachine.ppl.world import World
+from torch import tensor
+
+from ...utils.fixtures import approx_all, parametrize_inference, parametrize_model
 
 
-@bm.random_variable
-def foo():
-    return dist.Uniform(0.0, 1.0)
-
-
-@bm.random_variable
-def bar():
-    return dist.Normal(foo(), 1.0)
+pytestmark = parametrize_model(
+    [UniformNormalModel(tensor(0.0), tensor(1.0), tensor(1.0))]
+)
 
 
 @pytest.fixture
-def world():
+def world(model):
     w = World()
-    w.call(bar())
+    w.call(model.obs())
     return w
 
 
@@ -58,24 +56,23 @@ def test_leapfrog_step(hmc):
     new_positions, new_momentums, pe, pe_grad = hmc._leapfrog_step(
         hmc._positions, momentums, step_size, hmc._mass_inv
     )
-    assert torch.allclose(momentums, new_momentums)
-    assert torch.allclose(hmc._positions, new_positions)
+    assert approx_all(momentums, new_momentums)
+    assert approx_all(hmc._positions, new_positions)
 
 
-@pytest.mark.parametrize(
+@parametrize_inference(
     # forcing the step_size to be 0 for HMC/ NUTS
-    "algorithm",
     [
         bm.GlobalNoUTurnSampler(initial_step_size=0.0),
         bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, initial_step_size=0.0),
     ],
 )
-def test_step_size_exception(algorithm):
-    queries = [foo()]
-    observations = {bar(): torch.tensor(0.5)}
+def test_step_size_exception(model, inference):
+    queries = [model.mean()]
+    observations = {model.obs(): torch.tensor(0.5)}
 
     with pytest.raises(ValueError):
-        algorithm.infer(
+        inference.infer(
             queries,
             observations,
             num_samples=20,

@@ -7,13 +7,14 @@ import unittest
 from sys import float_info
 
 import torch.distributions as dist
+from numpy import sqrt
+from torch import manual_seed, mean, tensor
+
 from ..testlib.hypothesis_testing import (
     inverse_normal_cdf,
     mean_equality_hypothesis_confidence_interval,
     mean_equality_hypothesis_test,
 )
-from numpy import sqrt
-from torch import manual_seed, mean, tensor
 
 
 class HypothesisTestingTest(unittest.TestCase):

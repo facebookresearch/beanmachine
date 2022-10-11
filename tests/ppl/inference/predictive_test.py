@@ -3,217 +3,170 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import unittest
-
 import beanmachine.ppl as bm
+import pytest
 import torch
-import torch.distributions as dist
+from beanmachine.ppl.examples.hierarchical_models import UniformBernoulliModel
+from torch import tensor
+
+from ..utils.fixtures import (
+    approx_all,
+    parametrize_inference,
+    parametrize_model,
+    parametrize_model_value,
+    parametrize_value,
+)
 
 
-class PredictiveTest(unittest.TestCase):
-    @bm.random_variable
-    def prior(self):
-        return dist.Uniform(torch.tensor(0.0), torch.tensor(1.0))
-
-    @bm.random_variable
-    def likelihood(self):
-        return dist.Bernoulli(self.prior())
-
-    @bm.random_variable
-    def likelihood_i(self, i):
-        return dist.Bernoulli(self.prior())
-
-    @bm.random_variable
-    def prior_1(self):
-        return dist.Uniform(torch.tensor([0.0]), torch.tensor([1.0]))
-
-    @bm.random_variable
-    def likelihood_1(self):
-        return dist.Bernoulli(self.prior_1())
-
-    @bm.random_variable
-    def likelihood_dynamic(self, i):
-        if self.likelihood_i(i).item() > 0:
-            return dist.Normal(torch.zeros(1), torch.ones(1))
-        else:
-            return dist.Normal(5.0 * torch.ones(1), torch.ones(1))
-
-    @bm.random_variable
-    def prior_2(self):
-        return dist.Uniform(torch.zeros(1, 2), torch.ones(1, 2))
-
-    @bm.random_variable
-    def likelihood_2(self, i):
-        return dist.Bernoulli(self.prior_2())
-
-    @bm.random_variable
-    def likelihood_2_vec(self, i):
-        return dist.Bernoulli(self.prior_2())
-
-    @bm.random_variable
-    def likelihood_reg(self, x):
-        return dist.Normal(self.prior() * x, torch.tensor(1.0))
-
-    def test_prior_predictive(self):
-        queries = [self.prior(), self.likelihood()]
+@parametrize_model([UniformBernoulliModel(tensor(0.0), tensor(1.0))])
+class TestPredictive:
+    @staticmethod
+    def test_prior_predictive(model):
+        queries = [model.prior(), model.likelihood()]
         predictives = bm.simulate(queries, num_samples=10)
-        assert predictives[self.prior()].shape == (1, 10)
-        assert predictives[self.likelihood()].shape == (1, 10)
+        assert predictives[model.prior()].shape == (1, 10)
+        assert predictives[model.likelihood()].shape == (1, 10)
 
-    def test_posterior_predictive(self):
-        obs = {
-            self.likelihood_i(0): torch.tensor(1.0),
-            self.likelihood_i(1): torch.tensor(0.0),
-        }
-        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior()], obs, num_samples=10, num_chains=2
+    @staticmethod
+    @parametrize_value([tensor([1.0, 0.0])])
+    @pytest.mark.parametrize("num_chains", [2])
+    @parametrize_inference([bm.SingleSiteAncestralMetropolisHastings()])
+    @pytest.mark.parametrize("vectorized", [True, False])
+    def test_posterior_predictive(model, value, inference, num_chains, vectorized):
+        num_samples = 10
+        shape_samples = (num_chains, num_samples) + model.lo.shape
+
+        obs = {model.likelihood_i(i): value[i] for i in range(len(value))}
+        post_samples = inference.infer(
+            [model.prior()], obs, num_samples=num_samples, num_chains=num_chains
         )
-        assert post_samples[self.prior()].shape == (2, 10)
-        predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
-        assert predictives[self.likelihood_i(0)].shape == (2, 10)
-        assert predictives[self.likelihood_i(1)].shape == (2, 10)
+        assert post_samples[model.prior()].shape == shape_samples
 
-    def test_posterior_predictive_seq(self):
-        obs = {
-            self.likelihood_i(0): torch.tensor(1.0),
-            self.likelihood_i(1): torch.tensor(0.0),
-        }
-        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior()], obs, num_samples=10, num_chains=2
-        )
-        assert post_samples[self.prior()].shape == (2, 10)
-        predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=False)
-        assert predictives[self.likelihood_i(0)].shape == (2, 10)
-        assert predictives[self.likelihood_i(1)].shape == (2, 10)
+        predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=vectorized)
+        assert all(predictives[rv].shape == shape_samples for rv in obs.keys())
 
-    def test_predictive_dynamic(self):
+    @staticmethod
+    def test_predictive_dynamic(model):
         obs = {
-            self.likelihood_dynamic(0): torch.tensor([0.9]),
-            self.likelihood_dynamic(1): torch.tensor([4.9]),
+            model.likelihood_dynamic(0): torch.tensor([0.9]),
+            model.likelihood_dynamic(1): torch.tensor([4.9]),
         }
         # only query one of the variables
         post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior()], obs, num_samples=10, num_chains=2
+            [model.prior()], obs, num_samples=10, num_chains=2
         )
-        assert post_samples[self.prior()].shape == (2, 10)
+        assert post_samples[model.prior()].shape == (2, 10)
         predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=False)
-        assert predictives[self.likelihood_dynamic(0)].shape == (2, 10)
-        assert predictives[self.likelihood_dynamic(1)].shape == (2, 10)
+        assert predictives[model.likelihood_dynamic(0)].shape == (2, 10)
+        assert predictives[model.likelihood_dynamic(1)].shape == (2, 10)
 
-    def test_predictive_data(self):
+    @staticmethod
+    def test_predictive_data(model):
         x = torch.randn(4)
         y = torch.randn(4) + 2.0
-        obs = {self.likelihood_reg(x): y}
+        obs = {model.likelihood_reg(x): y}
         post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior()], obs, num_samples=10, num_chains=2
+            [model.prior()], obs, num_samples=10, num_chains=2
         )
-        assert post_samples[self.prior()].shape == (2, 10)
+        assert post_samples[model.prior()].shape == (2, 10)
         test_x = torch.randn(4, 1, 1)
-        test_query = self.likelihood_reg(test_x)
+        test_query = model.likelihood_reg(test_x)
         predictives = bm.simulate([test_query], post_samples, vectorized=True)
         assert predictives[test_query].shape == (4, 2, 10)
 
-    def test_posterior_predictive_1d(self):
-        obs = {self.likelihood_1(): torch.tensor([1.0])}
-        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior_1()], obs, num_samples=10, num_chains=1
-        )
-        assert post_samples[self.prior_1()].shape == (1, 10, 1)
-        predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
-        y = predictives[self.likelihood_1()].shape
-        assert y == (1, 10, 1)
-
-    def test_multi_chain_infer_predictive_2d(self):
-        torch.manual_seed(10)
+    @staticmethod
+    def test_empirical(model):
         obs = {
-            self.likelihood_2(0): torch.tensor([[1.0, 1.0]]),
-            self.likelihood_2(1): torch.tensor([[0.0, 1.0]]),
+            model.likelihood_i(0): torch.tensor(1.0),
+            model.likelihood_i(1): torch.tensor(0.0),
+            model.likelihood_i(2): torch.tensor(0.0),
         }
         post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior_2()], obs, num_samples=10, num_chains=2
+            [model.prior()], obs, num_samples=10, num_chains=4
         )
-
-        assert post_samples[self.prior_2()].shape == (2, 10, 1, 2)
-        predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
-        predictive_0 = predictives[self.likelihood_2(0)]
-        predictive_1 = predictives[self.likelihood_2(1)]
-        assert predictive_0.shape == (2, 10, 1, 2)
-        assert predictive_1.shape == (2, 10, 1, 2)
-        assert (predictive_1 - predictive_0).sum().item() != 0
-
-    def test_empirical(self):
-        obs = {
-            self.likelihood_i(0): torch.tensor(1.0),
-            self.likelihood_i(1): torch.tensor(0.0),
-            self.likelihood_i(2): torch.tensor(0.0),
-        }
-        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior()], obs, num_samples=10, num_chains=4
-        )
-        empirical = bm.empirical([self.prior()], post_samples, num_samples=26)
-        assert empirical[self.prior()].shape == (1, 26)
+        empirical = bm.empirical([model.prior()], post_samples, num_samples=26)
+        assert empirical[model.prior()].shape == (1, 26)
         predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
         empirical = bm.empirical(list(obs.keys()), predictives, num_samples=27)
         assert len(empirical) == 3
-        assert empirical[self.likelihood_i(0)].shape == (1, 27)
-        assert empirical[self.likelihood_i(1)].shape == (1, 27)
+        assert empirical[model.likelihood_i(0)].shape == (1, 27)
+        assert empirical[model.likelihood_i(1)].shape == (1, 27)
 
-    def test_return_inference_data(self):
-        torch.manual_seed(10)
+    @staticmethod
+    def test_posterior_dict(model):
         obs = {
-            self.likelihood_2(0): torch.tensor([[1.0, 1.0]]),
-            self.likelihood_2(1): torch.tensor([[0.0, 1.0]]),
-        }
-        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior_2()], obs, num_samples=10, num_chains=2
-        )
-
-        assert post_samples[self.prior_2()].shape == (2, 10, 1, 2)
-        predictives = bm.simulate(
-            list(obs.keys()),
-            post_samples,
-            vectorized=True,
-        ).to_inference_data()
-        assert "posterior" in predictives
-        assert "observed_data" in predictives
-        assert "log_likelihood" in predictives
-        assert "posterior_predictive" in predictives
-        assert predictives.posterior_predictive[self.likelihood_2(0)].shape == (
-            2,
-            10,
-            1,
-            2,
-        )
-        assert predictives.posterior_predictive[self.likelihood_2(1)].shape == (
-            2,
-            10,
-            1,
-            2,
-        )
-
-    def test_posterior_dict(self):
-        obs = {
-            self.likelihood_i(0): torch.tensor(1.0),
-            self.likelihood_i(1): torch.tensor(0.0),
+            model.likelihood_i(0): torch.tensor(1.0),
+            model.likelihood_i(1): torch.tensor(0.0),
         }
 
-        posterior = {self.prior(): torch.tensor([0.5, 0.5])}
+        posterior = {model.prior(): torch.tensor([0.5, 0.5])}
 
         predictives_dict = bm.simulate(list(obs.keys()), posterior)
-        assert predictives_dict[self.likelihood_i(0)].shape == (1, 2)
-        assert predictives_dict[self.likelihood_i(1)].shape == (1, 2)
+        assert predictives_dict[model.likelihood_i(0)].shape == (1, 2)
+        assert predictives_dict[model.likelihood_i(1)].shape == (1, 2)
 
-    def test_posterior_dict_predictive(self):
+    @staticmethod
+    def test_posterior_dict_predictive(model):
         obs = {
-            self.likelihood_i(0): torch.tensor(1.0),
-            self.likelihood_i(1): torch.tensor(0.0),
+            model.likelihood_i(0): torch.tensor(1.0),
+            model.likelihood_i(1): torch.tensor(0.0),
         }
         post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
-            [self.prior()], obs, num_samples=10, num_chains=1
+            [model.prior()], obs, num_samples=10, num_chains=1
         )
-        assert post_samples[self.prior()].shape == (1, 10)
+        assert post_samples[model.prior()].shape == (1, 10)
 
         post_samples_dict = dict(post_samples)
         predictives_dict = bm.simulate(list(obs.keys()), post_samples_dict)
-        assert predictives_dict[self.likelihood_i(0)].shape == (1, 10)
-        assert predictives_dict[self.likelihood_i(1)].shape == (1, 10)
+        assert predictives_dict[model.likelihood_i(0)].shape == (1, 10)
+        assert predictives_dict[model.likelihood_i(1)].shape == (1, 10)
+
+
+@parametrize_model_value(
+    [
+        (UniformBernoulliModel(tensor([0.0]), tensor([1.0])), tensor([1.0])),
+        (
+            UniformBernoulliModel(torch.zeros(1, 2), torch.ones(1, 2)),
+            tensor([[[1.0, 1.0]], [[0.0, 1.0]]]),
+        ),
+    ]
+)
+@pytest.mark.parametrize("num_chains", [1, 3])
+@parametrize_inference([bm.SingleSiteAncestralMetropolisHastings()])
+class TestPredictiveMV:
+    @staticmethod
+    def test_posterior_predictive(model, value, inference, num_chains):
+        torch.manual_seed(10)
+        num_samples = 10
+        shape_samples = (num_chains, num_samples) + model.lo.shape
+
+        # define observations
+        if value.ndim == model.lo.ndim:
+            obs = {model.likelihood(): value}
+        else:
+            obs = {model.likelihood_i(i): value[i] for i in range(len(value))}
+
+        # run inference
+        post_samples = inference.infer(
+            [model.prior()], obs, num_samples=num_samples, num_chains=num_chains
+        )
+        assert post_samples[model.prior()].shape == shape_samples
+
+        # simulate predictives
+        predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
+        for rv in obs.keys():
+            assert predictives[rv].shape == shape_samples
+        if value.ndim == 1 + model.lo.ndim:
+            rvs = list(obs.keys())[:2]
+            assert not approx_all(predictives[rvs[0]], predictives[rvs[1]], 0.5)
+        inf_data = predictives.to_inference_data()
+        result_keys = [
+            "posterior",
+            "observed_data",
+            "log_likelihood",
+            "posterior_predictive",
+        ]
+        for k in result_keys:
+            assert k in inf_data
+        for rv in obs.keys():
+            assert inf_data.posterior_predictive[rv].shape == shape_samples

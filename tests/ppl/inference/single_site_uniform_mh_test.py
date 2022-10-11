@@ -3,52 +3,32 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import unittest
-
 import beanmachine.ppl as bm
 import torch
-import torch.distributions as dist
+from beanmachine.ppl.examples.conjugate_models import (
+    BetaBernoulliModel,
+    CategoricalDirichletModel,
+)
+from torch import tensor
+
+from ..utils.fixtures import parametrize_inference, parametrize_model
 
 
-class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
-    class SampleBernoulliModel(object):
-        @bm.random_variable
-        def foo(self):
-            return dist.Beta(torch.tensor(2.0), torch.tensor(2.0))
+pytestmark = parametrize_inference([bm.SingleSiteUniformMetropolisHastings()])
 
-        @bm.random_variable
-        def bar(self):
-            return dist.Bernoulli(self.foo())
 
-    class SampleCategoricalModel(object):
-        @bm.random_variable
-        def foo(self):
-            return dist.Dirichlet(torch.tensor([0.5, 0.5]))
-
-        @bm.random_variable
-        def bar(self):
-            return dist.Categorical(self.foo())
-
-    def test_single_site_uniform_mh_with_bernoulli(self):
-        model = self.SampleBernoulliModel()
-        mh = bm.SingleSiteUniformMetropolisHastings()
-        foo_key = model.foo()
-        bar_key = model.bar()
-        sampler = mh.sampler([foo_key], {bar_key: torch.tensor(0.0)}, num_samples=5)
-        for world in sampler:
-            self.assertTrue(foo_key in world)
-            self.assertTrue(bar_key in world)
-            self.assertTrue(foo_key in world.get_variable(bar_key).parents)
-            self.assertTrue(bar_key in world.get_variable(foo_key).children)
-
-    def test_single_site_uniform_mh_with_categorical(self):
-        model = self.SampleCategoricalModel()
-        mh = bm.SingleSiteUniformMetropolisHastings()
-        foo_key = model.foo()
-        bar_key = model.bar()
-        sampler = mh.sampler([foo_key], {bar_key: torch.tensor(0.0)}, num_samples=5)
-        for world in sampler:
-            self.assertTrue(foo_key in world)
-            self.assertTrue(bar_key in world)
-            self.assertTrue(foo_key in world.get_variable(bar_key).parents)
-            self.assertTrue(bar_key in world.get_variable(foo_key).children)
+@parametrize_model(
+    [
+        BetaBernoulliModel(tensor(2.0), tensor(2.0)),
+        CategoricalDirichletModel(tensor([0.5, 0.5])),
+    ]
+)
+def test_single_site_uniform_mh(model, inference):
+    p_key = model.theta()
+    l_key = model.x(0) if model.x_dim == 1 else model.x()
+    sampler = inference.sampler([p_key], {l_key: torch.tensor(0.0)}, num_samples=5)
+    for world in sampler:
+        assert p_key in world
+        assert l_key in world
+        assert p_key in world.get_variable(l_key).parents
+        assert l_key in world.get_variable(p_key).children
