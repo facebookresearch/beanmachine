@@ -15,6 +15,7 @@ from beanmachine.ppl.compiler.fix_arithmetic import (
     log1mexp_fixer,
     neg_neg_fixer,
     negative_real_multiplication_fixer,
+    nested_if_same_cond_fixer,
 )
 from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
     beta_bernoulli_conjugate_fixer,
@@ -78,6 +79,7 @@ def arithmetic_graph_fixer(skip: Set[str]) -> GraphFixer:
             multiary_multiplication_fixer(bmg),
             neg_neg_fixer(bmg),
             negative_real_multiplication_fixer(bmg, typer),
+            nested_if_same_cond_fixer(bmg),
             nested_matrix_scale_fixer(bmg),
             sum_fixer(bmg, typer),
             trivial_matmul_fixer(bmg, typer),

@@ -186,3 +186,37 @@ def neg_neg_fixer(bmg: BMGraphBuilder) -> NodeFixer:
         return neg.inputs[0]
 
     return _neg_neg_fixer
+
+
+def nested_if_same_cond_fixer(bmg: BMGraphBuilder) -> NodeFixer:
+    # Suppose we have node IF_1 with COND, consequence IF_2 and alternative ALT_1.
+    # Suppose we have node IF_2 with COND consequence COND_2 and alternative ALT_2.
+    # We can replace the IF_1 parent of CHILD with IF(COND, CONS_2, ALT_1).
+    # Similarly, we can also do the following nested if fix,
+    # IF(COND, CONS_1, IF(COND, CONS2, ALT2)) --> IF(COND, CONS1, ALT2).
+
+    def _nested_if_same_cond_fixer(node: bn.BMGNode) -> NodeFixerResult:
+        if not isinstance(node, bn.IfThenElseNode):
+            return Inapplicable
+        cons = node.consequence
+        alt = node.alternative
+        if not isinstance(cons, bn.IfThenElseNode) and not isinstance(
+            alt, bn.IfThenElseNode
+        ):
+            return Inapplicable
+        if isinstance(cons, bn.IfThenElseNode):
+            if not (node.condition == cons.condition):
+                return Inapplicable
+            else:
+                return bmg.add_if_then_else(
+                    node.condition, cons.consequence, node.alternative
+                )
+        elif isinstance(alt, bn.IfThenElseNode):
+            if not (node.condition == alt.condition):
+                return Inapplicable
+            else:
+                return bmg.add_if_then_else(
+                    node.condition, node.consequence, alt.alternative
+                )
+
+    return _nested_if_same_cond_fixer
