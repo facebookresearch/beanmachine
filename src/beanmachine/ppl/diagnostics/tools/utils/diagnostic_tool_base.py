@@ -19,7 +19,7 @@ from bokeh.resources import INLINE
 from IPython.display import display, HTML
 
 
-T = TypeVar("T", bound="Base")
+T = TypeVar("T", bound="DiagnosticToolBaseClass")
 
 
 class DiagnosticToolBaseClass(ABC):
@@ -75,18 +75,6 @@ class DiagnosticToolBaseClass(ABC):
         with path.open() as f:
             tool_js = f.read()
         return tool_js
-
-    def _tool_json(self: T) -> Dict[Any, Any]:
-        """
-        Debugging method used primarily when creating a new diagnostic tool.
-
-        Returns:
-            Dict[Any, Any]: Creates a JSON serializable object using Bokeh's `json_item`
-                method and the output from `create_document`.
-        """
-        doc = self.create_document()
-        json_data = json_item(doc)
-        return json_data
 
     def show(self: T) -> None:
         """
@@ -157,3 +145,15 @@ class DiagnosticToolBaseClass(ABC):
     def create_document(self: T) -> Model:
         """To be implemented by the inheriting class."""
         ...
+
+    def _tool_json(self: T) -> Dict[Any, Any]:
+        """
+        Debugging method used primarily when creating a new diagnostic tool.
+
+        Returns:
+            Dict[Any, Any]: Creates a JSON serializable object using Bokeh's `json_item`
+                method and the output from `create_document`.
+        """
+        doc = self.create_document()
+        json_data = json_item(doc)
+        return json_data
