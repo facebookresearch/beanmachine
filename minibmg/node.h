@@ -70,6 +70,34 @@ class SampleNode : public Node {
   std::string rvid;
 };
 
+// A helper function useful when topologically sorting nodes (the
+// topological_sort function requires a parameter that is a function of this
+// shape).
 std::vector<Nodep> in_nodes(const Nodep& n);
+
+// Provide a good hash function so Nodep values can be used in unordered maps
+// and sets.  This treats Nodep values as semantically value-based.
+struct NodepIdentityHash {
+  std::size_t operator()(beanmachine::minibmg::Nodep const& p) const noexcept;
+};
+
+// Provide a good equality function so Nodep values can be used in unordered
+// maps and sets.  This treats Nodep values, recursively, as semantically
+// value-based.
+struct NodepIdentityEquals {
+  bool operator()(
+      const beanmachine::minibmg::Nodep& lhs,
+      const beanmachine::minibmg::Nodep& rhs) const noexcept;
+};
+
+// A value-based map from nodes to T.  Used for deduplicating and optimizing a
+// graph.
+template <class T>
+using NodeValueMap =
+    std::unordered_map<Nodep, T, NodepIdentityHash, NodepIdentityEquals>;
+
+// A value-based set of nodes.
+using NodeValueSet =
+    std::unordered_set<Nodep, NodepIdentityHash, NodepIdentityEquals>;
 
 } // namespace beanmachine::minibmg

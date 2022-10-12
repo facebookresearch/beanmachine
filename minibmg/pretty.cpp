@@ -43,11 +43,11 @@ Precedence precedence_for_operator(Operator op) {
   switch (op) {
     case Operator::ADD:
     case Operator::SUBTRACT:
-    case Operator::NEGATE:
       return Precedence::Sum;
     case Operator::MULTIPLY:
     case Operator::DIVIDE:
       return Precedence::Product;
+    case Operator::NEGATE:
     default:
       return Precedence::Term;
   }
@@ -121,7 +121,7 @@ PrintedForm print(Nodep node, std::map<Nodep, PrintedForm>& cache) {
       auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
       auto this_precedence = precedence_for_operator(op);
       auto right = cache[n->in_nodes[0]];
-      auto rs = (right.precedence >= this_precedence)
+      auto rs = (right.precedence > this_precedence)
           ? fmt::format("({0})", right.string)
           : right.string;
       return PrintedForm{fmt::format("-{0}", rs), this_precedence};
