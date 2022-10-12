@@ -21,6 +21,8 @@ namespace beanmachine::minibmg {
 // Take a set of root nodes as input, and return a map of deduplicated nodes,
 // which maps from a node in the transitive closure of the roots to a
 // corresponding node in the transitive closure of the deduplicated graph.
+// This is used in the implementation of dedup(), but might occasionally be
+// useful in this form.
 std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots);
 
 // In order to deduplicate data in a given data structure, the programmer must
@@ -35,7 +37,7 @@ class DedupHelper {
   // locate all of the roots.
   std::vector<Nodep> find_roots(const T&) const;
   // rewrite the T, given a mapping from each node to its replacement.
-  T rewrite(const T&, std::unordered_map<Nodep, Nodep>) const;
+  T rewrite(const T&, const std::unordered_map<Nodep, Nodep>&) const;
 };
 
 // Rewrite a data structure by deduplicating its nodes.  The programmer must
@@ -51,7 +53,7 @@ T dedup(const T& data, const DedupHelper<T>& helper = DedupHelper<T>{}) {
 template <>
 class DedupHelper<Nodep> {
  public:
-  std::vector<Nodep> find_roots(Nodep& n) const {
+  std::vector<Nodep> find_roots(const Nodep& n) const {
     return {n};
   }
   Nodep rewrite(const Nodep& node, const std::unordered_map<Nodep, Nodep>& map)

@@ -5,10 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <gtest/gtest.h>
-
 #include <beanmachine/minibmg/minibmg.h>
 #include <beanmachine/minibmg/tests/test_utils.h>
+#include <gtest/gtest.h>
 #include <random>
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/num3.h"

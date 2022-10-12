@@ -25,7 +25,7 @@ const std::vector<Nodep> roots(
     const std::vector<Nodep>& queries,
     const std::list<std::pair<Nodep, double>>& observations) {
   std::list<Nodep> roots;
-  for (auto n : queries) {
+  for (auto& n : queries) {
     roots.push_back(n);
   }
   for (auto& p : observations) {
@@ -60,7 +60,7 @@ class DedupHelper<QueriesAndObservations> {
     for (auto& q : qo.observations) {
       roots.push_back(q.first);
     }
-    for (auto n : qo.queries) {
+    for (auto& n : qo.queries) {
       roots.push_back(n);
     }
     return roots;
@@ -106,7 +106,8 @@ void Graph::validate(std::vector<Nodep> nodes) {
   std::unordered_set<Nodep> seen;
   // Check the nodes.
   for (int i = 0, n = nodes.size(); i < n; i++) {
-    auto node = nodes[i];
+    assert(!nodes.empty()); // quiet, lint
+    auto& node = nodes[i];
 
     // TODO: improve the exception diagnostics on failure.  e.g. how to identify
     // a node?
@@ -156,7 +157,7 @@ void Graph::validate(std::vector<Nodep> nodes) {
               "Node {0} should have {1} parents", i, parent_types.size()));
         }
         for (int j = 0, m = parent_types.size(); j < m; j++) {
-          Nodep parent = op->in_nodes[j];
+          const Nodep& parent = op->in_nodes[j];
           if (!seen.count(parent)) {
             throw std::invalid_argument(
                 fmt::format("Node {0} has a parent not previously seen", i));
@@ -183,7 +184,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   dynamic a = dynamic::array;
 
   unsigned long next_identifier = 0;
-  for (auto node : g) {
+  for (auto& node : g) {
     // assign node identifiers sequentially.  They are called "sequence" in the
     // generated json.
     auto identifier = next_identifier++;
@@ -198,7 +199,12 @@ folly::dynamic graph_to_json(const Graph& g) {
         dyn_node["value"] = n->value;
         break;
       }
-      // TODO: case Operator::VARIABLE:
+      case Operator::VARIABLE: {
+        auto n = std::dynamic_pointer_cast<const VariableNode>(node);
+        dyn_node["name"] = n->name;
+        dyn_node["identifier"] = n->identifier;
+        break;
+      }
       case Operator::SAMPLE: {
         auto n = std::dynamic_pointer_cast<const SampleNode>(node);
         dynamic in_nodes = dynamic::array;
@@ -209,7 +215,7 @@ folly::dynamic graph_to_json(const Graph& g) {
       default: {
         auto n = std::dynamic_pointer_cast<const OperatorNode>(node);
         dynamic in_nodes = dynamic::array;
-        for (auto pred : n->in_nodes) {
+        for (auto& pred : n->in_nodes) {
           in_nodes.push_back(node_to_identifier[pred]);
         }
         dyn_node["in_nodes"] = in_nodes;
@@ -221,7 +227,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   result["nodes"] = a;
 
   dynamic observations = dynamic::array;
-  for (auto q : g.observations) {
+  for (auto& q : g.observations) {
     dynamic d = dynamic::object;
     auto id = node_to_identifier[q.first];
     d["node"] = id;
@@ -231,7 +237,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   result["observations"] = observations;
 
   dynamic queries = dynamic::array;
-  for (auto q : g.queries) {
+  for (auto& q : g.queries) {
     queries.push_back(node_to_identifier[q]);
   }
   result["queries"] = queries;
@@ -342,7 +348,7 @@ Graph json_to_graph(folly::dynamic d) {
           throw JsonError("missing in_nodes.");
         }
         std::vector<Nodep> in_nodes;
-        for (auto in_nodev : in_nodesv) {
+        for (auto& in_nodev : in_nodesv) {
           if (!in_nodev.isInt()) {
             throw JsonError("missing in_node for operator.");
           }
@@ -367,7 +373,7 @@ Graph json_to_graph(folly::dynamic d) {
   std::vector<Nodep> queries;
   auto query_nodes = d["queries"];
   if (query_nodes.isArray()) {
-    for (auto query : query_nodes) {
+    for (auto& query : query_nodes) {
       if (!query.isInt()) {
         throw JsonError("bad query value.");
       }
@@ -383,7 +389,7 @@ Graph json_to_graph(folly::dynamic d) {
   std::list<std::pair<Nodep, double>> observations;
   auto observation_nodes = d["observations"];
   if (observation_nodes.isArray()) {
-    for (auto obs : observation_nodes) {
+    for (auto& obs : observation_nodes) {
       auto node = obs["node"];
       if (!node.isInt()) {
         throw JsonError("bad observation node.");
