@@ -55,6 +55,11 @@ EMPTY_DATA = {
         },
     },
 }
+SIZING = {
+    "sizing_mode": "scale_both",
+    "max_height": PLOT_HEIGHT + 250,  # drop down menus and tabs
+    "max_width": 2 * PLOT_WIDTH + 30,  # tool bars
+}
 
 
 def create_sources() -> typing.Sources:
@@ -91,12 +96,13 @@ def create_figures(rv_name: str) -> typing.Figures:
     output = {}
     for figure_name in FIGURE_NAMES:
         fig = figure(
-            width=PLOT_WIDTH,
-            height=PLOT_HEIGHT,
+            max_width=PLOT_WIDTH,
+            max_height=PLOT_HEIGHT,
             outline_line_color="black",
             title=f"{figure_name} distribution",
             x_axis_label=rv_name,
             y_axis_label=None,
+            sizing_mode="scale_both",
         )
         fig.yaxis.visible = False
         plotting_utils.style_figure(fig)
@@ -441,22 +447,23 @@ def create_view(widgets: typing.Widgets, figures: typing.Figures) -> Tabs:
         Bokeh Tabs objects.
     """
     help_panel = Panel(child=help_page(), title="Help", name="helpPanel")
+    fig_child = Column(
+        children=[
+            create_figure_grid(figures),
+            widgets["bw_factor_slider"],
+            widgets["bw_div"],
+            widgets["hdi_slider"],
+        ],
+        css_classes=["bm-tool-loading", "arcs"],
+    )
+    fig_child.update_from_json(SIZING)
+    tool_child = Column(children=[widgets["rv_select"], fig_child])
+    tool_child.update_from_json(SIZING)
     tool_panel = Panel(
-        child=Column(
-            children=[
-                widgets["rv_select"],
-                Column(
-                    children=[
-                        create_figure_grid(figures),
-                        widgets["bw_factor_slider"],
-                        widgets["bw_div"],
-                        widgets["hdi_slider"],
-                    ],
-                    css_classes=["bm-tool-loading", "arcs"],
-                ),
-            ],
-        ),
+        child=tool_child,
         title="Marginal 1D",
         name="toolPanel",
     )
-    return Tabs(tabs=[tool_panel, help_panel])
+    tabs = Tabs(tabs=[tool_panel, help_panel])
+    tabs.update_from_json(SIZING)
+    return tabs

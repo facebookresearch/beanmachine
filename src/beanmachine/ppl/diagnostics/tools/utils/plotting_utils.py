@@ -18,6 +18,15 @@ from bokeh.plotting.figure import Figure
 
 
 def style_figure(figure: Figure) -> None:
+    """
+    Style the given Bokeh `figure`.
+
+    Args:
+        figure (Figure): A Bokeh `Figure` object.
+
+    Returns:
+        None: Styles the given figure without copying.
+    """
     figure.grid.grid_line_alpha = 0.3
     figure.grid.grid_line_color = "grey"
     figure.grid.grid_line_width = 0.3
@@ -26,6 +35,15 @@ def style_figure(figure: Figure) -> None:
 
 
 def choose_palette(num_colors: int) -> List[str]:
+    """
+    Determine which palette from Bokeh's Colorblind to use.
+
+    Args:
+        num_colors (int): The number of colors to use for the palette.
+
+    Returns:
+        List[str]: A list of colors to be used as the palette for a figure.
+    """
     palette_indices = [key for key in Colorblind.keys() if num_colors <= key]
     if not palette_indices:
         palette_index = max(Colorblind.keys())
@@ -35,6 +53,20 @@ def choose_palette(num_colors: int) -> List[str]:
 
 
 def create_toolbar(figures: List[Figure]) -> ToolbarBox:
+    """
+    Create a single toolbar for the given list of figures.
+
+    This method ignores all `HoverTool` entries in the final toolbar object. The
+    rational for ignoring them is to prevent the final toolbar from having too much
+    visual clutter.
+
+    Args:
+        figures (List[Figure]): A list of Bokeh `Figure` objects that all have their own
+            toolbars that will be merged into one.
+
+    Returns:
+        ToolbarBox: The merged toolbar.
+    """
     toolbars = []
     for figure in figures:
         toolbars.append(figure.toolbar)
@@ -52,19 +84,15 @@ def create_toolbar(figures: List[Figure]) -> ToolbarBox:
 
 
 def create_figure_grid(figures: List[Figure], num_figure_columns: int) -> Row:
-    """Layout the given figures in a grid, and make one toolbar.
+    """
+    Similar to Bokeh's `grid_plot` method, except we merge toolbars in this method.
 
-    Parameters
-    ----------
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
-    num_figure_columns : int
-        The number of columns to display the figures with.
+    Args:
+        figures (List[Figure]): A list of Bokeh `Figure` objects.
+        num_figure_columns (int): The number of columns for the grid.
 
-    Returns
-    -------
-    Row
-        A Bokeh layout object.
+    Returns:
+        Row: Returns a single Bokeh `Row` object that contains all the given figures.
     """
     toolbar = create_toolbar(figures)
     figure_rows = []
@@ -92,25 +120,22 @@ def filter_renderers(
     glyph_type: str = "GlyphRenderer",
     substring: bool = False,
 ) -> List[GlyphRenderer]:
-    """Filter Bokeh figure renderers given the search string.
+    """
+    Find renderers in the given figure using the `search` string.
 
-    Parameters
-    ----------
-    figure : Figure
-        A Bokeh figure to filter renderers from.
-    search : str
-        The search string to filter for.
-    glyph_type : str, optional default is "GlyphRenderer"
-        The glyph type.
-    substring : bool, optional default is ``False``
-        Flag to indicate if we should use the search term as a substring search.
-        - ``False`` indicates the name of the glyph == search.
-        - ``True`` indicates the search is a substring of the glyph name.
+    Filters renderers from the given figure based on renderer names that match the given
+    search parameters.
 
-    Returns
-    -------
-    List[GlyphRenderer]
-        A list of Bokeh glyph renderer objects.
+    Args:
+        figure (Figure): A Bokeh `Figure` object.
+        search (str): A string to filter renderer names with.
+        glyph_type (:obj:`str`, optional): The type of renderer to search for in the
+            figure. Default is `GlyphRenderer`.
+        substring (:obj:`bool`, optional): Flag to indicate if the given `search` string
+            should be used as a substring search. Default is `False`.
+
+    Returns:
+        List[GlyphRenderer]: A list of renderers that match the search parameters.
     """
     output = []
     renderers = PropertyValueList(figure.renderers)

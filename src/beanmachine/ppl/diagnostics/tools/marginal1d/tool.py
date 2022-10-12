@@ -8,45 +8,42 @@
 from typing import TypeVar
 
 from beanmachine.ppl.diagnostics.tools.marginal1d import utils
-from beanmachine.ppl.diagnostics.tools.utils.base import Base
+from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
+    DiagnosticToolBaseClass,
+)
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from bokeh.models import Model
 from bokeh.models.callbacks import CustomJS
 
 
 T = TypeVar("T", bound="Marginal1d")
 
 
-class Marginal1d(Base):
-    """Marginal (1D) tool.
+class Marginal1d(DiagnosticToolBaseClass):
+    """
+    Marginal 1D diagnostic tool.
 
-    Parameters
-    ----------
-    mcs : MonteCarloSamples
-        Bean Machine model object.
+    Args:
+        mcs (MonteCarloSamples): The return object from running a Bean Machine model.
 
-    Attributes
-    ----------
-    data : Dict[str, List[List[float]]]
-        JSON serialized version of the Bean Machine model.
-    rv_names : List[str]
-        The list of random variables string names for the given model.
-    num_chains : int
-        The number of chains of the model.
-    num_draws : int
-        The number of draws for each chain of the model.
-    palette : List[str]
-        A list of color values used for the glyphs in the figures. The colors are
-        specifically chosen from the Colorblind palette defined in Bokeh.
-    tool_js : str
-        The JavaScript callbacks needed to render the Bokeh tool independently from
-        a Python server.
+    Attributes:
+        data (Dict[str, List[List[float]]]): JSON serializable representation of the
+            given `mcs` object.
+        rv_names (List[str]): The list of random variables string names for the given
+            model.
+        num_chains (int): The number of chains of the model.
+        num_draws (int): The number of draws of the model for each chain.
+        palette (List[str]): A list of color values used for the glyphs in the figures.
+            The colors are specifically chosen from the Colorblind palette defined in
+            Bokeh.
+        tool_js (str):The JavaScript callbacks needed to render the Bokeh tool
+            independently from a Python server.
     """
 
     def __init__(self: T, mcs: MonteCarloSamples) -> None:
         super(Marginal1d, self).__init__(mcs)
 
-    def create_document(self: T) -> str:
-        """Create the Bokeh document for display in Jupyter."""
+    def create_document(self: T) -> Model:
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
         bw_factor = 1.0

@@ -11,17 +11,15 @@ from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 
 
 def serialize_bm(samples: MonteCarloSamples) -> Dict[str, List[List[float]]]:
-    """Convert Bean Machine models to a JSON serializable object.
+    """
+    Convert Bean Machine models to a JSON serializable object.
 
-    Parameters
-    ----------
-    samples : MonteCarloSamples
-        Output of a model from Bean Machine.
+    Args:
+        samples (MonteCarloSamples): Output of a model from Bean Machine.
 
     Returns
-    -------
-    model : Dict[str, List[List[float]]]
-        The JSON serializable object for use in the diagnostics tools.
+        Dict[str, List[List[float]]]: The JSON serializable object for use in the
+            diagnostics tools.
     """
     model = dict(
         sorted(
