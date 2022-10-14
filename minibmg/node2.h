@@ -226,6 +226,30 @@ struct Node2pIdentityEquals {
 
 // A value-based map from Node2s to T.  Used for deduplicating and
 // optimizing a graph.
+class Node2Node2ValueMap {
+ public:
+  ~Node2Node2ValueMap() {}
+  ScalarNode2p at(const ScalarNode2p& p) const {
+    return std::dynamic_pointer_cast<const ScalarNode2>(map.at(p));
+  }
+  DistributionNode2p at(const DistributionNode2p& p) const {
+    return std::dynamic_pointer_cast<const DistributionNode2>(map.at(p));
+  }
+  Node2p at(const Node2p& p) const {
+    return map.at(p);
+  }
+  bool contains(const Node2p& p) const {
+    return map.contains(p);
+  }
+  void add(const Node2p& key, const Node2p& value) {
+    map.insert({key, value});
+  }
+
+ private:
+  std::unordered_map<Node2p, Node2p, Node2pIdentityHash, Node2pIdentityEquals>
+      map;
+};
+
 template <class T>
 using Node2ValueMap =
     std::unordered_map<Node2p, T, Node2pIdentityHash, Node2pIdentityEquals>;
