@@ -13,7 +13,11 @@ namespace graph {
 
 class HMC : public GlobalMH {
  public:
-  HMC(Graph& g,
+  HMC(std::unique_ptr<GlobalState> state,
+      double path_length,
+      double step_size,
+      bool adapt_mass_matrix = true);
+  HMC(Graph& graph,
       double path_length,
       double step_size,
       bool adapt_mass_matrix = true);
@@ -25,9 +29,6 @@ class HMC : public GlobalMH {
   Random variables of type POS_REAL have a LOG transform applied.
   */
   void prepare_graph() override;
-
- private:
-  Graph& graph;
 };
 
 } // namespace graph

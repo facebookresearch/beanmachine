@@ -7,16 +7,17 @@
 
 #include <gtest/gtest.h>
 
+#include <boost/math/special_functions/factorials.hpp>
+#include <math.h>
+#include <chrono>
+#include <memory>
 #include "beanmachine/graph/distribution/distribution.h"
+#include "beanmachine/graph/global/global_state.h"
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/testing_util.h"
 #include "beanmachine/graph/third-party/nameof.h"
 #include "beanmachine/graph/util.h"
-
-#include <boost/math/special_functions/factorials.hpp>
-#include <math.h>
-#include <chrono>
 
 using namespace beanmachine::graph;
 using namespace beanmachine::distribution;
@@ -300,7 +301,7 @@ TEST(testdistrib, product_inference_upstream_iid) {
   // run_nmc_against_nuts_test(g);
 
   auto expected = -2.848;
-  NUTS nuts = NUTS(g);
+  NUTS nuts = NUTS(std::make_unique<GraphGlobalState>(g));
   auto samples = nuts.infer(10000, time(nullptr), 1000);
   auto means_nuts = compute_means(samples);
 

@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "beanmachine/graph/global/hmc.h"
 #include "beanmachine/graph/global/tests/conjugate_util_test.h"
@@ -19,7 +20,8 @@ TEST(testglobal, global_hmc_stepsize_normal_normal) {
   bool adapt_mass_matrix = false;
   Graph g;
   auto expected_moments = build_normal_normal_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   test_conjugate_model_moments(mh, expected_moments, num_samples);
 }
 
@@ -27,7 +29,8 @@ TEST(testglobal, global_hmc_stepsize_gamma_gamma) {
   bool adapt_mass_matrix = false;
   Graph g;
   auto expected_moments = build_gamma_gamma_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -35,7 +38,8 @@ TEST(testglobal, global_hmc_stepsize_gamma_normal) {
   bool adapt_mass_matrix = false;
   Graph g;
   auto expected_moments = build_gamma_normal_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -53,7 +57,8 @@ TEST(testglobal, global_hmc_stepsize_half_cauchy) {
   bool adapt_mass_matrix = false;
   Graph g;
   build_half_cauchy_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   test_half_cauchy_model(mh);
 }
 
@@ -61,6 +66,7 @@ TEST(testglobal, global_hmc_stepsize_mixed) {
   bool adapt_mass_matrix = false;
   Graph g;
   auto expected_moments = build_mixed_model(g);
-  HMC mh = HMC(g, 0.5, 0.2, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 0.5, 0.2, adapt_mass_matrix);
   test_conjugate_model_moments(mh, expected_moments);
 }

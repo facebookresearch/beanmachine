@@ -6,20 +6,34 @@
  */
 
 #include "beanmachine/graph/global/hmc.h"
+#include <memory>
 #include "beanmachine/graph/global/proposer/hmc_proposer.h"
 #include "beanmachine/graph/global/util.h"
 
 namespace beanmachine {
 namespace graph {
 
-HMC::HMC(Graph& g, double path_length, double step_size, bool adapt_mass_matrix)
-    : GlobalMH(g), graph(g) {
-  proposer = std::make_unique<HmcProposer>(
-      HmcProposer(path_length, step_size, adapt_mass_matrix));
+HMC::HMC(
+    std::unique_ptr<GlobalState> global_state,
+    double path_length,
+    double step_size,
+    bool adapt_mass_matrix)
+    : GlobalMH(std::move(global_state)) {
+  proposer =
+      std::make_unique<HmcProposer>(path_length, step_size, adapt_mass_matrix);
+}
+HMC::HMC(
+    Graph& graph,
+    double path_length,
+    double step_size,
+    bool adapt_mass_matrix)
+    : GlobalMH(std::make_unique<GraphGlobalState>(graph)) {
+  proposer =
+      std::make_unique<HmcProposer>(path_length, step_size, adapt_mass_matrix);
 }
 
 void HMC::prepare_graph() {
-  set_default_transforms(graph);
+  state.set_default_transforms();
 }
 
 } // namespace graph

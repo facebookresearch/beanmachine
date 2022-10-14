@@ -14,13 +14,14 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/global/global_state.h"
+#include "beanmachine/graph/global/util.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 
 namespace beanmachine {
 namespace graph {
 
-GlobalState::GlobalState(Graph& g) : graph(g) {
+GraphGlobalState::GraphGlobalState(Graph& g) : graph(g) {
   flat_size = 0;
 
   // initialize unconstrained value types
@@ -61,7 +62,7 @@ GlobalState::GlobalState(Graph& g) : graph(g) {
   }
 }
 
-void GlobalState::initialize_values(InitType init_type, uint seed) {
+void GraphGlobalState::initialize_values(InitType init_type, uint seed) {
   std::mt19937 gen(31 * seed + 17);
   if (init_type == InitType::PRIOR) {
     // Sample from stochastic nodes and update values directly
@@ -91,7 +92,7 @@ void GlobalState::initialize_values(InitType init_type, uint seed) {
   update_log_prob();
 }
 
-void GlobalState::backup_unconstrained_values() {
+void GraphGlobalState::backup_unconstrained_values() {
   for (uint sto_node_id = 0;
        sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
@@ -102,7 +103,7 @@ void GlobalState::backup_unconstrained_values() {
   }
 }
 
-void GlobalState::backup_unconstrained_grads() {
+void GraphGlobalState::backup_unconstrained_grads() {
   for (uint sto_node_id = 0;
        sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
@@ -111,7 +112,7 @@ void GlobalState::backup_unconstrained_grads() {
   }
 }
 
-void GlobalState::revert_unconstrained_values() {
+void GraphGlobalState::revert_unconstrained_values() {
   for (uint sto_node_id = 0;
        sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
@@ -123,7 +124,7 @@ void GlobalState::revert_unconstrained_values() {
   }
 }
 
-void GlobalState::revert_unconstrained_grads() {
+void GraphGlobalState::revert_unconstrained_grads() {
   for (uint sto_node_id = 0;
        sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
@@ -132,7 +133,7 @@ void GlobalState::revert_unconstrained_grads() {
   }
 }
 
-void GlobalState::add_to_stochastic_unconstrained_nodes(
+void GraphGlobalState::add_to_stochastic_unconstrained_nodes(
     Eigen::VectorXd& increment) {
   if (increment.size() != flat_size) {
     throw std::invalid_argument(
@@ -144,7 +145,7 @@ void GlobalState::add_to_stochastic_unconstrained_nodes(
   set_flattened_unconstrained_values(sum);
 }
 
-void GlobalState::get_flattened_unconstrained_values(
+void GraphGlobalState::get_flattened_unconstrained_values(
     Eigen::VectorXd& flattened_values) {
   flattened_values.resize(flat_size);
   int i = 0;
@@ -163,7 +164,7 @@ void GlobalState::get_flattened_unconstrained_values(
   }
 }
 
-void GlobalState::set_flattened_unconstrained_values(
+void GraphGlobalState::set_flattened_unconstrained_values(
     Eigen::VectorXd& flattened_values) {
   if (flattened_values.size() != flat_size) {
     throw std::invalid_argument(
@@ -190,7 +191,7 @@ void GlobalState::set_flattened_unconstrained_values(
   }
 }
 
-void GlobalState::get_flattened_unconstrained_grads(
+void GraphGlobalState::get_flattened_unconstrained_grads(
     Eigen::VectorXd& flattened_grad) {
   flattened_grad.resize(flat_size);
   int i = 0;
@@ -207,16 +208,36 @@ void GlobalState::get_flattened_unconstrained_grads(
   }
 }
 
-double GlobalState::get_log_prob() {
+double GraphGlobalState::get_log_prob() {
   return log_prob;
 }
 
-void GlobalState::update_log_prob() {
+void GraphGlobalState::update_log_prob() {
   log_prob = graph.full_log_prob();
 }
 
-void GlobalState::update_backgrad() {
+void GraphGlobalState::update_backgrad() {
   graph.eval_and_update_backgrad(graph.mutable_support_ptrs());
+}
+
+void GraphGlobalState::collect_sample() {
+  graph.collect_sample();
+}
+
+std::vector<std::vector<NodeValue>>& GraphGlobalState::get_samples() {
+  return graph.samples;
+}
+
+void GraphGlobalState::set_default_transforms() {
+  beanmachine::graph::set_default_transforms(graph);
+}
+
+void GraphGlobalState::set_agg_type(AggregationType agg_type) {
+  graph.agg_type = agg_type;
+}
+
+void GraphGlobalState::clear_samples() {
+  graph.samples.clear();
 }
 
 } // namespace graph

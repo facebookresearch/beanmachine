@@ -930,7 +930,7 @@ class Graph {
   // to the value of the node and mutates that value to see what happens.
   // We should consider trying to find a safer way to test this functionality.
   Node* check_node(NodeID node_id, NodeType node_type);
-  friend class GlobalState;
+  friend class BmgGlobalState;
   // TODO: create Samples class and remove the following friend classes
   friend class GlobalMH;
   friend class GlobalMH;

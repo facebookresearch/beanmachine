@@ -6,12 +6,14 @@
  */
 
 #include "beanmachine/graph/global/random_walk.h"
+#include <memory>
 #include "beanmachine/graph/global/proposer/random_walk_proposer.h"
 
 namespace beanmachine {
 namespace graph {
 
-RandomWalkMH::RandomWalkMH(Graph& g, double step_size) : GlobalMH(g) {
+RandomWalkMH::RandomWalkMH(Graph& g, double step_size)
+    : GlobalMH(std::make_unique<GraphGlobalState>(g)) {
   proposer =
       std::make_unique<RandomWalkProposer>(RandomWalkProposer(step_size));
 }
