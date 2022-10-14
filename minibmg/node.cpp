@@ -43,11 +43,6 @@ inline std::size_t hash(const std::vector<Nodep>& in_nodes) {
 
 namespace beanmachine::minibmg {
 
-std::string make_fresh_rvid() {
-  static std::atomic<long> next_rvid = 1;
-  return fmt::format("S{}", next_rvid.fetch_add(1));
-}
-
 Node::Node(
     const enum Operator op,
     const Type type,
