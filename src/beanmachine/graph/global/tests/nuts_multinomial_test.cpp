@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <memory>
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include "beanmachine/graph/graph.h"
@@ -19,7 +19,10 @@ TEST(testglobal, global_nuts_multinomial_normal_normal) {
   bool multinomial_sampling = true;
   Graph g;
   auto expected_moments = build_normal_normal_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
+  NUTS mh = NUTS(
+      std::make_unique<GraphGlobalState>(g),
+      adapt_mass_matrix,
+      multinomial_sampling);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -28,7 +31,10 @@ TEST(testglobal, global_nuts_multinomial_gamma_gamma) {
   bool multinomial_sampling = true;
   Graph g;
   auto expected_moments = build_gamma_gamma_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
+  NUTS mh = NUTS(
+      std::make_unique<GraphGlobalState>(g),
+      adapt_mass_matrix,
+      multinomial_sampling);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -37,7 +43,10 @@ TEST(testglobal, global_nuts_multinomial_gamma_normal) {
   bool multinomial_sampling = true;
   Graph g;
   auto expected_moments = build_gamma_normal_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
+  NUTS mh = NUTS(
+      std::make_unique<GraphGlobalState>(g),
+      adapt_mass_matrix,
+      multinomial_sampling);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -52,7 +61,10 @@ TEST(testglobal, global_nuts_multinomial_half_cauchy) {
   bool multinomial_sampling = true;
   Graph g;
   build_half_cauchy_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
+  NUTS mh = NUTS(
+      std::make_unique<GraphGlobalState>(g),
+      adapt_mass_matrix,
+      multinomial_sampling);
   test_half_cauchy_model(mh, num_samples, num_warmup_samples);
 }
 
@@ -61,6 +73,9 @@ TEST(testglobal, global_nuts_multinomial_mixed) {
   bool multinomial_sampling = true;
   Graph g;
   auto expected_moments = build_mixed_model(g);
-  NUTS mh = NUTS(g, adapt_mass_matrix, multinomial_sampling);
+  NUTS mh = NUTS(
+      std::make_unique<GraphGlobalState>(g),
+      adapt_mass_matrix,
+      multinomial_sampling);
   test_conjugate_model_moments(mh, expected_moments);
 }

@@ -20,7 +20,8 @@ TEST(testglobal, global_hmc_mass_matrix_normal_normal) {
   bool adapt_mass_matrix = true;
   Graph g;
   auto expected_moments = build_normal_normal_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   test_conjugate_model_moments(
       mh, expected_moments, num_samples, num_warmup_samples);
 }
@@ -29,7 +30,8 @@ TEST(testglobal, global_hmc_mass_matrix_gamma_gamma) {
   bool adapt_mass_matrix = true;
   Graph g;
   auto expected_moments = build_gamma_gamma_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   test_conjugate_model_moments(mh, expected_moments);
 }
 
@@ -43,7 +45,8 @@ TEST(testglobal, global_hmc_mass_matrix_half_cauchy) {
   bool adapt_mass_matrix = true;
   Graph g;
   build_half_cauchy_model(g);
-  HMC mh = HMC(g, 1.0, 0.5, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 1.0, 0.5, adapt_mass_matrix);
   // TODO: fix this in next diff
   test_half_cauchy_model(mh, num_samples, num_warmup_samples, 1.0);
 }
@@ -52,6 +55,7 @@ TEST(testglobal, global_hmc_mass_matrix_mixed) {
   bool adapt_mass_matrix = true;
   Graph g;
   auto expected_moments = build_mixed_model(g);
-  HMC mh = HMC(g, 0.1, 0.05, adapt_mass_matrix);
+  HMC mh =
+      HMC(std::make_unique<GraphGlobalState>(g), 0.1, 0.05, adapt_mass_matrix);
   test_conjugate_model_moments(mh, expected_moments);
 }

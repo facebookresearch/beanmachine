@@ -10,7 +10,9 @@
 
 namespace beanmachine {
 namespace graph {
-GlobalMH::GlobalMH(Graph& g) : graph(g), state(GlobalState(g)) {}
+
+GlobalMH::GlobalMH(std::unique_ptr<GlobalState> global_state0)
+    : global_state(std::move(global_state0)), state{*global_state} {}
 
 std::vector<std::vector<NodeValue>>& GlobalMH::infer(
     int num_samples,
@@ -20,9 +22,8 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
     InitType init_type) {
   std::mt19937 gen(seed);
   // TODO: tie samples directly to inference
-  graph.agg_type = AggregationType::NONE;
-  graph.samples.clear();
-  std::vector<std::vector<NodeValue>> values;
+  state.set_agg_type(AggregationType::NONE);
+  state.clear_samples();
 
   prepare_graph();
   state.initialize_values(init_type, seed);
@@ -50,14 +51,14 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
       double acceptance_prob = std::min(std::exp(acceptance_log_prob), 1.0);
       proposer->warmup(state, gen, acceptance_prob, i + 1, num_warmup_samples);
       if (save_warmup) {
-        graph.collect_sample();
+        state.collect_sample();
       }
     } else {
-      graph.collect_sample();
+      state.collect_sample();
     }
   }
 
-  return graph.samples;
+  return state.get_samples();
 }
 
 } // namespace graph

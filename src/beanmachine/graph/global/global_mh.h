@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <memory>
 #include "beanmachine/graph/global/proposer/global_proposer.h"
 #include "beanmachine/graph/graph.h"
 
@@ -14,11 +15,7 @@ namespace graph {
 
 class GlobalMH {
  public:
-  Graph& graph;
-  GlobalState state;
-  std::unique_ptr<GlobalProposer> proposer;
-
-  explicit GlobalMH(Graph& g);
+  explicit GlobalMH(std::unique_ptr<GlobalState> global_state);
   std::vector<std::vector<NodeValue>>& infer(
       int num_samples,
       uint seed,
@@ -28,6 +25,13 @@ class GlobalMH {
   virtual void prepare_graph() {}
   void single_mh_step(GlobalState& state);
   virtual ~GlobalMH() {}
+
+ private:
+  std::unique_ptr<GlobalState> global_state;
+
+ public:
+  GlobalState& state;
+  std::unique_ptr<GlobalProposer> proposer;
 };
 
 } // namespace graph

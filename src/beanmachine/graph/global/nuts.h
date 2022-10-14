@@ -22,7 +22,11 @@ Reference:
 class NUTS : public GlobalMH {
  public:
   explicit NUTS(
-      Graph& g,
+      std::unique_ptr<GlobalState> state,
+      bool adapt_mass_matrix = true,
+      bool multinomial_sampling = true);
+  explicit NUTS(
+      Graph& graph,
       bool adapt_mass_matrix = true,
       bool multinomial_sampling = true);
   /*
@@ -33,9 +37,6 @@ class NUTS : public GlobalMH {
   Random variables of type POS_REAL have a LOG transform applied.
   */
   void prepare_graph() override;
-
- private:
-  Graph& graph;
 };
 
 } // namespace graph

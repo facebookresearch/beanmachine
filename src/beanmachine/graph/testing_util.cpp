@@ -37,7 +37,7 @@ void test_nmc_against_nuts(
 
     auto means_nmc = graph.infer_mean(num_samples, InferenceType::NMC, seed);
 
-    NUTS nuts = NUTS(graph);
+    NUTS nuts = NUTS(std::make_unique<GraphGlobalState>(graph));
     auto samples = nuts.infer(num_samples, seed, warmup_samples);
     auto means_nuts = compute_means(samples);
 

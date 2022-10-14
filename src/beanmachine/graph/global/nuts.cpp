@@ -6,25 +6,35 @@
  */
 
 #include "beanmachine/graph/global/nuts.h"
+#include <memory>
 #include "beanmachine/graph/global/proposer/nuts_proposer.h"
 #include "beanmachine/graph/global/util.h"
 
 namespace beanmachine {
 namespace graph {
 
-NUTS::NUTS(Graph& g, bool adapt_mass_matrix, bool multinomial_sampling)
-    : GlobalMH(g), graph(g) {
-  proposer = std::make_unique<NutsProposer>(
-      NutsProposer(adapt_mass_matrix, multinomial_sampling));
+NUTS::NUTS(
+    std::unique_ptr<GlobalState> state,
+    bool adapt_mass_matrix,
+    bool multinomial_sampling)
+    : GlobalMH(std::move(state)) {
+  proposer =
+      std::make_unique<NutsProposer>(adapt_mass_matrix, multinomial_sampling);
+}
+NUTS::NUTS(Graph& graph, bool adapt_mass_matrix, bool multinomial_sampling)
+    : GlobalMH(std::make_unique<GraphGlobalState>(graph)) {
+  proposer =
+      std::make_unique<NutsProposer>(adapt_mass_matrix, multinomial_sampling);
 }
 
 void NUTS::prepare_graph() {
-  set_default_transforms(graph);
+  state.set_default_transforms();
 }
 
 void Graph::nuts(uint num_samples, uint seed, InferConfig infer_config) {
-  NUTS(*this).infer(
-      num_samples, seed, infer_config.num_warmup, infer_config.keep_warmup);
+  NUTS(std::make_unique<GraphGlobalState>(*this))
+      .infer(
+          num_samples, seed, infer_config.num_warmup, infer_config.keep_warmup);
 }
 
 } // namespace graph

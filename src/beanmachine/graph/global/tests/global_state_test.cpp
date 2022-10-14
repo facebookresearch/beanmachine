@@ -42,7 +42,8 @@ TEST(testglobal, global_state_no_transform) {
   g.query(sample_sample);
   g.query(sample3);
 
-  GlobalState state = GlobalState(g);
+  GraphGlobalState bmg_state{g};
+  GlobalState& state = bmg_state;
 
   Eigen::VectorXd unconstrained_values(3);
   Eigen::VectorXd get_flattened_values;
@@ -158,7 +159,8 @@ TEST(testglobal, global_state_transform) {
   g.query(x1);
   g.query(x2);
 
-  GlobalState state = GlobalState(g);
+  GraphGlobalState bmg_state{g};
+  GlobalState& state = bmg_state;
 
   Eigen::VectorXd unconstrained_values(4);
   unconstrained_values << -1.2, -2.0, -0.4, -0.8;
@@ -212,7 +214,8 @@ TEST(testglobal, global_state_gamma_transform_obs) {
   uint p2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{g2_dist});
   g.observe(p2, 0.8);
 
-  GlobalState state = GlobalState(g);
+  GraphGlobalState bmg_state{g};
+  GlobalState& state = bmg_state;
 
   Eigen::VectorXd unconstrained_values(1);
   unconstrained_values << -0.5;
@@ -263,7 +266,8 @@ TEST(testglobal, global_state_gamma_transform) {
   g.query(p2);
   g.customize_transformation(TransformType::LOG, {p, p2});
 
-  GlobalState state = GlobalState(g);
+  GraphGlobalState bmg_state{g};
+  GlobalState& state = bmg_state;
 
   Eigen::VectorXd unconstrained_values(2);
   unconstrained_values << -0.5, -0.2231;
@@ -300,7 +304,8 @@ TEST(testglobal, global_state_initialization) {
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, thousand});
   g.query(sample);
 
-  GlobalState state = GlobalState(g);
+  GraphGlobalState bmg_state{g};
+  GlobalState& state = bmg_state;
   uint seed = 17;
 
   // check all values = 0.0
@@ -344,7 +349,8 @@ TEST(testglobal, global_state_transform_initialization) {
   g.query(sample);
   g.customize_transformation(TransformType::LOG, {sample});
 
-  GlobalState state = GlobalState(g);
+  GraphGlobalState bmg_state{g};
+  GlobalState& state = bmg_state;
   uint seed = 17;
 
   // check all values = 0.0
