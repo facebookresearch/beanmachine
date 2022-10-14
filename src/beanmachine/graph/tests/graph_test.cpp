@@ -681,7 +681,7 @@ TEST(testgraph, graph_copy_constructor) {
   ASSERT_EQ(g->to_string(), g_copy.to_string());
 }
 
-TEST(testgraph, test_node_to_string) {
+TEST(testgraph, DISABLED_test_node_to_string) { // see T134720134
   auto g = make_graph_with_nodes_of_all_types();
   stringstream strstr;
   for (auto& node : g->nodes) {
