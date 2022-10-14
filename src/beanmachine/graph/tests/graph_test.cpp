@@ -233,6 +233,7 @@ TEST(testgraph, infer_bn) {
   It is designed to test Graph's copy constructor and Node's clone.
 */
 unique_ptr<Graph> make_graph_with_nodes_of_all_types() {
+  std::srand((unsigned int)0);
   auto g = make_unique<Graph>();
 
   // constants
