@@ -180,7 +180,10 @@ void GraphGlobalState::set_flattened_unconstrained_values(
       value->_double = flattened_values[i];
       i++;
     } else {
+      int rows = static_cast<int>(value->_matrix.rows());
+      int cols = static_cast<int>(value->_matrix.cols());
       value->_matrix = flattened_values.segment(i, value->_matrix.size());
+      value->_matrix.resize(rows, cols);
       i += static_cast<int>(value->_matrix.size());
     }
 
