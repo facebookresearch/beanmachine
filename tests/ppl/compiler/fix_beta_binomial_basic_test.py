@@ -12,7 +12,7 @@ import unittest
 import beanmachine.ppl as bm
 import scipy
 import torch
-from beanmachine.ppl.examples.conjugate_models.beta_binomial import BetaBinomialModel
+from beanmachine.ppl.examples.conjugate_models import BetaBinomialModel
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
 from torch.distributions import Beta

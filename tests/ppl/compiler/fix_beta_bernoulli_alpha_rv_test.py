@@ -9,7 +9,7 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.examples.conjugate_models.beta_bernoulli import BetaBernoulliModel
+from beanmachine.ppl.examples.conjugate_models import BetaBernoulliModel
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
 from torch.distributions import Beta
@@ -39,10 +39,10 @@ class BetaBernoulliWithAlphaAsRVConjugateTest(unittest.TestCase):
         model = BetaBernoulliAlphaRVModel()
         queries = [model.theta()]
         observations = {
-            model.y(0): tensor(0.0),
-            model.y(1): tensor(0.0),
-            model.y(2): tensor(1.0),
-            model.y(3): tensor(0.0),
+            model.x(0): tensor(0.0),
+            model.x(1): tensor(0.0),
+            model.x(2): tensor(1.0),
+            model.x(3): tensor(0.0),
         }
         num_samples = 1000
         bmg = BMGInference()
