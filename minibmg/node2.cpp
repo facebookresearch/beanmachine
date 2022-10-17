@@ -6,6 +6,7 @@
  */
 
 #include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/pretty2.h"
 #include <boost/functional/hash.hpp>
 #include <fmt/format.h>
 #include <atomic>
@@ -46,6 +47,16 @@ Node2::Node2(std::size_t cached_hash_value)
     : cached_hash_value{cached_hash_value} {}
 
 Node2::~Node2() {}
+
+std::string to_string(const Node2p& node) {
+  auto pretty_result = pretty_print({node});
+  std::stringstream code;
+  for (auto p : pretty_result.prelude) {
+    code << p << std::endl;
+  }
+  code << pretty_result.code[node];
+  return code.str();
+}
 
 ScalarNode2::ScalarNode2(std::size_t cached_hash_value)
     : Node2{cached_hash_value} {}
