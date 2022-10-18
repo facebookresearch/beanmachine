@@ -35,16 +35,6 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # what their inputs are.
 
 _known_requirements: Dict[type, List[bt.Requirement]] = {
-    # TODO: This is wrong in several ways.
-    # First, RealMatrix does not meet the contract of a requirement;
-    # in particular, it cannot be printed out by the requirement diagnostic
-    # in gen_to_dot.
-    # Second, it is too strict; the requirement on matrix add is actually
-    # that the two operands be any double matrix (real, neg real,
-    # pos real or probability).
-    # Third, this requirement is too weak; we are missing the requirement
-    # that the operands have the same element type and shape.
-    bn.ElementwiseMultiplyNode: [bt.RealMatrix, bt.RealMatrix],
     bn.Observation: [bt.any_requirement],
     bn.Query: [bt.any_requirement],
     # Distributions
@@ -75,6 +65,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     # don't check them.
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
+    # TODO: Check the dimensions. Consider broadcasting if possible.
     bn.MatrixMultiplicationNode: [bt.any_real_matrix, bt.any_real_matrix],
     bn.MatrixExpNode: [bt.any_real_matrix],
     bn.MatrixLogNode: [bt.any_pos_real_matrix],
@@ -115,6 +106,7 @@ class EdgeRequirements:
             bn.ChoiceNode: self._requirements_choice,
             bn.ColumnIndexNode: self._requirements_column_index,
             bn.ComplementNode: self._same_as_output,
+            bn.ElementwiseMultiplyNode: self._requirements_elementwise_mult,
             bn.ExpM1Node: self._same_as_output,
             bn.ExpNode: self._requirements_exp_neg,
             bn.IfThenElseNode: self._requirements_if,
@@ -124,7 +116,7 @@ class EdgeRequirements:
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
             # TODO: bn.MatrixMultiplyNode: self._requirements_matrix_multiply,
             # see comment above
-            bn.MatrixComplementNode: self._requrirements_matrix_complement,
+            bn.MatrixComplementNode: self._requirements_matrix_complement,
             bn.MatrixAddNode: self._requirements_matrix_add,
             bn.MatrixScaleNode: self._requirements_matrix_scale,
             bn.MultiplicationNode: self._requirements_multiplication,
@@ -428,7 +420,7 @@ class EdgeRequirements:
         assert it in {bt.Probability, bt.PositiveReal, bt.Real}
         return [it] * len(node.inputs)  # pyre-ignore
 
-    def _requrirements_matrix_complement(
+    def _requirements_matrix_complement(
         self, node: bn.MatrixComplementNode
     ) -> List[bt.Requirement]:
         it = self.typer[node]
@@ -445,6 +437,14 @@ class EdgeRequirements:
         if isinstance(it, bt.SimplexMatrix):
             req = [bt.SimplexMatrix]
         return req
+
+    def _requirements_elementwise_mult(
+        self, node: bn.ElementwiseMultiplyNode
+    ) -> List[bt.Requirement]:
+        # Elementwise multiply requires that both operands be the same as the output type.
+        it = self.typer[node]
+        assert isinstance(it, bt.BMGMatrixType)
+        return [it, it]
 
     def _requirements_matrix_add(self, node: bn.MatrixAddNode) -> List[bt.Requirement]:
         # Matrix add requires that both operands be the same as the output type.

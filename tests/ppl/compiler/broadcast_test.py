@@ -32,6 +32,7 @@ def broadcast_add():
 
 
 class BroadcastTest(unittest.TestCase):
+    # TODO: Test broadcast multiplication as well.
     def test_broadcast_add(self) -> None:
         self.maxDiff = None
         observations = {}

@@ -238,6 +238,11 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
     def _type_binary_elementwise_op(
         self, node: bn.BinaryOperatorNode
     ) -> bt.BMGLatticeType:
+        # Elementwise multiplication and addition require that the operands be
+        # of the same type and size, and that's the resulting type.  Rather than
+        # enforcing that here, find the supremum of the element types and a size
+        # where both operands can be broadcast to that size. We'll then add the
+        # appropriate broadcast nodes in the requirements fixer.
         left_type = self[node.left]
         right_type = self[node.right]
         assert isinstance(left_type, bt.BMGMatrixType)
