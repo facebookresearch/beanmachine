@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "lkj_cholesky.h"
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -53,30 +54,36 @@ LKJCholesky::LKJCholesky(
         "LKJ Cholesky should produce a square matrix of dimension >= 2");
   }
 
-  double marginal_conc = in_nodes[0]->value._double + 0.5 * (d - 2);
-
   // Construct a vector [0, 0, 1, ..., d-2] + 0.5
   beta_conc1 = Eigen::VectorXd::LinSpaced(d, -0.5, d - 1.5);
   beta_conc1(0) = 0.5;
+}
+
+Eigen::VectorXd LKJCholesky::beta_conc0() const {
+  double marginal_conc = in_nodes[0]->value._double + 0.5 * (d - 2);
 
   // Construct a vector marginal_conc - 0.5 * [0, 0, 1, ..., d-2]
-  beta_conc0 = Eigen::VectorXd::LinSpaced(
+  Eigen::VectorXd result = Eigen::VectorXd::LinSpaced(
       d, marginal_conc + 0.5, marginal_conc - 0.5 * d + 1);
-  beta_conc0(0) = marginal_conc;
+  result(0) = marginal_conc;
+  return result;
+}
 
+Eigen::ArrayXd LKJCholesky::order() const {
   // This is an intermediate field used by log_prob and its gradients.
-  order = Eigen::VectorXd(
-              2.0 * (in_nodes[0]->value._double - 1) + (double)d -
-              Eigen::ArrayXf::LinSpaced(d - 1, 2.0, (float)d).cast<double>())
-              .array();
+  return Eigen::VectorXd(
+             2.0 * (in_nodes[0]->value._double - 1) + (double)d -
+             Eigen::ArrayXf::LinSpaced(d - 1, 2.0, (float)d).cast<double>())
+      .array();
 }
 
 Eigen::MatrixXd LKJCholesky::_matrix_sampler(std::mt19937& gen) const {
   Eigen::VectorXd beta_result(d);
   Eigen::MatrixXd normal_result(d, d);
 
+  auto beta_c0 = beta_conc0();
   for (uint i = 0; i < d; i++) {
-    beta_result(i) = util::sample_beta(gen, beta_conc1(i), beta_conc0(i));
+    beta_result(i) = util::sample_beta(gen, beta_conc1(i), beta_c0(i));
   }
 
   // Sample a lower-triangular (excluding diagonal) matrix of standard normal
@@ -119,7 +126,7 @@ double LKJCholesky::log_prob(const graph::NodeValue& value) const {
   auto diag_elems =
       value._matrix.diagonal().array()(Eigen::seq(1, Eigen::last));
   double eta = in_nodes[0]->value._double;
-  auto unnormalized_log_pdf = (order * diag_elems.log()).sum();
+  auto unnormalized_log_pdf = (order() * diag_elems.log()).sum();
 
   // Compute normalization constant
 
@@ -148,8 +155,9 @@ void LKJCholesky::gradient_log_prob_value(
   // to value, so this is just the derivative of the unnormalized_log_pdf part.
   auto diag_elems =
       value._matrix.diagonal().array()(Eigen::seq(1, Eigen::last));
-  grad1 += (order / diag_elems).sum();
-  grad2 -= (order / (diag_elems * diag_elems)).sum();
+  auto o = order();
+  grad1 += (o / diag_elems).sum();
+  grad2 -= (o / (diag_elems * diag_elems)).sum();
 }
 
 void LKJCholesky::gradient_log_prob_param(
@@ -181,7 +189,8 @@ void LKJCholesky::backward_value(
     double adjunct) const {
   auto diag_elems =
       value._matrix.diagonal().array()(Eigen::seq(1, Eigen::last));
-  auto grad_diagonal = adjunct * order / diag_elems;
+  auto o = order();
+  auto grad_diagonal = adjunct * o / diag_elems;
 
   for (uint i = 1; i < d; i++) {
     back_grad(i, i) = grad_diagonal(i - 1);
