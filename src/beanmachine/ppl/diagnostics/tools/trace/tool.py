@@ -5,54 +5,44 @@
 
 """Trace diagnostic tool for a Bean Machine model."""
 
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 from beanmachine.ppl.diagnostics.tools.trace import utils
-from beanmachine.ppl.diagnostics.tools.utils.base import Base
+from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
+    DiagnosticToolBaseClass,
+)
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from bokeh.embed import file_html
+from bokeh.models import Model
 from bokeh.models.callbacks import CustomJS
-from bokeh.resources import INLINE
 
 
 T = TypeVar("T", bound="Trace")
 
 
-class Trace(Base):
+class Trace(DiagnosticToolBaseClass):
     """Trace tool.
 
-    Parameters
-    ----------
-    mcs : MonteCarloSamples
-        Bean Machine model object.
+    Args:
+        mcs (MonteCarloSamples): The return object from running a Bean Machine model.
 
-    Attributes
-    ----------
-    data : Dict[str, List[List[float]]]
-        JSON serialized version of the Bean Machine model.
-    rv_names : List[str]
-        The list of random variables string names for the given model.
-    num_chains : int
-        The number of chains of the model.
-    num_draws : int
-        The number of draws of the model for each chain.
-    palette : List[str]
-        A list of color values used for the glyphs in the figures. The colors are
-        specifically chosen from the Colorblind palette defined in Bokeh.
-    js : str
-        The JavaScript callbacks needed to render the Bokeh tool independently from
-        a Python server.
-    name : str
-        The name to use when saving Bokeh JSON to disk.
+    Attributes:
+        data (Dict[str, List[List[float]]]): JSON serializable representation of the
+            given `mcs` object.
+        rv_names (List[str]): The list of random variables string names for the given
+            model.
+        num_chains (int): The number of chains of the model.
+        num_draws (int): The number of draws of the model for each chain.
+        palette (List[str]): A list of color values used for the glyphs in the figures.
+            The colors are specifically chosen from the Colorblind palette defined in
+            Bokeh.
+        tool_js (str):The JavaScript callbacks needed to render the Bokeh tool
+            independently from a Python server.
     """
 
     def __init__(self: T, mcs: MonteCarloSamples) -> None:
         super(Trace, self).__init__(mcs)
 
-    def create_document(self: T, name: Optional[str] = None) -> str:
-        if name is not None:
-            self.name = name
-
+    def create_document(self: T) -> Model:
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
 
@@ -113,7 +103,7 @@ class Trace(Base):
                 tooltips,
               );
             }} catch (error) {{
-              {self.js}
+              {self.tool_js}
               trace.update(
                 rvData,
                 rvName,
@@ -159,10 +149,5 @@ class Trace(Base):
         widgets["bw_factor_slider"].js_on_change("value", slider_callback)
         widgets["hdi_slider"].js_on_change("value", slider_callback)
 
-        # Create the view of the tool and serialize it into HTML using static resources
-        # from Bokeh. Embedding the tool in this manner prevents external CDN calls for
-        # JavaScript resources, and prevents the user from having to know where the
-        # Bokeh server is.
         tool_view = utils.create_view(figures=figures, widgets=widgets)
-        output = file_html(tool_view, resources=INLINE)
-        return output
+        return tool_view
