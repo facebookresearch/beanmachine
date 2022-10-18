@@ -146,6 +146,7 @@ class MixedHMCProposer(BaseProposer):
             self.world = world
 
         positions = self.hmc_kernel._positions
+        positions_dict = self.hmc_kernel._dict2vec.to_dict(positions)
         momentums = self.hmc_kernel._initialize_momentums(positions)
         hmc_pe, hmc_pe_grad = self.hmc_kernel._pe, self.hmc_kernel._pe_grad
         current_energy = self.hmc_kernel._hamiltonian(
