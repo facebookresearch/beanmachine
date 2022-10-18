@@ -143,7 +143,6 @@ class Marginal1d(DiagnosticToolBaseClass):
 
         # Each widget requires slightly different JS, except for the sliders.
         rv_select_js = f"""
-            console.log(toolView);
             const bwFactor = 1.0;
             const hdiProbability = 0.89;
             widgets.bw_factor_slider.value = bwFactor;
