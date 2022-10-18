@@ -35,7 +35,7 @@ class DedupVisitor : public Node2Visitor {
     if (dist == node->distribution) {
       result = original;
     } else {
-      result = std::make_shared<ScalarSampleNode2>(dist);
+      result = std::make_shared<ScalarSampleNode2>(dist, node->rvid);
     }
   }
   void visit(const ScalarAddNode2* node) override {

@@ -7,6 +7,7 @@
 
 #include "beanmachine/minibmg/graph2.h"
 #include <list>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 #include "beanmachine/minibmg/dedup2.h"
@@ -24,7 +25,7 @@ const std::vector<Node2p> roots(
     roots.push_back(n);
   }
   for (auto& p : observations) {
-    if (typeid(p.first.get()) != typeid(ScalarSampleNode2*)) {
+    if (!std::dynamic_pointer_cast<const ScalarSampleNode2>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
     roots.push_front(p.first);
@@ -76,7 +77,7 @@ Graph2 Graph2::create(
     const std::vector<Node2p>& queries,
     const std::list<std::pair<Node2p, double>>& observations) {
   for (auto& p : observations) {
-    if (typeid(p.first.get()) != typeid(ScalarSampleNode2*)) {
+    if (!std::dynamic_pointer_cast<const ScalarSampleNode2>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
   }
