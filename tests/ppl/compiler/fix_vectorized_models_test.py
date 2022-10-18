@@ -878,7 +878,7 @@ digraph "graph" {
   N07[label=2];
   N08[label=1];
   N09[label=ToMatrix];
-  N10[label=ToRealMatrix];
+  N10[label=ToPosRealMatrix];
   N11[label="[5.0,6.0]"];
   N12[label=ElementwiseMult];
   N13[label=Query];
