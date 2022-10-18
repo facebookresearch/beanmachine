@@ -41,12 +41,12 @@ class LKJCholesky : public Distribution {
   static void
   _grad2_log_prob_value(double& grad2, double val, double m, double s_sq);
 
+  Eigen::VectorXd beta_conc0() const;
   Eigen::VectorXd beta_conc1;
-  Eigen::VectorXd beta_conc0;
   uint d;
 
  private:
-  Eigen::ArrayXd order;
+  Eigen::ArrayXd order() const;
 };
 
 } // namespace distribution

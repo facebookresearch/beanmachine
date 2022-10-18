@@ -96,8 +96,9 @@ TEST(testdistrib, lkj_cholesky_betas) {
   expected_b0 << 4.5, 4.5, 4.0, 3.5, 3.0;
   expected_b1 << 0.5, 0.5, 1.5, 2.5, 3.5;
 
+  auto beta_conc0 = lkj_chol_dist->beta_conc0();
   for (int i = 0; i < 5; i++) {
-    EXPECT_NEAR(lkj_chol_dist->beta_conc0(i), expected_b0(i), 1e-5);
+    EXPECT_NEAR(beta_conc0(i), expected_b0(i), 1e-5);
     EXPECT_NEAR(lkj_chol_dist->beta_conc1(i), expected_b1(i), 1e-5);
   }
 }
@@ -149,6 +150,29 @@ TEST(testdistrib, lkj_cholesky_log_prob) {
   uint lkj_chol_sample = g.add_operator(OperatorType::SAMPLE, {lkj_chol_dist});
   g.observe(lkj_chol_sample, obs);
   EXPECT_NEAR(-0.6724, g.full_log_prob(), 0.001);
+}
+
+TEST(testdistrib, lkj_cholesky_log_prob_stochastic_parent) {
+  Graph g;
+
+  auto a = g.add_constant_pos_real(3.0);
+  auto b = g.add_constant_pos_real(1.0);
+  auto gamma_dist = g.add_distribution(
+      DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{a, b});
+  auto eta =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{gamma_dist});
+  auto lkj_chol_dist = g.add_distribution(
+      DistributionType::LKJ_CHOLESKY,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 3),
+      std::vector<uint>{eta});
+
+  Eigen::MatrixXd obs(3, 3);
+  obs << 1.0, 0.0, 0.0, 0.1818, 0.9833, 0.0, 0.2349, 0.4351, 0.8692;
+
+  uint lkj_chol_sample = g.add_operator(OperatorType::SAMPLE, {lkj_chol_dist});
+  g.observe(eta, 3.0);
+  g.observe(lkj_chol_sample, obs);
+  EXPECT_NEAR(-2.16855, g.full_log_prob(), 0.001);
 }
 
 TEST(testdistrib, lkj_cholesky_log_prob_forward_value) {
