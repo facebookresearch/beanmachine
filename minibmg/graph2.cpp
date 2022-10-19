@@ -75,7 +75,8 @@ using dynamic = folly::dynamic;
 
 Graph2 Graph2::create(
     const std::vector<Node2p>& queries,
-    const std::list<std::pair<Node2p, double>>& observations) {
+    const std::list<std::pair<Node2p, double>>& observations,
+    std::unordered_map<Node2p, Node2p>* built_map) {
   for (auto& p : observations) {
     if (!std::dynamic_pointer_cast<const ScalarSampleNode2>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
@@ -83,7 +84,7 @@ Graph2 Graph2::create(
   }
 
   auto qo0 = QueriesAndObservations{queries, observations};
-  auto qo1 = dedup2(qo0);
+  auto qo1 = dedup2(qo0, built_map);
 
   std::vector<Node2p> all_nodes = roots(qo1.queries, qo1.observations);
   return Graph2{all_nodes, qo1.queries, qo1.observations};

@@ -59,10 +59,13 @@ std::unordered_map<Node2p, Node2p> dedup_map(std::vector<Node2p> roots);
 // a DAG (directed acyclic graph) of nodes that is no longer a tree due to
 // shared (semantically equivalent) subexpressions.
 template <class T, class DDAdapter = DedupAdapter<T>>
-T dedup2(const T& data) {
+T dedup2(const T& data, std::unordered_map<Node2p, Node2p>* ddmap = nullptr) {
   DDAdapter adapter = DDAdapter{};
   auto roots = adapter.find_roots(data);
   auto map = dedup_map(roots);
+  if (ddmap != nullptr) {
+    ddmap->insert(map.begin(), map.end());
+  }
   return adapter.rewrite(data, map);
 }
 
