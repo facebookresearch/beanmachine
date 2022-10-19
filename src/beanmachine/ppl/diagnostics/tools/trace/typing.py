@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 """Trace diagnostic tool types for a Bean Machine model."""
-
 from typing import Any, Dict, List, Union
 
 from beanmachine.ppl.diagnostics.tools import NotRequired, TypedDict

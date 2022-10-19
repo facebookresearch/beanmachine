@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 """Plotting utilities for the diagnostic tools."""
-
 from typing import List
 
 from bokeh.core.property.nullable import Nullable

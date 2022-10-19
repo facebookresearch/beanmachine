@@ -4,10 +4,11 @@
 # LICENSE file in the root directory of this source tree.
 
 """Base class for diagnostic tools of a Bean Machine model."""
+from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Mapping, TypeVar
+from typing import Any, Mapping
 
 from beanmachine.ppl.diagnostics.tools import JS_DIST_DIR
 from beanmachine.ppl.diagnostics.tools.utils import plotting_utils
@@ -16,9 +17,6 @@ from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from bokeh.embed import file_html, json_item
 from bokeh.models import Model
 from bokeh.resources import INLINE
-
-
-T = TypeVar("T", bound="DiagnosticToolBaseClass")
 
 
 class DiagnosticToolBaseClass(ABC):
@@ -43,7 +41,7 @@ class DiagnosticToolBaseClass(ABC):
     """
 
     @abstractmethod
-    def __init__(self: T, mcs: MonteCarloSamples) -> None:
+    def __init__(self: DiagnosticToolBaseClass, mcs: MonteCarloSamples) -> None:
         self.data = serialize_bm(mcs)
         self.rv_names = ["Select a random variable..."] + list(self.data.keys())
         self.num_chains = mcs.num_chains
@@ -51,7 +49,7 @@ class DiagnosticToolBaseClass(ABC):
         self.palette = plotting_utils.choose_palette(self.num_chains)
         self.tool_js = self.load_tool_js()
 
-    def load_tool_js(self: T) -> str:
+    def load_tool_js(self: DiagnosticToolBaseClass) -> str:
         """
         Load the JavaScript for the diagnostic tool.
 
@@ -75,7 +73,7 @@ class DiagnosticToolBaseClass(ABC):
             tool_js = f.read()
         return tool_js
 
-    def show(self: T) -> None:
+    def show(self: DiagnosticToolBaseClass) -> None:
         """
         Show the diagnostic tool in the notebook.
 
@@ -97,7 +95,7 @@ class DiagnosticToolBaseClass(ABC):
         html = file_html(doc, resources=INLINE, template=self.html_template())
         display(HTML(html))
 
-    def html_template(self: T) -> str:
+    def html_template(self: DiagnosticToolBaseClass) -> str:
         """
         HTML template object used to inject CSS styles for Bokeh Applications.
 
@@ -145,11 +143,11 @@ class DiagnosticToolBaseClass(ABC):
         """
 
     @abstractmethod
-    def create_document(self: T) -> Model:
+    def create_document(self: DiagnosticToolBaseClass) -> Model:
         """To be implemented by the inheriting class."""
         ...
 
-    def _tool_json(self: T) -> Mapping[Any, Any]:
+    def _tool_json(self: DiagnosticToolBaseClass) -> Mapping[Any, Any]:
         """
         Debugging method used primarily when creating a new diagnostic tool.
 

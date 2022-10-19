@@ -49,21 +49,24 @@ class DiagnosticsTools:
 
     @_requires_dev_packages
     def marginal1d(self: DiagnosticsTools) -> None:
-        """Marginal 1D tool."""
-        from beanmachine.ppl.diagnostics.tools.marginal1d.tool import Marginal1d
-
-        Marginal1d(self.mcs).show()
-
-    def trace(self: T, name: Optional[str] = None) -> None:
         """
-        Trace diagnostic tool for a Bean Machine model.
-
-        Args:
-            name (:obj:`str`, optional): Optional name for the tool. This is used to
-                persist data as JSON to disk when converting a Jupyter notebook to an
-                MDX file.
+        Marginal 1D diagnostic tool for a Bean Machine model.
 
         Returns:
             None: Displays the tool directly in a Jupyter notebook.
         """
-        Trace(self.mcs).show(name=name)
+        from beanmachine.ppl.diagnostics.tools.marginal1d.tool import Marginal1d
+
+        Marginal1d(self.mcs).show()
+
+    @_requires_dev_packages
+    def trace(self: DiagnosticsTools) -> None:
+        """
+        Trace diagnostic tool for a Bean Machine model.
+
+        Returns:
+            None: Displays the tool directly in a Jupyter notebook.
+        """
+        from beanmachine.ppl.diagnostics.tools.trace.tool import Trace
+
+        Trace(self.mcs).show()

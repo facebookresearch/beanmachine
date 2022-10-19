@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 """Methods used to generate the diagnostic tool."""
-
 from typing import List
 
 from beanmachine.ppl.diagnostics.tools.trace import typing
@@ -201,7 +200,6 @@ def create_figures(rv_name: str, num_chains: int) -> typing.Figures:
         if figure_name == "marginals":
             fig.title = "Marginal"
             fig.xaxis.axis_label = rv_name
-            # fig.x_range = Range1d()
             fig.yaxis.visible = False
         elif figure_name == "forests":
             fig.title = "Forest"
@@ -209,13 +207,11 @@ def create_figures(rv_name: str, num_chains: int) -> typing.Figures:
             fig.yaxis.axis_label = "Chain"
             fig.yaxis.minor_tick_line_color = None
             fig.yaxis.ticker.desired_num_ticks = num_chains
-            # fig.x_range = Range1d()
         elif figure_name == "traces":
             fig.title = "Trace"
             fig.xaxis.axis_label = "Draw from single chain"
             fig.yaxis.axis_label = rv_name
             fig.width = TRACE_PLOT_WIDTH
-            # fig.x_range = Range1d()
         elif figure_name == "ranks":
             fig.title = "Rank"
             fig.xaxis.axis_label = "Rank from all chains"
@@ -399,8 +395,6 @@ def add_glyphs(
     None
         Adds data bound glyphs to the given figures directly.
     """
-    # range_min = []
-    # range_max = []
     for figure_name, figure_sources in sources.items():
         fig = figures[figure_name]
         for chain_name, source in figure_sources.items():
@@ -417,11 +411,6 @@ def add_glyphs(
             # its range stable are linked to the marginal figure's range below.
             if figure_name == "marginals":
                 pass
-                # data = source["line"].data["x"]
-                # minimum = min(data) if len(data) != 0 else 0
-                # maximum = max(data) if len(data) != 0 else 1
-                # range_min.append(minimum)
-                # range_max.append(maximum)
             elif figure_name == "forests":
                 fig.add_glyph(
                     source_or_glyph=source["circle"],
@@ -437,12 +426,7 @@ def add_glyphs(
                     name=chain_glyphs["quad"]["glyph"].name,
                 )
     # Link figure ranges together.
-    # figures["marginals"].x_range = Range1d(
-    #     start=min(range_min) if len(range_min) != 0 else 0,
-    #     end=max(range_max) if len(range_max) != 0 else 1,
-    # )
     figures["forests"].x_range = figures["marginals"].x_range
-    # figures["traces"].y_range = figures["marginals"].x_range
 
 
 def create_annotations(figures: typing.Figures, num_chains: int) -> typing.Annotations:
@@ -573,13 +557,15 @@ def create_tooltips(
                     {
                         "line": HoverTool(
                             renderers=plotting_utils.filter_renderers(
-                                fig, f"{figure_name}{chain_name.title()}LineGlyph"
+                                fig,
+                                f"{figure_name}{chain_name.title()}LineGlyph",
                             ),
                             tooltips=[("Chain", "@chain"), ("Rank mean", "@rankMean")],
                         ),
                         "quad": HoverTool(
                             renderers=plotting_utils.filter_renderers(
-                                fig, f"{figure_name}{chain_name.title()}QuadGlyph"
+                                fig,
+                                f"{figure_name}{chain_name.title()}QuadGlyph",
                             ),
                             tooltips=[
                                 ("Chain", "@chain"),
@@ -587,7 +573,7 @@ def create_tooltips(
                                 ("Rank", "@rank"),
                             ],
                         ),
-                    }
+                    },
                 )
     return output
 

@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 """Methods used to generate the diagnostic tool."""
-
 from typing import List
 
 import numpy as np

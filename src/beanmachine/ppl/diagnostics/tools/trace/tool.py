@@ -4,8 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """Trace diagnostic tool for a Bean Machine model."""
-
-from typing import TypeVar
+from __future__ import annotations
 
 from beanmachine.ppl.diagnostics.tools.trace import utils
 from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
@@ -14,9 +13,6 @@ from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from bokeh.models import Model
 from bokeh.models.callbacks import CustomJS
-
-
-T = TypeVar("T", bound="Trace")
 
 
 class Trace(DiagnosticToolBaseClass):
@@ -39,10 +35,10 @@ class Trace(DiagnosticToolBaseClass):
             independently from a Python server.
     """
 
-    def __init__(self: T, mcs: MonteCarloSamples) -> None:
+    def __init__(self: Trace, mcs: MonteCarloSamples) -> None:
         super(Trace, self).__init__(mcs)
 
-    def create_document(self: T) -> Model:
+    def create_document(self: Trace) -> Model:
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
 
@@ -88,10 +84,22 @@ class Trace(DiagnosticToolBaseClass):
         # Create the widgets for the tool using Python.
         widgets = utils.create_widgets(rv_names=self.rv_names, rv_name=rv_name)
 
+        # Create the view of the tool and serialize it into HTML using static resources
+        # from Bokeh. Embedding the tool in this manner prevents external CDN calls for
+        # JavaScript resources, and prevents the user from having to know where the
+        # Bokeh server is.
+        tool_view = utils.create_view(figures=figures, widgets=widgets)
+
         # Create callbacks for the tool using JavaScript.
         callback_js = f"""
             const rvName = widgets.rv_select.value;
             const rvData = data[rvName];
+            let bw = 0.0;
+            // Remove the CSS classes that dim the tool output on initial load.
+            const toolTab = toolView.tabs[0];
+            const toolChildren = toolTab.child.children;
+            const dimmedComponent = toolChildren[1];
+            dimmedComponent.css_classes = [];
             try {{
               trace.update(
                 rvData,
@@ -125,6 +133,7 @@ class Trace(DiagnosticToolBaseClass):
             "sources": sources,
             "figures": figures,
             "tooltips": tooltips,
+            "toolView": tool_view,
         }
 
         # Each widget requires slightly different JS.
@@ -149,5 +158,4 @@ class Trace(DiagnosticToolBaseClass):
         widgets["bw_factor_slider"].js_on_change("value", slider_callback)
         widgets["hdi_slider"].js_on_change("value", slider_callback)
 
-        tool_view = utils.create_view(figures=figures, widgets=widgets)
         return tool_view

@@ -1,4 +1,10 @@
-/* import {calculateHistogram} from 'compute-histogram'; */
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import {linearRange, numericalSort, shape} from './array';
 import {rankData, scaleToOne} from './dataTransformation';
 import {mean as computeMean} from './pointStatistic';

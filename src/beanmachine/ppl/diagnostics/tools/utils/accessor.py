@@ -10,15 +10,13 @@ These methods are heavily influenced by the implementations by pandas and xarray
 - `pandas`: https://github.com/pandas-dev/pandas/blob/main/pandas/core/accessor.py
 - `xarray`: https://github.com/pydata/xarray/blob/main/xarray/core/extensions.py
 """
+from __future__ import annotations
 
 import contextlib
 import warnings
-from typing import Callable, TypeVar
+from typing import Callable
 
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-
-
-T = TypeVar("T", bound="CachedAccessor")
 
 
 class CachedAccessor:
@@ -38,11 +36,11 @@ class CachedAccessor:
             object.
     """
 
-    def __init__(self: T, name: str, accessor: object) -> None:
+    def __init__(self: CachedAccessor, name: str, accessor: object) -> None:
         self._name = name
         self._accessor = accessor
 
-    def __get__(self: T, obj: object, cls: object) -> object:
+    def __get__(self: CachedAccessor, obj: object, cls: object) -> object:
         """
         Method to retrieve the accessor namespace.
 
@@ -123,7 +121,8 @@ def register_mcs_accessor(name: str) -> Callable:
             object.
 
     Example:
-        >>> from typing import Dict, List, TypeVar
+        >>> from __future__ import annotations
+        >>> from typing import Dict, List
         >>>
         >>> import beanmachine.ppl as bm
         >>> import numpy as np
@@ -131,8 +130,6 @@ def register_mcs_accessor(name: str) -> Callable:
         >>> from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
         >>> from beanmachine.ppl.diagnostics.tools.utils import accessor
         >>> from torch import tensor
-        >>>
-        >>> T = TypeVar("T", bound="MagicAccessor")
         >>>
         >>> @bm.random_variable
         >>> def alpha():
@@ -144,9 +141,9 @@ def register_mcs_accessor(name: str) -> Callable:
         >>>
         >>> @accessor.register_mcs_accessor("magic")
         >>> class MagicAccessor:
-        >>>     def __init__(self: T, mcs: MonteCarloSamples) -> None:
+        >>>     def __init__(self: MagicAccessor, mcs: MonteCarloSamples) -> None:
         >>>         self.mcs = mcs
-        >>>     def show_me(self: T) -> Dict[str, List[List[float]]]:
+        >>>     def show_me(self: MagicAccessor) -> Dict[str, List[List[float]]]:
         >>>         # Return a JSON serializable object from a MonteCarloSamples object.
         >>>         return dict(
         >>>             sorted(

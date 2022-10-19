@@ -4,8 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """Marginal 1D diagnostic tool for a Bean Machine model."""
-
-from typing import TypeVar
+from __future__ import annotations
 
 from beanmachine.ppl.diagnostics.tools.marginal1d import utils
 from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
@@ -14,9 +13,6 @@ from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from bokeh.models import Model
 from bokeh.models.callbacks import CustomJS
-
-
-T = TypeVar("T", bound="Marginal1d")
 
 
 class Marginal1d(DiagnosticToolBaseClass):
@@ -40,10 +36,10 @@ class Marginal1d(DiagnosticToolBaseClass):
             independently from a Python server.
     """
 
-    def __init__(self: T, mcs: MonteCarloSamples) -> None:
+    def __init__(self: Marginal1d, mcs: MonteCarloSamples) -> None:
         super(Marginal1d, self).__init__(mcs)
 
-    def create_document(self: T) -> Model:
+    def create_document(self: Marginal1d) -> Model:
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
         bw_factor = 1.0

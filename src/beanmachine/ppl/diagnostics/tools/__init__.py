@@ -6,7 +6,6 @@
 # flake8: noqa
 
 """Visual diagnostic tools for Bean Machine models."""
-
 import sys
 from pathlib import Path
 
@@ -16,6 +15,7 @@ if sys.version_info >= (3, 8):
     #       accepted, see https://peps.python.org/pep-0655/. This is to follow the
     #       interface objects in JavaScript that allow keys to not be required using ?.
     from typing import TypedDict
+
     from typing_extensions import NotRequired
 else:
     from typing_extensions import NotRequired, TypedDict
