@@ -125,6 +125,81 @@ elif sys.platform.startswith("darwin"):
         + glob("/usr/local/Cellar/boost/*/include")
     )
 
+# Add range-v3 'include' directory to configuration
+RANGE_V3_INCLUDE_DIR_CANDIDATES = [
+    c for c in [os.environ.get("RANGE_V3_INCLUDE_DIR")] if c is not None
+]
+if sys.platform.startswith("linux"):
+    RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
+        [
+            # first one is GitHub Actions runner
+            "/home/runner/work/beanmachine/beanmachine/vcpkg/packages/range-v3_x64-linux/include",
+            "./vcpkg/packages/range-v3_x64-linux/include",
+            "/usr/include",
+            "/usr/include/range-v3",
+            "/usr/include/x86_64-linux-gnu",
+        ]
+    )
+elif sys.platform.startswith("darwin"):
+    RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
+        [
+            # first one is GitHub Actions runner
+            "/Users/runner/work/beanmachine/beanmachine/vcpkg/packages/range-v3_x64-osx/include",
+            "./vcpkg/packages/range-v3_x64-osx/include",
+            *glob("/usr/local/Cellar/range-v3/*/include/range-v3"),
+        ]
+    )
+elif platform.system() == "Windows":
+    RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
+        [
+            # GitHub Actions runner
+            "C:/vcpkg/packages/range-v3_x86-windows/include",
+            ".vcpkg/packages/range-v3_x86-windows/include",
+        ]
+    )
+print(
+    "Checking directories for range-v3 'include':\n",
+    "\n".join(RANGE_V3_INCLUDE_DIR_CANDIDATES),
+)
+selected_range_v3_include_dirs = [
+    candidate
+    for candidate in RANGE_V3_INCLUDE_DIR_CANDIDATES
+    if os.path.isdir(candidate)
+]
+print(
+    "Existing candidate directories for range-v3 'include':\n",
+    "\n".join(selected_range_v3_include_dirs),
+)
+if len(selected_range_v3_include_dirs) == 0:
+    if os.environ.get("RANGE_V3_INCLUDE_DIR"):
+        message = (
+            "Could not find 'include' directory for range-v3 library dependency "
+            + f"either at {os.environ.get('RANGE_V3_INCLUDE_DIR')}\n"
+            + "as indicated in environment variable RANGE_V3_INCLUDE_DIR, "
+            + "nor in some other common locations.\n"
+            + "Please make sure library is installed (see README.md) and "
+            + "set RANGE_V3_INCLUDE_DIR environment variable to the right directory."
+        )
+    else:
+        message = (
+            "Could not find 'include' directory for range-v3 library dependency "
+            + "in some common locations.\n"
+            + "Please make sure library is installed (see README.md). "
+            + "You can also manually indicate the correct 'include' directory by "
+            + "setting the environment variable RANGE_V3_INCLUDE_DIR environment "
+            + "variable to the right directory."
+        )
+        message += "Here are the directories we checked:\n " + "\n".join(
+            RANGE_V3_INCLUDE_DIR_CANDIDATES
+        )
+    sys.exit(message)
+else:
+    print(
+        "Using the following directory for range-v3 'include':\n",
+        selected_range_v3_include_dirs[0],
+    )
+    INCLUDE_DIRS.append(selected_range_v3_include_dirs[0])
+
 setup(
     name="beanmachine",
     version=version,

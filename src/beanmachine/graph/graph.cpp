@@ -12,6 +12,8 @@
 // before any other header files have the chance of including cmath
 // without the macro.
 
+#include <range/v3/algorithm/for_each.hpp>
+#include <range/v3/numeric/accumulate.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>
@@ -19,7 +21,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <thread>
-#include <variant>
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/factor/factor.h"
@@ -32,8 +33,9 @@
 namespace beanmachine {
 namespace graph {
 
-using namespace util;
+namespace rg = ranges;
 using namespace std;
+using namespace util;
 
 NATURAL_TYPE NATURAL_ZERO = 0ull;
 NATURAL_TYPE NATURAL_ONE = 1ull;
@@ -447,14 +449,12 @@ void Graph::test_grad(vector<DoubleMatrix*>& grad1) {
 }
 
 void Graph::eval_and_grad(vector<DoubleMatrix*>& grad1, uint seed) {
+  using namespace std::placeholders;
   mt19937 generator(seed);
   auto mutable_support = compute_mutable_support();
-  for (auto it = mutable_support.begin(); it != mutable_support.end(); ++it) {
-    Node* node = nodes[*it].get();
-    if (!node->is_observed) {
-      node->eval(generator);
-    }
-  }
+  rg::for_each(
+      mutable_support | get_node_view() | not_observed_filter(),
+      eval_fn(generator));
   _test_backgrad(mutable_support, grad1);
 }
 
@@ -524,11 +524,8 @@ double Graph::log_prob(NodeID src_idx) {
     mt19937 generator(12131); // seed is irrelevant for deterministic ops
     node->eval(generator);
   }
-  double log_prob = 0.0;
-  for (auto node_id : sto_nodes) {
-    Node* node = nodes[node_id].get();
-    log_prob += node->log_prob();
-  }
+  double log_prob =
+      rg::accumulate(sto_nodes | get_node_view() | log_prob_view(), 0.0);
   return log_prob;
 }
 
@@ -1530,11 +1527,7 @@ void Graph::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
 // Computes the log probability with respect to a given
 // set of stochastic nodes.
 double Graph::compute_log_prob_of(const vector<Node*>& sto_nodes) {
-  double log_prob = 0;
-  for (Node* node : sto_nodes) {
-    log_prob += node->log_prob();
-  }
-  return log_prob;
+  return rg::accumulate(sto_nodes | log_prob_view(), 0.0);
 }
 
 bool are_equal(const Node& node1, const Node& node2) {

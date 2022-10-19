@@ -47,7 +47,16 @@ jobs:
         python-version: ${{ matrix.python-version }}
         activate-environment: build_env
 
-    - name: Install dependencies
+    - name: Install Windows range-v3 dependency
+      if: matrix.os == 'windows-latest'
+      run: |
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        bootstrap-vcpkg.bat
+        vcpkg integrate install
+        vcpkg install range-v3
+
+    - name: Install other dependencies
       run: |
         conda install -c conda-forge -y boost-cpp eigen=3.4.0
         python -m pip install --upgrade pip
@@ -95,7 +104,7 @@ jobs:
 
     - name: Install Boost and Eigen dependencies (MacOS only)
       if: matrix.os == 'macos-latest'
-      run: brew install boost eigen
+      run: brew install boost eigen range-v3
 
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.4.0
@@ -105,6 +114,11 @@ jobs:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
         CIBW_BEFORE_ALL_LINUX: > # Manually install Eigen3.4 since yum is not up to date
+          git clone https://github.com/Microsoft/vcpkg.git &&
+          cd vcpkg &&
+          ./bootstrap-vcpkg.sh &&
+          ./vcpkg integrate install &&
+          ./vcpkg install range-v3 &&
           yum install -y wget boost169-devel &&
           wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz &&
           tar -xvf eigen-3.4.0.tar.gz &&

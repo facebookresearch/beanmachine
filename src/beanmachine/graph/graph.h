@@ -11,8 +11,11 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/range/adaptor/transformed.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/transform.hpp>
 #include <Eigen/Dense>
 #include <algorithm>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -23,6 +26,7 @@
 #include <tuple>
 #include <variant>
 #include <vector>
+
 #include "beanmachine/graph/double_matrix.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/third-party/nameof.h"
@@ -1233,6 +1237,25 @@ class Graph {
   void clear_gradients_of_node_and_its_affected_nodes(Node* node);
 
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
+
+  // Views and functions
+
+  inline auto get_node_view() {
+    return ranges::views::transform(
+        std::bind(&Graph::get_node, this, std::placeholders::_1));
+  }
+
+  inline auto log_prob_view() {
+    return ranges::views::transform(&Node::log_prob);
+  }
+
+  inline auto not_observed_filter() {
+    return ranges::views::filter(std::not_fn(&Node::is_observed));
+  }
+
+  inline auto eval_fn(std::mt19937& generator) {
+    return std::bind(&Node::eval, std::placeholders::_1, generator);
+  }
 
   // Graph statistics
   std::string collect_statistics();
