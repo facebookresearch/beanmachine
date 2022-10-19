@@ -192,8 +192,6 @@ class RequirementsFixer:
         self,
         node: bn.OperatorNode,
         requirement: bt.BMGLatticeType,
-        consumer: bn.BMGNode,
-        edge: str,
     ) -> bn.BMGNode:
         # We have been given a node which does not meet a requirement,
         # but it can be converted to a node which does meet the requirement
@@ -235,8 +233,6 @@ class RequirementsFixer:
         self,
         node: bn.OperatorNode,
         requirement: bt.Requirement,
-        consumer: bn.BMGNode,
-        edge: str,
     ) -> bn.BMGNode:
         if isinstance(requirement, bt.AlwaysMatrix):
             requirement = requirement.bound
@@ -374,8 +370,6 @@ class RequirementsFixer:
         self,
         node: bn.OperatorNode,
         requirement: bt.Requirement,
-        consumer: bn.BMGNode,
-        edge: str,
     ) -> Optional[bn.BMGNode]:
 
         assert not self._node_meets_requirement(node, requirement)
@@ -393,14 +387,10 @@ class RequirementsFixer:
         # of conversion logic. We have different helper methods for
         # the atomic type and matrix type cases.
         if bt.must_be_matrix(requirement):
-            result = self._convert_operator_to_matrix_type(
-                node, requirement, consumer, edge
-            )
+            result = self._convert_operator_to_matrix_type(node, requirement)
         else:
             assert isinstance(requirement, bt.BMGLatticeType)
-            result = self._convert_operator_to_atomic_type(
-                node, requirement, consumer, edge
-            )
+            result = self._convert_operator_to_atomic_type(node, requirement)
         assert self._node_meets_requirement(result, requirement)
         return result
 
@@ -430,8 +420,6 @@ class RequirementsFixer:
         self,
         node: bn.OperatorNode,
         requirement: bt.Requirement,
-        consumer: bn.BMGNode,
-        edge: str,
     ) -> Optional[bn.BMGNode]:
         # We should not have called this function if the input node already meets
         # the requirement on the edge.
@@ -471,9 +459,7 @@ class RequirementsFixer:
         # If we weaken the requirement to an upper bound requirement, do we meet it? If so,
         # then there is a conversion node we can add.
 
-        result = self._try_to_meet_upper_bound_requirement(
-            node, requirement, consumer, edge
-        )
+        result = self._try_to_meet_upper_bound_requirement(node, requirement)
         if result is not None:
             return result
 
@@ -497,9 +483,7 @@ class RequirementsFixer:
         edge: str,
     ) -> bn.BMGNode:
         assert not self._node_meets_requirement(node, requirement)
-        result = self._try_to_meet_operator_requirement(
-            node, requirement, consumer, edge
-        )
+        result = self._try_to_meet_operator_requirement(node, requirement)
         if result is not None:
             return result
 
