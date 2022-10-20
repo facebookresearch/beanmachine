@@ -23,7 +23,8 @@ class Graph2 : public Container {
   // graph.
   static Graph2 create(
       const std::vector<Node2p>& queries,
-      const std::list<std::pair<Node2p, double>>& observations);
+      const std::list<std::pair<Node2p, double>>& observations,
+      std::unordered_map<Node2p, Node2p>* built_map = nullptr);
   ~Graph2();
 
   // Implement the iterator pattern so clients can iterate over the nodes.
