@@ -209,6 +209,8 @@ class DistributionBernoulliNode2 : public DistributionNode2 {
 // shape).
 std::vector<Node2p> in_nodes(const Node2p& n);
 
+std::string to_string(const Node2p& node);
+
 // Provide a good hash function so ScalarNode2p values can be used in unordered
 // maps and sets.  This treats ScalarNode2p values as semantically value-based.
 struct Node2pIdentityHash {
