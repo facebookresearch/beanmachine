@@ -8,9 +8,9 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/graph2_factory.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/graph_factory.h"
+#include "beanmachine/minibmg/node.h"
 
 using namespace ::testing;
 using namespace beanmachine::minibmg;
@@ -18,7 +18,7 @@ using namespace beanmachine::minibmg;
 #define ASSERT_ID(node, num) ASSERT_EQ(node->_value(), num)
 
 TEST(test_minibmg, basic_building_1) {
-  Graph2::Factory gf;
+  Graph::Factory gf;
   auto k12 = gf.constant(1.2);
   ASSERT_ID(k12, 0);
   auto k34 = gf.constant(3.4);
@@ -34,12 +34,12 @@ TEST(test_minibmg, basic_building_1) {
   gf.observe(sample, 7.8);
   auto query = gf.query(sample);
   ASSERT_EQ(query, 0);
-  Graph2 g = gf.build();
+  Graph g = gf.build();
   ASSERT_EQ(g.size(), 6);
 }
 
 TEST(test_minibmg, dead_code_dropped) {
-  Graph2::Factory gf;
+  Graph::Factory gf;
   auto k12 = gf.constant(1.2);
   ASSERT_ID(k12, 0);
   auto k34 = gf.constant(3.4);
@@ -55,13 +55,13 @@ TEST(test_minibmg, dead_code_dropped) {
   gf.observe(sample, 7.8);
   auto query = gf.query(sample);
   ASSERT_EQ(query, 0);
-  Graph2 g = gf.build();
+  Graph g = gf.build();
   ASSERT_EQ(g.size(), 4); // k34 and plus are dead code.
 }
 
 TEST(test_minibmg, duplicate_build) {
-  Graph2::Factory gf;
-  Graph2 g = gf.build();
+  Graph::Factory gf;
+  Graph g = gf.build();
   ASSERT_THROW(gf.constant(1.2);, std::invalid_argument);
   ASSERT_THROW(gf.build();, std::invalid_argument);
 }

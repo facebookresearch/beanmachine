@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <beanmachine/minibmg/graph2_factory.h>
+#include <beanmachine/minibmg/graph_factory.h>
 #include <beanmachine/minibmg/tests/test_utils.h>
 #include <gtest/gtest.h>
 #include <random>
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/num3.h"
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/eval2.h"
+#include "beanmachine/minibmg/eval.h"
 
 // using namespace ::testing;
 using namespace ::beanmachine::minibmg;
@@ -21,19 +21,19 @@ using namespace ::std;
 TEST(eval_test, simple1) {
   // a simple graph that evaluates a few operators is evaluated and the final
   // result is compared to its expected value.
-  Graph2::Factory fac;
+  Graph::Factory fac;
   auto k0 = fac.constant(1.2); // 1.2
   auto k1 = fac.constant(4.1); // 4.1
   auto add0 = fac.add(k0, k1); // 5.3
   auto v1 = fac.variable("x", 0); // 1.15
   auto mul1 = fac.multiply(add0, v1); // 6.095
   auto sub1 = fac.subtract(mul1, k1); // 1.995
-  fac.query(sub1); // add a root to the Graph2.
+  fac.query(sub1); // add a root to the graph.
   auto graph = fac.build();
   std::mt19937 gen{123456};
   auto read_variable = [](const std::string&, const unsigned) { return 1.15; };
   int graph_size = graph.size();
-  unordered_map<Node2p, Real> data;
+  unordered_map<Nodep, Real> data;
   auto eval_result = eval_graph<Real>(
       graph, gen, read_variable, data, /* run_queries= */ true);
   EXPECT_CLOSE(1.995, eval_result.queries[0]);
@@ -43,7 +43,7 @@ TEST(eval_test, sample1) {
   // a graph that produces normal samples is evaluated many times
   // and the statistics of the samples are compared to their expected values.
   std::exception x1;
-  Graph2::Factory fac;
+  Graph::Factory fac;
   double expected_mean = 12.34;
   double expected_stdev = 5.67;
   auto k0 = fac.constant(expected_mean);
@@ -60,7 +60,7 @@ TEST(eval_test, sample1) {
   double sum = 0;
   double sum_squared = 0;
   int graph_size = graph.size();
-  std::unordered_map<Node2p, Real> data;
+  std::unordered_map<Nodep, Real> data;
   for (int i = 0; i < n; i++) {
     auto eval_result =
         eval_graph<Real>(graph, gen, nullptr, data, /* run_queries= */ true);
@@ -100,17 +100,17 @@ TEST(eval_test, derivative_dual) {
   // a graph that computes a function of a variable, so we can compute
   // the derivative with respect to that variable.
   std::mt19937 gen{123456};
-  Graph2::Factory fac;
+  Graph::Factory fac;
   auto s = fac.multiply(
       fac.constant(1.1), fac.pow(fac.variable("x", 0), fac.constant(2)));
   fac.query(s); // add a root to the graph.
-  Graph2 graph = fac.build();
+  Graph graph = fac.build();
   int graph_size = graph.size();
 
   // We generate several doubles between -2.0 and 2.0 to test with.
   std::uniform_real_distribution<double> unif(-2.0, 2.0);
 
-  std::unordered_map<Node2p, Dual> data;
+  std::unordered_map<Nodep, Dual> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
     auto read_variable = [=](const std::string&, const unsigned) {
@@ -119,7 +119,7 @@ TEST(eval_test, derivative_dual) {
     data.clear();
     auto eval_result = eval_graph<Dual>(
         graph, gen, read_variable, data, /* run_queries = */ true);
-    Node2p s_node = fac[s];
+    Nodep s_node = fac[s];
     EXPECT_CLOSE(f<Real>(input).as_double(), data[s_node].primal.as_double());
     EXPECT_CLOSE(
         fp<Real>(input).as_double(), data[s_node].derivative1.as_double());
@@ -132,18 +132,18 @@ TEST(eval_test, derivatives_triune) {
   // a graph that computes a function of a variable, so we can compute
   // the first and second derivatives with respect to that variable.
   std::mt19937 gen{123456};
-  Graph2::Factory fac;
+  Graph::Factory fac;
   auto s = fac.multiply(
       fac.constant(1.1), fac.pow(fac.variable("x", 0), fac.constant(2)));
   fac.query(s); // add a root to the graph.
   auto sn = fac[s];
-  Graph2 graph = fac.build();
+  Graph graph = fac.build();
   int graph_size = graph.size();
 
   // We generate several doubles between -2.0 and 2.0 to test with.
   std::uniform_real_distribution<double> unif(-2.0, 2.0);
 
-  std::unordered_map<Node2p, Triune> data;
+  std::unordered_map<Nodep, Triune> data;
   for (int i = 0; i < 10; i++) {
     double input = unif(gen);
     auto read_variable = [=](const std::string&, const unsigned) {
