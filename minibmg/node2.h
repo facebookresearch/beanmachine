@@ -5,23 +5,25 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#pragma once
+
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#pragma once
 
 namespace beanmachine::minibmg {
 
 class Node2;
 class ScalarNode2;
 class DistributionNode2;
+class ScalarSampleNode2;
 class Node2Visitor;
 
 using Node2p = std::shared_ptr<const Node2>;
 using ScalarNode2p = std::shared_ptr<const ScalarNode2>;
 using DistributionNode2p = std::shared_ptr<const DistributionNode2>;
+using ScalarSampleNode2p = std::shared_ptr<const ScalarSampleNode2>;
 
 class Node2 {
  public:
