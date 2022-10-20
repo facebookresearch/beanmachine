@@ -261,4 +261,15 @@ std::string pretty_print(const Graph2& graph) {
   return code.str();
 }
 
+std::string pretty_print(Node2p node) {
+  std::vector<Node2p> roots{node};
+  auto pretty_result = pretty_print(roots);
+  std::stringstream code;
+  for (auto p : pretty_result.prelude) {
+    code << p << std::endl;
+  }
+  code << pretty_result.code[node];
+  return code.str();
+}
+
 } // namespace beanmachine::minibmg
