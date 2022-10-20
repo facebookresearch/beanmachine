@@ -89,25 +89,25 @@ class PrintedFormVisitor : public Node2Visitor {
   }
   void visit(const ScalarMultiplyNode2* node) override {
     auto left = cache[node->left];
-    auto ls = (left.precedence > Precedence::Term)
+    auto ls = (left.precedence > Precedence::Product)
         ? fmt::format("({})", left.string)
         : left.string;
     auto right = cache[node->right];
-    const auto& rs = (right.precedence >= Precedence::Term)
+    const auto& rs = (right.precedence >= Precedence::Product)
         ? fmt::format("({})", right.string)
         : right.string;
-    result = {fmt::format("{} * {}", ls, rs), Precedence::Term};
+    result = {fmt::format("{} * {}", ls, rs), Precedence::Product};
   }
   void visit(const ScalarDivideNode2* node) override {
     auto left = cache[node->left];
-    auto ls = (left.precedence > Precedence::Term)
+    auto ls = (left.precedence > Precedence::Product)
         ? fmt::format("({})", left.string)
         : left.string;
     auto right = cache[node->right];
-    const auto& rs = (right.precedence >= Precedence::Term)
+    const auto& rs = (right.precedence >= Precedence::Product)
         ? fmt::format("({})", right.string)
         : right.string;
-    result = {fmt::format("{} / {}", ls, rs), Precedence::Term};
+    result = {fmt::format("{} / {}", ls, rs), Precedence::Product};
   }
   void visit(const ScalarPowNode2* node) override {
     result = {
@@ -248,7 +248,7 @@ std::string pretty_print(const Graph2& graph) {
   for (auto p : pretty_result.prelude) {
     code << p << std::endl;
   }
-  code << "Graph::FluentFactory fac;" << std::endl;
+  code << "Graph::FluidFactory fac;" << std::endl;
   for (auto q : graph.queries) {
     code << fmt::format("fac.query({});", pretty_result.code[q]) << std::endl;
   }
