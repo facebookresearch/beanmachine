@@ -105,7 +105,7 @@ class JsonNodeWriterVisitor : public Node2Visitor {
 
 namespace beanmachine::minibmg {
 
-JsonError::JsonError(const std::string& message) : message(message) {}
+JsonError2::JsonError2(const std::string& message) : message(message) {}
 
 folly::dynamic graph2_to_json(const Graph2& g) {
   std::unordered_map<Node2p, unsigned long> node_to_identifier;
@@ -169,13 +169,13 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     int& identifier) {
   auto identifierv = json_node["sequence"];
   if (!identifierv.isInt()) {
-    throw JsonError("missing sequence number.");
+    throw JsonError2("missing sequence number.");
   }
   identifier = identifierv.asInt();
 
   auto opv = json_node["operator"];
   if (!opv.isString()) {
-    throw JsonError("missing operator.");
+    throw JsonError2("missing operator.");
   }
 
   std::vector<Node2p> in_nodes{};
@@ -187,15 +187,15 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     default:
       auto in_nodesv = json_node["in_nodes"];
       if (!in_nodesv.isArray()) {
-        throw JsonError("missing in_nodes.");
+        throw JsonError2("missing in_nodes.");
       }
       for (auto& in_nodev : in_nodesv) {
         if (!in_nodev.isInt()) {
-          throw JsonError("missing in_node for operator.");
+          throw JsonError2("missing in_node for operator.");
         }
         auto in_node_i = in_nodev.asInt();
         if (!identifier_to_node.contains(in_node_i)) {
-          throw JsonError("bad in_node for operator.");
+          throw JsonError2("bad in_node for operator.");
         }
         auto in_node = identifier_to_node[in_node_i];
         in_nodes.push_back(in_node);
@@ -212,7 +212,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
       } else if (valuev.isDouble()) {
         value = valuev.asDouble();
       } else {
-        throw JsonError("bad value for constant.");
+        throw JsonError2("bad value for constant.");
       }
       return std::make_shared<const ScalarConstantNode2>(value);
     }
@@ -222,18 +222,18 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
       if (namev.isString()) {
         name = namev.asString();
       } else {
-        throw JsonError("bad name for variable.");
+        throw JsonError2("bad name for variable.");
       }
       auto variable_indexv = json_node["variable_index"];
       if (!variable_indexv.isInt()) {
-        throw JsonError("bad variable_index for variable.");
+        throw JsonError2("bad variable_index for variable.");
       }
       auto variable_index = (unsigned)variable_indexv.asInt();
       return std::make_shared<const ScalarVariableNode2>(name, variable_index);
     }
     case "ADD"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarAddNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -241,7 +241,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "SUBTRACT"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarSubtractNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -249,14 +249,14 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "NEGATE"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarNegateNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
     }
     case "MULTIPLY"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarMultiplyNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -264,7 +264,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "DIVIDE"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarDivideNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -272,7 +272,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "POW"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarPowNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -280,35 +280,35 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "EXP"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarExpNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
     }
     case "LOG"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarLogNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
     }
     case "ATAN"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarAtanNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
     }
     case "LGAMMA"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarLgammaNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
     }
     case "POLYGAMMA"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarPolygammaNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -316,7 +316,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "IF_EQUAL"_sh: {
       if (in_nodes.size() != 4) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarIfEqualNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -326,7 +326,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "IF_LESS"_sh: {
       if (in_nodes.size() != 4) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarIfLessNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -336,7 +336,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "DISTRIBUTION_NORMAL"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<DistributionNormalNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -344,7 +344,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "DISTRIBUTION_HALF_NORMAL"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<DistributionHalfNormalNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
@@ -352,7 +352,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "DISTRIBUTION_BETA"_sh: {
       if (in_nodes.size() != 2) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<DistributionBetaNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
@@ -360,20 +360,20 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     }
     case "DISTRIBUTION_BERNOULLI"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<DistributionBernoulliNode2>(
           std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
     }
     case "SAMPLE"_sh: {
       if (in_nodes.size() != 1) {
-        throw JsonError("bad in_node for operator.");
+        throw JsonError2("bad in_node for operator.");
       }
       return std::make_shared<ScalarSampleNode2>(
           std::dynamic_pointer_cast<const DistributionNode2>(in_nodes[0]));
     }
     default:
-      throw JsonError("operator unknown: " + opv.asString());
+      throw JsonError2("operator unknown: " + opv.asString());
   }
 }
 
@@ -391,14 +391,14 @@ Graph2 json_to_graph2(folly::dynamic d) {
 
   auto json_nodes = d["nodes"];
   if (!json_nodes.isArray()) {
-    throw JsonError("missing \"nodes\" property");
+    throw JsonError2("missing \"nodes\" property");
   }
 
   for (auto json_node : json_nodes) {
     int identifier;
     auto node = json_to_node(json_node, identifier_to_node, identifier);
     if (identifier_to_node.contains(identifier)) {
-      throw JsonError(fmt::format("duplicate node ID {}.", identifier));
+      throw JsonError2(fmt::format("duplicate node ID {}.", identifier));
     }
     identifier_to_node[identifier] = node;
   }
@@ -408,11 +408,11 @@ Graph2 json_to_graph2(folly::dynamic d) {
   if (query_nodes.isArray()) {
     for (auto& query : query_nodes) {
       if (!query.isInt()) {
-        throw JsonError("bad query value.");
+        throw JsonError2("bad query value.");
       }
       auto query_i = query.asInt();
       if (!identifier_to_node.contains(query_i)) {
-        throw JsonError(fmt::format("bad in_node {} for query.", query_i));
+        throw JsonError2(fmt::format("bad in_node {} for query.", query_i));
       }
       auto query_node = identifier_to_node[query_i];
       queries.push_back(query_node);
@@ -425,16 +425,17 @@ Graph2 json_to_graph2(folly::dynamic d) {
     for (auto& obs : observation_nodes) {
       auto node = obs["node"];
       if (!node.isInt()) {
-        throw JsonError("bad observation node.");
+        throw JsonError2("bad observation node.");
       }
       auto node_i = node.asInt();
       if (!identifier_to_node.contains(node_i)) {
-        throw JsonError(fmt::format("bad in_node {} for observation.", node_i));
+        throw JsonError2(
+            fmt::format("bad in_node {} for observation.", node_i));
       }
       auto& obs_node = identifier_to_node[node_i];
       auto& value = obs["value"];
       if (!node.isDouble() && !node.isInt()) {
-        throw JsonError("bad value for observation.");
+        throw JsonError2("bad value for observation.");
       }
       auto value_d = value.asDouble();
       observations.push_back(std::pair{obs_node, value_d});
