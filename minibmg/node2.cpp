@@ -39,6 +39,83 @@ inline std::size_t hash_combine(const std::vector<std::size_t>& many) {
   return seed;
 }
 
+class in_node_gatherer : public Node2Visitor {
+ private:
+  in_node_gatherer() {}
+  static in_node_gatherer instance;
+
+ public:
+  static std::vector<Node2p> gather(const Node2p& n) {
+    n->accept(instance);
+    auto result = instance.result;
+    instance.result.clear();
+    return result;
+  }
+  std::vector<Node2p> result;
+  void visit(const ScalarConstantNode2*) override {
+    result = {};
+  }
+  void visit(const ScalarVariableNode2*) override {
+    result = {};
+  }
+  void visit(const ScalarSampleNode2* n) override {
+    result = {n->distribution};
+  }
+  void visit(const ScalarAddNode2* n) override {
+    result = {n->left, n->right};
+  }
+  void visit(const ScalarSubtractNode2* n) override {
+    result = {n->left, n->right};
+  }
+  void visit(const ScalarNegateNode2* n) override {
+    result = {n->x};
+  }
+  void visit(const ScalarMultiplyNode2* n) override {
+    result = {n->left, n->right};
+  }
+  void visit(const ScalarDivideNode2* n) override {
+    result = {n->left, n->right};
+  }
+  void visit(const ScalarPowNode2* n) override {
+    result = {n->left, n->right};
+  }
+  void visit(const ScalarExpNode2* n) override {
+    result = {n->x};
+  }
+  void visit(const ScalarLogNode2* n) override {
+    result = {n->x};
+  }
+  void visit(const ScalarAtanNode2* n) override {
+    result = {n->x};
+  }
+  void visit(const ScalarLgammaNode2* n) override {
+    result = {n->x};
+  }
+  void visit(const ScalarPolygammaNode2* n) override {
+    result = {n->n, n->x};
+  }
+  void visit(const ScalarIfEqualNode2* n) override {
+    result = {n->a, n->b, n->c, n->d};
+  }
+  void visit(const ScalarIfLessNode2* n) override {
+    result = {n->a, n->b, n->c, n->d};
+  }
+  void visit(const DistributionNormalNode2* n) override {
+    result = {n->mean, n->stddev};
+  }
+  void visit(const DistributionHalfNormalNode2* n) override {
+    result = {n->stddev};
+  }
+  void visit(const DistributionBetaNode2* n) override {
+    result = {n->a, n->b};
+  }
+  void visit(const DistributionBernoulliNode2* n) override {
+    result = {n->prob};
+  }
+};
+
+in_node_gatherer in_node_gatherer::instance{};
+
 } // namespace
 
 namespace beanmachine::minibmg {
@@ -72,7 +149,8 @@ std::string make_fresh_rvid() {
 ScalarConstantNode2::ScalarConstantNode2(double constant_value)
     : ScalarNode2{hash_combine(
           std::hash<std::string>{}("ScalarConstantNode2"),
-          std::hash<double>{}(constant_value))} {}
+          std::hash<double>{}(constant_value))},
+      constant_value(constant_value) {}
 
 void ScalarConstantNode2::accept(Node2Visitor& visitor) const {
   visitor.visit(this);
@@ -330,73 +408,7 @@ void DistributionBernoulliNode2::accept(Node2Visitor& visitor) const {
 }
 
 std::vector<Node2p> in_nodes(const Node2p& n) {
-  class in_node_gatherer : public Node2Visitor {
-   public:
-    std::vector<Node2p> result;
-    void visit(const ScalarConstantNode2*) override {
-      result = {};
-    }
-    void visit(const ScalarVariableNode2*) override {
-      result = {};
-    }
-    void visit(const ScalarSampleNode2* n) override {
-      result = {n->distribution};
-    }
-    void visit(const ScalarAddNode2* n) override {
-      result = {n->left, n->right};
-    }
-    void visit(const ScalarSubtractNode2* n) override {
-      result = {n->left, n->right};
-    }
-    void visit(const ScalarNegateNode2* n) override {
-      result = {n->x};
-    }
-    void visit(const ScalarMultiplyNode2* n) override {
-      result = {n->left, n->right};
-    }
-    void visit(const ScalarDivideNode2* n) override {
-      result = {n->left, n->right};
-    }
-    void visit(const ScalarPowNode2* n) override {
-      result = {n->left, n->right};
-    }
-    void visit(const ScalarExpNode2* n) override {
-      result = {n->x};
-    }
-    void visit(const ScalarLogNode2* n) override {
-      result = {n->x};
-    }
-    void visit(const ScalarAtanNode2* n) override {
-      result = {n->x};
-    }
-    void visit(const ScalarLgammaNode2* n) override {
-      result = {n->x};
-    }
-    void visit(const ScalarPolygammaNode2* n) override {
-      result = {n->n, n->x};
-    }
-    void visit(const ScalarIfEqualNode2* n) override {
-      result = {n->a, n->b, n->c, n->d};
-    }
-    void visit(const ScalarIfLessNode2* n) override {
-      result = {n->a, n->b, n->c, n->d};
-    }
-    void visit(const DistributionNormalNode2* n) override {
-      result = {n->mean, n->stddev};
-    }
-    void visit(const DistributionHalfNormalNode2* n) override {
-      result = {n->stddev};
-    }
-    void visit(const DistributionBetaNode2* n) override {
-      result = {n->a, n->b};
-    }
-    void visit(const DistributionBernoulliNode2* n) override {
-      result = {n->prob};
-    }
-  };
-  in_node_gatherer gatherer;
-  n->accept(gatherer);
-  return std::move(gatherer.result);
+  return in_node_gatherer::gather(n);
 }
 
 std::size_t Node2pIdentityHash::operator()(
