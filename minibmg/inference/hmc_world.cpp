@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/ad/reverse.h"
-#include "beanmachine/minibmg/distribution/distribution.h"
+#include "beanmachine/minibmg/distribution/bernoulli.h"
 #include "beanmachine/minibmg/eval2.h"
 #include "beanmachine/minibmg/graph2.h"
 #include "beanmachine/minibmg/graph_properties/observations_by_node2.h"

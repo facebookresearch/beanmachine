@@ -8,7 +8,6 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/minibmg.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
