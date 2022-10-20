@@ -121,9 +121,8 @@ bool is_constant(const Traced2& x, const double& value) {
   return is_constant(x, v) && v == value;
 }
 
-std::string to_string(const Traced2&) {
-  return fmt::format(
-      "{}:{}: to_string(Traced2) not implemented", __FILE__, __LINE__);
+std::string to_string(const Traced2& traced) {
+  return to_string(traced.node);
 }
 
 } // namespace beanmachine::minibmg
