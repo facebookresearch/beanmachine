@@ -9,12 +9,12 @@
 #include <sstream>
 #include <unordered_map>
 #include "beanmachine/minibmg/ad/num3.h"
-#include "beanmachine/minibmg/ad/traced2.h"
-#include "beanmachine/minibmg/eval2.h"
+#include "beanmachine/minibmg/ad/traced.h"
+#include "beanmachine/minibmg/eval.h"
 #include "beanmachine/minibmg/fluid_factory.h"
-#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/localopt.h"
-#include "beanmachine/minibmg/pretty2.h"
+#include "beanmachine/minibmg/pretty.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
@@ -25,7 +25,7 @@ requires Number<T> T logit(const T& x) {
 }
 
 TEST(localopt_test, symbolic_derivatives) {
-  Graph2::FluidFactory fac;
+  Graph::FluidFactory fac;
   auto f = beta(2, 2);
   auto s = sample(f);
   fac.query(s);
@@ -33,24 +33,24 @@ TEST(localopt_test, symbolic_derivatives) {
   fac.observe(sample(c), 1);
   fac.observe(sample(c), 1);
   fac.observe(sample(c), 0);
-  Graph2 graph = fac.build();
+  Graph graph = fac.build();
 
   // Locate the node of interest.
-  Node2p rv = graph.queries[0];
+  Nodep rv = graph.queries[0];
 
   // evaluate the graph's log prob, and its first and second derivatives.
-  using T = Num3<Traced2>;
+  using T = Num3<Traced>;
   std::mt19937 gen;
   std::function<T(const std::string&, const unsigned int)> read_variable =
       [](const std::string& name, const unsigned int id) -> T {
-    return Traced2::variable(name, id);
+    return Traced::variable(name, id);
   };
-  std::unordered_map<Node2p, T> data;
+  std::unordered_map<Nodep, T> data;
   std::function<SampledValue<T>(
       const Distribution<T>& distribution, std::mt19937& gen)>
       sampler = [](const Distribution<T>& distribution,
                    std::mt19937&) -> SampledValue<T> {
-    auto constrained = T{Traced2::variable("rvid.constrained", 0), 1, 0};
+    auto constrained = T{Traced::variable("rvid.constrained", 0), 1, 0};
     auto unconstrained = distribution.transformation()->call(constrained);
     auto log_prob = distribution.log_prob(constrained);
     return SampledValue<T>{constrained, unconstrained, log_prob};
@@ -68,7 +68,7 @@ TEST(localopt_test, symbolic_derivatives) {
   auto log_prob = eval_result.log_prob.primal.node;
   auto d1 = eval_result.log_prob.derivative1.node;
   auto d2 = eval_result.log_prob.derivative2.node;
-  std::vector<Node2p> roots = {log_prob, d1, d2};
+  std::vector<Nodep> roots = {log_prob, d1, d2};
   auto print_result = pretty_print(roots);
 
   std::stringstream printed;

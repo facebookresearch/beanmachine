@@ -14,16 +14,16 @@
 #include <stdexcept>
 #include <variant>
 #include "beanmachine/minibmg/ad/number.h"
-#include "beanmachine/minibmg/dedup2.h"
+#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/distribution/bernoulli.h"
 #include "beanmachine/minibmg/distribution/beta.h"
 #include "beanmachine/minibmg/distribution/distribution.h"
 #include "beanmachine/minibmg/distribution/half_normal.h"
 #include "beanmachine/minibmg/distribution/normal.h"
 #include "beanmachine/minibmg/eval_error.h"
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/graph_properties/observations_by_node2.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/graph_properties/observations_by_node.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
@@ -43,93 +43,93 @@ using namespace beanmachine::minibmg;
 
 template <class N>
 requires Number<N>
-class NodeEvaluatorVisitor : public Node2Visitor {
+class NodeEvaluatorVisitor : public NodeVisitor {
  public:
   // We intentionally leave the following methods abstract for the caller to
   // fill in
-  void visit(const ScalarVariableNode2* node) override = 0;
-  void visit(const ScalarSampleNode2* node) override = 0;
-  virtual N evaluate_input(const ScalarNode2p& node) = 0;
+  void visit(const ScalarVariableNode* node) override = 0;
+  void visit(const ScalarSampleNode* node) override = 0;
+  virtual N evaluate_input(const ScalarNodep& node) = 0;
   virtual std::shared_ptr<const Distribution<N>> evaluate_input_distribution(
-      const DistributionNode2p& node) = 0;
+      const DistributionNodep& node) = 0;
 
   N result;
-  N evaluate_scalar(ScalarNode2p& node) {
+  N evaluate_scalar(ScalarNodep& node) {
     node->accept(*this);
     return result;
   }
 
   std::shared_ptr<Distribution<N>> dist_result;
   std::shared_ptr<Distribution<N>> evaluate_distribution(
-      DistributionNode2p& node) {
+      DistributionNodep& node) {
     node->accept(*this);
     return dist_result;
   }
 
-  void visit(const ScalarConstantNode2* node) override {
+  void visit(const ScalarConstantNode* node) override {
     result = node->constant_value;
   }
 
-  void visit(const ScalarAddNode2* node) override {
+  void visit(const ScalarAddNode* node) override {
     result = evaluate_input(node->left) + evaluate_input(node->right);
   }
-  void visit(const ScalarSubtractNode2* node) override {
+  void visit(const ScalarSubtractNode* node) override {
     result = evaluate_input(node->left) - evaluate_input(node->right);
   }
-  void visit(const ScalarNegateNode2* node) override {
+  void visit(const ScalarNegateNode* node) override {
     result = -evaluate_input(node->x);
   }
-  void visit(const ScalarMultiplyNode2* node) override {
+  void visit(const ScalarMultiplyNode* node) override {
     result = evaluate_input(node->left) * evaluate_input(node->right);
   }
-  void visit(const ScalarDivideNode2* node) override {
+  void visit(const ScalarDivideNode* node) override {
     result = evaluate_input(node->left) / evaluate_input(node->right);
   }
-  void visit(const ScalarPowNode2* node) override {
+  void visit(const ScalarPowNode* node) override {
     result = pow(evaluate_input(node->left), evaluate_input(node->right));
   }
-  void visit(const ScalarExpNode2* node) override {
+  void visit(const ScalarExpNode* node) override {
     result = exp(evaluate_input(node->x));
   }
-  void visit(const ScalarLogNode2* node) override {
+  void visit(const ScalarLogNode* node) override {
     result = log(evaluate_input(node->x));
   }
-  void visit(const ScalarAtanNode2* node) override {
+  void visit(const ScalarAtanNode* node) override {
     result = atan(evaluate_input(node->x));
   }
-  void visit(const ScalarLgammaNode2* node) override {
+  void visit(const ScalarLgammaNode* node) override {
     result = lgamma(evaluate_input(node->x));
   }
-  void visit(const ScalarPolygammaNode2* node) override {
+  void visit(const ScalarPolygammaNode* node) override {
     int nv = (int)evaluate_input(node->n).as_double();
     result = polygamma(nv, evaluate_input(node->x));
   }
-  void visit(const ScalarIfEqualNode2* node) override {
+  void visit(const ScalarIfEqualNode* node) override {
     result = if_equal(
         evaluate_input(node->a),
         evaluate_input(node->b),
         evaluate_input(node->c),
         evaluate_input(node->d));
   }
-  void visit(const ScalarIfLessNode2* node) override {
+  void visit(const ScalarIfLessNode* node) override {
     result = if_less(
         evaluate_input(node->a),
         evaluate_input(node->b),
         evaluate_input(node->c),
         evaluate_input(node->d));
   }
-  void visit(const DistributionNormalNode2* node) override {
+  void visit(const DistributionNormalNode* node) override {
     dist_result = std::make_shared<Normal<N>>(
         evaluate_input(node->mean), evaluate_input(node->stddev));
   }
-  void visit(const DistributionHalfNormalNode2* node) override {
+  void visit(const DistributionHalfNormalNode* node) override {
     dist_result = std::make_shared<HalfNormal<N>>(evaluate_input(node->stddev));
   }
-  void visit(const DistributionBetaNode2* node) override {
+  void visit(const DistributionBetaNode* node) override {
     dist_result = std::make_shared<Beta<N>>(
         evaluate_input(node->a), evaluate_input(node->b));
   }
-  void visit(const DistributionBernoulliNode2* node) override {
+  void visit(const DistributionBernoulliNode* node) override {
     dist_result = std::make_shared<Bernoulli<N>>(evaluate_input(node->prob));
   }
 };
@@ -139,10 +139,10 @@ requires Number<N>
 class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
   std::function<N(const std::string& name, const unsigned identifier)>
       read_variable;
-  std::unordered_map<const Node2*, double> observations;
+  std::unordered_map<const Node*, double> observations;
   N& log_prob;
-  std::unordered_map<Node2p, N>& data;
-  std::unordered_map<Node2p, std::shared_ptr<const Distribution<N>>>&
+  std::unordered_map<Nodep, N>& data;
+  std::unordered_map<Nodep, std::shared_ptr<const Distribution<N>>>&
       distributions;
   bool eval_log_prob;
   std::mt19937& gen;
@@ -150,9 +150,9 @@ class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
       const Distribution<N>& distribution,
       std::mt19937& gen)>& sampler;
 
-  static std::unordered_map<const Node2*, double> make_observations_by_node(
-      const Graph2& graph) {
-    std::unordered_map<const Node2*, double> result;
+  static std::unordered_map<const Node*, double> make_observations_by_node(
+      const Graph& graph) {
+    std::unordered_map<const Node*, double> result;
     for (auto& p : observations_by_node(graph)) {
       result[p.first.get()] = p.second;
     }
@@ -161,11 +161,11 @@ class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
 
  public:
   OneNodeAtATimeEvaluatorVisitor(
-      const Graph2& graph,
+      const Graph& graph,
       std::function<N(const std::string& name, const unsigned identifier)>
           read_variable,
-      std::unordered_map<Node2p, N>& data,
-      std::unordered_map<Node2p, std::shared_ptr<const Distribution<N>>>&
+      std::unordered_map<Nodep, N>& data,
+      std::unordered_map<Nodep, std::shared_ptr<const Distribution<N>>>&
           distributions,
       N& log_prob,
       bool eval_log_prob,
@@ -181,10 +181,10 @@ class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
         gen{gen},
         sampler{sampler} {}
 
-  void visit(const ScalarVariableNode2* node) override {
+  void visit(const ScalarVariableNode* node) override {
     this->result = read_variable(node->name, node->identifier);
   }
-  void visit(const ScalarSampleNode2* node) override {
+  void visit(const ScalarSampleNode* node) override {
     auto obsp = observations.find(node);
     auto dist_node = node->distribution;
     auto dist = distributions.at(dist_node);
@@ -202,11 +202,11 @@ class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
       }
     }
   }
-  N evaluate_input(const ScalarNode2p& node) override {
+  N evaluate_input(const ScalarNodep& node) override {
     return data.at(node);
   }
   std::shared_ptr<const Distribution<N>> evaluate_input_distribution(
-      const DistributionNode2p& node) override {
+      const DistributionNodep& node) override {
     return distributions.at(node);
   }
 };
@@ -254,17 +254,17 @@ requires Number<N> SampledValue<N> sample_from_distribution(
 // its distribution transformed to the unconstrained space.
 template <class N>
 requires Number<N> EvalResult<N> eval_graph(
-    const Graph2& graph,
+    const Graph& graph,
     std::mt19937& gen,
     std::function<N(const std::string& name, const unsigned identifier)>
         read_variable,
-    std::unordered_map<Node2p, N>& data,
+    std::unordered_map<Nodep, N>& data,
     bool run_queries = false,
     bool eval_log_prob = false,
     std::function<
         SampledValue<N>(const Distribution<N>& distribution, std::mt19937& gen)>
         sampler = sample_from_distribution<N>) {
-  std::unordered_map<Node2p, std::shared_ptr<const Distribution<N>>>
+  std::unordered_map<Nodep, std::shared_ptr<const Distribution<N>>>
       distributions;
   N log_prob = 0;
 
@@ -283,12 +283,12 @@ requires Number<N> EvalResult<N> eval_graph(
 
   for (const auto& node : graph) {
     if (auto dist_node =
-            std::dynamic_pointer_cast<const DistributionNode2>(node)) {
+            std::dynamic_pointer_cast<const DistributionNode>(node)) {
       std::shared_ptr<const Distribution<N>> dist =
           evaluator.evaluate_distribution(dist_node);
       distributions[node] = dist;
     } else if (
-        auto expr_node = std::dynamic_pointer_cast<const ScalarNode2>(node)) {
+        auto expr_node = std::dynamic_pointer_cast<const ScalarNode>(node)) {
       N expr = evaluator.evaluate_scalar(expr_node);
       data[node] = expr;
     } else {
@@ -313,12 +313,12 @@ class DedupAdapter<EvalResult<Underlying>> {
   DedupAdapter<Underlying> helper{};
 
  public:
-  std::vector<Node2p> find_roots(const EvalResult<Underlying>& e) const {
+  std::vector<Nodep> find_roots(const EvalResult<Underlying>& e) const {
     return helper.find_roots(e.log_prob);
   }
   EvalResult<Underlying> rewrite(
       const EvalResult<Underlying>& e,
-      const std::unordered_map<Node2p, Node2p>& map) const {
+      const std::unordered_map<Nodep, Nodep>& map) const {
     auto new_log_prob = helper.rewrite(e.log_prob, map);
     return {new_log_prob, e.queries};
   }
