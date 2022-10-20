@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include "beanmachine/minibmg/fluent_factory.h"
+#include "beanmachine/minibmg/fluid_factory.h"
 #include "beanmachine/minibmg/inference/hmc_world.h"
 #include "beanmachine/minibmg/inference/mle_inference.h"
 
@@ -17,7 +17,7 @@ using namespace beanmachine::minibmg;
 TEST(mle_inference_test, coin_flipping) {
   // Take a familiar-looking model and run gradient descent to confirm that we
   // get the expected value.
-  Graph::FluentFactory f;
+  Graph2::FluidFactory f;
   auto d = beta(2, 2);
   auto s = sample(d);
   auto bn = bernoulli(s);
@@ -38,7 +38,7 @@ TEST(mle_inference_test, sqrt) {
   // Compute the square root of two using the the technique of "observing a
   // functional"
   // (https://fb.workplace.com/groups/pplxfn/permalink/3245784932349729/).
-  Graph::FluentFactory f;
+  Graph2::FluidFactory f;
   auto n1 = normal(1, 1e7);
   auto sqrt = sample(n1);
   auto two = sqrt * sqrt;
@@ -62,7 +62,7 @@ TEST(mle_inference_test, sqrt) {
 
 TEST(mle_inference_test, normal) {
   // Test inference in the absence of observations.
-  Graph::FluentFactory f;
+  Graph2::FluidFactory f;
   auto n = normal(2, 3);
   f.query(sample(n));
   // Learning rate set by trial and error
@@ -78,7 +78,7 @@ TEST(mle_inference_test, normal) {
 
 TEST(mle_inference_test, beta) {
   // Test inference in the absence of observations.
-  Graph::FluentFactory f;
+  Graph2::FluidFactory f;
   double a = 7;
   double b = 5;
   auto n = beta(a, b);

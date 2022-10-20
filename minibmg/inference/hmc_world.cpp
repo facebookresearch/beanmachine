@@ -12,11 +12,10 @@
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/ad/reverse.h"
 #include "beanmachine/minibmg/distribution/distribution.h"
-#include "beanmachine/minibmg/eval.h"
-#include "beanmachine/minibmg/graph.h"
-#include "beanmachine/minibmg/graph_properties/observations_by_node.h"
-#include "beanmachine/minibmg/node.h"
-#include "beanmachine/minibmg/operator.h"
+#include "beanmachine/minibmg/eval2.h"
+#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph_properties/observations_by_node2.h"
+#include "beanmachine/minibmg/node2.h"
 
 namespace {
 
@@ -24,11 +23,11 @@ using namespace beanmachine::minibmg;
 
 class HMCWorld0 : public HMCWorld {
  private:
-  const Graph& graph;
-  std::unordered_set<Nodep> unobserved_samples;
+  const Graph2& graph;
+  std::unordered_set<Node2p> unobserved_samples;
 
  public:
-  explicit HMCWorld0(const Graph& graph);
+  explicit HMCWorld0(const Graph2& graph);
 
   unsigned num_unobserved_samples() const override;
 
@@ -39,11 +38,11 @@ class HMCWorld0 : public HMCWorld {
       const std::vector<double>& proposed_unconstrained_values) const override;
 };
 
-HMCWorld0::HMCWorld0(const Graph& graph) : graph{graph} {
+HMCWorld0::HMCWorld0(const Graph2& graph) : graph{graph} {
   // we identify the set of unobserved samples by...
   for (const auto& node : graph.nodes) {
     // ...counting the samples...
-    if (node->op == Operator::SAMPLE) {
+    if (dynamic_cast<const ScalarSampleNode2*>(node.get())) {
       unobserved_samples.insert(node);
     }
   }
@@ -59,9 +58,9 @@ unsigned HMCWorld0::num_unobserved_samples() const {
 
 template <class T>
 requires Number<T> EvalResult<T> evaluate_internal(
-    const Graph& graph,
+    const Graph2& graph,
     const std::vector<double>& proposed_unconstrained_values,
-    std::unordered_map<Nodep, T>& data,
+    std::unordered_map<Node2p, T>& data,
     std::mt19937& gen,
     bool run_queries,
     bool eval_log_prob) {
@@ -115,7 +114,7 @@ requires Number<T> EvalResult<T> evaluate_internal(
 HMCWorldEvalResult HMCWorld0::evaluate(
     const std::vector<double>& proposed_unconstrained_values) const {
   using T = Reverse<Real>;
-  std::unordered_map<Nodep, T> data;
+  std::unordered_map<Node2p, T> data;
   std::mt19937 gen;
 
   // evaluate the graph and its log_prob in reverse mode
@@ -132,7 +131,8 @@ HMCWorldEvalResult HMCWorld0::evaluate(
   std::vector<double> gradients;
   auto& obs = observations_by_node(graph);
   for (const auto& node : graph) {
-    if (node->op == Operator::SAMPLE && !obs.contains(node)) {
+    if (dynamic_cast<const ScalarSampleNode2*>(node.get()) &&
+        !obs.contains(node)) {
       // we found an unobserved sample.  Add its gradient to the result.
       auto found = data.find(node);
       // It is possible that the node is not found in the data.  This occurs
@@ -154,7 +154,7 @@ std::vector<double> HMCWorld0::queries(
   // gradients.
   using T = Real;
 
-  std::unordered_map<Nodep, T> data;
+  std::unordered_map<Node2p, T> data;
   std::mt19937 gen;
 
   // evaluate the graph and its log_prob using real numbers
@@ -173,7 +173,7 @@ std::vector<double> HMCWorld0::queries(
 
 namespace beanmachine::minibmg {
 
-std::unique_ptr<const HMCWorld> hmc_world_0(const Graph& graph) {
+std::unique_ptr<const HMCWorld> hmc_world_0(const Graph2& graph) {
   return std::make_unique<HMCWorld0>(graph);
 }
 

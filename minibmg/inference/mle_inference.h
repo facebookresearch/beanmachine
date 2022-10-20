@@ -9,7 +9,7 @@
 
 #include <memory>
 #include <vector>
-#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/graph2.h"
 
 namespace beanmachine::minibmg {
 
@@ -28,7 +28,7 @@ namespace beanmachine::minibmg {
  * we'll exercise more advanced versions of that method.
  */
 std::vector<double> mle_inference_0(
-    const Graph& graph,
+    const Graph2& graph,
     double learning_rate = 0.1,
     int num_rounds = 25,
     std::vector<double> initial_proposals = std::vector<double>{},
