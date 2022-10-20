@@ -69,9 +69,9 @@ class Graph2 : public Container {
 };
 
 // Exception to throw when json_to_graph fails.
-class JsonError : public std::exception {
+class JsonError2 : public std::exception {
  public:
-  explicit JsonError(const std::string& message);
+  explicit JsonError2(const std::string& message);
   const std::string message;
 };
 
