@@ -7,18 +7,18 @@ import json
 import re
 import shutil
 import uuid
-from os import PathLike
+import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import mdformat  # @manual=fbsource//third-party/pypi/mdformat:mdformat
 import nbformat
 import pandas as pd
-from lxml import etree
+from lxml import etree  # pyre-ignore
 from nbformat.notebooknode import NotebookNode
 
 try:
-    from libfb.py.fbcode_root import get_fbcode_dir
+    from libfb.py.fbcode_root import get_fbcode_dir  # pyre-ignore
 except ImportError:
     SCRIPTS_DIR = Path(__file__).parent.resolve()
     LIB_DIR = SCRIPTS_DIR.parent.parent.resolve()
@@ -29,6 +29,21 @@ WEBSITE_DIR = LIB_DIR.joinpath("website")
 DOCS_DIR = LIB_DIR.joinpath("docs")
 OVERVIEW_DIR = DOCS_DIR.joinpath("overview")
 TUTORIALS_DIR = OVERVIEW_DIR.joinpath("tutorials")
+# Data display priority. Below lists the priority for displaying data from cell outputs.
+# Cells can output many different items, and some will output a fallback display, e.g.
+# text/plain if text/html is not working. The below priorities help ensure the output in
+# the MDX file shows the best representation of the cell output.
+priorities = [
+    "text/markdown",
+    "image/png",  # matplotlib output.
+    "application/vnd.jupyter.widget-view+json",  # tqdm progress bars.
+    "application/vnd.bokehjs_load.v0+json",  # Bokeh loading output.
+    "application/vnd.bokehjs_exec.v0+json",  # Bokeh `show` outputs.
+    "application/vnd.plotly.v1+json",  # Plotly
+    "text/html",
+    "stream",
+    "text/plain",
+]
 
 
 def load_nb_metadata() -> Dict[str, Dict[str, str]]:
@@ -44,38 +59,36 @@ def load_nb_metadata() -> Dict[str, Dict[str, str]]:
             will be included in the Docusaurus MDX output.
     """
     tutorials_json_path = WEBSITE_DIR.joinpath("tutorials.json")
-    with open(str(tutorials_json_path), "r") as f:
+    with tutorials_json_path.open("r") as f:
         tutorials_data = json.load(f)
     return tutorials_data
 
 
-def load_notebook(path: PathLike) -> NotebookNode:
+def load_notebook(path: Path) -> NotebookNode:
     """
     Load the given notebook into memory.
 
     Args:
-        path (PathLike): Path to the Jupyter notebook.
+        path (Path): Path to the Jupyter notebook.
 
     Returns:
         NotebookNode: `nbformat` object, which contains all the notebook cells in it.
     """
-    if isinstance(path, PathLike):
-        path = str(path)
-    with open(path, "r") as f:
+    with path.open("r") as f:
         nb_str = f.read()
         nb = nbformat.reads(nb_str, nbformat.NO_CONVERT)
     return nb
 
 
-def create_folders(path: PathLike) -> Tuple[str, PathLike]:
+def create_folders(path: Path) -> Tuple[str, Path]:
     """
     Create asset folders for the tutorial.
 
     Args:
-        path (PathLike): Path to the Jupyter notebook.
+        path (Path): Path to the Jupyter notebook.
 
     Returns:
-        Tuple[str, PathLike]: Returns a tuple with the filename to use for the MDX file
+        Tuple[str, Path]: Returns a tuple with the filename to use for the MDX file
             and the path for the MDX assets folder.
     """
     tutorial_folder_name = path.stem
@@ -93,40 +106,38 @@ def create_folders(path: PathLike) -> Tuple[str, PathLike]:
     return filename, assets_folder
 
 
-def create_frontmatter(path: PathLike, nb_metadata: Dict[str, str]) -> str:
+def create_frontmatter(path: Path, nb_metadata: Dict[str, Dict[str, str]]) -> str:
     """
     Create frontmatter for the resulting MDX file.
 
     The frontmatter is the data between the `---` lines in an MDX file.
 
     Args:
-        path (PathLike): Path to the Jupyter notebook.
-        nb_metadata (Dict[str, str]): The metadata associated with the given notebook.
-            Metadata is defined in the `tutorials.json` file.
+        path (Path): Path to the Jupyter notebook.
+        nb_metadata (Dict[str, Dict[str, str]]): The metadata associated with the given
+            notebook. Metadata is defined in the `tutorials.json` file.
 
     Returns:
         str: MDX formatted frontmatter.
     """
     # Add the frontmatter to the MDX string. This is the part between the `---` lines
     # that define the tutorial sidebar_label information.
-    frontmatter = "\n".join(
-        ["---"]
-        + [
-            f"{key}: {value}"
-            for key, value in nb_metadata.get(
-                path.stem,
-                {
-                    "title": "",
-                    "sidebar_label": "",
-                    "path": "",
-                    "nb_path": "",
-                    "github": "",
-                    "colab": "",
-                },
-            ).items()
-        ]
-        + ["---"]
-    )
+    frontmatter_delimiter = ["---"]
+    frontmatter = [
+        f"{key}: {value}"
+        for key, value in nb_metadata.get(
+            path.stem,
+            {
+                "title": "",
+                "sidebar_label": "",
+                "path": "",
+                "nb_path": "",
+                "github": "",
+                "colab": "",
+            },
+        ).items()
+    ]
+    frontmatter = "\n".join(frontmatter_delimiter + frontmatter + frontmatter_delimiter)
     mdx = mdformat.text(frontmatter, options={"wrap": 88}, extensions={"myst"})
     return f"{mdx}\n"
 
@@ -147,12 +158,15 @@ def create_imports() -> str:
     return f"{imports}\n"
 
 
-def create_buttons(nb_metadata: Dict[str, str], tutorial_folder_name: str) -> str:
+def create_buttons(
+    nb_metadata: Dict[str, Dict[str, str]],
+    tutorial_folder_name: str,
+) -> str:
     """
     Create buttons that link to Colab and GitHub for the tutorial.
 
     Args:
-        nb_metadata (Dict[str, str]): Metadata for the tutorial.
+        nb_metadata (Dict[str, Dict[str, str]]): Metadata for the tutorial.
         tutorial_folder_name (str): The name of the tutorial folder where the MDX
             converted files exist. This is typically just the name of the Jupyter
             notebook file.
@@ -167,8 +181,8 @@ def create_buttons(nb_metadata: Dict[str, str], tutorial_folder_name: str) -> st
 
 def handle_images_found_in_markdown(
     markdown: str,
-    new_img_dir: PathLike,
-    lib_dir: PathLike,
+    new_img_dir: Path,
+    lib_dir: Path,
 ) -> str:
     """
     Update image paths in the Markdown, and copy the image to the docs location.
@@ -186,9 +200,9 @@ def handle_images_found_in_markdown(
 
     Args:
         markdown (str): Markdown where we look for Markdown flavored images.
-        new_img_dir (PathLike): Path where images are copied to for display in the
+        new_img_dir (Path): Path where images are copied to for display in the
             MDX file.
-        lib_dir (PathLike): The location for the Bean Machine repo.
+        lib_dir (Path): The location for the Bean Machine repo.
 
     Returns:
         str: The original Markdown with new paths for images.
@@ -206,7 +220,11 @@ def handle_images_found_in_markdown(
     for search in searches:
         # Find the old image path and replace it with the new one.
         old_path, _ = search.groups()
-        start, end = re.search(old_path, markdown).span()
+        start = 0
+        end = 0
+        search = re.search(old_path, markdown)
+        if search is not None:
+            start, end = search.span()
         old_path = Path(old_path)
         name = old_path.name.strip()
         new_path = f"assets/img/{name}"
@@ -250,10 +268,7 @@ def transform_style_attributes(markdown: str) -> str:
 
         # Step 2: splits ["attr: value", ...] to
         #                [["attr", "value"], ...].
-        step2 = [
-            list(map(lambda token: token.strip(), tokens.split(":")))
-            for tokens in step1
-        ]
+        step2 = [[token.strip() for token in tokens.split(":")] for tokens in step1]
 
         # Step 3: converts [["attr", "value"], ...] to
         #                  '{"attr": "value", ...}'.
@@ -272,17 +287,17 @@ def transform_style_attributes(markdown: str) -> str:
 
 def handle_markdown_cell(
     cell: NotebookNode,
-    new_img_dir: PathLike,
-    lib_dir: PathLike,
+    new_img_dir: Path,
+    lib_dir: Path,
 ) -> str:
     """
     Handle the given Jupyter Markdown cell and convert it to MDX.
 
     Args:
         cell (NotebookNode): Jupyter Markdown cell object.
-        new_img_dir (PathLike): Path where images are copied to for display in the
+        new_img_dir (Path): Path where images are copied to for display in the
             Markdown cell.
-        lib_dir (PathLike): The location for the Bean Machine library.
+        lib_dir (Path): The location for the Bean Machine library.
 
     Returns:
         str: Transformed Markdown object suitable for inclusion in MDX.
@@ -350,15 +365,16 @@ def transform_bokeh_json(json_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def handle_bokeh(
-    values: List[Dict[int, NotebookNode]],
-    plot_data_folder: PathLike,
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+    plot_data_folder: Path,
 ) -> List[Tuple[int, str]]:
     """
     Convert Bokeh `show` outputs and Applications to MDX.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
-        plot_data_folder (PathLike): Path to the folder where plot data should be
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
+        plot_data_folder (Path): Path to the folder where plot data should be
             stored.
 
     Returns:
@@ -368,9 +384,10 @@ def handle_bokeh(
     """
     output = []
     for value in values:
-        index = value["index"]
-        data = value["data"]
+        index = int(value["index"])
+        data = str(value["data"])
         app_flag = data.startswith("<!DOCTYPE html>")
+        json_data = {}
         # Handle Bokeh `show` outputs.
         if not app_flag:
             # Parse the JavaScript for the Bokeh JSON data. The BokehJS output is
@@ -381,12 +398,11 @@ def handle_bokeh(
                 filter(
                     lambda line: line.startswith("const docs_json = "),
                     [line.strip() for line in data.splitlines() if line],
-                )
+                ),
             )[0]
 
             # Ignore the `const` definition and the ending `;` from the line.
             json_string = json_string[len("const docs_json = ") : -1]
-            # json_data = {str(uuid.uuid4()): json.loads(json_string)}
             json_data = json.loads(json_string)
 
         # Handle Bokeh Applications.
@@ -394,7 +410,7 @@ def handle_bokeh(
             # Bokeh Application objects are rendered in the notebook as HTML. This
             # HTML is saved in the output cell, which we parse below using lxml and
             # xpaths.
-            doc = etree.HTML(data)
+            doc = etree.HTML(data)  # pyre-ignore
             scripts = doc.xpath("//body/script[@type='application/json']")
             script = scripts[0]
             script = "".join(script.itertext())
@@ -414,24 +430,27 @@ def handle_bokeh(
         file_name = js["target_id"]
         # Save the Bokeh JSON data to disk. It will be read by React when loaded in
         # Docusaurus.
-        file_path = str(plot_data_folder / f"{file_name}.json")
-        with open(file_path, "w") as f:
+        file_path = plot_data_folder / f"{file_name}.json"
+        with file_path.open("w") as f:
             json.dump(js, f, indent=2)
 
         # Add the Bokeh figure to the MDX output.
         path_to_data = f"./assets/plot_data/{file_name}.json"
         output.append(
-            (index, f"<BokehFigure data={{require('{path_to_data}')}} />\n\n")
+            (index, f"<BokehFigure data={{require('{path_to_data}')}} />\n\n"),
         )
     return output
 
 
-def handle_image(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+def handle_image(
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+) -> List[Tuple[int, str]]:
     """
     Convert embedded images to string MDX can consume.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
 
     Returns:
         List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
@@ -447,12 +466,15 @@ def handle_image(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]
     return output
 
 
-def handle_markdown(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+def handle_markdown(
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+) -> List[Tuple[int, str]]:
     """
     Convert and format Markdown for MDX.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
 
     Returns:
         List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
@@ -461,14 +483,16 @@ def handle_markdown(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, st
     """
     output = []
     for value in values:
-        index = value["index"]
-        markdown = value["data"]
+        index = int(value["index"])
+        markdown = str(value["data"])
         markdown = mdformat.text(markdown, options={"wrap": 88}, extensions={"myst"})
         output.append((index, f"{markdown}\n\n"))
     return output
 
 
-def handle_pandas(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+def handle_pandas(
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+) -> List[Tuple[int, str]]:
     """
     Handle how to display pandas DataFrames.
 
@@ -477,7 +501,8 @@ def handle_pandas(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]
     DataFrame is being displayed.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
 
     Returns:
         List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
@@ -486,8 +511,8 @@ def handle_pandas(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]
     """
     output = []
     for value in values:
-        index = value["index"]
-        data = value["data"]
+        index = int(value["index"])
+        data = str(value["data"])
         df = pd.read_html(data, flavor="lxml")
         # NOTE: The return is a list of dataframes and we only care about the first
         #       one.
@@ -498,19 +523,25 @@ def handle_pandas(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]
         # Remove the index if it is just a range, and output to markdown.
         mdx = ""
         if isinstance(md_df.index, pd.RangeIndex):
-            mdx = md_df.to_markdown(index=False)
+            # Ignore FutureWarning: 'showindex' is deprecated.
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=FutureWarning)
+                mdx = md_df.to_markdown(showindex=False)
         elif not isinstance(md_df.index, pd.RangeIndex):
             mdx = md_df.to_markdown()
         output.append((index, f"\n{mdx}\n\n"))
     return output
 
 
-def handle_plain(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+def handle_plain(
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+) -> List[Tuple[int, str]]:
     """
     Handle how to plain cell output should be displayed in MDX.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
 
     Returns:
         List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
@@ -519,28 +550,29 @@ def handle_plain(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]
     """
     output = []
     for value in values:
-        index = value["index"]
-        data = value["data"]
+        index = int(value["index"])
+        data = str(value["data"])
         data = [line.strip() for line in data.splitlines() if line]
         data = [datum for datum in data if datum]
         if data:
-            data = "\n".join([line for line in value["data"].splitlines() if line])
+            data = "\n".join([line for line in str(value["data"]).splitlines() if line])
             output.append(
-                (index, f"<CellOutput>\n{{\n  `{data}`\n}}\n</CellOutput>\n\n")
+                (index, f"<CellOutput>\n{{\n  `{data}`\n}}\n</CellOutput>\n\n"),
             )
     return output
 
 
 def handle_plotly(
-    values: List[Dict[str, NotebookNode]],
-    plot_data_folder: PathLike,
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+    plot_data_folder: Path,
 ) -> List[Tuple[int, str]]:
     """
     Convert Plotly outputs to MDX.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
-        plot_data_folder (PathLike): Path to the folder where plot data should be
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
+        plot_data_folder (Path): Path to the folder where plot data should be
             stored.
 
     Returns:
@@ -553,17 +585,19 @@ def handle_plotly(
         index = value["index"]
         data = value["data"]
         file_name = str(uuid.uuid4())
-        file_path = str(plot_data_folder / f"{file_name}.json")
+        file_path = plot_data_folder / f"{file_name}.json"
         path_to_data = f"./assets/plot_data/{file_name}.json"
         output.append(
-            (index, f"<PlotlyFigure data={{require('{path_to_data}')}} />\n\n")
+            (index, f"<PlotlyFigure data={{require('{path_to_data}')}} />\n\n"),
         )
-        with open(file_path, "w") as f:
+        with file_path.open("w") as f:
             json.dump(data, f, indent=2)
     return output
 
 
-def handle_tqdm(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
+def handle_tqdm(
+    values: List[Dict[str, Union[int, str, NotebookNode]]],
+) -> List[Tuple[int, str]]:
     """
     Handle the output of tqdm.
 
@@ -571,7 +605,8 @@ def handle_tqdm(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
     aggregate them all into a single CellOutput object, which is what this method does.
 
     Args:
-        values (List[Dict[int, NotebookNode]]): Bokeh tagged cell outputs.
+        values (List[Dict[str, Union[int, str, NotebookNode]]]): Bokeh tagged cell
+            outputs.
 
     Returns:
         List[Tuple[int, str]]: A list of tuples, where the first entry in the tuple is
@@ -579,141 +614,33 @@ def handle_tqdm(values: List[Dict[int, NotebookNode]]) -> List[Tuple[int, str]]:
             the tuple is the MDX formatted string.
     """
     output = sorted(values, key=lambda item: item["index"])
-    index = output[0]["index"]
-    md = "\n".join([item["data"] for item in output if item["data"]])
+    index = int(output[0]["index"])
+    md = "\n".join([str(item["data"]) for item in output if item["data"]])
     return [(index, f"<CellOutput>\n{{\n  `{md}`\n}}\n</CellOutput>\n\n")]
 
 
-def handle_cell_outputs(  # noqa: C901 (flake8 too complex)
-    cell: NotebookNode,
-    plot_data_folder: PathLike,
+CELL_OUTPUTS_TO_PROCESS = Dict[
+    str,
+    List[Dict[str, Union[int, str, NotebookNode]]],
+]
+
+
+def aggregate_mdx(
+    cell_outputs_to_process: CELL_OUTPUTS_TO_PROCESS,
+    plot_data_folder: Path,
 ) -> str:
     """
-    Handle cell outputs and convert to MDX.
+    Aggregate the `cell_outputs_to_process` into MDX.
 
     Args:
-        cell (NotebookNode): The cell where the outputs need converting.
-        plot_data_folder (PathLike): Path to the folder where plot data should be
-            stored.
+        cell_outputs_to_process (CELL_OUTPUTS_TO_PROCESS): A dictionary of cell outputs
+            that need further processing.
+        plot_data_folder (Path): Path to where plot data should be stored for the
+            tutorial.
 
     Returns:
-        str: MDX formatted cell output.
+        str: MDX formatted string.
     """
-    mdx = ""
-
-    # Return an empty string if there are no actual cell outputs.
-    cell_outputs = cell.get("outputs", [])
-    if not cell_outputs:
-        return mdx
-
-    # Data display priority. Below lists the priority for displaying data from cell
-    # outputs. Cells can output many different items, and some will output a fallback
-    # display, e.g. text/plain if text/html is not working. The below priorities help
-    # ensure the output in the MDX file shows the best representation of the cell
-    # output.
-    priorities = [
-        "text/markdown",
-        "image/png",  # matplotlib output.
-        "application/vnd.jupyter.widget-view+json",  # tqdm progress bars.
-        "application/vnd.bokehjs_load.v0+json",  # Bokeh loading output.
-        "application/vnd.bokehjs_exec.v0+json",  # Bokeh `show` outputs.
-        "application/vnd.plotly.v1+json",  # Plotly
-        "text/html",
-        "stream",
-        "text/plain",
-    ]
-
-    # We will use the below cell output data types for prioritizing the output shown in
-    # the MDX file.
-    cell_output_dtypes = [
-        list(cell_output["data"].keys())
-        if "data" in cell_output
-        else [cell_output["output_type"]]
-        for cell_output in cell_outputs
-    ]
-    prioritized_cell_output_dtypes = [
-        sorted(
-            set(dtypes).intersection(set(priorities)),
-            key=lambda dtype: priorities.index(dtype),
-        )
-        for dtypes in cell_output_dtypes
-    ]
-    plotly_flags = [
-        any(map(lambda output: "plotly" in output, outputs))
-        for outputs in cell_output_dtypes
-    ]
-
-    # We will loop over all cell outputs and bucket them into the appropriate key in the
-    # dictionary below for further processing. Doing it in this way helps aggregate like
-    # outputs together e.g. tqdm outputs.
-    cell_outputs_to_process = {
-        "bokeh": [],
-        "image": [],
-        "markdown": [],
-        "pandas": [],
-        "plain": [],
-        "plotly": [],
-        "tqdm": [],
-    }
-    for i, cell_output in enumerate(cell_outputs):
-        prioritized_data_dtype = prioritized_cell_output_dtypes[i][0]
-        # If there is no `data` key in the cell_output, then it may be an error that
-        # needs to be handled. Even if it is not an error, the data is stored in a
-        # different key if no `data` key if found.
-        data = (
-            cell_output["data"][prioritized_data_dtype]
-            if "data" in cell_output
-            else cell_output["text"]
-        )
-
-        # Bokeh.
-        if prioritized_data_dtype == "application/vnd.bokehjs_load.v0+json":
-            # Ignore the BokehJS loading output.
-            continue
-        if prioritized_data_dtype == "application/vnd.bokehjs_exec.v0+json":
-            # Bokeh `show` outputs.
-            data = cell_output["data"]["application/javascript"]
-            cell_outputs_to_process["bokeh"].append({"index": i, "data": data})
-        if prioritized_data_dtype == "text/html" and "Bokeh Application" in data:
-            # Bokeh applications.
-            cell_outputs_to_process["bokeh"].append({"index": i, "data": data})
-
-        # Images.
-        if prioritized_data_dtype.startswith("image"):
-            if not plotly_flags[i]:
-                cell_outputs_to_process["image"].append(
-                    {"index": i, "data": data, "mime_type": prioritized_data_dtype},
-                )
-            # Plotly outputs a static image, but we can use the JSON in the cell
-            # output to create interactive plots using a React component.
-            if plotly_flags[i]:
-                data = cell_output["data"]["application/vnd.plotly.v1+json"]
-                cell_outputs_to_process["plotly"].append({"index": i, "data": data})
-
-        # Plain.
-        if prioritized_data_dtype in ["text/plain", "stream"]:
-            # Ignore error outputs.
-            if "name" in cell_output and cell_output["name"] == "stderr":
-                continue
-            # Ignore matplotlib legend text output.
-            if prioritized_data_dtype == "text/plain" and "matplotlib" in data:
-                continue
-            cell_outputs_to_process["plain"].append({"index": i, "data": data})
-
-        # Markdown.
-        if prioritized_data_dtype == "text/markdown":
-            cell_outputs_to_process["markdown"].append({"index": i, "data": data})
-
-        # Pandas DataFrames.
-        if "dataframe" in data:
-            cell_outputs_to_process["pandas"].append({"index": i, "data": data})
-
-        # tqdm.
-        if prioritized_data_dtype == "application/vnd.jupyter.widget-view+json":
-            data = cell_output["data"]["text/plain"]
-            cell_outputs_to_process["tqdm"].append({"index": i, "data": data})
-
-    # Now we process all aggregated cell outputs into a single output for the type.
     processed_mdx = []
     for key, values in cell_outputs_to_process.items():
         if not values:
@@ -736,17 +663,259 @@ def handle_cell_outputs(  # noqa: C901 (flake8 too complex)
     # Ensure the same ordering of the MDX happens as was found in the original cell
     # output.
     processed_mdx = sorted(processed_mdx, key=lambda item: item[0])
-    md = "\n".join([item[1] for item in processed_mdx])
+    mdx = "\n".join([item[1] for item in processed_mdx])
+    return mdx
+
+
+def prioritize_dtypes(
+    cell_outputs: List[NotebookNode],
+) -> Tuple[List[List[str]], List[bool]]:
+    """
+    Prioritize cell output data types.
+
+    Args:
+        cell_outputs (List[NotebookNode]): A list of cell outputs.
+
+    Returns:
+        Tuple[List[List[str]], List[bool]]: Return two items in the tuple; the first is
+            a list of prioritized data types and the second is a list boolean values
+            associated with the cell output having Plotly information in it or not.
+    """
+    cell_output_dtypes = [
+        list(cell_output["data"].keys())
+        if "data" in cell_output
+        else [cell_output["output_type"]]
+        for cell_output in cell_outputs
+    ]
+    prioritized_cell_output_dtypes = [
+        sorted(
+            set(dtypes).intersection(set(priorities)),
+            key=lambda dtype: priorities.index(dtype),
+        )
+        for dtypes in cell_output_dtypes
+    ]
+    prioritized_cell_output_dtypes = [
+        [str(item) for item in items] for items in prioritized_cell_output_dtypes
+    ]
+    plotly_flags = [
+        any(["plotly" in output for output in outputs])
+        for outputs in cell_output_dtypes
+    ]
+    return prioritized_cell_output_dtypes, plotly_flags
+
+
+def aggregate_bokeh(
+    prioritized_data_dtype: str,
+    cell_output: NotebookNode,
+    data: NotebookNode,
+    cell_outputs_to_process: CELL_OUTPUTS_TO_PROCESS,
+    i: int,
+) -> None:
+    """
+    Aggregate Bokeh cell outputs.
+
+    Args:
+        prioritized_data_dtype (str): The prioritized cell output data type.
+        cell_output (NotebookNode): The actual cell output from the notebook.
+        data (NotebookNode): The data of the cell output.
+        cell_outputs_to_process (CELL_OUTPUTS_TO_PROCESS): Dictionary containing
+            aggregated cell output objects.
+        i (int): Index for the cell output in the list of cell output objects.
+
+    Returns:
+        None: Does not return anything, instead adds values to the
+            cell_outputs_to_process if applicable.
+    """
+    if prioritized_data_dtype == "application/vnd.bokehjs_load.v0+json":
+        pass
+    # Bokeh `show` outputs.
+    if prioritized_data_dtype == "application/vnd.bokehjs_exec.v0+json":
+        data = cell_output["data"]["application/javascript"]
+        cell_outputs_to_process["bokeh"].append({"index": i, "data": data})
+    # Bokeh applications.
+    if prioritized_data_dtype == "text/html" and "Bokeh Application" in data:
+        cell_outputs_to_process["bokeh"].append({"index": i, "data": data})
+
+
+def aggregate_images_and_plotly(
+    prioritized_data_dtype: str,
+    cell_output: NotebookNode,
+    data: NotebookNode,
+    plotly_flags: List[bool],
+    cell_outputs_to_process: CELL_OUTPUTS_TO_PROCESS,
+    i: int,
+) -> None:
+    """
+    Aggregates images or Plotly cell outputs into an appropriate bucket.
+
+    Args:
+        prioritized_data_dtype (str): The prioritized cell output data type.
+        cell_output (NotebookNode): The actual cell output from the notebook.
+        data (NotebookNode): The data of the cell output.
+        plotly_flags (List[bool]): True if a Plotly plot was found in the cell outputs
+            else False.
+        cell_outputs_to_process (CELL_OUTPUTS_TO_PROCESS): Dictionary containing
+            aggregated cell output objects.
+        i (int): Index for the cell output in the list of cell output objects.
+
+    Returns:
+        None: Does not return anything, instead adds values to the
+            cell_outputs_to_process if applicable.
+    """
+    if prioritized_data_dtype.startswith("image"):
+        if not plotly_flags[i]:
+            cell_outputs_to_process["image"].append(
+                {"index": i, "data": data, "mime_type": prioritized_data_dtype},
+            )
+        # Plotly outputs a static image, but we can use the JSON in the cell
+        # output to create interactive plots using a React component.
+        if plotly_flags[i]:
+            data = cell_output["data"]["application/vnd.plotly.v1+json"]
+            cell_outputs_to_process["plotly"].append({"index": i, "data": data})
+
+
+def aggregate_plain_output(
+    prioritized_data_dtype: str,
+    cell_output: NotebookNode,
+    data: NotebookNode,
+    cell_outputs_to_process: CELL_OUTPUTS_TO_PROCESS,
+    i: int,
+) -> None:
+    """
+    Aggregate plain text cell outputs together.
+
+    Args:
+        prioritized_data_dtype (str): The prioritized cell output data type.
+        cell_output (NotebookNode): The actual cell output from the notebook.
+        data (NotebookNode): The data of the cell output.
+        cell_outputs_to_process (CELL_OUTPUTS_TO_PROCESS): Dictionary containing
+            aggregated cell output objects.
+        i (int): Index for the cell output in the list of cell output objects.
+
+    Returns:
+        None: Does not return anything, instead adds values to the
+            cell_outputs_to_process if applicable.
+    """
+    # Ignore error outputs.
+    if "name" in cell_output and cell_output["name"] == "stderr":
+        pass
+    # Ignore matplotlib legend text output.
+    if prioritized_data_dtype == "text/plain" and "matplotlib" in data:
+        pass
+    cell_outputs_to_process["plain"].append({"index": i, "data": data})
+
+
+def aggregate_output_types(cell_outputs: List[NotebookNode]) -> CELL_OUTPUTS_TO_PROCESS:
+    """
+    Aggregate cell outputs into a dictionary for further processing.
+
+    Args:
+        cell_outputs (List[NotebookNode]): List of cell outputs.
+
+    Returns:
+        CELL_OUTPUTS_TO_PROCESS: Dictionary containing aggregated cell output objects.
+    """
+    # We will use the below cell output data types for prioritizing the output shown in
+    # the MDX file.
+    prioritized_cell_output_dtypes, plotly_flags = prioritize_dtypes(cell_outputs)
+
+    cell_outputs_to_process = {
+        "bokeh": [],
+        "image": [],
+        "markdown": [],
+        "pandas": [],
+        "plain": [],
+        "plotly": [],
+        "tqdm": [],
+    }
+    for i, cell_output in enumerate(cell_outputs):
+        prioritized_data_dtype = prioritized_cell_output_dtypes[i][0]
+
+        # If there is no `data` key in the cell_output, then it may be an error that
+        # needs to be handled. Even if it is not an error, the data is stored in a
+        # different key if no `data` key is found.
+        data = (
+            cell_output["data"][prioritized_data_dtype]
+            if "data" in cell_output
+            else cell_output["text"]
+        )
+        bokeh_check = "bokeh" in prioritized_data_dtype or (
+            prioritized_data_dtype == "text/html" and "Bokeh Application" in data
+        )
+        if bokeh_check:
+            aggregate_bokeh(
+                prioritized_data_dtype,
+                cell_output,
+                data,
+                cell_outputs_to_process,
+                i,
+            )
+        image_check = prioritized_data_dtype.startswith("image")
+        if image_check:
+            aggregate_images_and_plotly(
+                prioritized_data_dtype,
+                cell_output,
+                data,
+                plotly_flags,
+                cell_outputs_to_process,
+                i,
+            )
+        plain_check = prioritized_data_dtype in ["text/plain", "stream"]
+        if plain_check:
+            aggregate_plain_output(
+                prioritized_data_dtype,
+                cell_output,
+                data,
+                cell_outputs_to_process,
+                i,
+            )
+        if prioritized_data_dtype == "text/markdown":
+            cell_outputs_to_process["markdown"].append({"index": i, "data": data})
+        if "dataframe" in data:
+            cell_outputs_to_process["pandas"].append({"index": i, "data": data})
+        if prioritized_data_dtype == "application/vnd.jupyter.widget-view+json":
+            data = cell_output["data"]["text/plain"]
+            cell_outputs_to_process["tqdm"].append({"index": i, "data": data})
+
+    return cell_outputs_to_process
+
+
+def handle_cell_outputs(cell: NotebookNode, plot_data_folder: Path) -> str:
+    """
+    Handle cell outputs and convert to MDX.
+
+    Args:
+        cell (NotebookNode): The cell where the outputs need converting.
+        plot_data_folder (Path): Path to the folder where plot data should be
+            stored.
+
+    Returns:
+        str: MDX formatted cell output.
+    """
+    mdx = ""
+
+    # Return an empty string if there are no actual cell outputs.
+    cell_outputs = cell.get("outputs", [])
+    if not cell_outputs:
+        return mdx
+
+    # We will loop over all cell outputs and bucket them into the appropriate key in the
+    # dictionary below for further processing. Doing it in this way helps aggregate like
+    # outputs together e.g. tqdm outputs.
+    cell_outputs_to_process = aggregate_output_types(cell_outputs)
+
+    # Now we process all aggregated cell outputs into a single output for the type.
+    md = aggregate_mdx(cell_outputs_to_process, plot_data_folder)
     return md
 
 
-def handle_code_cell(cell: NotebookNode, plot_data_folder: PathLike) -> str:
+def handle_code_cell(cell: NotebookNode, plot_data_folder: Path) -> str:
     """
     Handle code cells in Jupyter notebooks and convert them to MDX.
 
     Args:
         cell (NotebookNode): A Jupyter notebook cell that contains code.
-        plot_data_folder (PathLike): Path to the folder where plot data should be
+        plot_data_folder (Path): Path to the folder where plot data should be
             stored.
 
     Returns:
@@ -757,12 +926,12 @@ def handle_code_cell(cell: NotebookNode, plot_data_folder: PathLike) -> str:
     return cell_input_mdx + cell_output_mdx
 
 
-def transform_notebook(path: PathLike) -> str:
+def transform_notebook(path: Path) -> str:
     """
     Transform a notebook located at the given path into MDX.
 
     Args:
-        path (PathLike): Path to the Jupyter notebook tutorial.
+        path (Path): Path to the Jupyter notebook tutorial.
 
     Returns:
         str: MDX formatted string.
@@ -789,8 +958,8 @@ def transform_notebook(path: PathLike) -> str:
             mdx += handle_code_cell(cell, plot_data_folder)
 
     # Write the MDX file to disk.
-    save_path = f"{str(save_folder / filename)}.mdx"
-    with open(save_path, "w") as f:
+    save_path = save_folder / f"{filename}.mdx"
+    with save_path.open("w") as f:
         f.write(mdx)
 
     # Return the string for debugging purposes.
