@@ -14,7 +14,7 @@
 namespace beanmachine::minibmg {
 
 std::vector<double> mle_inference_0(
-    const Graph& graph,
+    const Graph2& graph,
     double learning_rate,
     int num_rounds,
     std::vector<double> initial_proposals,
