@@ -102,6 +102,7 @@ class Graph2::Factory {
   Node2p operator[](const Node2Id& node_id) const;
   ScalarNode2p operator[](const ScalarNode2Id& node_id) const;
   DistributionNode2p operator[](const DistributionNode2Id& node_id) const;
+  ScalarSampleNode2p operator[](const ScalarSampleNode2Id& node_id) const;
 
   Graph2 build();
   ~Factory();
