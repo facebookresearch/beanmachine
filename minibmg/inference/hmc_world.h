@@ -10,7 +10,7 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/graph2.h"
 
 namespace beanmachine::minibmg {
 
@@ -65,20 +65,20 @@ struct HMCWorldEvalResult {
 // produce an abstraction of the graph for use by inference.  This
 // implementation performs its work by evaluating the graph node by node on
 // demand.  You can think of this as an interpreter for the graph.
-std::unique_ptr<const HMCWorld> hmc_world_0(const Graph& graph);
+std::unique_ptr<const HMCWorld> hmc_world_0(const Graph2& graph);
 
 // produce an abstraction of the graph for use by inference.  This
 // implementation performs its work by evaluating the graph symbolically,
 // optimizing the symbolic form, and cacheing it for later use.  Then it
 // evaluates the optimized expression graph when needed.  You can think of this
 // as a bytecode compiler and bytecode interpreter for the graph.
-std::unique_ptr<const HMCWorld> hmc_world_1(const Graph& graph);
+std::unique_ptr<const HMCWorld> hmc_world_1(const Graph2& graph);
 
 // produce an abstraction of the graph for use by inference.  This
 // implementation performs its work by evaluating the graph symbolically,
 // optimizing the symbolic form, generating native machine code from that, and
 // cacheing that code for later use.  Then it calls the generated native code
 // when needed.  This can be considered a JIT compiler for the graph.
-std::unique_ptr<const HMCWorld> hmc_world_2(const Graph& graph);
+std::unique_ptr<const HMCWorld> hmc_world_2(const Graph2& graph);
 
 } // namespace beanmachine::minibmg
