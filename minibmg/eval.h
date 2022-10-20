@@ -104,6 +104,9 @@ class NodeEvaluatorVisitor : public NodeVisitor {
     int nv = (int)evaluate_input(node->n).as_double();
     result = polygamma(nv, evaluate_input(node->x));
   }
+  void visit(const ScalarLog1pNode* node) override {
+    result = log1p(evaluate_input(node->x));
+  }
   void visit(const ScalarIfEqualNode* node) override {
     result = if_equal(
         evaluate_input(node->a),

@@ -151,6 +151,14 @@ class NodeReplacementVisitor : NodeVisitor {
       result = std::make_shared<ScalarPolygammaNode>(n, x);
     }
   }
+  void visit(const ScalarLog1pNode* node) override {
+    const ScalarNodep x = map.at(node->x);
+    if (x == node->x) {
+      result = original;
+    } else {
+      result = std::make_shared<ScalarLog1pNode>(x);
+    }
+  }
   void visit(const ScalarIfEqualNode* node) override {
     const ScalarNodep a = map.at(node->a);
     const ScalarNodep b = map.at(node->b);

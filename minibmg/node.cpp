@@ -94,6 +94,9 @@ class in_node_gatherer : public NodeVisitor {
   void visit(const ScalarPolygammaNode* n) override {
     result = {n->n, n->x};
   }
+  void visit(const ScalarLog1pNode* n) override {
+    result = {n->x};
+  }
   void visit(const ScalarIfEqualNode* n) override {
     result = {n->a, n->b, n->c, n->d};
   }
@@ -314,6 +317,16 @@ void ScalarPolygammaNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
 }
 
+ScalarLog1pNode::ScalarLog1pNode(const ScalarNodep& x)
+    : ScalarNode{hash_combine(
+          std::hash<std::string>{}("ScalarLog1pNode"),
+          x->cached_hash_value)},
+      x{x} {}
+
+void ScalarLog1pNode::accept(NodeVisitor& visitor) const {
+  visitor.visit(this);
+}
+
 ScalarIfEqualNode::ScalarIfEqualNode(
     const ScalarNodep& a,
     const ScalarNodep& b,
@@ -497,6 +510,10 @@ bool NodepIdentityEquals::operator()(
       auto other = static_cast<const ScalarPolygammaNode*>(this->other);
       result = node_equals(node->n, other->n) && node_equals(node->x, other->x);
     }
+    void visit(const ScalarLog1pNode* node) override {
+      auto other = static_cast<const ScalarLog1pNode*>(this->other);
+      result = node_equals(node->x, other->x);
+    }
     void visit(const ScalarIfEqualNode* node) override {
       auto other = static_cast<const ScalarIfEqualNode*>(this->other);
       result = node_equals(node->a, other->a) &&
@@ -573,6 +590,9 @@ void DefaultNodeVisitor::visit(const ScalarLgammaNode* node) {
   this->default_visit(node);
 }
 void DefaultNodeVisitor::visit(const ScalarPolygammaNode* node) {
+  this->default_visit(node);
+}
+void DefaultNodeVisitor::visit(const ScalarLog1pNode* node) {
   this->default_visit(node);
 }
 void DefaultNodeVisitor::visit(const ScalarIfEqualNode* node) {
@@ -653,6 +673,9 @@ void DistributionNodeVisitor::visit(const ScalarLgammaNode* node) {
   default_visit(node);
 }
 void DistributionNodeVisitor::visit(const ScalarPolygammaNode* node) {
+  default_visit(node);
+}
+void DistributionNodeVisitor::visit(const ScalarLog1pNode* node) {
   default_visit(node);
 }
 void DistributionNodeVisitor::visit(const ScalarIfEqualNode* node) {

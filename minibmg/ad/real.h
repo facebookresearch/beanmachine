@@ -69,6 +69,9 @@ INLINE Real lgamma(const Real x) {
 INLINE Real polygamma(const int n, const Real x) {
   return boost::math::polygamma(n, x.value);
 }
+INLINE Real log1p(const Real x) {
+  return std::log1p(x.value);
+}
 template <class T>
 INLINE const T& if_equal(
     const Real value,
