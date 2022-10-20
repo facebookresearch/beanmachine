@@ -65,7 +65,7 @@ class ScalarSampleNode2 : public ScalarNode2 {
   explicit ScalarSampleNode2(
       const DistributionNode2p& distribution,
       const std::string& rvid = make_fresh_rvid());
-  const DistributionNode2p& distribution;
+  const DistributionNode2p distribution;
   std::string rvid;
   void accept(Node2Visitor& visitor) const override;
 };

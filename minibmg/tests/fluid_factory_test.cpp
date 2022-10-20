@@ -6,26 +6,21 @@
  */
 
 #include <gtest/gtest.h>
-#include "beanmachine/minibmg/fluent_factory.h"
-#include "beanmachine/minibmg/graph.h"
-#include "beanmachine/minibmg/pretty.h"
+#include "beanmachine/minibmg/fluid_factory.h"
+#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/pretty2.h"
 
 using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 namespace fluent_factory_test {
 
-// Note that node 0 isn't actually used anywhere.  That's because nodes 0 and 1
-// are the same, and the graph just uses the latest node.  Once we deduplicate
-// (remove common subexpressions), there will be only one node there instead of
-// two.
 std::string raw_json = R"({
   "comment": "created by graph_to_json",
   "nodes": [
     {
       "operator": "CONSTANT",
       "sequence": 0,
-      "type": "REAL",
       "value": 2
     },
     {
@@ -34,64 +29,56 @@ std::string raw_json = R"({
         0
       ],
       "operator": "DISTRIBUTION_BETA",
-      "sequence": 1,
-      "type": "DISTRIBUTION"
+      "sequence": 1
     },
     {
       "in_nodes": [
         1
       ],
       "operator": "SAMPLE",
-      "sequence": 2,
-      "type": "REAL"
+      "sequence": 2
     },
     {
       "in_nodes": [
         2
       ],
       "operator": "DISTRIBUTION_BERNOULLI",
-      "sequence": 3,
-      "type": "DISTRIBUTION"
+      "sequence": 3
     },
     {
       "in_nodes": [
         3
       ],
       "operator": "SAMPLE",
-      "sequence": 4,
-      "type": "REAL"
+      "sequence": 4
     },
     {
       "in_nodes": [
         3
       ],
       "operator": "SAMPLE",
-      "sequence": 5,
-      "type": "REAL"
+      "sequence": 5
     },
     {
       "in_nodes": [
         3
       ],
       "operator": "SAMPLE",
-      "sequence": 6,
-      "type": "REAL"
+      "sequence": 6
     },
     {
       "in_nodes": [
         3
       ],
       "operator": "SAMPLE",
-      "sequence": 7,
-      "type": "REAL"
+      "sequence": 7
     },
     {
       "in_nodes": [
         3
       ],
       "operator": "SAMPLE",
-      "sequence": 8,
-      "type": "REAL"
+      "sequence": 8
     }
   ],
   "observations": [
@@ -122,7 +109,7 @@ std::string raw_json = R"({
 })";
 
 TEST(fluent_factory_test, simple_test) {
-  Graph::FluentFactory fac;
+  Graph2::FluidFactory fac;
   auto b = beta(2, 2);
   auto s = sample(b);
   auto r = bernoulli(s);
@@ -135,12 +122,12 @@ TEST(fluent_factory_test, simple_test) {
   fac.query(s);
 
   auto graph = fac.build();
-  auto json = folly::toPrettyJson(beanmachine::minibmg::graph_to_json(graph));
+  auto json = folly::toPrettyJson(graph_to_json(graph));
   ASSERT_EQ(raw_json, json);
 }
 
 TEST(fluent_factory_test, deduplication_01) {
-  Graph::FluentFactory fac;
+  Graph2::FluidFactory fac;
   auto b = beta(2, 2);
   auto s = sample(b, "S0");
   auto r = bernoulli(s);
@@ -164,7 +151,7 @@ TEST(fluent_factory_test, deduplication_01) {
   auto pretty = pretty_print(graph);
   auto expected = R"+(auto temp_1 = sample(beta(2, 2), "S0");
 auto temp_2 = bernoulli(temp_1);
-Graph::FluentFactory fac;
+Graph::FluidFactory fac;
 fac.query(temp_1);
 fac.observe(sample(temp_2, "S1"), 1);
 fac.observe(sample(temp_2, "S2"), 1);
@@ -181,7 +168,7 @@ fac.observe(sample(temp_2, "S10"), 0);
 }
 
 TEST(fluent_factory_test, deduplication_02) {
-  Value final = 0;
+  Value2 final = 0;
   for (int i = 0; i < 2; i++) {
     auto t1 = beta(2, 2);
     auto t2 = sample(t1, "S0") + sample(t1, "S1");
@@ -210,7 +197,7 @@ TEST(fluent_factory_test, deduplication_02) {
     final = final + t23;
   }
 
-  Graph::FluentFactory fac;
+  Graph2::FluidFactory fac;
   fac.query(final);
   auto graph = fac.build();
   auto pretty = pretty_print(graph);
@@ -234,8 +221,8 @@ auto temp_17 = normal(temp_16, temp_15);
 auto temp_18 = sample(temp_17, "S2") + sample(temp_17, "S3");
 auto temp_19 = half_normal(temp_18);
 auto temp_20 = sample(temp_2, "S7") + sample(temp_2, "S8") + (sample(temp_19, "S4") + sample(temp_19, "S5")) + temp_18 + temp_16;
-Graph::FluentFactory fac;
-fac.query(temp_20 + temp_20);
+Graph::FluidFactory fac;
+fac.query(0 + temp_20 + temp_20);
 )+";
   ASSERT_EQ(expected, pretty);
 }
