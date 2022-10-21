@@ -6,15 +6,15 @@
  */
 
 #include <gtest/gtest.h>
-#include "beanmachine/minibmg/fluent_factory.h"
-#include "beanmachine/minibmg/graph.h"
-#include "beanmachine/minibmg/graph_properties/observations_by_node.h"
+#include "beanmachine/minibmg/fluid_factory.h"
+#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph_properties/observations_by_node2.h"
 
 using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 TEST(observations_by_node_test, simple) {
-  Graph::FluentFactory f;
+  Graph2::FluidFactory f;
   auto b = beta(2, 2);
   auto s1 = sample(b);
   auto s2 = sample(b);
