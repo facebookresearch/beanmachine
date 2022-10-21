@@ -72,7 +72,7 @@ export const computeStats = (
 
   // Compute the point statistics for the KDE, and create labels to display them in the
   // figures.
-  const mean = computeMean(marginalX);
+  const mean = computeMean(rawData);
   const hdiBounds = hdiInterval(rawData, hdiProbability);
   const x = [hdiBounds.lowerBound, mean, hdiBounds.upperBound];
   const y = interpolatePoints({x: marginalX, y: marginalY, points: x});
