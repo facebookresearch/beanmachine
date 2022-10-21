@@ -8,12 +8,13 @@
 #include <gtest/gtest.h>
 
 #include <beanmachine/minibmg/tests/test_utils.h>
+#include <memory>
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/distribution/distribution.h"
-#include "beanmachine/minibmg/distribution/make_distribution.h"
+#include "beanmachine/minibmg/distribution/beta.h"
+#include "beanmachine/minibmg/distribution/half_normal.h"
+#include "beanmachine/minibmg/distribution/normal.h"
 #include "beanmachine/minibmg/distribution/transformation.h"
-#include "beanmachine/minibmg/operator.h"
 
 // using namespace ::testing;
 using namespace ::beanmachine::minibmg;
@@ -22,13 +23,13 @@ using Dual = Num2<Real>;
 
 namespace {
 
-// The logit function
+// The log function
 template <class T>
 requires Number<T> T log_transform(T x) {
   return log(x);
 }
 
-// The first derivative of the logit function
+// The first derivative of the log function
 template <class T>
 requires Number<T> T log_transform1(T x) {
   return 1 / x;
@@ -39,9 +40,7 @@ requires Number<T> T log_transform1(T x) {
 TEST(transforms, half_normal) {
   // Test the default transform (log) on a half normal distribution.
   Dual stddev = {3, 1.1};
-  auto get_parameter = [=](unsigned) { return stddev; };
-  DistributionPtr<Dual> d = make_distribution<Dual>(
-      Operator::DISTRIBUTION_HALF_NORMAL, get_parameter);
+  DistributionPtr<Dual> d = std::make_shared<HalfNormal<Dual>>(stddev);
   double sample = 4.5;
   // Samples and observations do not have gradients, so we use none here.
   double sample_grad = 0;
@@ -93,10 +92,8 @@ TEST(transforms, beta) {
   // TODO: Test the default transform (logit) on a beta distribution
   Dual a{2, 0.12};
   Dual b{3, 0.21};
+  auto d = std::make_shared<Beta<Dual>>(a, b);
 
-  auto get_parameter = [&](unsigned i) { return (i == 0) ? a : b; };
-  DistributionPtr<Dual> d =
-      make_distribution<Dual>(Operator::DISTRIBUTION_BETA, get_parameter);
   // Samples and observations do not have gradients, so we use none here.
   double sample = 0.14;
   Dual constrained_sample{sample, 0}; // a hypothetical sample; zero gradient
@@ -128,9 +125,7 @@ TEST(transforms, beta) {
 }
 
 TEST(transforms, normal) {
-  auto get_parameter = [=](unsigned) { return 1.0; };
-  DistributionPtr<Dual> d =
-      make_distribution<Dual>(Operator::DISTRIBUTION_NORMAL, get_parameter);
+  auto d = std::make_shared<Normal<Dual>>(1.0, 1.0);
   TransformationPtr<Dual> transform = d->transformation();
   EXPECT_EQ(transform, nullptr);
 }
