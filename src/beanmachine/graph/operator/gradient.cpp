@@ -731,5 +731,11 @@ void MatrixComplement::compute_gradients() {
   Grad2 = -in_nodes[0]->Grad2.array();
 }
 
+void Transpose::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  Grad1 = in_nodes[0]->Grad1.transpose();
+  Grad2 = in_nodes[0]->Grad2.transpose();
+}
+
 } // namespace oper
 } // namespace beanmachine

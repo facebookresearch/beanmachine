@@ -843,6 +843,90 @@ TEST(testgradient, matrix_negate_back_grad) {
   EXPECT_NEAR_MATRIX(rn1->back_grad1.as_matrix(), -grad);
 }
 
+TEST(testgradient, backward_transpose) {
+  /** Test gradients for a 3x3 matrix
+
+     PyTorch validation code:
+
+     x = tensor([[1.0, 0.98, 3.2], [0.2, 0.98, 1.0], [0.98, 0.2, 2.1]])
+     transpose_sum = x.t().sum()
+     log_p = (
+         dist.Normal(transpose_sum, tensor(1.0)).log_prob(tensor(9.7))
+         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(x).sum()
+     )
+     autograd.grad(log_p, x)
+
+   **/
+  Graph g;
+  auto zero = g.add_constant_real(0.0);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto one = g.add_constant_natural(1);
+  auto three = g.add_constant_natural(3);
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos1});
+
+  auto sample = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, three});
+  auto transpose =
+      g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{sample});
+
+  Eigen::MatrixXd x(3, 3);
+  x << 1.0, 0.2, 0.98, 0.2, 0.98, 1.0, 0.98, 1.0, 2.1;
+
+  g.observe(sample, x);
+
+  // Uses two matrix multiplications to sum the result
+  Eigen::MatrixXd m1(3, 1);
+  m1 << 1.0, 1.0, 1.0;
+  Eigen::MatrixXd m2(1, 3);
+  m2 << 1.0, 1.0, 1.0;
+  auto col_sum_m = g.add_constant_real_matrix(m1);
+  auto row_sum_m = g.add_constant_real_matrix(m2);
+  auto sum_rows = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{transpose, col_sum_m});
+  auto sum_rows_and_cols = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{row_sum_m, sum_rows});
+  auto sum_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{sum_rows_and_cols, pos1});
+
+  auto sum_sample =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{sum_dist});
+  g.observe(sum_sample, 9.7);
+
+  std::vector<DoubleMatrix*> grad(2);
+  Eigen::MatrixXd expected_grad(3, 3);
+  expected_grad << 0.26, 1.06, 0.28, 1.06, 0.28, 0.26, 0.28, 0.26, -0.84;
+
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR_MATRIX(grad[0]->as_matrix(), expected_grad);
+}
+
+TEST(testgradient, forward_transpose) {
+  Graph g;
+  Eigen::MatrixXd x(3, 3), grad1(3, 3), grad2(3, 3);
+  x << 1.0, 0.2, 0.98, 0.2, 0.98, 1.0, 0.98, 1.0, 2.1;
+  grad1 << 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
+  grad2 << -1.0, -2.0, -3.0, -4.0, -5.0, -6.0, -7.0, -8.0, -9.0;
+  auto x_matrix = g.add_constant_real_matrix(x);
+  Node* x_node = g.get_node(x_matrix);
+  x_node->Grad1 = grad1;
+  x_node->Grad2 = grad2;
+  auto xt_matrix = g.add_operator(OperatorType::TRANSPOSE, {x_matrix});
+  Node* xt = g.get_node(xt_matrix);
+  std::mt19937 gen;
+  xt->eval(gen);
+  xt->compute_gradients();
+  Eigen::MatrixXd first_grad = xt->Grad1;
+  Eigen::MatrixXd second_grad = xt->Grad2;
+  EXPECT_NEAR_MATRIX(first_grad, grad1.transpose());
+  EXPECT_NEAR_MATRIX(second_grad, grad2.transpose());
+}
+
 TEST(testgradient, forward_cholesky) {
   // Test cholesky gradients for a 2x2 matrix
 
