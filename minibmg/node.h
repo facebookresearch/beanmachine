@@ -154,6 +154,13 @@ class ScalarPolygammaNode : public ScalarNode {
   void accept(NodeVisitor& visitor) const override;
 };
 
+class ScalarLog1pNode : public ScalarNode {
+ public:
+  explicit ScalarLog1pNode(const ScalarNodep& x);
+  ScalarNodep n, x;
+  void accept(NodeVisitor& visitor) const override;
+};
+
 class ScalarIfEqualNode : public ScalarNode {
  public:
   ScalarIfEqualNode(
@@ -276,6 +283,7 @@ class NodeVisitor {
   virtual void visit(const ScalarAtanNode* node) = 0;
   virtual void visit(const ScalarLgammaNode* node) = 0;
   virtual void visit(const ScalarPolygammaNode* node) = 0;
+  virtual void visit(const ScalarLog1pNode* node) = 0;
   virtual void visit(const ScalarIfEqualNode* node) = 0;
   virtual void visit(const ScalarIfLessNode* node) = 0;
   virtual void visit(const DistributionNormalNode* node) = 0;
@@ -305,6 +313,7 @@ class DefaultNodeVisitor : public NodeVisitor {
   void visit(const ScalarAtanNode* node) override;
   void visit(const ScalarLgammaNode* node) override;
   void visit(const ScalarPolygammaNode* node) override;
+  void visit(const ScalarLog1pNode* node) override;
   void visit(const ScalarIfEqualNode* node) override;
   void visit(const ScalarIfLessNode* node) override;
   void visit(const DistributionNormalNode* node) override;
@@ -339,6 +348,7 @@ class DistributionNodeVisitor : public NodeVisitor {
   void visit(const ScalarAtanNode* node) override;
   void visit(const ScalarLgammaNode* node) override;
   void visit(const ScalarPolygammaNode* node) override;
+  void visit(const ScalarLog1pNode* node) override;
   void visit(const ScalarIfEqualNode* node) override;
   void visit(const ScalarIfLessNode* node) override;
 };
