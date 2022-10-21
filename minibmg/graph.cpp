@@ -5,33 +5,33 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph.h"
 #include <list>
 #include <memory>
 #include <stdexcept>
 #include <vector>
-#include "beanmachine/minibmg/dedup2.h"
+#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/topological.h"
 
 namespace {
 
 using namespace beanmachine::minibmg;
 
-const std::vector<Node2p> roots(
-    const std::vector<Node2p>& queries,
-    const std::list<std::pair<Node2p, double>>& observations) {
-  std::list<Node2p> roots;
+const std::vector<Nodep> roots(
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations) {
+  std::list<Nodep> roots;
   for (auto& n : queries) {
     roots.push_back(n);
   }
   for (auto& p : observations) {
-    if (!std::dynamic_pointer_cast<const ScalarSampleNode2>(p.first)) {
+    if (!std::dynamic_pointer_cast<const ScalarSampleNode>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
     roots.push_front(p.first);
   }
-  std::vector<Node2p> all_nodes;
-  if (!topological_sort<Node2p>(roots, &in_nodes, all_nodes)) {
+  std::vector<Nodep> all_nodes;
+  if (!topological_sort<Nodep>(roots, &in_nodes, all_nodes)) {
     throw std::invalid_argument("graph has a cycle");
   }
   std::reverse(all_nodes.begin(), all_nodes.end());
@@ -39,8 +39,8 @@ const std::vector<Node2p> roots(
 }
 
 struct QueriesAndObservations {
-  std::vector<Node2p> queries;
-  std::list<std::pair<Node2p, double>> observations;
+  std::vector<Nodep> queries;
+  std::list<std::pair<Nodep, double>> observations;
   ~QueriesAndObservations() {}
 };
 
@@ -51,8 +51,8 @@ namespace beanmachine::minibmg {
 template <>
 class DedupAdapter<QueriesAndObservations> {
  public:
-  std::vector<Node2p> find_roots(const QueriesAndObservations& qo) const {
-    std::vector<Node2p> roots;
+  std::vector<Nodep> find_roots(const QueriesAndObservations& qo) const {
+    std::vector<Nodep> roots;
     for (auto& q : qo.observations) {
       roots.push_back(q.first);
     }
@@ -63,9 +63,9 @@ class DedupAdapter<QueriesAndObservations> {
   }
   QueriesAndObservations rewrite(
       const QueriesAndObservations& qo,
-      const std::unordered_map<Node2p, Node2p>& map) const {
-    DedupAdapter<std::vector<Node2p>> h1{};
-    DedupAdapter<std::list<std::pair<Node2p, double>>> h2{};
+      const std::unordered_map<Nodep, Nodep>& map) const {
+    DedupAdapter<std::vector<Nodep>> h1{};
+    DedupAdapter<std::list<std::pair<Nodep, double>>> h2{};
     return QueriesAndObservations{
         h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map)};
   }
@@ -73,12 +73,12 @@ class DedupAdapter<QueriesAndObservations> {
 
 using dynamic = folly::dynamic;
 
-Graph2 Graph2::create(
-    const std::vector<Node2p>& queries,
-    const std::list<std::pair<Node2p, double>>& observations,
-    std::unordered_map<Node2p, Node2p>* built_map) {
+Graph Graph::create(
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations,
+    std::unordered_map<Nodep, Nodep>* built_map) {
   for (auto& p : observations) {
-    if (!std::dynamic_pointer_cast<const ScalarSampleNode2>(p.first)) {
+    if (!std::dynamic_pointer_cast<const ScalarSampleNode>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
   }
@@ -86,16 +86,16 @@ Graph2 Graph2::create(
   auto qo0 = QueriesAndObservations{queries, observations};
   auto qo1 = dedup2(qo0, built_map);
 
-  std::vector<Node2p> all_nodes = roots(qo1.queries, qo1.observations);
-  return Graph2{all_nodes, qo1.queries, qo1.observations};
+  std::vector<Nodep> all_nodes = roots(qo1.queries, qo1.observations);
+  return Graph{all_nodes, qo1.queries, qo1.observations};
 }
 
-Graph2::~Graph2() {}
+Graph::~Graph() {}
 
-Graph2::Graph2(
-    const std::vector<Node2p>& nodes,
-    const std::vector<Node2p>& queries,
-    const std::list<std::pair<Node2p, double>>& observations)
+Graph::Graph(
+    const std::vector<Nodep>& nodes,
+    const std::vector<Nodep>& queries,
+    const std::list<std::pair<Nodep, double>>& observations)
     : nodes{nodes}, queries{queries}, observations{observations} {}
 
 } // namespace beanmachine::minibmg
