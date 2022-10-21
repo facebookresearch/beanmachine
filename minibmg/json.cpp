@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph.h"
 
 namespace {
 
@@ -32,71 +32,71 @@ operator"" _sh(const char* str, size_t len) {
   return hash_djb2a(std::string_view{str, len});
 }
 
-class JsonNodeWriterVisitor : public Node2Visitor {
+class JsonNodeWriterVisitor : public NodeVisitor {
  public:
   explicit JsonNodeWriterVisitor(dynamic& dyn_node) : dyn_node{dyn_node} {}
   dynamic& dyn_node;
-  void visit(const ScalarConstantNode2* node) override {
+  void visit(const ScalarConstantNode* node) override {
     dyn_node["operator"] = "CONSTANT";
     dyn_node["value"] = node->constant_value;
   }
-  void visit(const ScalarVariableNode2* node) override {
+  void visit(const ScalarVariableNode* node) override {
     dyn_node["operator"] = "VARIABLE";
     dyn_node["name"] = node->name;
     dyn_node["identifier"] = node->identifier;
   }
-  void visit(const ScalarSampleNode2*) override {
+  void visit(const ScalarSampleNode*) override {
     dyn_node["operator"] = "SAMPLE";
   }
-  void visit(const ScalarAddNode2*) override {
+  void visit(const ScalarAddNode*) override {
     dyn_node["operator"] = "ADD";
   }
-  void visit(const ScalarSubtractNode2*) override {
+  void visit(const ScalarSubtractNode*) override {
     dyn_node["operator"] = "SUBTRACT";
   }
-  void visit(const ScalarNegateNode2*) override {
+  void visit(const ScalarNegateNode*) override {
     dyn_node["operator"] = "NEGATE";
   }
-  void visit(const ScalarMultiplyNode2*) override {
+  void visit(const ScalarMultiplyNode*) override {
     dyn_node["operator"] = "MULTIPLY";
   }
-  void visit(const ScalarDivideNode2*) override {
+  void visit(const ScalarDivideNode*) override {
     dyn_node["operator"] = "DIVIDE";
   }
-  void visit(const ScalarPowNode2*) override {
+  void visit(const ScalarPowNode*) override {
     dyn_node["operator"] = "POW";
   }
-  void visit(const ScalarExpNode2*) override {
+  void visit(const ScalarExpNode*) override {
     dyn_node["operator"] = "EXP";
   }
-  void visit(const ScalarLogNode2*) override {
+  void visit(const ScalarLogNode*) override {
     dyn_node["operator"] = "LOG";
   }
-  void visit(const ScalarAtanNode2*) override {
+  void visit(const ScalarAtanNode*) override {
     dyn_node["operator"] = "ATAN";
   }
-  void visit(const ScalarLgammaNode2*) override {
+  void visit(const ScalarLgammaNode*) override {
     dyn_node["operator"] = "LGAMMA";
   }
-  void visit(const ScalarPolygammaNode2*) override {
+  void visit(const ScalarPolygammaNode*) override {
     dyn_node["operator"] = "POLYGAMMA";
   }
-  void visit(const ScalarIfEqualNode2*) override {
+  void visit(const ScalarIfEqualNode*) override {
     dyn_node["operator"] = "IF_EQUAL";
   }
-  void visit(const ScalarIfLessNode2*) override {
+  void visit(const ScalarIfLessNode*) override {
     dyn_node["operator"] = "IF_LESS";
   }
-  void visit(const DistributionNormalNode2*) override {
+  void visit(const DistributionNormalNode*) override {
     dyn_node["operator"] = "DISTRIBUTION_NORMAL";
   }
-  void visit(const DistributionHalfNormalNode2*) override {
+  void visit(const DistributionHalfNormalNode*) override {
     dyn_node["operator"] = "DISTRIBUTION_HALF_NORMAL";
   }
-  void visit(const DistributionBetaNode2*) override {
+  void visit(const DistributionBetaNode*) override {
     dyn_node["operator"] = "DISTRIBUTION_BETA";
   }
-  void visit(const DistributionBernoulliNode2*) override {
+  void visit(const DistributionBernoulliNode*) override {
     dyn_node["operator"] = "DISTRIBUTION_BERNOULLI";
   }
 };
@@ -107,8 +107,8 @@ namespace beanmachine::minibmg {
 
 JsonError2::JsonError2(const std::string& message) : message(message) {}
 
-folly::dynamic graph_to_json(const Graph2& g) {
-  std::unordered_map<Node2p, unsigned long> node_to_identifier;
+folly::dynamic graph_to_json(const Graph& g) {
+  std::unordered_map<Nodep, unsigned long> node_to_identifier;
   dynamic result = dynamic::object;
   result["comment"] = "created by graph_to_json";
   dynamic a = dynamic::array;
@@ -159,13 +159,12 @@ folly::dynamic graph_to_json(const Graph2& g) {
 
 namespace {
 
-Node2p
-json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
-              // that is difficult to maintain.  In this case we might be able
-              // to replace the code with a table of functions indexed by
-              // string, but I'm not sure that would be better.
+Nodep json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
+                    // that is difficult to maintain.  In this case we might be
+                    // able to replace the code with a table of functions
+                    // indexed by string, but I'm not sure that would be better.
     folly::dynamic json_node,
-    std::unordered_map<int, Node2p>& identifier_to_node,
+    std::unordered_map<int, Nodep>& identifier_to_node,
     int& identifier) {
   auto identifierv = json_node["sequence"];
   if (!identifierv.isInt()) {
@@ -178,7 +177,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
     throw JsonError2("missing operator.");
   }
 
-  std::vector<Node2p> in_nodes{};
+  std::vector<Nodep> in_nodes{};
   switch (hash_djb2a(opv.asString())) {
     case "CONSTANT"_sh:
     case "VARIABLE"_sh:
@@ -214,7 +213,7 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
       } else {
         throw JsonError2("bad value for constant.");
       }
-      return std::make_shared<const ScalarConstantNode2>(value);
+      return std::make_shared<const ScalarConstantNode>(value);
     }
     case "VARIABLE"_sh: {
       auto namev = json_node["name"];
@@ -229,148 +228,148 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
         throw JsonError2("bad variable_index for variable.");
       }
       auto variable_index = (unsigned)variable_indexv.asInt();
-      return std::make_shared<const ScalarVariableNode2>(name, variable_index);
+      return std::make_shared<const ScalarVariableNode>(name, variable_index);
     }
     case "ADD"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarAddNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<ScalarAddNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "SUBTRACT"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarSubtractNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<ScalarSubtractNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "NEGATE"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarNegateNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<ScalarNegateNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "MULTIPLY"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarMultiplyNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<ScalarMultiplyNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "DIVIDE"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarDivideNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<ScalarDivideNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "POW"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarPowNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<ScalarPowNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "EXP"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarExpNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<ScalarExpNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "LOG"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarLogNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<ScalarLogNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "ATAN"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarAtanNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<ScalarAtanNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "LGAMMA"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarLgammaNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<ScalarLgammaNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "POLYGAMMA"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarPolygammaNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<ScalarPolygammaNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "IF_EQUAL"_sh: {
       if (in_nodes.size() != 4) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarIfEqualNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[2]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[3]));
+      return std::make_shared<ScalarIfEqualNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
     }
     case "IF_LESS"_sh: {
       if (in_nodes.size() != 4) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarIfLessNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[2]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[3]));
+      return std::make_shared<ScalarIfLessNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
     }
     case "DISTRIBUTION_NORMAL"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<DistributionNormalNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<DistributionNormalNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "DISTRIBUTION_HALF_NORMAL"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<DistributionHalfNormalNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<DistributionHalfNormalNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
       break;
     }
     case "DISTRIBUTION_BETA"_sh: {
       if (in_nodes.size() != 2) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<DistributionBetaNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[1]));
+      return std::make_shared<DistributionBetaNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
     }
     case "DISTRIBUTION_BERNOULLI"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<DistributionBernoulliNode2>(
-          std::dynamic_pointer_cast<const ScalarNode2>(in_nodes[0]));
+      return std::make_shared<DistributionBernoulliNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "SAMPLE"_sh: {
       if (in_nodes.size() != 1) {
         throw JsonError2("bad in_node for operator.");
       }
-      return std::make_shared<ScalarSampleNode2>(
-          std::dynamic_pointer_cast<const DistributionNode2>(in_nodes[0]));
+      return std::make_shared<ScalarSampleNode>(
+          std::dynamic_pointer_cast<const DistributionNode>(in_nodes[0]));
     }
     default:
       throw JsonError2("operator unknown: " + opv.asString());
@@ -381,13 +380,13 @@ json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
 
 namespace beanmachine::minibmg {
 
-Graph2 json_to_graph2(folly::dynamic d) {
+Graph json_to_graph2(folly::dynamic d) {
   // Nodes are identified by a "sequence" number appearing in json.
   // They are arbitrary numbers.  The only requirement is that they
   // are distinct.  They are used to identify nodes in the json.
   // This map is used to identify the specific node when it is
   // referenced in the json.
-  std::unordered_map<int, Node2p> identifier_to_node;
+  std::unordered_map<int, Nodep> identifier_to_node;
 
   auto json_nodes = d["nodes"];
   if (!json_nodes.isArray()) {
@@ -403,7 +402,7 @@ Graph2 json_to_graph2(folly::dynamic d) {
     identifier_to_node[identifier] = node;
   }
 
-  std::vector<Node2p> queries;
+  std::vector<Nodep> queries;
   auto query_nodes = d["queries"];
   if (query_nodes.isArray()) {
     for (auto& query : query_nodes) {
@@ -419,7 +418,7 @@ Graph2 json_to_graph2(folly::dynamic d) {
     }
   }
 
-  std::list<std::pair<Node2p, double>> observations;
+  std::list<std::pair<Nodep, double>> observations;
   auto observation_nodes = d["observations"];
   if (observation_nodes.isArray()) {
     for (auto& obs : observation_nodes) {
@@ -442,7 +441,7 @@ Graph2 json_to_graph2(folly::dynamic d) {
     }
   }
 
-  return Graph2::create(queries, observations);
+  return Graph::create(queries, observations);
 }
 
 } // namespace beanmachine::minibmg
