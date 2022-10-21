@@ -245,10 +245,7 @@ folly::dynamic graph_to_json(const Graph& g) {
   return result;
 }
 
-JsonError::JsonError(const std::string& message) : message(message) {}
-
 Graph json_to_graph(folly::dynamic d) {
-  Graph::Factory gf;
   // Nodes are identified by a "sequence" number appearing in json.
   // They are arbitrary numbers.  The only requirement is that they
   // are distinct.  They are used to identify nodes in the json.
