@@ -8,6 +8,7 @@
 import React from 'react';
 import Loadable from 'react-loadable';
 import BrowserOnly from '@docusaurus/BrowserOnly';
+import '../css/bokeh.css';
 
 export const BokehFigure = React.memo(({data}) => {
   const targetId = data['target_id'];
@@ -15,7 +16,8 @@ export const BokehFigure = React.memo(({data}) => {
     <div
       className="bk-root thin-scrollbar"
       id={targetId}
-      style={{overflow: 'auto', width: '100%'}}>
+      style={{overflow: 'auto', width: '100%'}}
+    >
       <BrowserOnly fallback={<div>loading...</div>}>
         {() => {
           {
