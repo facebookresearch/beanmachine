@@ -6,7 +6,7 @@
     }
   ],
   "source_directories": [
-    "./src/beanmachine/ppl"
+    "./src"
   ],
   "version": "0.0.101665573068"
 }
