@@ -107,7 +107,7 @@ namespace beanmachine::minibmg {
 
 JsonError2::JsonError2(const std::string& message) : message(message) {}
 
-folly::dynamic graph2_to_json(const Graph2& g) {
+folly::dynamic graph_to_json(const Graph2& g) {
   std::unordered_map<Node2p, unsigned long> node_to_identifier;
   dynamic result = dynamic::object;
   result["comment"] = "created by graph_to_json";
