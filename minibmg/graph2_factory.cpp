@@ -138,16 +138,25 @@ DistributionNode2Id Graph2::Factory::bernoulli(ScalarNode2Id prob) {
 }
 
 void Graph2::Factory::observe(ScalarNode2Id sample, double value) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   observations.push_back({map[sample], value});
 }
 
 ScalarNode2Id Graph2::Factory::add_node(ScalarNode2p node) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   auto id = std::make_shared<ScalarNode2Identifier>(next_identifier++);
   identifer_to_node[id] = node;
   node_to_identifier[node] = id;
   return id;
 }
 DistributionNode2Id Graph2::Factory::add_node(DistributionNode2p node) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   auto id = std::make_shared<DistributionNode2Identifier>(next_identifier++);
   identifer_to_node[id] = node;
   node_to_identifier[node] = id;
@@ -155,6 +164,9 @@ DistributionNode2Id Graph2::Factory::add_node(DistributionNode2p node) {
 }
 ScalarSampleNode2Id Graph2::Factory::add_node(
     std::shared_ptr<ScalarSampleNode2> node) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   auto id = std::make_shared<ScalarSampleNode2Identifier>(next_identifier++);
   identifer_to_node[id] = node;
   node_to_identifier[node] = id;
@@ -162,6 +174,9 @@ ScalarSampleNode2Id Graph2::Factory::add_node(
 }
 
 unsigned Graph2::Factory::query(ScalarNode2Id value) {
+  if (built) {
+    throw std::invalid_argument("Graph has already been built");
+  }
   unsigned result = queries.size();
   queries.push_back(map[value]);
   return result;
