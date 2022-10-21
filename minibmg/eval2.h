@@ -15,8 +15,11 @@
 #include <variant>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/dedup2.h"
+#include "beanmachine/minibmg/distribution/bernoulli.h"
+#include "beanmachine/minibmg/distribution/beta.h"
 #include "beanmachine/minibmg/distribution/distribution.h"
-#include "beanmachine/minibmg/distribution/make_distribution.h"
+#include "beanmachine/minibmg/distribution/half_normal.h"
+#include "beanmachine/minibmg/distribution/normal.h"
 #include "beanmachine/minibmg/eval_error.h"
 #include "beanmachine/minibmg/graph2.h"
 #include "beanmachine/minibmg/graph_properties/observations_by_node2.h"
