@@ -38,6 +38,12 @@ const FluidDistribution bernoulli(Value p) {
   return node;
 }
 
+const FluidDistribution exponential(Value rate) {
+  DistributionNodep node =
+      std::make_shared<const DistributionExponentialNode>(rate.node);
+  return node;
+}
+
 Value sample(const FluidDistribution& d, std::string rvid) {
   ScalarNodep node = std::make_shared<const ScalarSampleNode>(d.node, rvid);
   return node;

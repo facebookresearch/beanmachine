@@ -13,6 +13,7 @@
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/distribution/bernoulli.h"
 #include "beanmachine/minibmg/distribution/beta.h"
+#include "beanmachine/minibmg/distribution/exponential.h"
 #include "beanmachine/minibmg/distribution/normal.h"
 
 // using namespace ::testing;
@@ -96,5 +97,22 @@ TEST(log_prob, beta_triune) {
   EXPECT_CLOSE(expected_derivative1, result.derivative1.as_double());
   // ReplaceAll[D[log(PDF[BetaDistribution[2, 3], x]), {x, 2}], {x -> 0.234}]
   double expected_derivative2 = -21.6714;
+  EXPECT_CLOSE(expected_derivative2, result.derivative2.as_double());
+}
+
+TEST(log_prob, exponential) {
+  Triune v{1.234, 1, 0};
+  Triune rate{0.223};
+  // log(PDF[ExponentialDistribution[0.223], 1.234])
+  double expected = -1.7757655;
+  auto result = Exponential<Triune>{rate}.log_prob(v);
+  EXPECT_CLOSE(expected, result.as_double());
+  // ReplaceAll[D[log(PDF[ExponentialDistribution[0.223], x]), {x, 1}], {x
+  // -> 1.234}]
+  double expected_derivative1 = -0.223;
+  EXPECT_CLOSE(expected_derivative1, result.derivative1.as_double());
+  // ReplaceAll[D[log(PDF[ExponentialDistribution[0.223], x]), {x, 1}], {x
+  // -> 1.234}]
+  double expected_derivative2 = 0; // very close to zero
   EXPECT_CLOSE(expected_derivative2, result.derivative2.as_double());
 }

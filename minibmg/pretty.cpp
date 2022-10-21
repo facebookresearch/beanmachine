@@ -182,6 +182,11 @@ class PrintedFormVisitor : public NodeVisitor {
         fmt::format("bernoulli({})", cache[node->prob].string),
         Precedence::Term};
   }
+  void visit(const DistributionExponentialNode* node) override {
+    result = {
+        fmt::format("exponential({})", cache[node->rate].string),
+        Precedence::Term};
+  }
 };
 
 PrintedForm print(Nodep node, PrintedFormVisitor& pfv) {

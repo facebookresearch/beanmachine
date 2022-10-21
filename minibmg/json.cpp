@@ -102,6 +102,9 @@ class JsonNodeWriterVisitor : public NodeVisitor {
   void visit(const DistributionBernoulliNode*) override {
     dyn_node["operator"] = "DISTRIBUTION_BERNOULLI";
   }
+  void visit(const DistributionExponentialNode*) override {
+    dyn_node["operator"] = "DISTRIBUTION_EXPONENTIAL";
+  }
 };
 
 } // namespace
