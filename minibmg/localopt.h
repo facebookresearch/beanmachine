@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "beanmachine/minibmg/dedup2.h"
+#include "beanmachine/minibmg/dedup.h"
 
 namespace beanmachine::minibmg {
 
@@ -16,7 +16,7 @@ namespace beanmachine::minibmg {
 // corresponding node in the transitive closure of the optimized graph.
 // This is used in the implementation of opt(), but might occasionally be
 // useful in this form.
-std::unordered_map<Node2p, Node2p> opt_map(std::vector<Node2p> roots);
+std::unordered_map<Nodep, Nodep> opt_map(std::vector<Nodep> roots);
 
 // Rewrite a data structure by "optimizing" its nodes, applying local
 // transformations that are expected to improve runtime required to evaluate it.

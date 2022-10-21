@@ -9,14 +9,14 @@
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/node.h"
 #include "beanmachine/minibmg/topological.h"
 
 namespace {
 
 using namespace beanmachine::minibmg;
 
-Node2pIdentityEquals same{};
+NodepIdentityEquals same{};
 
 // This is a temporary hack to perform some local optimizations on the a graph
 // node. Ultimately, these should be organized into a rewriter based on tree
@@ -24,15 +24,15 @@ Node2pIdentityEquals same{};
 // faster.  For now we hand-implement a few rules by brute force.  The one-line
 // comment before each transformation shows what the rule would look like in a
 // hypothetical rewriting system.
-class RewriteOneVisitor : Node2Visitor {
+class RewriteOneVisitor : NodeVisitor {
  private:
-  Node2Node2ValueMap& map;
-  Node2p original;
-  Node2p rewritten;
+  NodeNodeValueMap& map;
+  Nodep original;
+  Nodep rewritten;
 
  public:
-  explicit RewriteOneVisitor(Node2Node2ValueMap& map) : map{map} {}
-  Node2p rewrite_one(const Node2p& node) {
+  explicit RewriteOneVisitor(NodeNodeValueMap& map) : map{map} {}
+  Nodep rewrite_one(const Nodep& node) {
     if (auto found = map.find(node); found != map.end()) {
       // A semantically equivalent node was already rewritten.
       return found->second;
@@ -48,8 +48,8 @@ class RewriteOneVisitor : Node2Visitor {
     return rewritten;
   }
 
-  ScalarNode2p rewrite_scalar_node(const ScalarNode2p& node) {
-    return std::dynamic_pointer_cast<const ScalarNode2>(rewrite_node(node));
+  ScalarNodep rewrite_scalar_node(const ScalarNodep& node) {
+    return std::dynamic_pointer_cast<const ScalarNode>(rewrite_node(node));
   }
 
   // The following method may be useful in debugging the problematic case
@@ -57,7 +57,7 @@ class RewriteOneVisitor : Node2Visitor {
   // place in the map. It is commented out in normal use, but when the
   // optimizer throws an exception because a node is not in the map, this
   // will likely be helpful in finding the problem.
-  bool check_children(const Node2p& node) {
+  bool check_children(const Nodep& node) {
     for (auto in : in_nodes(node)) {
       if (!map.contains(in) || map.at(in) == nullptr) {
         return false;
@@ -68,11 +68,11 @@ class RewriteOneVisitor : Node2Visitor {
 
   // Call the rewriter repeatedly on a node until a fixed-point is reached, and
   // then place the result in the node-value-based map.
-  Node2p rewrite_node(const Node2p& node) {
+  Nodep rewrite_node(const Nodep& node) {
     // check_children(node, map);
-    Node2p rewritten = node;
+    Nodep rewritten = node;
     while (true) {
-      const Node2p n = rewrite_one(rewritten);
+      const Nodep n = rewrite_one(rewritten);
       if (same(n, rewritten)) {
         rewritten = n;
         break;
@@ -96,18 +96,18 @@ class RewriteOneVisitor : Node2Visitor {
   }
 
  private:
-  void visit(const ScalarConstantNode2*) override {
+  void visit(const ScalarConstantNode*) override {
     rewritten = original;
   }
 
-  void visit(const ScalarVariableNode2*) override {
+  void visit(const ScalarVariableNode*) override {
     rewritten = original;
   }
 
-  void visit(const ScalarSampleNode2* node) override {
+  void visit(const ScalarSampleNode* node) override {
     auto d = map.at(node->distribution);
     if (node->distribution != d) {
-      rewritten = std::make_shared<ScalarSampleNode2>(d, node->rvid);
+      rewritten = std::make_shared<ScalarSampleNode>(d, node->rvid);
     }
 
     else {
@@ -115,17 +115,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
   }
 
-  void visit(const ScalarAddNode2* node) override {
+  void visit(const ScalarAddNode* node) override {
     auto left = map.at(node->left);
     auto right = map.at(node->right);
     auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(left);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(left);
     auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(right);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(right);
 
     // {k1 + k2, k3}, // constant fold
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           left_constant->constant_value + right_constant->constant_value);
     }
 
@@ -141,13 +141,13 @@ class RewriteOneVisitor : Node2Visitor {
 
     // {x + x, 2 * x},
     else if (same(left, right)) {
-      ScalarNode2p two =
-          rewrite_scalar_node(std::make_shared<ScalarConstantNode2>(2));
-      rewritten = std::make_shared<ScalarMultiplyNode2>(two, left);
+      ScalarNodep two =
+          rewrite_scalar_node(std::make_shared<ScalarConstantNode>(2));
+      rewritten = std::make_shared<ScalarMultiplyNode>(two, left);
     }
 
     else if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarAddNode2>(left, right);
+      rewritten = std::make_shared<ScalarAddNode>(left, right);
     }
 
     else {
@@ -155,23 +155,23 @@ class RewriteOneVisitor : Node2Visitor {
     }
   }
 
-  void visit(const ScalarSubtractNode2* node) override {
+  void visit(const ScalarSubtractNode* node) override {
     auto left = map.at(node->left);
     auto right = map.at(node->right);
     auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(left);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(left);
     auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(right);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(right);
 
     // {k1 - k2, k3}, // constant fold
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           left_constant->constant_value - right_constant->constant_value);
     }
 
     // {0 - x, -x},
     else if (left_constant && left_constant->constant_value == 0) {
-      rewritten = std::make_shared<ScalarNegateNode2>(right);
+      rewritten = std::make_shared<ScalarNegateNode>(right);
     }
 
     // {x - 0, x},
@@ -181,11 +181,11 @@ class RewriteOneVisitor : Node2Visitor {
 
     // {x - x, 0},
     else if (same(left, right)) {
-      rewritten = std::make_shared<ScalarConstantNode2>(0);
+      rewritten = std::make_shared<ScalarConstantNode>(0);
     }
 
     else if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarSubtractNode2>(left, right);
+      rewritten = std::make_shared<ScalarSubtractNode>(left, right);
     }
 
     else {
@@ -193,24 +193,24 @@ class RewriteOneVisitor : Node2Visitor {
     }
   }
 
-  void visit(const ScalarNegateNode2* node) override {
+  void visit(const ScalarNegateNode* node) override {
     auto x = map.at(node->x);
-    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(x);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
 
     // {-k, k3}, // constant fold
     if (x_constant) {
       rewritten =
-          std::make_shared<ScalarConstantNode2>(-x_constant->constant_value);
+          std::make_shared<ScalarConstantNode>(-x_constant->constant_value);
     }
 
     // {--x, x},
     else if (
-        auto x_negate = std::dynamic_pointer_cast<const ScalarNegateNode2>(x)) {
+        auto x_negate = std::dynamic_pointer_cast<const ScalarNegateNode>(x)) {
       rewritten = x_negate->x;
     }
 
     else if (x != node->x) {
-      rewritten = std::make_shared<ScalarNegateNode2>(x);
+      rewritten = std::make_shared<ScalarNegateNode>(x);
     }
 
     else {
@@ -218,17 +218,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
   }
 
-  void visit(const ScalarMultiplyNode2* node) override {
+  void visit(const ScalarMultiplyNode* node) override {
     auto left = map.at(node->left);
     auto right = map.at(node->right);
     auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(left);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(left);
     auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(right);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(right);
 
     // {k1 * k2, k3}, // constant fold
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           left_constant->constant_value * right_constant->constant_value);
     }
 
@@ -239,7 +239,7 @@ class RewriteOneVisitor : Node2Visitor {
 
     // {-1 * x, -x},
     else if (left_constant && left_constant->constant_value == -1) {
-      rewritten = std::make_shared<ScalarNegateNode2>(right);
+      rewritten = std::make_shared<ScalarNegateNode>(right);
     }
 
     // {1 * x, x},
@@ -259,23 +259,23 @@ class RewriteOneVisitor : Node2Visitor {
 
     // {k1 * (k2 * x), k3 * x },
     else if (auto right_multiply =
-                 std::dynamic_pointer_cast<const ScalarMultiplyNode2>(right);
+                 std::dynamic_pointer_cast<const ScalarMultiplyNode>(right);
              left_constant && right_multiply) {
       if (auto right_left_constant =
-              std::dynamic_pointer_cast<const ScalarConstantNode2>(
+              std::dynamic_pointer_cast<const ScalarConstantNode>(
                   right_multiply->left);
           right_left_constant) {
-        auto k3 = rewrite_scalar_node(std::make_shared<ScalarConstantNode2>(
+        auto k3 = rewrite_scalar_node(std::make_shared<ScalarConstantNode>(
             left_constant->constant_value *
             right_left_constant->constant_value));
         rewritten =
-            std::make_shared<ScalarMultiplyNode2>(k3, right_multiply->right);
+            std::make_shared<ScalarMultiplyNode>(k3, right_multiply->right);
       }
     }
 
     if (rewritten == nullptr) {
       if (left != node->left || right != node->right) {
-        rewritten = std::make_shared<ScalarMultiplyNode2>(left, right);
+        rewritten = std::make_shared<ScalarMultiplyNode>(left, right);
       }
 
       else {
@@ -284,17 +284,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
   }
 
-  void visit(const ScalarDivideNode2* node) override {
+  void visit(const ScalarDivideNode* node) override {
     auto left = map.at(node->left);
     auto right = map.at(node->right);
     auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(left);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(left);
     auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(right);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(right);
 
     // {k1 / k2, k3}, // constant fold
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           left_constant->constant_value / right_constant->constant_value);
     }
 
@@ -305,13 +305,13 @@ class RewriteOneVisitor : Node2Visitor {
 
     // {x / k, (1/k) * x},
     else if (right_constant) {
-      auto k3 = rewrite_scalar_node(std::make_shared<ScalarConstantNode2>(
+      auto k3 = rewrite_scalar_node(std::make_shared<ScalarConstantNode>(
           1 / right_constant->constant_value));
-      rewritten = std::make_shared<ScalarMultiplyNode2>(k3, left);
+      rewritten = std::make_shared<ScalarMultiplyNode>(k3, left);
     }
 
     else if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarDivideNode2>(left, right);
+      rewritten = std::make_shared<ScalarDivideNode>(left, right);
     }
 
     else {
@@ -319,19 +319,19 @@ class RewriteOneVisitor : Node2Visitor {
     }
   }
 
-  void visit(const ScalarPowNode2* node) override {
+  void visit(const ScalarPowNode* node) override {
     auto left = map.at(node->left);
     auto right = map.at(node->right);
     auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(left);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(left);
     auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode2>(right);
+        std::dynamic_pointer_cast<const ScalarConstantNode>(right);
 
     // {pow(k1, k2), k3}, // constant fold
     if (left_constant && right_constant) {
       auto k3 = std::pow(
           left_constant->constant_value, right_constant->constant_value);
-      rewritten = std::make_shared<ScalarConstantNode2>(k3);
+      rewritten = std::make_shared<ScalarConstantNode>(k3);
     }
 
     // {pow(x, 1), x},
@@ -344,22 +344,22 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarPowNode2>(left, right);
+      rewritten = std::make_shared<ScalarPowNode>(left, right);
     }
   }
 
-  void visit(const ScalarExpNode2* node) override {
+  void visit(const ScalarExpNode* node) override {
     auto x = map.at(node->x);
-    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(x);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
 
     // {exp(k), k3}, // constant fold
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           std::exp(x_constant->constant_value));
     }
 
     // {exp(log(x)), x},
-    else if (auto x_log = std::dynamic_pointer_cast<const ScalarLogNode2>(x)) {
+    else if (auto x_log = std::dynamic_pointer_cast<const ScalarLogNode>(x)) {
       rewritten = x_log->x;
     }
 
@@ -368,22 +368,22 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarExpNode2>(x);
+      rewritten = std::make_shared<ScalarExpNode>(x);
     }
   }
 
-  void visit(const ScalarLogNode2* node) override {
+  void visit(const ScalarLogNode* node) override {
     auto x = map.at(node->x);
-    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(x);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
 
     // {log(k), k3}, // constant fold
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           std::log(x_constant->constant_value));
     }
 
     // {log(exp(x)), x},
-    else if (auto x_exp = std::dynamic_pointer_cast<const ScalarExpNode2>(x)) {
+    else if (auto x_exp = std::dynamic_pointer_cast<const ScalarExpNode>(x)) {
       rewritten = x_exp->x;
     }
 
@@ -392,17 +392,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarLogNode2>(x);
+      rewritten = std::make_shared<ScalarLogNode>(x);
     }
   }
 
-  void visit(const ScalarAtanNode2* node) override {
+  void visit(const ScalarAtanNode* node) override {
     auto x = map.at(node->x);
-    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(x);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
 
     // {atan(k), k3}, // constant fold
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           std::atan(x_constant->constant_value));
     }
 
@@ -411,17 +411,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarAtanNode2>(x);
+      rewritten = std::make_shared<ScalarAtanNode>(x);
     }
   }
 
-  void visit(const ScalarLgammaNode2* node) override {
+  void visit(const ScalarLgammaNode* node) override {
     auto x = map.at(node->x);
-    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(x);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
 
     // {lgamma(k), k3}, // constant fold
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode2>(
+      rewritten = std::make_shared<ScalarConstantNode>(
           std::lgamma(x_constant->constant_value));
     }
 
@@ -430,21 +430,21 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarLgammaNode2>(x);
+      rewritten = std::make_shared<ScalarLgammaNode>(x);
     }
   }
 
-  void visit(const ScalarPolygammaNode2* node) override {
+  void visit(const ScalarPolygammaNode* node) override {
     auto n = map.at(node->n);
     auto x = map.at(node->x);
-    auto n_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(n);
-    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(x);
+    auto n_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(n);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
 
     // {lgamma(k), k3}, // constant fold
     if (n_constant && x_constant) {
       auto value = boost::math::polygamma(
           n_constant->constant_value, x_constant->constant_value);
-      rewritten = std::make_shared<ScalarConstantNode2>(value);
+      rewritten = std::make_shared<ScalarConstantNode>(value);
     }
 
     else if (n == node->n && x == node->x) {
@@ -452,17 +452,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarPolygammaNode2>(n, x);
+      rewritten = std::make_shared<ScalarPolygammaNode>(n, x);
     }
   }
 
-  void visit(const ScalarIfEqualNode2* node) override {
+  void visit(const ScalarIfEqualNode* node) override {
     auto a = map.at(node->a);
     auto b = map.at(node->b);
     auto c = map.at(node->c);
     auto d = map.at(node->d);
-    auto a_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(a);
-    auto b_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(b);
+    auto a_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(a);
+    auto b_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(b);
 
     if (a_constant && b_constant) {
       rewritten =
@@ -474,17 +474,17 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarIfEqualNode2>(a, b, c, d);
+      rewritten = std::make_shared<ScalarIfEqualNode>(a, b, c, d);
     }
   }
 
-  void visit(const ScalarIfLessNode2* node) override {
+  void visit(const ScalarIfLessNode* node) override {
     auto a = map.at(node->a);
     auto b = map.at(node->b);
     auto c = map.at(node->c);
     auto d = map.at(node->d);
-    auto a_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(a);
-    auto b_constant = std::dynamic_pointer_cast<const ScalarConstantNode2>(b);
+    auto a_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(a);
+    auto b_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(b);
 
     if (a_constant && b_constant) {
       rewritten =
@@ -496,11 +496,11 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<ScalarIfLessNode2>(a, b, c, d);
+      rewritten = std::make_shared<ScalarIfLessNode>(a, b, c, d);
     }
   }
 
-  void visit(const DistributionNormalNode2* node) override {
+  void visit(const DistributionNormalNode* node) override {
     auto mean = map.at(node->mean);
     auto stddev = map.at(node->stddev);
 
@@ -509,11 +509,11 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<DistributionNormalNode2>(mean, stddev);
+      rewritten = std::make_shared<DistributionNormalNode>(mean, stddev);
     }
   }
 
-  void visit(const DistributionHalfNormalNode2* node) override {
+  void visit(const DistributionHalfNormalNode* node) override {
     auto stddev = map.at(node->stddev);
 
     if (stddev == node->stddev) {
@@ -521,11 +521,11 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<DistributionHalfNormalNode2>(stddev);
+      rewritten = std::make_shared<DistributionHalfNormalNode>(stddev);
     }
   }
 
-  void visit(const DistributionBetaNode2* node) override {
+  void visit(const DistributionBetaNode* node) override {
     auto a = map.at(node->a);
     auto b = map.at(node->b);
 
@@ -534,11 +534,11 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<DistributionBetaNode2>(a, b);
+      rewritten = std::make_shared<DistributionBetaNode>(a, b);
     }
   }
 
-  void visit(const DistributionBernoulliNode2* node) override {
+  void visit(const DistributionBernoulliNode* node) override {
     auto prob = map.at(node->prob);
 
     if (prob == node->prob) {
@@ -546,7 +546,7 @@ class RewriteOneVisitor : Node2Visitor {
     }
 
     else {
-      rewritten = std::make_shared<DistributionBernoulliNode2>(prob);
+      rewritten = std::make_shared<DistributionBernoulliNode>(prob);
     }
   }
 };
@@ -555,18 +555,18 @@ class RewriteOneVisitor : Node2Visitor {
 
 namespace beanmachine::minibmg {
 
-Node2p rewrite_node(const Node2p& node, Node2Node2ValueMap& map);
+Nodep rewrite_node(const Nodep& node, NodeNodeValueMap& map);
 
-std::unordered_map<Node2p, Node2p> opt_map(std::vector<Node2p> roots) {
-  std::vector<Node2p> sorted;
-  if (!topological_sort<Node2p>(
+std::unordered_map<Nodep, Nodep> opt_map(std::vector<Nodep> roots) {
+  std::vector<Nodep> sorted;
+  if (!topological_sort<Nodep>(
           {roots.begin(), roots.end()}, in_nodes, sorted)) {
     throw std::invalid_argument("graph has a cycle");
   }
   std::reverse(sorted.begin(), sorted.end());
 
   // a value-based, map, which treats semantically identical nodes as the same.
-  Node2Node2ValueMap map;
+  NodeNodeValueMap map;
   RewriteOneVisitor v{map};
 
   for (auto& node : sorted) {
@@ -575,7 +575,7 @@ std::unordered_map<Node2p, Node2p> opt_map(std::vector<Node2p> roots) {
 
   // We also build a map that uses object (pointer) identity to find elements,
   // so that clients are not using recursive node equality tests.
-  std::unordered_map<Node2p, Node2p> identity_map;
+  std::unordered_map<Nodep, Nodep> identity_map;
   for (auto& node : sorted) {
     identity_map.insert({node, map.at(node)});
   }
