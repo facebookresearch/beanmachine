@@ -568,6 +568,18 @@ class RewriteOneVisitor : NodeVisitor {
       rewritten = std::make_shared<DistributionBernoulliNode>(prob);
     }
   }
+
+  void visit(const DistributionExponentialNode* node) override {
+    auto rate = map.at(node->rate);
+
+    if (rate == node->rate) {
+      rewritten = original;
+    }
+
+    else {
+      rewritten = std::make_shared<DistributionExponentialNode>(rate);
+    }
+  }
 };
 
 } // namespace

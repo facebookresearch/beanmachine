@@ -115,6 +115,9 @@ class in_node_gatherer : public NodeVisitor {
   void visit(const DistributionBernoulliNode* n) override {
     result = {n->prob};
   }
+  void visit(const DistributionExponentialNode* n) override {
+    result = {n->rate};
+  }
 };
 
 in_node_gatherer in_node_gatherer::instance{};
@@ -416,6 +419,17 @@ void DistributionBernoulliNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
 }
 
+DistributionExponentialNode::DistributionExponentialNode(
+    const ScalarNodep& rate)
+    : DistributionNode{hash_combine(
+          std::hash<std::string>{}("DistributionExponentialNode"),
+          rate->cached_hash_value)},
+      rate{rate} {}
+
+void DistributionExponentialNode::accept(NodeVisitor& visitor) const {
+  visitor.visit(this);
+}
+
 std::vector<Nodep> in_nodes(const Nodep& n) {
   return in_node_gatherer::gather(n);
 }
@@ -543,6 +557,10 @@ bool NodepIdentityEquals::operator()(
       auto other = static_cast<const DistributionBernoulliNode*>(this->other);
       result = node_equals(node->prob, other->prob);
     }
+    void visit(const DistributionExponentialNode* node) override {
+      auto other = static_cast<const DistributionExponentialNode*>(this->other);
+      result = node_equals(node->rate, other->rate);
+    }
   };
 
   EqualsTester et{r, *this};
@@ -613,6 +631,9 @@ void DefaultNodeVisitor::visit(const DistributionBetaNode* node) {
 void DefaultNodeVisitor::visit(const DistributionBernoulliNode* node) {
   this->default_visit(node);
 }
+void DefaultNodeVisitor::visit(const DistributionExponentialNode* node) {
+  this->default_visit(node);
+}
 
 void ScalarNodeVisitor::default_visit(const Node*) {
   throw std::logic_error("distribution passed to a scalar visitor");
@@ -627,6 +648,9 @@ void ScalarNodeVisitor::visit(const DistributionBetaNode* node) {
   default_visit(node);
 }
 void ScalarNodeVisitor::visit(const DistributionBernoulliNode* node) {
+  default_visit(node);
+}
+void ScalarNodeVisitor::visit(const DistributionExponentialNode* node) {
   default_visit(node);
 }
 
