@@ -15,6 +15,7 @@
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/dedup.h"
+#include "beanmachine/minibmg/dedup2.h"
 #include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
@@ -373,6 +374,32 @@ class DedupHelper<Num3<Underlying>> {
   Num3<Underlying> rewrite(
       const Num3<Underlying>& num3,
       const std::unordered_map<Nodep, Nodep>& map) const {
+    auto new_primal = helper.rewrite(num3.primal, map);
+    auto new_derivative1 = helper.rewrite(num3.derivative1, map);
+    auto new_derivative2 = helper.rewrite(num3.derivative2, map);
+    return {new_primal, new_derivative1, new_derivative2};
+  }
+};
+
+template <class Underlying>
+requires Number<Underlying>
+class DedupAdapter<Num3<Underlying>> {
+  DedupAdapter<Underlying> helper{};
+
+ public:
+  std::vector<Node2p> find_roots(const Num3<Underlying>& num3) const {
+    std::vector<Node2p> result = helper.find_roots(num3.primal);
+    for (auto& n : helper.find_roots(num3.derivative1)) {
+      result.push_back(n);
+    }
+    for (auto& n : helper.find_roots(num3.derivative2)) {
+      result.push_back(n);
+    }
+    return result;
+  }
+  Num3<Underlying> rewrite(
+      const Num3<Underlying>& num3,
+      const std::unordered_map<Node2p, Node2p>& map) const {
     auto new_primal = helper.rewrite(num3.primal, map);
     auto new_derivative1 = helper.rewrite(num3.derivative1, map);
     auto new_derivative2 = helper.rewrite(num3.derivative2, map);

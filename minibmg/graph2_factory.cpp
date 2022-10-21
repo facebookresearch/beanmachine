@@ -8,6 +8,7 @@
 #include "beanmachine/minibmg/graph2_factory.h"
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include "beanmachine/minibmg/node2.h"
 
 namespace beanmachine::minibmg {
@@ -184,15 +185,31 @@ Graph2 Graph2::Factory::build() {
     throw std::invalid_argument("Graph has already been built");
   }
   built = true;
-  auto result = Graph2::create(queries, observations);
+  std::unordered_map<Node2p, Node2p> built_map;
+  auto result = Graph2::create(queries, observations, &built_map);
 
-  // TODO: Update the identifier_to_node map to reflect the set of dedulplicated
+  // Update the node<->identifier maps to reflect the set of dedulplicated
   // nodes in the graph.  This permits the caller to continue using this
   // factory to map node identifiers to nodes in the now deduplicated graph.
-  identifer_to_node.clear();
-  node_to_identifier.clear();
+  std::unordered_map<Node2Id, Node2p> new_identifer_to_node;
+  std::unordered_map<Node2p, Node2Id> new_node_to_identifier;
+  for (auto i2n : identifer_to_node) {
+    auto found = built_map.find(i2n.second);
+    if (found != built_map.end()) {
+      new_identifer_to_node[i2n.first] = found->second;
+    }
+  }
+  for (auto n2i : node_to_identifier) {
+    auto found = built_map.find(n2i.first);
+    if (found != built_map.end()) {
+      new_node_to_identifier[found->second] = n2i.second;
+    }
+  }
+  identifer_to_node = new_identifer_to_node;
+  node_to_identifier = new_node_to_identifier;
 
   return result;
 }
+Graph2::Factory::~Factory() {}
 
 } // namespace beanmachine::minibmg
