@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <memory>
 #include "beanmachine/minibmg/fluid_factory.h"
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/pretty.h"
@@ -225,6 +226,20 @@ Graph::FluidFactory fac;
 fac.query(0 + temp_20 + temp_20);
 )+";
   ASSERT_EQ(expected, pretty);
+}
+
+// test constant folding of log1p
+TEST(fluent_factory_test, log1p_kfold) {
+  Value k = 1.1;
+  Value l = log1p(k);
+  Graph::FluidFactory fac;
+  auto qi = fac.query(l);
+  Graph g = fac.build();
+  ASSERT_EQ(g.size(), 2);
+  Value folded = std::dynamic_pointer_cast<const ScalarNode>(opt(g.queries[0]));
+  Value expected = std::log1p(1.1);
+  // assert that the optimized graph is just the resulting constant.
+  ASSERT_TRUE(NodepIdentityEquals{}(expected.node, folded.node));
 }
 
 } // namespace fluent_factory_test

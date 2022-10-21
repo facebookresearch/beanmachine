@@ -56,6 +56,7 @@ requires Number<T> std::vector<BinaryFunction<T>> functions() {
       [](T a, T b) { return polygamma(1, a + b); },
       [](T a, T b) { return polygamma(2, a + b); },
       [](T a, T b) { return polygamma(3, a + b); },
+      [](T a, T b) { return log1p(a + b); },
       [](T a, T b) { return if_equal(a, a, b, a); },
       [](T a, T b) { return if_equal(a, b, b, a); },
       [](T a, T b) { return if_less(a, b, a, b); },
