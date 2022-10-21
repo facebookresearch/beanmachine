@@ -38,9 +38,10 @@ TEST(traced_test, simple3) {
 
 TEST(traced_test, simple4) {
   Traced x = Traced::variable("x", 0);
-  auto r = exp(x) + log(x) + atan(x) + lgamma(x) + polygamma(5, x);
+  auto r = exp(x) + log(x) + log1p(x) + atan(x) + lgamma(x) + polygamma(5, x);
   ASSERT_EQ(
-      "exp(x) + log(x) + atan(x) + lgamma(x) + polygamma(5, x)", to_string(r));
+      "exp(x) + log(x) + log1p(x) + atan(x) + lgamma(x) + polygamma(5, x)",
+      to_string(r));
 }
 
 TEST(traced_test, simple5) {

@@ -38,6 +38,7 @@ concept Number = requires(
   { atan(a) } -> std::convertible_to<T>;
   { lgamma(a) } -> std::convertible_to<T>;
   { polygamma(n, a) } -> std::convertible_to<T>;
+  { log1p(a) } -> std::convertible_to<T>;
   // conditional for equality, less-than.
   { if_equal(a, b, c, d) } -> std::convertible_to<T>;
   { if_less(a, b, c, d) } -> std::convertible_to<T>;
