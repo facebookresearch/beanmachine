@@ -6,9 +6,10 @@ nb_path: tutorials/Bayesian_Logistic_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Logistic_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Logistic_Regression.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_Logistic_Regression.ipynb"
@@ -17,13 +18,10 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 ## Tutorial: **Bayesian Logistic Regression**
 
-
 The purpose of this tutorial is to show how to build a simple Bayesian model to deduce
 the line which separates two categories of points.
 
-
 ## Problem
-
 
 A *logistic model* is a statistical model where we have a collection of things that can
 be divided into two categories — pictures of cats or dogs, patients who are immune or
@@ -34,9 +32,7 @@ combination of characteristics of the thing.
 The problem we seek to solve in this tutorial is: *when given a set of examples of each
 category, can we infer the boundary between the categories?*
 
-
 ## Prerequisites
-
 
 We will be using the following packages within this tutorial.
 
@@ -45,7 +41,6 @@ We will be using the following packages within this tutorial.
 
 Let's code this in Bean Machine! Import the Bean Machine library and some fundamental
 PyTorch classes.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -75,7 +70,6 @@ from IPython.display import Markdown
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for reproducibility.
 
-
 ```python
 # Eliminate excess UserWarnings from Python.
 warnings.filterwarnings("ignore")
@@ -92,7 +86,6 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Example: orange and blue points
-
 
 For the purposes of this tutorial our "things" will be two-dimensional points between
 $(-10,-10)$ and $(10,10)$. Our two categories will be represented by $0.0$, which we'll
@@ -122,9 +115,7 @@ $y=-\frac{b_1}{b_2}x-\frac{b_0}{b_2}$
 Our goal therefore is to infer possible values for $b_0,b_1,b_2$ from which we can
 compute the line separating the categories.
 
-
 ## Creating sample data
-
 
 We start by creating a data set to illustrate the model. In order to make computations
 faster and easier, we will express the entire data set as a single tensor representing
@@ -134,7 +125,6 @@ matrix-multiplying each row by $\begin{bmatrix}b_0\\b_1\\b_2\end{bmatrix}$ to ob
 log odds that the point is orange: $b_0+b_1x+b_2y$.
 
 For our synthetic dataset, we will assume the following parameters.
-
 
 ```python
 N = 200
@@ -168,14 +158,13 @@ synthetic_data_plot = plots.scatter_plot(
 show(synthetic_data_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/synthetic-data-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/0767360f-a44d-45ce-ad72-01958e2edaf5.json')} />
 
 We now assign points to categories $0.0$ (blue) and $1.0$ (orange).
 
 For this example we will assign categories to points using
 $\begin{bmatrix}-2.0\\0.3\\-0.5\end{bmatrix}$ as our coefficients, which makes the line
 separating the categories $y=0.6x-4$.
-
 
 ```python
 true_coefficients = torch.tensor([-2.0, 0.3, -0.5]).view(3, 1)
@@ -194,10 +183,8 @@ observed_categories = torch.tensor(
 
 ## Data visualization methods
 
-
 It is useful to have helper methods to visualize the synthetic data set and the line
 which separates the two categories.
-
 
 ```python
 def categorize_points(points, categories):
@@ -283,10 +270,9 @@ synthetic_data_with_categories_plot.line(
 show(synthetic_data_with_categories_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/synthetic-data-with-categories-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/2cfac753-c0ad-49d1-9524-9a3051c61419.json')} />
 
 ## Model
-
 
 We can now start building our model.
 
@@ -296,7 +282,6 @@ We have no reason to believe that the coefficients will be either positive or ne
 so we should choose a prior distribution that is centered on zero. We use a matrix
 multiplication to compute the linear combination, and therefore make the prior a column
 vector of samples from a normal distribution:
-
 
 ```python
 @bm.random_variable
@@ -310,7 +295,6 @@ Our model for categories is now straightforward: each category is chosen by
 matrix-multiplying the point by the prior distribution of coefficients, and we get a set
 of categories from the Bernoulli distribution; either $0.0$ (blue) or $1.0$ (orange):
 
-
 ```python
 @bm.random_variable
 def categories():
@@ -319,9 +303,7 @@ def categories():
 
 ## Inference
 
-
 We can now infer the posterior distribution of the coefficients given the observations:
-
 
 ```python
 num_samples = 2 if smoke_test else 2000
@@ -345,12 +327,20 @@ samples = mc.infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
-CPU times: user 33.2 s, sys: 107 ms, total: 33.3 s
-Wall time: 33.2 s`}
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`
+}
+</CellOutput>
+
+
+<CellOutput>
+{
+  `CPU times: user 33.2 s, sys: 107 ms, total: 33.3 s
+Wall time: 33.2 s`
+}
 </CellOutput>
 
 ```python
@@ -359,7 +349,6 @@ sampled_coefficients = samples.get_chain()[coefficients()]
 
 The slopes and intercepts are computed from the sampled coefficients:
 
-
 ```python
 slopes = [-float(s[1] / s[2]) for s in sampled_coefficients if float(s[2]) != 0.0]
 intercepts = [-float(s[0] / s[2]) for s in sampled_coefficients if float(s[2]) != 0.0]
@@ -367,10 +356,8 @@ intercepts = [-float(s[0] / s[2]) for s in sampled_coefficients if float(s[2]) !
 
 ## Posterior results
 
-
 A histogram of the inferred slopes should cluster near the true value, marked in red. A
 slight deviation is to be expected since there is noise in our data.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -388,11 +375,10 @@ slope_hist_plot.add_layout(span)
 show(slope_hist_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/slope-hist-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/38f07ddc-c7f5-4ad1-8a47-7b8cfefaf248.json')} />
 
 And similarly for the intercepts. Our model actually predicts a higher median intercept
 to capture the orange points above the slope in our ground truth.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -410,18 +396,15 @@ intercept_hist_plot.add_layout(span)
 show(intercept_hist_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/intercept-hist-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/db9c0893-2142-4fd2-a851-5c919e4ac96e.json')} />
 
 Inference typically finds a reasonable distribution of possible lines that separate
 these two categories.
 
-
 ## Diagnostics
-
 
 In addition to visualizing the lines directly, we can also use the diagnostics
 capabilities of Arviz to examine the diagnostics of our variables:
-
 
 ```python
 filtered_samples = {k: v for k, v in samples.items() if k == coefficients()}
@@ -430,11 +413,12 @@ summary_df = az.summary(az_data, round_to=3).to_markdown()
 Markdown(summary_df)
 ```
 
-|                     |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:--------------------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| coefficients()[0,0] | -1.774 | 0.294 |     -2.245 |      -1.313 |       0.005 |     0.004 |    3561.2  |    5042.12 |   1.001 |
-| coefficients()[1,0] |  0.262 | 0.048 |      0.185 |       0.336 |       0.001 |     0.001 |    3543.11 |    4425.9  |   1     |
-| coefficients()[2,0] | -0.452 | 0.064 |     -0.548 |      -0.342 |       0.001 |     0.001 |    3137.52 |    4031.13 |   1.001 |
+|                       |   mean |    sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail | r_hat |
+| :-------------------- | -----: | ----: | -------: | --------: | --------: | ------: | -------: | -------: | ----: |
+| coefficients()\[0,0\] | -1.774 | 0.294 |   -2.245 |    -1.313 |     0.005 |   0.004 |   3561.2 |  5042.12 | 1.001 |
+| coefficients()\[1,0\] |  0.262 | 0.048 |    0.185 |     0.336 |     0.001 |   0.001 |  3543.11 |   4425.9 |     1 |
+| coefficients()\[2,0\] | -0.452 | 0.064 |   -0.548 |    -0.342 |     0.001 |   0.001 |  3137.52 |  4031.13 | 1.001 |
+
 
 As you can see, the average and median (50%) values inferred are reasonably close to the
 true values but there is a large spread. Remember that *any constant multiple of the
@@ -454,7 +438,6 @@ line had a slightly lower slope than $0.6$ and an intercept around $-3.0$.
 
 To more clearly illustrate the accuracy of the inference, we can take a random selection
 of the inferred lines and plot them on the data set:
-
 
 ```python
 # Required for visualizing in Colab.
@@ -502,4 +485,5 @@ randomly_selected_lines_plot.line(
 show(randomly_selected_lines_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/randomly-selected-lines-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/d4b08183-767e-49f9-b1a7-9e84fcbbd0b0.json')} />
+

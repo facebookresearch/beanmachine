@@ -6,9 +6,10 @@ nb_path: tutorials/Hierarchical_regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_regression.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_regression.ipynb"
@@ -16,7 +17,6 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 />
 
 ## Tutorial: **Hierarchical regression**
-
 
 In this tutorial we will explore linear regression in combination with hierarchical
 priors. We will be using data from Gelman and Hill on radon levels found in buildings in
@@ -31,9 +31,7 @@ buildings. Each building's floor-level will be used as individual-level predicto
 our model and the county's uranium concentration will be used as our group-level
 predictor.
 
-
 ## Learning Outcomes
-
 
 On completion of this tutorial, you should be able:
 
@@ -41,25 +39,20 @@ On completion of this tutorial, you should be able:
 - to execute a hierarchical regression with beanmachine;
 - to run diagnostics to understand what beanmachine is doing.
 
-
 ## Problem
-
 
 Our problem is to perform posterior inference over a linear model based on a
 hierarchical prior. Our data contains individual-level predictor measurements along with
 group-level predictor measurements. We will use concepts taken from the
 `Hierarchical Model` tutorial, and apply them here.
 
-
 ## Prerequisites
-
 
 We will be using the following packages within this tutorial.
 
 - [`arviz`](https://arviz-devs.github.io/arviz/) and
   [`bokeh`](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations; and
 - [`pandas`](https://pandas.pydata.org/) for data manipulation.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -88,7 +81,6 @@ from torch import tensor
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for `torch` for reproducibility.
 
-
 ```python
 # Plotting settings
 az.rcParams["plot.backend"] = "bokeh"
@@ -104,26 +96,25 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 
 ## Data
 
-
 We will explore the data for the tutorial first so we can create a data story around
 them. The story will be used to inform decisions we will make about priors and sampling
 distributions. The unprocessed data consist of two different files, the `srrs2.dat` and
 the `cty.dat`, which can be found on [Gelman's website](#references). We will import a
 preprocessed version ready for our Bean Machine model here.
 
-
 ```python
 df = radon.load_data()
 Markdown(df.head().set_index("county_index").to_markdown())
 ```
 
-|   county_index | county   |   floor |   activity |   log_activity |     Uppm |   log_Uppm |
-|---------------:|:---------|--------:|-----------:|---------------:|---------:|-----------:|
-|              0 | AITKIN   |       1 |        2.2 |      0.832909  | 0.502054 |  -0.689048 |
-|              0 | AITKIN   |       0 |        2.2 |      0.832909  | 0.502054 |  -0.689048 |
-|              0 | AITKIN   |       0 |        2.9 |      1.09861   | 0.502054 |  -0.689048 |
-|              0 | AITKIN   |       0 |        1   |      0.0953102 | 0.502054 |  -0.689048 |
-|              1 | ANOKA    |       0 |        2.8 |      1.06471   | 0.428565 |  -0.847313 |
+| county_index | county | floor | activity | log_activity |     Uppm |  log_Uppm |
+| -----------: | :----- | ----: | -------: | -----------: | -------: | --------: |
+|            0 | AITKIN |     1 |      2.2 |     0.832909 | 0.502054 | -0.689048 |
+|            0 | AITKIN |     0 |      2.2 |     0.832909 | 0.502054 | -0.689048 |
+|            0 | AITKIN |     0 |      2.9 |      1.09861 | 0.502054 | -0.689048 |
+|            0 | AITKIN |     0 |        1 |    0.0953102 | 0.502054 | -0.689048 |
+|            1 | ANOKA  |     0 |      2.8 |      1.06471 | 0.428565 | -0.847313 |
+
 
 The data consist of the following columns.
 
@@ -142,7 +133,6 @@ measured in parts-per-million. We will be using the `log(activity)` and `log(Upp
 our model, not the raw `activity` or `Uppm` values. Below we plot the raw data and the
 log of the raw data.
 
-
 ```python
 # Needed for Colab
 output_notebook()
@@ -151,7 +141,7 @@ log_plot_comparison = radon.log_plot_comparison(df["activity"])
 show(log_plot_comparison)
 ```
 
-<BokehFigure data={require('./assets/plot_data/log-plot-comparison.json')} />
+<BokehFigure data={require('./assets/plot_data/6ce1be6a-0153-4265-828e-1cd6127b3c47.json')} />
 
 Both plots show the histogram and the kernel density estimate of the radon activity
 data. The left plot shows the raw activity data, while the right plot shows the
@@ -168,7 +158,6 @@ from lining up vertically. The lines show the kernel density estimate (KDE) with
 horizontal dashed lines indicating the maximum value of the KDE. We can see from this
 plot that radon levels decrease as you move away from the basement.
 
-
 ```python
 # Needed for Colab
 output_notebook()
@@ -177,10 +166,9 @@ floor_plot = radon.floor_plot(df)
 show(floor_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/floor-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/e08787c8-caaf-4739-894a-585ba0d4f11b.json')} />
 
 ## Model
-
 
 Our model will estimate the effects that individual-level predictors and group-level
 predictors have on estimating radon activity. We will incorporate the individual-level
@@ -240,7 +228,6 @@ $$
 objects with the decorators `@bm.random_variable` and `@bm.functional`. These functions
 behave differently than ordinary Python functions.
 
-
 <div
   style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
@@ -281,13 +268,11 @@ behave differently than ordinary Python functions.
   </ul>
 </div>
 
-
 In the below Bean Machine model we are taking advantage of batching in `pytorch` by
 using the `.expand()` attribute on our distributions. In our definition of `alpha`, we
 expand the random variable to be the size of the number of counties in our data; $J=85$.
 We then use indexing on `alpha` in our definition of `alpha_hat` to create a tensor that
 is the size of our observations.
-
 
 ```python
 J = df["county"].unique().shape[0]
@@ -345,14 +330,11 @@ Note that the $\alpha$ random variable is expanding the returned tensor so that 
 the same size as the number of counties we have in the data (`J`). Defining the model in
 this way allows us to run inference on $y$ in _batches_.
 
-
 ### Priors
-
 
 The priors we have chosen for the model consist of the Normal and HalfCauchy
 distributions. Both of these priors are weakly informative to our model. A few plots
 showing what these priors look like are shown below.
-
 
 ```python
 # Needed for Colab
@@ -362,10 +344,9 @@ sample_of_priors = radon.sample_of_priors()
 show(sample_of_priors)
 ```
 
-<BokehFigure data={require('./assets/plot_data/sample-of-priors.json')} />
+<BokehFigure data={require('./assets/plot_data/f9ffcec2-32e0-4268-97e1-8bbaf7dbeae1.json')} />
 
 ### Inference
-
 
 We are ready to run inference on our model and observations. Bean Machine supports a
 rich library of inference algorithms that share a common infer method with the following
@@ -382,7 +363,6 @@ For this particular problem, we will use the `GlobalNoUTurnSampler` inference me
 Bean Machine's `GlobalNoUTurnSampler` is the NUTS sampler you have probably used before
 with `stan` or `pymc3`. We have chosen to use the NUTS sampler here because it can be
 easily compared to other probabilistic tools.
-
 
 ```python
 num_samples = 2 if smoke_test else 5000
@@ -417,39 +397,47 @@ samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`
+}
+</CellOutput>
+
+
+<CellOutput>
+{
+  `/Users/jpchen/beanmachine/src/beanmachine/ppl/experimental/nnc/utils.py:21: UserWarning: The support of NNC compiler is experimental and the API is subject tochange in the future releases of Bean Machine. For questions regarding NNC, pleasecheckout the functorch project (https://github.com/pytorch/functorch).
+  "The support of NNC compiler is experimental and the API is subject to"`
+}
 </CellOutput>
 
 ### Analysis
 
-
 We begin our analysis by printing out summary statistics. Two important statistics to
 take note of are the $\hat{R}$ (`r_hat`) and effective sample size (`ess`) values in the
 below dataframe, see [Vehtari _et al_](#references).
-
 
 ```python
 summary_df = az.summary(samples.to_xarray(), round_to=3)
 Markdown(summary_df.sample(20).T.to_markdown())
 ```
 
-|           |   alpha_hat()[565] |   y_hat()[467] |   alpha_hat()[248] |   alpha_hat()[364] |   y_hat()[509] |   y_hat()[918] |   y_hat()[746] |   alpha_hat()[568] |   alpha_hat()[94] |   y_hat()[829] |   y_hat()[260] |   y_hat()[43] |   alpha_hat()[825] |   y_hat()[268] |   alpha_hat()[576] |   y_hat()[742] |   alpha_hat()[376] |   y_hat()[552] |   alpha_hat()[518] |   y_hat()[632] |
-|:----------|-------------------:|---------------:|-------------------:|-------------------:|---------------:|---------------:|---------------:|-------------------:|------------------:|---------------:|---------------:|--------------:|-------------------:|---------------:|-------------------:|---------------:|-------------------:|---------------:|-------------------:|---------------:|
-| mean      |              1.689 |          0.855 |              1.779 |              1.398 |          1.748 |          1.7   |          0.966 |              1.659 |             1.196 |          1.651 |          1.113 |         0.917 |              1.651 |          1.398 |              1.196 |          0.966 |              1.222 |          0.771 |              1.639 |          1.458 |
-| sd        |              0.146 |          0.139 |              0.142 |              0.063 |          0.149 |          0.158 |          0.065 |              0.153 |             0.13  |          0.139 |          0.139 |         0.086 |              0.139 |          0.063 |              0.098 |          0.065 |              0.142 |          0.158 |              0.155 |          0.132 |
-| hdi_5.5%  |              1.455 |          0.631 |              1.559 |              1.3   |          1.515 |          1.45  |          0.861 |              1.414 |             1.003 |          1.438 |          0.884 |         0.779 |              1.438 |          1.3   |              1.044 |          0.861 |              0.998 |          0.52  |              1.393 |          1.259 |
+|           | alpha_hat()\[565\] | y_hat()\[467\] | alpha_hat()\[248\] | alpha_hat()\[364\] | y_hat()\[509\] | y_hat()\[918\] | y_hat()\[746\] | alpha_hat()\[568\] | alpha_hat()\[94\] | y_hat()\[829\] | y_hat()\[260\] | y_hat()\[43\] | alpha_hat()\[825\] | y_hat()\[268\] | alpha_hat()\[576\] | y_hat()\[742\] | alpha_hat()\[376\] | y_hat()\[552\] | alpha_hat()\[518\] | y_hat()\[632\] |
+| :-------- | -----------------: | -------------: | -----------------: | -----------------: | -------------: | -------------: | -------------: | -----------------: | ----------------: | -------------: | -------------: | ------------: | -----------------: | -------------: | -----------------: | -------------: | -----------------: | -------------: | -----------------: | -------------: |
+| mean      |              1.689 |          0.855 |              1.779 |              1.398 |          1.748 |            1.7 |          0.966 |              1.659 |             1.196 |          1.651 |          1.113 |         0.917 |              1.651 |          1.398 |              1.196 |          0.966 |              1.222 |          0.771 |              1.639 |          1.458 |
+| sd        |              0.146 |          0.139 |              0.142 |              0.063 |          0.149 |          0.158 |          0.065 |              0.153 |              0.13 |          0.139 |          0.139 |         0.086 |              0.139 |          0.063 |              0.098 |          0.065 |              0.142 |          0.158 |              0.155 |          0.132 |
+| hdi_5.5%  |              1.455 |          0.631 |              1.559 |                1.3 |          1.515 |           1.45 |          0.861 |              1.414 |             1.003 |          1.438 |          0.884 |         0.779 |              1.438 |            1.3 |              1.044 |          0.861 |              0.998 |           0.52 |              1.393 |          1.259 |
 | hdi_94.5% |              1.913 |          1.069 |              2.007 |              1.499 |          1.979 |          1.947 |          1.071 |              1.898 |             1.414 |          1.875 |          1.326 |         1.052 |              1.875 |          1.499 |              1.355 |          1.071 |              1.452 |          1.019 |              1.875 |          1.669 |
 | mcse_mean |              0.002 |          0.004 |              0.003 |              0.001 |          0.003 |          0.002 |          0.001 |              0.002 |             0.002 |          0.004 |          0.002 |         0.001 |              0.004 |          0.001 |              0.001 |          0.001 |              0.002 |          0.003 |              0.004 |          0.006 |
 | mcse_sd   |              0.001 |          0.003 |              0.002 |              0.001 |          0.002 |          0.002 |          0.001 |              0.002 |             0.002 |          0.003 |          0.002 |         0.001 |              0.003 |          0.001 |              0.001 |          0.001 |              0.001 |          0.002 |              0.003 |          0.004 |
-| ess_bulk  |           4414.84  |       1421.16  |           1702.2   |           6119.03  |       2941.53  |       5056.55  |       2508.64  |           5112.09  |          3544.69  |       1088.88  |       3278.22  |      5764.55  |           1088.88  |       6119.03  |           4347.95  |       2508.64  |           5918.05  |       4067.78  |           1534.74  |        532.076 |
-| ess_tail  |           5613.32  |       4614.7   |           5194.52  |           6294.34  |       5529.94  |       6458.84  |       4256.39  |           4780.85  |          5693.09  |       6977.78  |       2828.78  |     10452.3   |           6977.78  |       6294.34  |           7064.77  |       4256.39  |           7357.53  |       4266.7   |           6050     |       2130.18  |
+| ess_bulk  |            4414.84 |        1421.16 |             1702.2 |            6119.03 |        2941.53 |        5056.55 |        2508.64 |            5112.09 |           3544.69 |        1088.88 |        3278.22 |       5764.55 |            1088.88 |        6119.03 |            4347.95 |        2508.64 |            5918.05 |        4067.78 |            1534.74 |        532.076 |
+| ess_tail  |            5613.32 |         4614.7 |            5194.52 |            6294.34 |        5529.94 |        6458.84 |        4256.39 |            4780.85 |           5693.09 |        6977.78 |        2828.78 |       10452.3 |            6977.78 |        6294.34 |            7064.77 |        4256.39 |            7357.53 |         4266.7 |               6050 |        2130.18 |
 | r_hat     |              1.002 |          1.002 |              1.011 |              1.009 |          1.008 |          1.001 |          1.013 |              1.008 |             1.002 |          1.005 |          1.001 |         1.001 |              1.005 |          1.009 |              1.006 |          1.013 |              1.002 |          1.009 |              1.005 |          1.006 |
 
-#### $\hat{R}$ diagnostic
 
+#### $\hat{R}$ diagnostic
 
 $\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
 is a test that indicates a lack of convergence by comparing the variance between
@@ -467,9 +455,7 @@ when each of the Markov chains approaches perfect adaptation to the true posteri
 distribution. We do not recommend using inference results if $\hat{R}>1.01$. More
 information about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
 
-
 #### Effective sample size $ess$ diagnostic
-
 
 MCMC samplers do not draw independent samples from the target distribution, which means
 that our samples are correlated. In an ideal situation all samples would be independent,
@@ -495,7 +481,6 @@ effective sample size for our parameters. The red horizontal dashed line shows t
 rule-of-thumb value needed for both the bulk and tail `ess` estimates. When the model is
 converging properly, both the bulk and tail lines should be _roughly_ linear.
 
-
 ```python
 # Needed for Colab
 output_notebook(hide_banner=True)
@@ -519,11 +504,10 @@ query_ess = gridplot([plots[:3], plots[3:]])
 show(query_ess)
 ```
 
-<BokehFigure data={require('./assets/plot_data/query-ess.json')} />
+<BokehFigure data={require('./assets/plot_data/ea50fdfa-87d4-49c1-b21d-60fb4b0bf6ba.json')} />
 
 Rather than plot all effective sample size evolutions for each county's $\alpha$
 parameter, we will do so for a sample.
-
 
 ```python
 # Needed for Colab
@@ -567,14 +551,13 @@ sample_counties_ess = gridplot([plots[:3], plots[3:6], plots[6:]])
 show(sample_counties_ess)
 ```
 
-<BokehFigure data={require('./assets/plot_data/sample-counties-ess.json')} />
+<BokehFigure data={require('./assets/plot_data/e6963c17-76d2-4c50-a080-18c9c0bce29c.json')} />
 
 Combined with our above analysis, we can show the rank plots of our model parameters.
 You might be familiar with `trace plots` that show parameter posterior distributions
 along with the "fuzzy caterpillar" plots of sampled values. Rank plots perform the same
 function as trace plots in that they show problems in the mixing of the chains. Rank
 plots for our model's parameters are shown below.
-
 
 ```python
 # Needed for Colab
@@ -588,7 +571,7 @@ trace_ranks = radon.plot_trace_ranks(
 show(trace_ranks)
 ```
 
-<BokehFigure data={require('./assets/plot_data/trace-ranks.json')} />
+<BokehFigure data={require('./assets/plot_data/c038c605-f568-4385-a461-18ee0376e813.json')} />
 
 Each of the above rank plots shows fairly uniform histograms for each parameter.
 
@@ -605,7 +588,6 @@ Why an 89% highest density interval (HDI)? To prevent you from thinking about a 
 confidence interval. See [McElreath](#references) for further discussion on this
 subject.
 
-
 ```python
 # Needed for Colab
 output_notebook()
@@ -620,11 +602,10 @@ beta_gamma = gridplot([[beta_posterior, gamma_posterior]])
 show(beta_gamma)
 ```
 
-<BokehFigure data={require('./assets/plot_data/beta-gamma.json')} />
+<BokehFigure data={require('./assets/plot_data/d95a95bc-25e1-447c-bf3a-65bb61820869.json')} />
 
 Again we only show a sampling of the $\alpha$ parameters for the different counties in
 the model.
-
 
 ```python
 # Needed for Colab
@@ -638,13 +619,12 @@ county_posteriors = gridplot([*az.plot_posterior(data, show=False)])
 show(county_posteriors)
 ```
 
-<BokehFigure data={require('./assets/plot_data/county-posteriors.json')} />
+<BokehFigure data={require('./assets/plot_data/a0714d44-5c61-42dc-81a1-8f43a530e499.json')} />
 
 We can inspect how the uranium concentration in a county's soil affects the intercept
 $\alpha$ by plotting our intercept estimate against the logarithm of uranium counts for
 the county. The whiskers/error-bars for each marker is its standard deviation from the
 posterior distribution.
-
 
 ```python
 # Needed for Colab
@@ -654,12 +634,11 @@ uranium = radon.uranium(summary_df, df)
 show(uranium)
 ```
 
-<BokehFigure data={require('./assets/plot_data/uranium.json')} />
+<BokehFigure data={require('./assets/plot_data/f5d8b315-cad5-47f3-83f1-5d30471c50f2.json')} />
 
 <a id="references"></a>
 
 ## References
-
 
 - Gelman's website
   [http://www.stat.columbia.edu/~gelman/arm/examples/radon/](http://www.stat.columbia.edu/~gelman/arm/examples/radon/)

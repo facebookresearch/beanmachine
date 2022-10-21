@@ -1,0 +1,556 @@
+{
+  "target_id": "999a9dcd-cd41-48b2-b5aa-0ed617ef475f",
+  "root_id": "1003",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "1014"
+              }
+            ],
+            "center": [
+              {
+                "id": "1017"
+              },
+              {
+                "id": "1021"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "1018"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "1041"
+              }
+            ],
+            "title": {
+              "id": "1004"
+            },
+            "toolbar": {
+              "id": "1029"
+            },
+            "width": 700,
+            "x_range": {
+              "id": "1006"
+            },
+            "x_scale": {
+              "id": "1010"
+            },
+            "y_range": {
+              "id": "1008"
+            },
+            "y_scale": {
+              "id": "1012"
+            }
+          },
+          "id": "1003",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "1006",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null,
+            "text": "Foul types"
+          },
+          "id": "1004",
+          "type": "Title"
+        },
+        {
+          "attributes": {},
+          "id": "1012",
+          "type": "LogScale"
+        },
+        {
+          "attributes": {},
+          "id": "1025",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "ticker": null
+          },
+          "id": "1049",
+          "type": "LogTickFormatter"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_width": {
+              "value": 2
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1039",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "data": {
+              "bottom": [
+                0.1,
+                0.1,
+                0.1,
+                0.1,
+                0.1
+              ],
+              "left": {
+                "__ndarray__": "AAAAAAAA4D8AAAAAAAD4PwAAAAAAAARAAAAAAAAADEAAAAAAAAASQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "right": {
+                "__ndarray__": "AAAAAAAA4L8AAAAAAADgPwAAAAAAAPg/AAAAAAAABEAAAAAAAAAMQA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  5
+                ]
+              },
+              "tick_labels": [
+                "Personal",
+                "Shooting",
+                "Offensive",
+                "Loose Ball",
+                "Away from Play"
+              ],
+              "top": [
+                3101,
+                2707,
+                1894,
+                867,
+                61
+              ],
+              "x": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "y": [
+                3101,
+                2707,
+                1894,
+                867,
+                61
+              ]
+            },
+            "selected": {
+              "id": "1054"
+            },
+            "selection_policy": {
+              "id": "1053"
+            }
+          },
+          "id": "1002",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "1052",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1040",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "num_minor_ticks": 10
+          },
+          "id": "1019",
+          "type": "LogTicker"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "1002"
+            },
+            "glyph": {
+              "id": "1037"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "1039"
+            },
+            "muted_glyph": {
+              "id": "1040"
+            },
+            "nonselection_glyph": {
+              "id": "1038"
+            },
+            "view": {
+              "id": "1042"
+            }
+          },
+          "id": "1041",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {},
+          "id": "1050",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "end": 3721.2,
+            "start": 0.8
+          },
+          "id": "1008",
+          "type": "Range1d"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "1051"
+            },
+            "group": null,
+            "major_label_orientation": 0.7853981633974483,
+            "major_label_overrides": {
+              "0": "Personal",
+              "1": "Shooting",
+              "2": "Offensive",
+              "3": "Loose Ball",
+              "4": "Away from Play"
+            },
+            "major_label_policy": {
+              "id": "1052"
+            },
+            "minor_tick_line_color": null,
+            "ticker": {
+              "id": "1045"
+            }
+          },
+          "id": "1014",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1018"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1021",
+          "type": "Grid"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "1002"
+            }
+          },
+          "id": "1042",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {},
+          "id": "1010",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.7
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1037",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "axis_label": "Counts",
+            "coordinates": null,
+            "formatter": {
+              "id": "1049"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "1050"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "1019"
+            }
+          },
+          "id": "1018",
+          "type": "LogAxis"
+        },
+        {
+          "attributes": {},
+          "id": "1027",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "1041"
+              }
+            ],
+            "tooltips": [
+              [
+                "Foul",
+                "@tick_labels"
+              ],
+              [
+                "Count",
+                "@top{0,0}"
+              ]
+            ]
+          },
+          "id": "1043",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "1054",
+          "type": "Selection"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "1028"
+            }
+          },
+          "id": "1024",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {},
+          "id": "1051",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "ticks": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "id": "1045",
+          "type": "FixedTicker"
+        },
+        {
+          "attributes": {},
+          "id": "1026",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {},
+          "id": "1053",
+          "type": "UnionRenderers"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1014"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1017",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "1023",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "1028",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {},
+          "id": "1022",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "1022"
+              },
+              {
+                "id": "1023"
+              },
+              {
+                "id": "1024"
+              },
+              {
+                "id": "1025"
+              },
+              {
+                "id": "1026"
+              },
+              {
+                "id": "1027"
+              },
+              {
+                "id": "1043"
+              }
+            ]
+          },
+          "id": "1029",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1038",
+          "type": "Quad"
+        }
+      ],
+      "root_ids": [
+        "1003"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}

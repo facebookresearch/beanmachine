@@ -6,9 +6,10 @@ nb_path: tutorials/Item_Response_Theory.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Item_Response_Theory.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Item_Response_Theory.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Item_Response_Theory.ipynb"
@@ -17,15 +18,12 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 ## Tutorial: Modeling NBA foul calls using **Item Response Theory**
 
-
 This tutorial demonstrates how to use Bean Machine to predict when NBA players will
 receive a foul call from a referee. This model and exposition is based on
 [Austin Rochford's 2018 analysis](#references) of the
 [2015/2016 NBA season games](#references) data.
 
-
 ## Learning Outcomes
-
 
 On completion of this tutorial, you should be able:
 
@@ -35,15 +33,12 @@ On completion of this tutorial, you should be able:
 - to run diagnostics to understand what Bean Machine is doing; and
 - to generalize the techniques demonstrated to build an IRT model based on new data.
 
-
 ## Prerequisites
-
 
 We will be using the following packages within this tutorial.
 
 - [arviz](https://arviz-devs.github.io/arviz/) and
   [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -73,7 +68,6 @@ from IPython.display import Markdown
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for `torch` for reproducibility.
 
-
 ```python
 # Eliminate excess UserWarnings from ArviZ.
 warnings.simplefilter("ignore")
@@ -91,7 +85,6 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Data
-
 
 Our data consist of every foul recorded in the last two minutes of every NBA game for
 the 2015/16 and 2016/17 seasons. The data consists of records for when the foul
@@ -125,23 +118,22 @@ the categorical encoding of the respective column.
 | **remaining_poss**          | Remaining number of possessions.                                   |
 | **remaining_poss_id**       | ID for the remaining number of possessions.                        |
 
-
 ```python
 df = nba.load_data()
 Markdown(df.head().to_markdown())
 ```
 
-|    |   seconds_left | call_type   |   call_type_id |   foul_called | committing_player   |   committing_player_id | disadvantaged_player   |   disadvantaged_player_id |   score_committing |   score_disadvantaged | season    |   season_id |   trailing_committing |   score_diff |   trailing_poss |   trailing_poss_id |   remaining_poss |   remaining_poss_id |
-|---:|---------------:|:------------|---------------:|--------------:|:--------------------|-----------------------:|:-----------------------|--------------------------:|-------------------:|----------------------:|:----------|------------:|----------------------:|-------------:|----------------:|-------------------:|-----------------:|--------------------:|
-|  0 |             89 | Shooting    |              4 |             1 | Ian Mahinmi         |                    162 | DeMar DeRozan          |                        98 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                4 |                   3 |
-|  1 |             73 | Shooting    |              4 |             0 | Bismack Biyombo     |                     36 | Paul George            |                       358 |                106 |                    99 | 2015-2016 |           0 |                     0 |           -7 |              -2 |                  2 |                3 |                   2 |
-|  2 |             38 | Loose Ball  |              1 |             1 | Jordan Hill         |                    229 | Jonas Valanciunas      |                       222 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                2 |                   1 |
-|  3 |             30 | Offensive   |              2 |             0 | Jordan Hill         |                    229 | DeMar DeRozan          |                        98 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                2 |                   1 |
-|  4 |             24 | Offensive   |              2 |             0 | Jordan Hill         |                    229 | DeMarre Carroll        |                       100 |                 99 |                   106 | 2015-2016 |           0 |                     1 |            7 |               3 |                  7 |                1 |                   0 |
+|     | seconds_left | call_type  | call_type_id | foul_called | committing_player | committing_player_id | disadvantaged_player | disadvantaged_player_id | score_committing | score_disadvantaged | season    | season_id | trailing_committing | score_diff | trailing_poss | trailing_poss_id | remaining_poss | remaining_poss_id |
+| --: | -----------: | :--------- | -----------: | ----------: | :---------------- | -------------------: | :------------------- | ----------------------: | ---------------: | ------------------: | :-------- | --------: | ------------------: | ---------: | ------------: | ---------------: | -------------: | ----------------: |
+|   0 |           89 | Shooting   |            4 |           1 | Ian Mahinmi       |                  162 | DeMar DeRozan        |                      98 |               99 |                 106 | 2015-2016 |         0 |                   1 |          7 |             3 |                7 |              4 |                 3 |
+|   1 |           73 | Shooting   |            4 |           0 | Bismack Biyombo   |                   36 | Paul George          |                     358 |              106 |                  99 | 2015-2016 |         0 |                   0 |         -7 |            -2 |                2 |              3 |                 2 |
+|   2 |           38 | Loose Ball |            1 |           1 | Jordan Hill       |                  229 | Jonas Valanciunas    |                     222 |               99 |                 106 | 2015-2016 |         0 |                   1 |          7 |             3 |                7 |              2 |                 1 |
+|   3 |           30 | Offensive  |            2 |           0 | Jordan Hill       |                  229 | DeMar DeRozan        |                      98 |               99 |                 106 | 2015-2016 |         0 |                   1 |          7 |             3 |                7 |              2 |                 1 |
+|   4 |           24 | Offensive  |            2 |           0 | Jordan Hill       |                  229 | DeMarre Carroll      |                     100 |               99 |                 106 | 2015-2016 |         0 |                   1 |          7 |             3 |                7 |              1 |                 0 |
+
 
 Below is a figure showing the number of fouls within our data, and the observed foul
 call rate.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -151,7 +143,7 @@ foul_types_plot = nba.plot_foul_types(df["call_type"].value_counts())
 show(foul_types_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/foul-types-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/999a9dcd-cd41-48b2-b5aa-0ed617ef475f.json')} />
 
 ```python
 # Required for visualizing in Colab.
@@ -161,12 +153,11 @@ call_type_plot = nba.plot_call_type_means(df.groupby("call_type").mean()["foul_c
 show(call_type_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/call-type-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/eac49d91-96aa-42a5-9159-79cf65172f23.json')} />
 
 Next we investigate the frequency with which fouls are called for each of the NBA
 seasons in our data. The difference between the foul rates in the 2015/16 and 2016/17
 seasons is easily shown below. We will account for this in our first model.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -176,10 +167,9 @@ foul_freq_plot = nba.plot_foul_frequency(df.groupby("season").mean()["foul_calle
 show(foul_freq_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/foul-freq-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/f7525ad5-234a-4252-94f4-ef92c78a97cb.json')} />
 
 ## Basic model
-
 
 The initial model is a hierarchical logistic regression with a per-season latent
 variable to predict foul calls. This model just tries to predict how likely a play $k$
@@ -206,7 +196,6 @@ where the only feature is which season did the foul occur during.
 **`NOTE`** We can implement this model in Bean Machine by defining random variable
 objects with the `@bm.random_variable` and `@bm.functional` decorators. These functions
 behave differently than ordinary Python functions.
-
 
 <div
   style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
@@ -248,7 +237,6 @@ behave differently than ordinary Python functions.
   </ul>
 </div>
 
-
 ```python
 class BasicModel:
     def __init__(self, df):
@@ -278,9 +266,7 @@ iteration. Bean Machine is also able to take advantage of the implicit broadcast
 pytorch tensors and pytorch samplers like `dist.Bernoulli` allowing us to sample or
 observe all $y$ values at once.
 
-
 ## Inference
-
 
 Inference is the process of combining model and data to obtain insights, in the form of
 probability distributions over values of interest. Bean Machine offers a powerful and
@@ -290,7 +276,6 @@ Our inference algorithms expect a list of query variables and observations in th
 of a dictionary. The query list and the keys for the observation dictionary should
 consist of `@bm.random_variable` invocations as keys, and tensor data as values. You can
 see this in the example below.
-
 
 ```python
 basic_model = BasicModel(df)
@@ -314,7 +299,6 @@ For the models in this tutorial we will use the `GlobalNoUTurnSampler` inference
 algorithm, as it is particularly well-suited to handle hierarchical models with partial
 pooling and without discrete latent variables.
 
-
 ```python
 num_samples = 1 if smoke_test else 1000
 num_adaptive_samples = 0 if smoke_test else num_samples // 2
@@ -332,19 +316,19 @@ basic_samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ## Analysis
-
 
 `basic_samples` now contains our inference results. We begin our analysis by printing
 out summary statistics. Two important statistics to take note of are the $\hat{R}$
 (`r_hat`) and effective sample size (`ess`) values in the below dataframe, see
 [Vehtari _et al_](#references).
-
 
 ```python
 basic_trace = basic_samples.to_inference_data()
@@ -353,13 +337,13 @@ basic_summary_df = az.summary(basic_trace, round_to=3)
 Markdown(basic_summary_df.to_markdown())
 ```
 
-|         |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:--------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| p(,)[0] |  0.414 | 0.008 |      0.402 |       0.426 |           0 |         0 |    2686.41 |    2195.17 |   1.001 |
-| p(,)[1] |  0.31  | 0.007 |      0.299 |       0.32  |           0 |         0 |    2501.73 |    1954.62 |   1.005 |
+|           |  mean |    sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail | r_hat |
+| :-------- | ----: | ----: | -------: | --------: | --------: | ------: | -------: | -------: | ----: |
+| p(,)\[0\] | 0.414 | 0.008 |    0.402 |     0.426 |         0 |       0 |  2686.41 |  2195.17 | 1.001 |
+| p(,)\[1\] |  0.31 | 0.007 |    0.299 |      0.32 |         0 |       0 |  2501.73 |  1954.62 | 1.005 |
+
 
 ### Measuring variance between and within chains with $\hat{R}$
-
 
 $\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
 is a test that indicates a lack of convergence by comparing the variance between
@@ -380,9 +364,7 @@ same posterior distribution. We do not recommend using inference results if
 $\hat{R}>1.01$. More information about $\hat{R}$ can be found in the
 [Vehtari _et al_](#references) paper.
 
-
 ### Effective sample size $ess$
-
 
 MCMC samplers do not draw truly independent samples from the target distribution, which
 means that our samples are correlated. In an ideal situation all samples would be
@@ -403,13 +385,10 @@ the number of samples that landed in the tails of the posterior, but rather a me
 the number of effectively independent samples if we sampled the tails of the posterior.
 The rule of thumb for this value is also to be greater than 100 per chain on average.
 
-
 ### Posterior plot of the Basic model
-
 
 With samples in hand, we can observe the posteriors of $\beta$s and see that fouls are
 slightly more likely during the earlier NBA season.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -419,7 +398,7 @@ basic_model_posterior_plot = gridplot(list(az.plot_posterior(basic_trace, show=F
 show(basic_model_posterior_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/basic-model-posterior-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/d17864d5-5d04-4832-b761-ee4ecdf77523.json')} />
 
 Below we have two diagnostic plots for individual random variables: Rank plots and
 autocorrelation plots.
@@ -438,7 +417,6 @@ autocorrelation plots.
   This is not possible in practice, due to stochastic noise and the mechanics of how
   inference works.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -448,7 +426,7 @@ str_trace_plot = gridplot(list(az.plot_trace(str_trace, kind="rank_bars", show=F
 show(str_trace_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/str-trace-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/415fa25c-a454-4cda-b63a-6959b8d41646.json')} />
 
 ```python
 # Required for visualizing in Colab.
@@ -458,12 +436,11 @@ basic_autocorr_plot = gridplot(list(az.plot_autocorr(basic_trace, show=False)))
 show(basic_autocorr_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/basic-autocorr-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/ca549980-9c35-4559-b88e-6316eaf26588.json')} />
 
 Now let's take our basic model and measure how well it predicts when fouls are called.
 As we can see, because the prediction can only depend on the season it doesn't do the
 greatest.
-
 
 ```python
 phat = basic_samples[basic_model.p()]
@@ -480,18 +457,19 @@ idx = resid_df.index.tolist()[:5] + resid_df.index.tolist()[-5:]
 Markdown(resid_df[["season", "foul_called", "p_hat", "resid"]].loc[idx].to_markdown())
 ```
 
-|      | season    |   foul_called |    p_hat |     resid |
-|-----:|:----------|--------------:|---------:|----------:|
-|    0 | 2015-2016 |             1 | 0.414419 |  0.585581 |
-|    1 | 2015-2016 |             0 | 0.414419 | -0.414419 |
-|    2 | 2015-2016 |             1 | 0.414419 |  0.585581 |
-|    3 | 2015-2016 |             0 | 0.414419 | -0.414419 |
-|    4 | 2015-2016 |             0 | 0.414419 | -0.414419 |
-| 8625 | 2016-2017 |             1 | 0.309528 |  0.690472 |
-| 8626 | 2016-2017 |             0 | 0.309528 | -0.309528 |
-| 8627 | 2016-2017 |             1 | 0.309528 |  0.690472 |
-| 8628 | 2016-2017 |             0 | 0.309528 | -0.309528 |
-| 8629 | 2016-2017 |             1 | 0.309528 |  0.690472 |
+|      | season    | foul_called |    p_hat |     resid |
+| ---: | :-------- | ----------: | -------: | --------: |
+|    0 | 2015-2016 |           1 | 0.414419 |  0.585581 |
+|    1 | 2015-2016 |           0 | 0.414419 | -0.414419 |
+|    2 | 2015-2016 |           1 | 0.414419 |  0.585581 |
+|    3 | 2015-2016 |           0 | 0.414419 | -0.414419 |
+|    4 | 2015-2016 |           0 | 0.414419 | -0.414419 |
+| 8625 | 2016-2017 |           1 | 0.309528 |  0.690472 |
+| 8626 | 2016-2017 |           0 | 0.309528 | -0.309528 |
+| 8627 | 2016-2017 |           1 | 0.309528 |  0.690472 |
+| 8628 | 2016-2017 |           0 | 0.309528 | -0.309528 |
+| 8629 | 2016-2017 |           1 | 0.309528 |  0.690472 |
+
 
 ```python
 basic_model_resid_df = resid_df.pivot_table("resid", "season")
@@ -499,14 +477,14 @@ Markdown(basic_model_resid_df.to_markdown())
 ```
 
 | season    |        resid |
-|:----------|-------------:|
+| :-------- | -----------: |
 | 2015-2016 | -0.000241572 |
 | 2016-2017 | -0.000126373 |
+
 
 So what other features could we use? Let's plot residuals versus how many seconds are
 left in the game. If there is any trend in this plot, we can try to incorporate it into
 our model and likely improve the quality of our predictions.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -517,14 +495,12 @@ basic_resid_plot = nba.plot_basic_model_residuals(temp_df)
 show(basic_resid_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/basic-resid-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/4e5d7c96-bb7b-4ad2-a80b-1cb612560b09.json')} />
 
 ## Improving on the Basic Model
 
-
 We can get a sense of how to improve the model by noticing that it is the team that is
 behind that has a greater incentive to make a foul.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -534,14 +510,13 @@ trailing_team_committing_plot = nba.plot_trailing_team_committing(df)
 show(trailing_team_committing_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/trailing-team-committing-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/375a5f93-0970-4d7a-bbba-c09f4a1d6ef1.json')} />
 
 Let's model that difference as a feature. To drive home how significant the trailing
 team's observed foul rate is within the final two minutes of a game, we will plot the
 foul rate _vs_ the number of trailing possessions over time. Trailing possessions is the
 number of points the trailing team would need to make before the shot-clock times out,
 which is 20 seconds.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -551,14 +526,13 @@ trailing_poss_plot = nba.plot_trailing_possessions(df)
 show(trailing_poss_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/trailing-poss-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/f3ecb472-3377-474e-8ef1-fbba17a92092.json')} />
 
 As we can see, teams behind by a single possession have a lower observed foul rate than
 those that are behind by three possessions.
 
 We also notice that certain calls are much more associated with fouls. We will include
 this in our model as well.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -568,10 +542,9 @@ type_plot = nba.plot_call_type_means(df.groupby("call_type").mean()["foul_called
 show(type_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/type-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/61d807ed-fed7-46ae-beaa-5665c4d9ed49.json')} />
 
 ## Possesion model
-
 
 In the improved model, we explore if who has possession of the ball determines how
 likely it is for a foul to be committed. This model incorporates a latent variable
@@ -594,7 +567,6 @@ p_k                       & =    \textrm{sigmoid}\left(\eta^{\textrm{game}}_k\ri
 y_k                       & \sim \textrm{Bernoulli}(p_k) .
 \end{aligned}
 $$
-
 
 ```python
 class PossesionModel:
@@ -661,7 +633,6 @@ of the algorithmically sampled random variable $y$ is no longer directly depende
 $\sigma$. This is called a *non-centered reparameterization* and is an encouraged change
 to make to any model you intend to use with NUTS.
 
-
 ```python
 poss_model = PossesionModel(df)
 poss_model_queries = [poss_model.p()]
@@ -681,9 +652,11 @@ poss_samples = bm.GlobalNoUTurnSampler(target_accept_prob=0.90, nnc_compile=nnc_
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/1500 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ```python
@@ -691,7 +664,6 @@ poss_trace = poss_samples.to_inference_data()
 ```
 
 When we check diagnostics, we see the $ess$ is decent and $\hat{R}$ isn't too high.
-
 
 ```python
 poss_summary_df = az.summary(poss_trace, round_to=3)
@@ -702,18 +674,19 @@ idx = poss_summary_df.index.tolist()[:5] + poss_summary_df.index.tolist()[-5:]
 Markdown(poss_summary_df.loc[idx].to_markdown())
 ```
 
-|            |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:-----------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| p(,)[0]    |  0.509 | 0.056 |      0.42  |       0.598 |       0.014 |     0.01  |     16.027 |    235.105 |   1.124 |
-| p(,)[1]    |  0.416 | 0.049 |      0.335 |       0.497 |       0.011 |     0.008 |     19.563 |     58.273 |   1.109 |
-| p(,)[2]    |  0.406 | 0.044 |      0.342 |       0.468 |       0.004 |     0.003 |    123.779 |     99.481 |   1.032 |
-| p(,)[3]    |  0.213 | 0.04  |      0.15  |       0.266 |       0.01  |     0.007 |     14.438 |    433.81  |   1.152 |
-| p(,)[4]    |  0.211 | 0.042 |      0.154 |       0.274 |       0.011 |     0.008 |     16.576 |     71.769 |   1.126 |
-| p(,)[8625] |  0.849 | 0.018 |      0.82  |       0.875 |       0.001 |     0.001 |    231.829 |    561.624 |   1.02  |
-| p(,)[8626] |  0.27  | 0.031 |      0.215 |       0.316 |       0.003 |     0.002 |     84.273 |    163.17  |   1.032 |
-| p(,)[8627] |  0.849 | 0.018 |      0.82  |       0.875 |       0.001 |     0.001 |    231.829 |    561.624 |   1.02  |
-| p(,)[8628] |  0.258 | 0.035 |      0.208 |       0.314 |       0.009 |     0.006 |     15.719 |     32.625 |   1.124 |
-| p(,)[8629] |  0.299 | 0.031 |      0.253 |       0.349 |       0.004 |     0.003 |     55.64  |    272.819 |   1.058 |
+|              |  mean |    sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail | r_hat |
+| :----------- | ----: | ----: | -------: | --------: | --------: | ------: | -------: | -------: | ----: |
+| p(,)\[0\]    | 0.509 | 0.056 |     0.42 |     0.598 |     0.014 |    0.01 |   16.027 |  235.105 | 1.124 |
+| p(,)\[1\]    | 0.416 | 0.049 |    0.335 |     0.497 |     0.011 |   0.008 |   19.563 |   58.273 | 1.109 |
+| p(,)\[2\]    | 0.406 | 0.044 |    0.342 |     0.468 |     0.004 |   0.003 |  123.779 |   99.481 | 1.032 |
+| p(,)\[3\]    | 0.213 |  0.04 |     0.15 |     0.266 |      0.01 |   0.007 |   14.438 |   433.81 | 1.152 |
+| p(,)\[4\]    | 0.211 | 0.042 |    0.154 |     0.274 |     0.011 |   0.008 |   16.576 |   71.769 | 1.126 |
+| p(,)\[8625\] | 0.849 | 0.018 |     0.82 |     0.875 |     0.001 |   0.001 |  231.829 |  561.624 |  1.02 |
+| p(,)\[8626\] |  0.27 | 0.031 |    0.215 |     0.316 |     0.003 |   0.002 |   84.273 |   163.17 | 1.032 |
+| p(,)\[8627\] | 0.849 | 0.018 |     0.82 |     0.875 |     0.001 |   0.001 |  231.829 |  561.624 |  1.02 |
+| p(,)\[8628\] | 0.258 | 0.035 |    0.208 |     0.314 |     0.009 |   0.006 |   15.719 |   32.625 | 1.124 |
+| p(,)\[8629\] | 0.299 | 0.031 |    0.253 |     0.349 |     0.004 |   0.003 |    55.64 |  272.819 | 1.058 |
+
 
 ```python
 # Required for visualizing in Colab.
@@ -723,14 +696,13 @@ poss_autocorr_plot = gridplot(list(az.plot_autocorr(poss_trace, show=False)))
 show(poss_autocorr_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/poss-autocorr-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/12bb5e5e-1d86-426e-9915-fc05822a73f0.json')} />
 
 ```python
 phat = poss_samples[poss_model.p()]
 ```
 
 We also check if the per-season residuals have improved.
-
 
 ```python
 resid_df = df.assign(p_hat=phat.numpy().mean(axis=0).mean(axis=0)).assign(
@@ -747,14 +719,35 @@ display(Markdown(basic_model_resid_df.to_markdown()))
 ```
 
 <CellOutput>
-{`Possession model
-Basic model`}
+{
+  `Possession model`
+}
 </CellOutput>
+
+
+| season    |        resid |
+| :-------- | -----------: |
+| 2015-2016 |  0.000231191 |
+| 2016-2017 | -0.000212147 |
+
+
+
+<CellOutput>
+{
+  `Basic model`
+}
+</CellOutput>
+
+
+| season    |        resid |
+| :-------- | -----------: |
+| 2015-2016 | -0.000241572 |
+| 2016-2017 | -0.000126373 |
+
 
 We also check if our residuals are sensitive to how many seconds are left in the game.
 Since they are not, it means our possession model better captures the connection between
 fouls and how many seconds remain in the game.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -764,7 +757,7 @@ poss_resid_plot = nba.plot_possession_model_residuals(resid_df)
 show(poss_resid_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/poss-resid-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/44edd883-70a5-45a7-84f9-188c79da3e79.json')} />
 
 We now compare these the possession model to the basic model. To do this we will use the
 Watanabe-Akaike or widely available information criterion (WAIC). An information
@@ -777,24 +770,22 @@ $$
 \sigma_{\text{log}}^2(y_i) = \mathbb{E}_{p(\theta \mid y)}(\log p(y_i \mid \theta))
 $$
 
-
 We can approximate the expectations in this equation using samples from our posterior.
 
 When we compare these models we see that the possession model better explains the data
 and is given a higher rank.
 
-
 ```python
 Markdown(az.compare({"possession": poss_trace, "basic": basic_trace}, ic="waic").to_markdown())
 ```
 
-|            |   rank |     waic |    p_waic |   d_waic |   weight |   se |   dse | warning   | waic_scale   |
-|:-----------|-------:|---------:|----------:|---------:|---------:|-----:|------:|:----------|:-------------|
-| possession |      0 | -4849.7  | 76.6483   |    0     |      0.5 |    0 |     0 | True      | log          |
-| basic      |      1 | -5576.19 |  0.911201 |  726.494 |      0.5 |    0 |     0 | True      | log          |
+|            | rank |     waic |   p_waic |  d_waic | weight |  se | dse | warning | waic_scale |
+| :--------- | ---: | -------: | -------: | ------: | -----: | --: | --: | :------ | :--------- |
+| possession |    0 |  -4849.7 |  76.6483 |       0 |    0.5 |   0 |   0 | True    | log        |
+| basic      |    1 | -5576.19 | 0.911201 | 726.494 |    0.5 |   0 |   0 | True    | log        |
+
 
 ## Player item-response theory model
-
 
 We now try to improve our model once more by modeling the players involved in the foul
 calls. To do this we will associate with each player two latent variables, a propensity
@@ -822,7 +813,6 @@ p_k                       & =    \textrm{sigmoid}\left(\eta^{\textrm{game}}_k\ri
 y_k                       & \sim \textrm{Bernoulli}(p_k) .
 \end{aligned}
 $$
-
 
 ```python
 class IRTModel:
@@ -926,9 +916,11 @@ irt_samples = bm.GlobalNoUTurnSampler(target_accept_prob=0.90, nnc_compile=nnc_c
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/2250 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ```python
@@ -944,24 +936,24 @@ idx = irt_summary_df.index.tolist()[:5] + irt_summary_df.index.tolist()[-5:]
 Markdown(irt_summary_df.loc[idx].to_markdown())
 ```
 
-|            |   mean |    sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:-----------|-------:|------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| p(,)[0]    |  0.414 | 0.086 |      0.279 |       0.551 |       0.001 |     0.001 |       5265 |       3289 |       1 |
-| p(,)[1]    |  0.361 | 0.077 |      0.233 |       0.481 |       0.001 |     0.001 |       7964 |       3489 |       1 |
-| p(,)[2]    |  0.398 | 0.079 |      0.265 |       0.515 |       0.001 |     0.001 |       6713 |       3376 |       1 |
-| p(,)[3]    |  0.164 | 0.051 |      0.084 |       0.238 |       0.001 |     0.001 |       4292 |       3323 |       1 |
-| p(,)[4]    |  0.18  | 0.053 |      0.091 |       0.255 |       0.001 |     0.001 |       5795 |       3182 |       1 |
-| p(,)[8625] |  0.851 | 0.043 |      0.787 |       0.917 |       0.001 |     0     |       7310 |       2997 |       1 |
-| p(,)[8626] |  0.254 | 0.066 |      0.146 |       0.356 |       0.001 |     0.001 |       8382 |       3477 |       1 |
-| p(,)[8627] |  0.85  | 0.043 |      0.787 |       0.918 |       0     |     0     |       8100 |       3317 |       1 |
-| p(,)[8628] |  0.278 | 0.068 |      0.161 |       0.378 |       0.001 |     0.001 |       7627 |       3248 |       1 |
-| p(,)[8629] |  0.267 | 0.064 |      0.163 |       0.365 |       0.001 |     0.001 |       7294 |       3129 |       1 |
+|              |  mean |    sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail | r_hat |
+| :----------- | ----: | ----: | -------: | --------: | --------: | ------: | -------: | -------: | ----: |
+| p(,)\[0\]    | 0.414 | 0.086 |    0.279 |     0.551 |     0.001 |   0.001 |     5265 |     3289 |     1 |
+| p(,)\[1\]    | 0.361 | 0.077 |    0.233 |     0.481 |     0.001 |   0.001 |     7964 |     3489 |     1 |
+| p(,)\[2\]    | 0.398 | 0.079 |    0.265 |     0.515 |     0.001 |   0.001 |     6713 |     3376 |     1 |
+| p(,)\[3\]    | 0.164 | 0.051 |    0.084 |     0.238 |     0.001 |   0.001 |     4292 |     3323 |     1 |
+| p(,)\[4\]    |  0.18 | 0.053 |    0.091 |     0.255 |     0.001 |   0.001 |     5795 |     3182 |     1 |
+| p(,)\[8625\] | 0.851 | 0.043 |    0.787 |     0.917 |     0.001 |       0 |     7310 |     2997 |     1 |
+| p(,)\[8626\] | 0.254 | 0.066 |    0.146 |     0.356 |     0.001 |   0.001 |     8382 |     3477 |     1 |
+| p(,)\[8627\] |  0.85 | 0.043 |    0.787 |     0.918 |         0 |       0 |     8100 |     3317 |     1 |
+| p(,)\[8628\] | 0.278 | 0.068 |    0.161 |     0.378 |     0.001 |   0.001 |     7627 |     3248 |     1 |
+| p(,)\[8629\] | 0.267 | 0.064 |    0.163 |     0.365 |     0.001 |   0.001 |     7294 |     3129 |     1 |
+
 
 The effective sample size is decently large and the $\hat{R}$ is close to 1, hence it
 seems likely that this model fitted the data well using NUTS.
 
 Let's see how it compares with the previous models we defined and explored.
-
 
 ```python
 phat = irt_samples[irt_model.p()]
@@ -978,7 +970,7 @@ irt_resid_plot = nba.plot_irt_residuals(resid_df)
 show(irt_resid_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/irt-resid-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/8093fbd4-ee41-48bb-9232-048e40185135.json')} />
 
 ```python
 irt_resid_df = resid_df.pivot_table("resid", "season")
@@ -992,14 +984,48 @@ display(Markdown(irt_resid_df.to_markdown()))
 ```
 
 <CellOutput>
-{`Possession model
-Basic model
-IRT model`}
+{
+  `Possession model`
+}
 </CellOutput>
+
+
+| season    |        resid |
+| :-------- | -----------: |
+| 2015-2016 |  0.000231191 |
+| 2016-2017 | -0.000212147 |
+
+
+
+<CellOutput>
+{
+  `Basic model`
+}
+</CellOutput>
+
+
+| season    |        resid |
+| :-------- | -----------: |
+| 2015-2016 | -0.000241572 |
+| 2016-2017 | -0.000126373 |
+
+
+
+<CellOutput>
+{
+  `IRT model`
+}
+</CellOutput>
+
+
+| season    |        resid |
+| :-------- | -----------: |
+| 2015-2016 | -0.000191984 |
+| 2016-2017 |  0.000177422 |
+
 
 The residuals are not demonstratably smaller than the possession model, but they are
 still smaller than the basic model. Finally, let's compare all three models using WAIC.
-
 
 ```python
 Markdown(
@@ -1010,18 +1036,17 @@ Markdown(
 )
 ```
 
-|            |   rank |     waic |     p_waic |   d_waic |   weight |   se |   dse | warning   | waic_scale   |
-|:-----------|-------:|---------:|-----------:|---------:|---------:|-----:|------:|:----------|:-------------|
-| possession |      0 | -4849.7  |  76.6483   |    0     | 0.333333 |    0 |     0 | True      | log          |
-| irt        |      1 | -5087.1  | 439.29     |  237.402 | 0.333333 |    0 |     0 | True      | log          |
-| basic      |      2 | -5576.19 |   0.911201 |  726.494 | 0.333333 |    0 |     0 | True      | log          |
+|            | rank |     waic |   p_waic |  d_waic |   weight |  se | dse | warning | waic_scale |
+| :--------- | ---: | -------: | -------: | ------: | -------: | --: | --: | :------ | :--------- |
+| possession |    0 |  -4849.7 |  76.6483 |       0 | 0.333333 |   0 |   0 | True    | log        |
+| irt        |    1 |  -5087.1 |   439.29 | 237.402 | 0.333333 |   0 |   0 | True    | log        |
+| basic      |    2 | -5576.19 | 0.911201 | 726.494 | 0.333333 |   0 |   0 | True    | log        |
+
 
 We can see the IRT model is slightly better than the possession model, and both are
 better than the basic model.
 
-
 ## Conclusion
-
 
 With this tutorial we analyzed NBA foul data and came up with three models to predict
 when fouls happen. The best model explicitly models the players themselves and their own
@@ -1030,11 +1055,9 @@ educational testing. If you have ever taken a standardized test, an IRT model wa
 to convert your test answers into an inference about your aptitude in math or reading
 comprehension.
 
-
 <a id="references"></a>
 
 ## References
-
 
 1. Austin Rochford's 2018
    analysis[ https://austinrochford.com/posts/2018-02-04-nba-irt-2.html](https://austinrochford.com/posts/2018-02-04-nba-irt-2.html)

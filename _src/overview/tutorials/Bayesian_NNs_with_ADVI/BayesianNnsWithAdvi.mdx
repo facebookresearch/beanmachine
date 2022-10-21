@@ -6,9 +6,10 @@ nb_path: tutorials/Bayesian_NNs_with_ADVI.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_NNs_with_ADVI.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_NNs_with_ADVI.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Bayesian_NNs_with_ADVI.ipynb"
@@ -17,11 +18,9 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 # Variational inference in Bean Machine
 
-
 Bean Machine also includes support for Variational Inference similar to Pyro. In this
 tutorial we will be exploring settings and scenarios where one might benefit from using
 a variational inference approach as opposed to the MCMC methods we often use by default.
-
 
 ## Learning Outcomes
 
@@ -29,14 +28,12 @@ a variational inference approach as opposed to the MCMC methods we often use by 
 - To understand which probabilistic models most benefit from a VI approach
 - To diagnose and debug problems with VI models
 
-
 ## Prerequisties
 
 We will be using the following packages within this tutorial.
 
 - arviz and bokeh for interactive visualizations; and
 - pandas for data manipulation.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -73,7 +70,6 @@ from tqdm import tqdm
 
 ## What is Variational Inference?
 
-
 In sampling-based inference algorithms, we take define a probability distribution
 represening model $p(z | y)$ with latent variables $z$ and observed data $y$. Because
 sampling from most distributions is challenging to do directly, we then use various
@@ -89,13 +85,10 @@ distribution that behaves the same in the tails as the true distribution, as wel
 underestimating the variance in the true distribution. The main advantage as we will see
 is the algorithms themselves are substantially faster.
 
-
 ## Data
-
 
 We will demonstrate how you might use variational inference using a toy dataset which
 generates overlapping half-circles.
-
 
 ```python
 from sklearn.datasets import make_moons
@@ -123,18 +116,15 @@ moon_plot = plots.scatter_plot(
 show(moon_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/moon-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/9d9ff0d5-10b5-4d7c-97db-56088d1503bf.json')} />
 
 To do well on this model, we will need to explicitly model the non-linearity of this
 data.
 
-
 ## Toy Model
-
 
 But first let's use a simpler example to use all the machinery at play, and start with a
 very simple model.
-
 
 ```python
 import beanmachine.ppl as bm
@@ -153,7 +143,6 @@ def x():
 
 To approximate `mu` we will create a $guide$ distribution of a Normal distribution and
 make the parameters learnable.
-
 
 ```python
 @bm.param
@@ -182,8 +171,16 @@ world.get_variable(q_mu()).distribution
 ```
 
 <CellOutput>
-{`  0%|          | 0/100 [00:00<?, ?it/s]
-Normal(loc: 2.4571237564086914, scale: 0.6683022379875183)`}
+{
+  `  0%|          | 0/100 [00:00<?, ?it/s]`
+}
+</CellOutput>
+
+
+<CellOutput>
+{
+  `Normal(loc: 2.4571237564086914, scale: 0.6683022379875183)`
+}
 </CellOutput>
 
 In this particular setting, there is a closed-form solution for the posterior in terms
@@ -191,19 +188,19 @@ of
 [conjugate priors](https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions),
 so we can compare our variational distribution to the true posterior.
 
-
 ```python
 true_posterior = dist.Normal(2.5, torch.tensor(0.5).sqrt())
 true_posterior
 ```
 
 <CellOutput>
-{`Normal(loc: 2.5, scale: 0.7071067690849304)`}
+{
+  `Normal(loc: 2.5, scale: 0.7071067690849304)`
+}
 </CellOutput>
 
 We also compare against a NUTS sampler which is asymptotically guaranteed to converge to
 the true posterior.
-
 
 ```python
 nuts_samples = bm.GlobalNoUTurnSampler().infer(
@@ -215,7 +212,9 @@ nuts_samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`}
+{
+  `Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ```python
@@ -223,20 +222,19 @@ nuts_samples[mu()].std()
 ```
 
 <CellOutput>
-{`tensor(0.6904)`}
+{
+  `tensor(0.6904)`
+}
 </CellOutput>
 
 As you can see, the mean is of $\mu$ is reasonably approximated but it has less success
 approximating the standard deviation.
 
-
 ## Bayesian Neural Network model
-
 
 We will model this problem using a *Bayesian neural network* (BNN). A BNN is a
 probabilistic model where we model the uncertainty of the weights of the neural network
 as latent variables in our model.
-
 
 ```python
 import beanmachine.ppl as bm
@@ -272,7 +270,6 @@ class BayesianNeuralNetwork:
 
 We create queries and observations just as we did for MCMC inference
 
-
 ```python
 X = torch.tensor(X, dtype=torch.float)
 Y = torch.tensor(Y, dtype=torch.float)
@@ -287,7 +284,6 @@ The easiest way to get started using the variational inference method is using A
 This will automatically select a guide distribution to match up with each of your
 queries.
 
-
 ```python
 bnn_world = ADVI(
     queries=queries,
@@ -301,20 +297,19 @@ bnn_world = ADVI(
 ```
 
 <CellOutput>
-{`  0%|          | 0/8000 [00:00<?, ?it/s]`}
+{
+  `  0%|          | 0/8000 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 Notice, how quickly fitting this model took to run. Modify the above cell to use
 `bm.GlobalNoUTurnSampler()` instead of `ADVI` to really appreciate the speed difference.
 
-
 ### Monitoring and diagnosing model inferred with Variational Inference
-
 
 We can plot the divergence over time and to make sure the optimization didn't get stuck.
 The divergence measures the difference the approximate distribution we are learning and
 the true distribution we are trying to approximate.
-
 
 ```python
 vi = ADVI(
@@ -333,7 +328,16 @@ vi.initialize_world()
 ```
 
 <CellOutput>
-{`<beanmachine.ppl.inference.vi.variational_world.VariationalWorld at 0x7fa371dd5ed0>`}
+{
+  `100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:04<00:00, 202.75it/s]`
+}
+</CellOutput>
+
+
+<CellOutput>
+{
+  `<beanmachine.ppl.inference.vi.variational_world.VariationalWorld at 0x7fa371dd5ed0>`
+}
 </CellOutput>
 
 ```python
@@ -354,10 +358,9 @@ elbo_plot = plots.line_plot(
 show(elbo_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/elbo-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/cab0a98f-4d3f-45c0-85a5-4c27c047f728.json')} />
 
 We can also check the convergence of the parameters
-
 
 ```python
 vi_world = ADVI(
@@ -374,6 +377,12 @@ for i in tqdm(range(num_steps)):
     vals.append(param[0, 0].item())
 
 ```
+
+<CellOutput>
+{
+  `100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5000/5000 [00:22<00:00, 219.71it/s]`
+}
+</CellOutput>
 
 ```python
 output_notebook(hide_banner=True)
@@ -393,13 +402,12 @@ param_plot = plots.line_plot(
 show(param_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/param-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/6310760f-3a2e-4709-92de-c477c834de80.json')} />
 
 We need to introduce a helper method. The default method for accessing the guide
 distribution associated with each model variable is quite long. To make it easier to
 understand what we are doing when we generate predictions, we are adding the following
 shorthand.
-
 
 ```python
 def d(x):
@@ -409,7 +417,6 @@ def d(x):
 We create posterior predictive samples by using the learned distributions to generate
 observations. This is just the `forward` method from our original model with some minor
 changes to enable batch sampling.
-
 
 ```python
 def predictions(X, samples=100):
@@ -424,7 +431,6 @@ def predictions(X, samples=100):
 
 We visualise our predictions to show that the confidence of the prediction decreases as
 we approach the boundary.
-
 
 ```python
 import numpy as np
@@ -452,7 +458,15 @@ p.circle(X[Y==1,0].numpy(), X[Y==1,1].numpy(), color="cyan")
 show(p)
 ```
 
-<BokehFigure data={require('./assets/plot_data/p.json')} />
+<CellOutput>
+{
+  `/home/zv/upstream/miniconda3/envs/bean-machine/lib/python3.7/site-packages/ipykernel_launcher.py:7: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at  ../torch/csrc/utils/tensor_new.cpp:204.)
+  import sys`
+}
+</CellOutput>
+
+
+<BokehFigure data={require('./assets/plot_data/ce7c2276-ebf8-4218-92c9-16aed8cca641.json')} />
 
 As we can see, the posterior inference is effective and not just separating the classes,
 but also highlighting where we uncertainty within our model.

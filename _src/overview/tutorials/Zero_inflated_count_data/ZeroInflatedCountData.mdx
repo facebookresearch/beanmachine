@@ -6,9 +6,10 @@ nb_path: tutorials/Zero_inflated_count_data.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Zero_inflated_count_data.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Zero_inflated_count_data.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Zero_inflated_count_data.ipynb"
@@ -16,7 +17,6 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 />
 
 ## Tutorial: **Marginalizing discrete variables in zero inflated count data**
-
 
 In this tutorial we will be investigating data that originated from
 [Berry](#references), and was analyzed by [Farewell and Sprott](#references) from a
@@ -30,9 +30,7 @@ list of common discrete distributions. The problem we face is trying to model th
 counts in order to appropriately quantify the medication's impact on reducing irregular
 heartbeats.
 
-
 ## Learning outcomes
-
 
 On completion of this tutorial, you should be able:
 
@@ -40,9 +38,7 @@ On completion of this tutorial, you should be able:
 - to increment log probabilities using Bean Machine;
 - to run diagnostics and to understand what Bean Machine is doing.
 
-
 ## Problem
-
 
 We will address how to model response data that has more zeros than would be expected
 based on a common discrete statistical distribution. If your data have a large number of
@@ -53,16 +49,13 @@ areas. Examples include social science, traffic accident research, econometrics,
 psychology, and a well known investigation done by [Lambert](#references) on
 manufacturing defects that we will take inspiration from.
 
-
 ## Prerequisites
-
 
 We will be using the following packages within this tutorial.
 
 - [arviz](https://arviz-devs.github.io/arviz/) and
   [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations; and
 - [pandas](https://pandas.pydata.org/) for data manipulation.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -93,7 +86,6 @@ from IPython.display import Markdown
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for `torch`, for reproducibility.
 
-
 ```python
 # Ignore excessive warnings from ArviZ.
 warnings.simplefilter("ignore")
@@ -111,7 +103,6 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Data
-
 
 The data set we use in this tutorial originates from a study by [Berry](#references)
 with subsequent analysis done by [Farewell and Sprott](#references). The data consist of
@@ -137,7 +128,6 @@ to the sum of the `predrug` and `postdrug` PVC counts.
 The data only contain 12 records. Instead of loading the data from a CSV file, we will
 load it from the `data_string` below into a pandas dataframe object.
 
-
 ```python
 data_string = """patient_number,predrug,postdrug,decrease,total
 1,6,5,1,11
@@ -156,20 +146,21 @@ df = pd.read_csv(StringIO(data_string))
 Markdown(df.set_index("patient_number").to_markdown())
 ```
 
-|   patient_number |   predrug |   postdrug |   decrease |   total |
-|-----------------:|----------:|-----------:|-----------:|--------:|
-|                1 |         6 |          5 |          1 |      11 |
-|                2 |         9 |          2 |          7 |      11 |
-|                3 |        17 |          0 |         17 |      17 |
-|                4 |        22 |          0 |         22 |      22 |
-|                5 |         7 |          2 |          5 |       9 |
-|                6 |         5 |          1 |          4 |       6 |
-|                7 |         5 |          0 |          5 |       5 |
-|                8 |        14 |          0 |         14 |      14 |
-|                9 |         9 |          0 |          9 |       9 |
-|               10 |         7 |          0 |          7 |       7 |
-|               11 |         9 |         13 |         -4 |      22 |
-|               12 |        51 |          0 |         51 |      51 |
+| patient_number | predrug | postdrug | decrease | total |
+| -------------: | ------: | -------: | -------: | ----: |
+|              1 |       6 |        5 |        1 |    11 |
+|              2 |       9 |        2 |        7 |    11 |
+|              3 |      17 |        0 |       17 |    17 |
+|              4 |      22 |        0 |       22 |    22 |
+|              5 |       7 |        2 |        5 |     9 |
+|              6 |       5 |        1 |        4 |     6 |
+|              7 |       5 |        0 |        5 |     5 |
+|              8 |      14 |        0 |       14 |    14 |
+|              9 |       9 |        0 |        9 |     9 |
+|             10 |       7 |        0 |        7 |     7 |
+|             11 |       9 |       13 |       -4 |    22 |
+|             12 |      51 |        0 |       51 |    51 |
+
 
 Below are histograms of the PVC event counts pre- and post-medication for all patients.
 What we observe from these histograms is a lot of zero values after the medication has
@@ -177,7 +168,6 @@ been administered. These zero values will be important for our model defined in 
 section, and are characteristic of zero-inflated data. If we disregarded modeling these
 zero values we would be throwing out an important feature of our data, and our parameter
 estimates would be biased.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -187,7 +177,7 @@ value_counts_plot = gridplot(hearts.plot_value_counts(df))
 show(value_counts_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/value-counts-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/e8be4eab-1089-4f03-9c09-90aefccbc551.json')} />
 
 The literature classifies zero count $(y_i=0)$ observations broadly into two kinds of
 plausible explanations, which we are interested in modeling statistically (see
@@ -202,12 +192,9 @@ plausible explanations, which we are interested in modeling statistically (see
 Note that we cannot assess the biological significance of the statement "cured" in this
 tutorial.
 
-
 ## Models
 
-
 ### First model - Binomial linear model
-
 
 The data come in pairs $(x_i, y_i)$, where
 
@@ -291,7 +278,6 @@ objects with the decorator `@bm.random_variable` and deterministic values using 
 `bm.functional` decorator. These functions behave differently than ordinary Python
 functions.
 
-
 <div
   style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
 >
@@ -338,7 +324,6 @@ functions.
   </ul>
 </div>
 
-
 ```python
 # Define a variable with the total number of records.
 N = df.shape[0]
@@ -360,7 +345,6 @@ def first_model_y(i: int) -> RVIdentifier:
 
 ### Prior predictive checks
 
-
 Before we run inference, we will conduct prior predictive checks. These checks will
 determine if our priors and model can capture relevant statistics about the observed
 data. We will use Bean Machine and its `infer` method to run the prior predictive checks
@@ -381,7 +365,6 @@ prior density (here our prior density is `first_model_p`). We can then manually 
 prior samples thus obtained into the model likelihood (here
 `lambda p, i: dist.Binomial(total_count=t[i], probs=p)`), to obtain synthetic data from
 the prior predictive distribution.
-
 
 ```python
 first_model_num_samples = 1 if smoke_test else 500
@@ -407,10 +390,12 @@ first_model_samples_no_observations = bm.GlobalNoUTurnSampler(nnc_compile=nnc_co
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 Below is a plot of synthetic data simulated from the prior predictive distribution,
@@ -421,7 +406,6 @@ marker is its mean. HDI intervals are discussed at length in [McElreath](#refere
 The support defined by our prior spans across observed values for postdrug PVC counts
 and PVC counts for predrug + postdrug. The prior for $p$ is not very informative for our
 model, but it does capture the relevant bounds of the data.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -439,11 +423,10 @@ first_model_prior_pc = (
 show(first_model_prior_pc)
 ```
 
-<BokehFigure data={require('./assets/plot_data/first-model-prior-pc.json')} />
+<BokehFigure data={require('./assets/plot_data/8844f5cf-a895-44f1-9109-1299fb7c1b2d.json')} />
 
 Next, we run inference using this model, and compare the prior predictive plot with a
 posterior predictive plot.
-
 
 ```python
 # Note the observations dictionary is no longer empty.
@@ -463,10 +446,12 @@ first_model_samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/750 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ```python
@@ -497,7 +482,7 @@ prior_post_plots = gridplot([[first_model_prior_pc, first_model_posterior_pc]])
 show(prior_post_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/prior-post-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/f5eef2d4-804b-4dcf-9ada-74973be08075.json')} />
 
 The left plot is exactly what we saw above, and the right plot is simulating data using
 the posterior predictive. The mean simulated density values shift towards data (magenta
@@ -506,9 +491,7 @@ zero values as shown in the histograms of the right plot for each patient. This 
 that our model is not specified well and needs to be updated to capture the observed
 zero values.
 
-
 ## Second model - Zero-inflated Binomial linear model
-
 
 We begin our model refinement by revisiting the conditional probability derived above,
 
@@ -562,7 +545,6 @@ $$
 
 We can code this in Bean Machine as shown below.
 
-
 ```python
 @bm.random_variable
 def second_model_alpha() -> RVIdentifier:
@@ -596,12 +578,10 @@ def second_model_y(i: int) -> RVIdentifier:
 
 ### Prior predictive checks
 
-
 We will use the `SingleSiteAncestralMetropolisHastings` inference method because our
 model is mixing both discrete variables $(s_i)$ and continuous random variables
 $(\alpha$ and $\delta)$. Such models cannot be handled by Hamiltonian Monte Carlo, which
 prohibits the use of the `GlobalNoUTurnSampler`.
-
 
 ```python
 second_model_num_samples = 2 if smoke_test else 2000
@@ -627,10 +607,12 @@ second_model_samples_no_observations = bm.SingleSiteAncestralMetropolisHastings(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ```python
@@ -652,7 +634,7 @@ sec_model_prior_plot = gridplot([[second_model_prior_pc]])
 show(sec_model_prior_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/sec-model-prior-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/f781d139-eb94-446a-b65c-ab605286ec34.json')} />
 
 The above plot is successfully simulating more zeros using the given priors than our
 first model. You can use the tools above the plot to zoom in on any patient. Doing so
@@ -666,9 +648,7 @@ with other model analysis described below. You will note that we have increased 
 number of samples and adaptive samples a lot compared to the first model in order for
 the diagnostics to show good mixing of the chains.
 
-
 ### Inference
-
 
 ```python
 scnd_mdl_post_num_samples = 2 if smoke_test else 10000
@@ -692,10 +672,12 @@ second_model_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/11000 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ```python
@@ -727,7 +709,7 @@ sec_prior_post_plot = gridplot([[second_model_prior_pc, second_model_posterior_p
 show(sec_prior_post_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/sec-prior-post-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/d19d7d29-f0b1-4584-b77e-783304c7a720.json')} />
 
 The left plot is again the prior predictive simulation for our second model, and the
 right plot is the posterior predictive simulated data. You can see that this model is
@@ -737,14 +719,11 @@ previous model. The posterior predictive plot looks like it is doing a good job 
 simulating data from our model, but we will do a bit more analysis below to ensure the
 model is working as expected.
 
-
 ### Analysis
-
 
 We begin our analysis by printing out summary statistics. Two important statistics to
 take note of are the $\hat{R}$ $(r\_hat)$ and effective sample size $(ess)$ values in
 the below dataframe.
-
 
 ```python
 second_model_summary_df = az.summary(second_model_samples.to_xarray(), round_to=4)
@@ -761,24 +740,25 @@ second_model_summary_df.drop("sort", axis=1, inplace=True)
 Markdown(second_model_summary_df.to_markdown())
 ```
 
-| query                |    mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |    r_hat |
-|:---------------------|--------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|---------:|
-| second_model_alpha() | -0.48   | 0.2843 |    -0.9562 |     -0.087  |      0.0103 |    0.0073 |    757.703 |    749.653 |   1.0027 |
-| second_model_delta() |  0.3001 | 0.6234 |    -0.6313 |      1.355  |      0.0133 |    0.0103 |   2160.44  |   2163.4   |   1.0016 |
-| second_model_p()     |  0.3844 | 0.0661 |     0.2776 |      0.4783 |      0.0024 |    0.0017 |    757.703 |    749.653 |   1.0029 |
-| second_model_theta() |  0.5681 | 0.1398 |     0.3472 |      0.7949 |      0.003  |    0.0022 |   2160.44  |   2163.4   |   1.0016 |
-| second_model_s(0,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
-| second_model_s(1,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
-| second_model_s(2,)   |  0.001  | 0.032  |     0      |      0      |      0.0003 |    0.0002 |  12367.6   |  12367.6   |   1.0001 |
-| second_model_s(3,)   |  0      | 0      |     0      |      0      |      0      |    0      |  40000     |  40000     | nan      |
-| second_model_s(4,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
-| second_model_s(5,)   |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
-| second_model_s(6,)   |  0.0776 | 0.2676 |     0      |      0      |      0.0027 |    0.0019 |   9726.81  |   9726.81  |   1.0002 |
-| second_model_s(7,)   |  0.002  | 0.045  |     0      |      0      |      0.0004 |    0.0003 |  13813.7   |  13813.7   |   1      |
-| second_model_s(8,)   |  0.0172 | 0.13   |     0      |      0      |      0.0012 |    0.0009 |  11247.3   |  11247.3   |   1.0004 |
-| second_model_s(9,)   |  0.0339 | 0.181  |     0      |      0      |      0.0017 |    0.0012 |  10956.4   |  10956.4   |   1.0002 |
-| second_model_s(10,)  |  1      | 0      |     1      |      1      |      0      |    0      |  40000     |  40000     | nan      |
-| second_model_s(11,)  |  0      | 0      |     0      |      0      |      0      |    0      |  40000     |  40000     | nan      |
+| query                |   mean |     sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail |  r_hat |
+| :------------------- | -----: | -----: | -------: | --------: | --------: | ------: | -------: | -------: | -----: |
+| second_model_alpha() |  -0.48 | 0.2843 |  -0.9562 |    -0.087 |    0.0103 |  0.0073 |  757.703 |  749.653 | 1.0027 |
+| second_model_delta() | 0.3001 | 0.6234 |  -0.6313 |     1.355 |    0.0133 |  0.0103 |  2160.44 |   2163.4 | 1.0016 |
+| second_model_p()     | 0.3844 | 0.0661 |   0.2776 |    0.4783 |    0.0024 |  0.0017 |  757.703 |  749.653 | 1.0029 |
+| second_model_theta() | 0.5681 | 0.1398 |   0.3472 |    0.7949 |     0.003 |  0.0022 |  2160.44 |   2163.4 | 1.0016 |
+| second_model_s(0,)   |      1 |      0 |        1 |         1 |         0 |       0 |    40000 |    40000 |    nan |
+| second_model_s(1,)   |      1 |      0 |        1 |         1 |         0 |       0 |    40000 |    40000 |    nan |
+| second_model_s(2,)   |  0.001 |  0.032 |        0 |         0 |    0.0003 |  0.0002 |  12367.6 |  12367.6 | 1.0001 |
+| second_model_s(3,)   |      0 |      0 |        0 |         0 |         0 |       0 |    40000 |    40000 |    nan |
+| second_model_s(4,)   |      1 |      0 |        1 |         1 |         0 |       0 |    40000 |    40000 |    nan |
+| second_model_s(5,)   |      1 |      0 |        1 |         1 |         0 |       0 |    40000 |    40000 |    nan |
+| second_model_s(6,)   | 0.0776 | 0.2676 |        0 |         0 |    0.0027 |  0.0019 |  9726.81 |  9726.81 | 1.0002 |
+| second_model_s(7,)   |  0.002 |  0.045 |        0 |         0 |    0.0004 |  0.0003 |  13813.7 |  13813.7 |      1 |
+| second_model_s(8,)   | 0.0172 |   0.13 |        0 |         0 |    0.0012 |  0.0009 |  11247.3 |  11247.3 | 1.0004 |
+| second_model_s(9,)   | 0.0339 |  0.181 |        0 |         0 |    0.0017 |  0.0012 |  10956.4 |  10956.4 | 1.0002 |
+| second_model_s(10,)  |      1 |      0 |        1 |         1 |         0 |       0 |    40000 |    40000 |    nan |
+| second_model_s(11,)  |      0 |      0 |        0 |         0 |         0 |       0 |    40000 |    40000 |    nan |
+
 
 Note that there are `NaN` values for some $\hat{R}$ calculations in the above dataframe
 for some $s_i$ parameters. This is occurring because there is no variance in those $s_i$
@@ -786,9 +766,7 @@ parameters. We can ignore these values as it is entirely possible for a chain of
 to be all ones or all zeros, giving rise to zero variance within the chain and a `NaN`
 value in $\hat{R}$.
 
-
 #### Measuring variance between- and within-chains with $\hat{R}$ $(r\_hat)$
-
 
 $\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
 is a test that indicates a lack of convergence by comparing the variance between
@@ -811,9 +789,7 @@ same posterior distribution. We do not recommend using inference results if
 $\hat{R}>1.01$. More information about $\hat{R}$ can be found in the
 [Vehtari _et al_](#references) paper.
 
-
 #### Effective sample size $(ess)$ diagnostic
-
 
 MCMC samplers do not draw truly independent samples from the target distribution, which
 means that our samples are correlated. In an ideal situation all samples would be
@@ -840,7 +816,6 @@ effective sample size. The red horizontal dashed line shows the rule-of-thumb va
 needed for both the bulk and tail _ess_ estimates. When the model is converging
 properly, both the bulk and tail lines should be _roughly_ linear.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -864,7 +839,7 @@ p_theta_plots = gridplot([plots[:2], plots[2:]])
 show(p_theta_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/p-theta-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/698a782d-b39b-49a2-bf7b-9150da7f3b84.json')} />
 
 The _ess_ diagnostics look linear and are all above the rule-of-thumb value of 400 (the
 red dashed line) for each parameter in our model. We continue the diagnostics by
@@ -883,7 +858,6 @@ investigating the posteriors, rank plots, and autocorrelations for each paramete
   This is not possible in practice, due to stochastic noise and the mechanics of how
   inference works.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -892,7 +866,7 @@ second_model_diag_plot = gridplot(hearts.plot_diagnostics(second_model_samples, 
 show(second_model_diag_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/second-model-diag-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/dcd2f33b-3d14-4da6-81b7-0c94ced4c4d5.json')} />
 
 The first plot for each row is the posterior for the query. The second multicolored line
 plot is the posterior for each chain, followed by the rank plot for each chain. Finally
@@ -916,7 +890,6 @@ interval for $\alpha$ and $\delta$ as
 Our model is in fairly good agreement with these values with posterior means and
 standard deviations of
 
-
 ```python
 Markdown(
     second_model_summary_df.loc[
@@ -928,10 +901,11 @@ Markdown(
 )
 ```
 
-| query                |    mean |     sd |
-|:---------------------|--------:|-------:|
-| second_model_alpha() | -0.48   | 0.2843 |
-| second_model_delta() |  0.3001 | 0.6234 |
+| query                |   mean |     sd |
+| :------------------- | -----: | -----: |
+| second_model_alpha() |  -0.48 | 0.2843 |
+| second_model_delta() | 0.3001 | 0.6234 |
+
 
 Despite having reasonable similarities to the published results, we had to run inference
 for a large number of samples. Doing so resulted in posteriors that have high frequency
@@ -939,9 +913,7 @@ components in their distribution, and show correlated sample draws within each c
 which may indicate that our model is not as good as we can make it. We actually can make
 a better model by marginalizing out the discrete variables $s_i$.
 
-
 ## Third model - Marginalization of the discrete variable
-
 
 Marginalizing out $s_i$ will allow us to use the `GlobalNoUTurnSampler` as well as make
 a less computationally expensive model. Marginalizing lets us compute the expectation
@@ -1046,7 +1018,6 @@ marginalizing out the discrete variable; we still have to keep a catalog of it i
 want to simulate data, but we will see that running inference is a less computationally
 expensive task.
 
-
 ```python
 @bm.random_variable
 def alpha() -> RVIdentifier:
@@ -1095,11 +1066,9 @@ def d(i: int) -> RVIdentifier:
 
 ### Inference
 
-
 We set all the auxiliary observations $d(i)$ to $1$ (corresponding to $d_i$) and use
 `y_observed[i]` (corresponding to $y_i$) inside the model to compute the likelihood
 factor.
-
 
 ```python
 thrd_mdl_num_samples = 2 if smoke_test else 4000
@@ -1122,10 +1091,12 @@ samples = bm.GlobalNoUTurnSampler(nnc_compile=False).infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/6000 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 Below we plot the posterior predictive checks for model 3. We are able to recover the
@@ -1134,7 +1105,6 @@ $\text{Pr}(s_i\mid y_i,t_i,p,\theta)$ using Bean Machine. Recall that our
 `bm.functional` object for `s_i` is a way of book keeping, so we can reproduce model 2's
 ability to run posterior predictive checks. If we have successfully tracked $s_i$, then
 the two posterior predictive checks from model 2 and 3 should be nearly identical.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1166,13 +1136,11 @@ sec_thrd_model_post_plot = gridplot([[second_model_posterior_pc, third_model_pos
 show(sec_thrd_model_post_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/sec-thrd-model-post-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/ee2ddd77-6666-4918-a764-5fad89934503.json')} />
 
 ### Analysis
 
-
 Below is a print out of summary statistics for the queries.
-
 
 ```python
 summary_df = az.summary(samples.to_xarray(), round_to=4)
@@ -1187,12 +1155,12 @@ summary_df.drop("sort", axis=1, inplace=True)
 Markdown(summary_df.to_markdown())
 ```
 
-| query   | mean   | sd   | hdi_5.5%   | hdi_94.5%   | mcse_mean   | mcse_sd   | ess_bulk   | ess_tail   | r_hat   |
-|---------|--------|------|------------|-------------|-------------|-----------|------------|------------|---------|
+| query | mean | sd  | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail | r_hat |
+| ----- | ---- | --- | -------- | --------- | --------- | ------- | -------- | -------- | ----- |
+
 
 The $ess$ and $\hat{R}$ values look excellent. Next we look at how the effective sample
 sizes evolved when sampling.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1217,12 +1185,11 @@ thrd_p_theta_plots = gridplot([plots[:2], plots[2:]])
 show(thrd_p_theta_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/thrd-p-theta-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/2343215a-8979-4b20-a0f3-bc49780e7df3.json')} />
 
 We are above the rule-of-thumb of greater than 400 for the effective sample size plots,
 and all plots also look linear. Below we look at the posteriors, rank plots, and
 autocorrelation plots for the queries of the model.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1232,15 +1199,13 @@ diag_plots = gridplot(hearts.plot_diagnostics(samples, values))
 show(diag_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/diag-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/efa9e45c-7473-43b0-82a5-1cc99c723baf.json')} />
 
 In comparison to the second model all the above posteriors look smoother, and the
 autocorrelation plots also show less autocorrelation when sampling. The third model is
 exploring the parameter space more effectively (and efficiently) than the second model.
 
-
 ## Discussion
-
 
 The three plots below show the progression we took for creating a zero inflated model.
 Model 1 was incapable of simulating the observed zero values, while model 2 did a great
@@ -1253,7 +1218,6 @@ efficiently than model 2. The extra work of marginalizing out the discrete varia
 keeping tabs on $\text{Pr}(s_i\mid y_i,\theta,p,t_i)$ for simulating data was worth the
 effort.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -1265,14 +1229,13 @@ frst_scnd_thrd_plots = gridplot([plots])
 show(frst_scnd_thrd_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/frst-scnd-thrd-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/9c79631e-02f1-416f-9776-995701bb362b.json')} />
 
 Comparing our third model with the results of [Farewell and Sprott](#references) show we
 are still in good agreement.
 
 - $\alpha=-0.4636\pm0.5318$ and
 - $\delta=0.3043\pm1.1643$
-
 
 ```python
 Markdown(
@@ -1283,14 +1246,14 @@ Markdown(
 )
 ```
 
-| query   | mean   | sd   |
-|---------|--------|------|
+| query | mean | sd  |
+| ----- | ---- | --- |
+
 
 Rather than quote a 95% confidence interval for our findings, we will plot the 89%
 highest density interval for $\delta$ and $\alpha$ below. Why do we use 89%? Mostly to
 prevent you from thinking about _p-values_ and to think about the posterior densities.
 See [McElreath](#references) for a good discussion about HDI intervals.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1302,12 +1265,11 @@ a_d_plots = gridplot([[a, d]])
 show(a_d_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/a-d-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/98b24967-9543-4b0f-a2c6-4b4af1beb964.json')} />
 
 We plot the marginal posterior distributions for $\theta$, $p$, and $\beta$ below.
 Recall that $\beta=\exp(\alpha)$ is the coefficient of the Poisson mean for PVC events
 after the medication had been administered.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1320,24 +1282,24 @@ th_p_b_plots = gridplot([[p_, th, b]])
 show(th_p_b_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/th-p-b-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/d8a91c93-2340-41ca-972f-32032ac30f35.json')} />
 
 The above plot shows the marginal posterior mean for $\theta$ is similar to what we see
 from the observed data calculated below.
-
 
 ```python
 round(df[df["postdrug"] == 0].shape[0] / df.shape[0], 4)
 ```
 
 <CellOutput>
-{`0.5833`}
+{
+  `0.5833`
+}
 </CellOutput>
 
 As a final consistency check, the approximate posterior mean for $p$ can be used to
 estimate counts for patients that did not have a zero value for postdrug PVC events. As
 we see below, these counts are consistent with the observed pre- and postdrug counts.
-
 
 ```python
 pp = samples.get(p()).numpy().mean()
@@ -1351,16 +1313,16 @@ Markdown(
 )
 ```
 
-|    |   patient_number |   predrug |   t(1 - p) |   postdrug |   tp |
-|---:|-----------------:|----------:|-----------:|-----------:|-----:|
-|  0 |                1 |         6 |          6 |          5 |    4 |
-|  1 |                2 |         9 |          6 |          2 |    4 |
-|  4 |                5 |         7 |          5 |          2 |    3 |
-|  5 |                6 |         5 |          3 |          1 |    2 |
-| 10 |               11 |         9 |         13 |         13 |    8 |
+|     | patient_number | predrug | t(1 - p) | postdrug |  tp |
+| --: | -------------: | ------: | -------: | -------: | --: |
+|   0 |              1 |       6 |        6 |        5 |   4 |
+|   1 |              2 |       9 |        6 |        2 |   4 |
+|   4 |              5 |       7 |        5 |        2 |   3 |
+|   5 |              6 |       5 |        3 |        1 |   2 |
+|  10 |             11 |       9 |       13 |       13 |   8 |
+
 
 ## Conclusion
-
 
 We learned several things in this tutorial.
 
@@ -1372,11 +1334,9 @@ We learned several things in this tutorial.
 - How to define models with complex likelihood factors in Bean Machine using auxiliary
   Bernoulli observations.
 
-
 <a id="references"></a>
 
 ## References
-
 
 - Berry DA (1987) **Logarithmic transformations in ANOVA**. _Biometrics_ 43(2) 439–456.
   [doi: 10.2307/2531826](https://dx.doi.org/10.2307/2531826).

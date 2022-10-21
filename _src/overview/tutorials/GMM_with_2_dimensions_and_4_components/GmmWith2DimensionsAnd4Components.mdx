@@ -6,9 +6,10 @@ nb_path: tutorials/GMM_with_2_dimensions_and_4_components.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/GMM_with_2_dimensions_and_4_components.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/GMM_with_2_dimensions_and_4_components.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/GMM_with_2_dimensions_and_4_components.ipynb"
@@ -17,13 +18,10 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 ## Tutorial: **Gaussian Mixture Model** with 2 dimensions and 4 components
 
-
 The purpose of this tutorial is to introduce some of Bean Machine's support for Gaussian
 Mixture Processes (GMM) problems.
 
-
 ## Problem
-
 
 A simple example of an open universe model is a Gaussian Mixture Model (GMM) where the
 number of mixture components is unknown.
@@ -42,13 +40,10 @@ In this tutorial, we will cover (all mathematical symbols defined in "Model" sec
 1. Given $\{y_j\}_{j\in[n]}$, how to draw posterior samples of the latent (unobserved)
    variables $\mu_i$,$\sigma_i$, and $c_j$.
 
-
 ## Prerequisites
-
 
 The code presented in this tutorial can be executed in the order presented, as long as
 certain packages are imported as follows:
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -75,7 +70,6 @@ from torch import tensor
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for reproducibility.
 
-
 ```python
 # Eliminate excess inference logging from Bean Machinen.
 logging.getLogger("beanmachine").setLevel(50)
@@ -88,7 +82,6 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Model
-
 
 Concretely, we will consider a GMM where:
 
@@ -110,11 +103,9 @@ Concretely, we will consider a GMM where:
     $y_j\mid c_j=i\sim\mathcal{N}(\mu_i,\sigma_i^2+0.001)$; we add $0.001$ here to
     ensure the covariance matrix is positive definite
 
-
 **`NOTE`** We can implement this model in Bean Machine by defining random variable
 objects with the `@bm.random_variable` and `@bm.functional` decorators. These functions
 behave differently than ordinary Python functions.
-
 
 <div
   style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
@@ -160,7 +151,6 @@ behave differently than ordinary Python functions.
   </ul>
 </div>
 
-
 ```python
 # unittest
 class GaussianMixtureModel(object):
@@ -199,14 +189,11 @@ $k$. This is a current limitation of Bean Machine: any instantiation of a
 `random_variable` must always have fixed dimension (_e.g._ `gmm.alpha(3)` is
 3-dimensional).
 
-
 ## Observed Sample
-
 
 Here we generate some observations by conditioning on some latents and running MCMC to
 sample the prior for the remaining latent variables as well as the data
 $\{y_j\}_{j\in[n]}$.
-
 
 ```python
 n = 32  # num observations
@@ -237,15 +224,15 @@ prior_sample = bm.SingleSiteAncestralMetropolisHastings().infer(
 ```
 
 <CellOutput>
-{` 
-Samples collected:   0%|          | 0/2 [00:00<?, ?it/s]`}
+{
+  `Samples collected:   0%|          | 0/2 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 Below we visualize the distribution of the generated data points $\{x_j\}_{j\in[n]}$ and
 use the color to denote the component memberships $\{c_j\}_{j\in[n]}$ of each point. In
 addition, we display contours at one standard deviation for each of the Gaussians in the
 mixture.
-
 
 ```python
 def draw_points_and_components(ys, components, mus, sigmas):
@@ -308,14 +295,12 @@ fig = draw_points_and_components(
 fig.show()
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigurea12a2e6f-7206-41d5-b050-f3165c015fb9.json')} />
+<PlotlyFigure data={require('./assets/plot_data/46d82cdb-d4c3-4d53-8b4d-9d1a7c2f8304.json')} />
 
 ## Inference
 
-
 Now we can condition on the observations $\{y_j\}$ and draw samples of the latent
 variables from the induced posterior.
-
 
 ```python
 torch.manual_seed(42)
@@ -338,17 +323,16 @@ posterior_samples = mh.infer(
 ```
 
 <CellOutput>
-{` 
-Samples collected:   0%|          | 0/100 [00:00<?, ?it/s]`}
+{
+  `Samples collected:   0%|          | 0/100 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 ## Analysis
 
-
 Let's visualize the mixture components (`mu`, `sigma`) and component memberships
 (`component`) for each of the data points (`y`) at the start of MCMC. This likely won't
 be very good, since we haven't burned in the chain.
-
 
 ```python
 t = 0
@@ -385,11 +369,10 @@ fig = draw_points_and_components(
 fig.show()
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigurea6edb8fc-df3d-4fcc-b097-03744fdf0b85.json')} />
+<PlotlyFigure data={require('./assets/plot_data/605fbf23-f96e-4752-a02f-2cc64c20ebf0.json')} />
 
 After running `n_samples` MCMC steps, the effects of initialization should be
 diminished.
-
 
 ```python
 t = n_samples - 1
@@ -426,4 +409,5 @@ fig = draw_points_and_components(
 fig.show()
 ```
 
-<PlotlyFigure data={require('./assets/plot_data/PlotlyFigurebf1b2aa1-9021-4ab7-8c77-676b34515d51.json')} />
+<PlotlyFigure data={require('./assets/plot_data/c9faa1b6-dbbc-4758-a6b2-b28607ae61a1.json')} />
+

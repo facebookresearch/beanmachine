@@ -6,9 +6,10 @@ nb_path: tutorials/Robust_Linear_Regression.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Robust_Linear_Regression.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Robust_Linear_Regression.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Robust_Linear_Regression.ipynb"
@@ -17,15 +18,12 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 ## Tutorial: **Robust Linear regression**
 
-
 This tutorial demonstrates modeling and running inference on a robust linear regression
 model in Bean Machine. This should offer a simple modification from the standard
 regression model to incorporate heavy tailed error models that are more robust to
 outliers and demonstrates modifying base models.
 
-
 ## Problem
-
 
 In this classical extension to the linear regression problem, the goal still is to
 estimate some unobserved response variable from an observed covariate. The twist from
@@ -39,9 +37,7 @@ We'll restrict this tutorial to the univariate case, to aid with clarity and
 visualization. We will follow the outline of the tutorial by
 [Adrian Baez-Ortega](#references) for comparison.
 
-
 ## Prerequisites
-
 
 We will be using the following packages within this tutorial.
 
@@ -52,7 +48,6 @@ We will be using the following packages within this tutorial.
 
 Let's code this in Bean Machine! Import the Bean Machine library and some fundamental
 PyTorch classes.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -84,7 +79,6 @@ from IPython.display import Markdown
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for `torch` for reproducibility.
 
-
 ```python
 # Plotting settings
 az.rcParams["plot.backend"] = "bokeh"
@@ -98,7 +92,6 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Model
-
 
 We're interested in predicting a response variable $y$ given an observed covariate $x$:
 
@@ -129,7 +122,6 @@ and $\nu$ given a collection of training data $\{x, y\}_{i=1}^N$.
 
 Let's visualize the Gamma distribution that we used as our prior for $\nu$:
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -153,7 +145,7 @@ gamma_prior_plot = plots.line_plot(
 show(gamma_prior_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/gamma-prior-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/2969c103-e34a-4721-9398-31cb85ee4a70.json')} />
 
 We can implement this model in Bean Machine by defining random variable objects with the
 `@bm.random_variable` decorator. These functions behave differently than ordinary Python
@@ -191,7 +183,6 @@ functions.
     </li>
   </ul>
 </div>
-
 
 ```python
 @bm.random_variable
@@ -239,7 +230,6 @@ def y_robust(X):
 
 ## Data
 
-
 With the model defined, we need to collect some observed data in order to learn about
 values of interest in our model.
 
@@ -252,7 +242,6 @@ covariate.
 For our synthetic dataset, we will assume the following parameters to the relationship
 between inputs and outputs.
 
-
 ```python
 true_beta = 2.0
 true_alpha = 5.0
@@ -264,7 +253,6 @@ Y = Y_clean = dist.Normal(true_beta * X + true_alpha, true_epsilon).sample()
 ```
 
 We can visualize the data as follows:
-
 
 ```python
 # Required for visualizing in Colab.
@@ -296,10 +284,9 @@ synthetic_clean_data_plot.legend.location = "bottom_left"
 show(synthetic_clean_data_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/synthetic-clean-data-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/071e4d4a-ef71-4866-8086-f9ea99a0c5ed.json')} />
 
 We will now corrupt this data with some extreme outliers.
-
 
 ```python
 X_corr, Y_corr = X_clean, Y_clean
@@ -309,7 +296,6 @@ X_corr[2], Y_corr[2] = -3, 10
 ```
 
 Let's visualize the data now again after adding outliers.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -344,11 +330,10 @@ synthetic_data_plot = gridplot(
 show(synthetic_data_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/synthetic-data-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/cd96b6a5-61a1-484b-bb6d-b8bc2dfb6872.json')} />
 
 Let's split the dataset into a training and test set, which we'll use later to evaluate
 predictive performance.
-
 
 ```python
 X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y)
@@ -361,13 +346,11 @@ as values.
 You can see this in the code snippet below, where we bind the observed values to a key
 representing the random variable that was observed.
 
-
 ```python
 observations = {y_robust(X_train): Y_train}
 ```
 
 ## Inference: Take 1
-
 
 Inference is the process of combining _model_ with _data_ to obtain _insights_, in the
 form of probability distributions over values of interest. Bean Machine offers a
@@ -390,7 +373,6 @@ Running inference consists of a few arguments:
 
 Let's run inference:
 
-
 ```python
 queries = [beta(), alpha(), sigma_regressor(), df_nu()]
 num_samples = 2 if smoke_test else 2000
@@ -409,17 +391,25 @@ samples = bm.GlobalNoUTurnSampler(nnc_compile=nnc_compile).infer(
 ```
 
 <CellOutput>
-{`Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
+{
+  `Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]
-Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/3000 [00:00<?, ?it/s]`
+}
+</CellOutput>
+
+
+<CellOutput>
+{
+  `/Users/jpchen/beanmachine/src/beanmachine/ppl/experimental/nnc/utils.py:21: UserWarning: The support of NNC compiler is experimental and the API is subject tochange in the future releases of Bean Machine. For questions regarding NNC, pleasecheckout the functorch project (https://github.com/pytorch/functorch).
+  "The support of NNC compiler is experimental and the API is subject to"`
+}
 </CellOutput>
 
 ## Analysis
 
-
 `samples` now contains our inference results.
-
 
 ```python
 beta_marginal = samples[beta()].flatten(start_dim=0, end_dim=1).detach()
@@ -436,14 +426,15 @@ print(
 ```
 
 <CellOutput>
-{`β marginal: tensor([1.9131, 1.9169, 1.8697,  ..., 1.9127, 1.9227, 2.0932])
+{
+  `β marginal: tensor([1.9131, 1.9169, 1.8697,  ..., 1.9127, 1.9227, 2.0932])
 α marginal: tensor([5.1544, 5.1075, 5.0664,  ..., 5.1780, 5.1720, 4.9826])
 σ marginal: tensor([1.0382, 0.8749, 0.9554,  ..., 0.9076, 0.9179, 0.8641])
-ν marginal: tensor([6.0199, 8.3381, 6.1413,  ..., 4.2614, 4.5714, 5.3702])`}
+ν marginal: tensor([6.0199, 8.3381, 6.1413,  ..., 4.2614, 4.5714, 5.3702])`
+}
 </CellOutput>
 
 Next, let's visualize the inferred random variables.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -459,11 +450,10 @@ alpha_beta_joint_plot = plots.plot_marginal(
 show(alpha_beta_joint_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/alpha-beta-joint-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/2128ff2d-ff1d-4ee9-8692-a6c7f9b9051a.json')} />
 
 We seem to have faithfully recovered $\alpha$ and $\beta$. Let's see what the model
 predicts for the variance.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -479,7 +469,7 @@ sigma_plot = plots.plot_marginal(
 show(sigma_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/sigma-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/544e6bb4-1122-4061-8bef-27936056fb76.json')} />
 
 We seem to have recovered a reasonably good understanding of the variance.
 
@@ -487,7 +477,6 @@ We can also compute log probability on the held-out test data. This isn't partic
 useful on its own, but is useful for comparing different approaches. Thus, here, we will
 also plot a baseline for comparison: the log probability implied on the test dataset
 using the ground truth parameters.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -532,27 +521,26 @@ test_data_mh_plot.legend.location = "bottom_right"
 show(test_data_mh_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/test-data-mh-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/3e99dbdc-3577-4c96-aa41-fd693520d537.json')} />
 
 The posterior samples seems to capture the log probability using the ground truth
 parameters.
 
 ArviZ provides helpful statistics about the results of inference, which we show below.
 
-
 ```python
 Markdown(az.summary(samples.to_inference_data(), round_to=4).to_markdown())
 ```
 
-|                   |   mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:------------------|-------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| sigma_regressor() | 0.9126 | 0.0761 |     0.7942 |      1.0356 |      0.0011 |    0.0008 |    5054.08 |    4966.7  |  1.0005 |
-| alpha()           | 5.0376 | 0.0861 |     4.904  |      5.1769 |      0.0011 |    0.0008 |    5680    |    4716.97 |  1.0003 |
-| df_nu()           | 5.4594 | 1.723  |     2.8927 |      7.6937 |      0.024  |    0.0172 |    5350.48 |    4434.72 |  1.0008 |
-| beta()            | 2.0052 | 0.073  |     1.8851 |      2.119  |      0.001  |    0.0007 |    5503.35 |    4848.91 |  1.0013 |
+|                   |   mean |     sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail |  r_hat |
+| :---------------- | -----: | -----: | -------: | --------: | --------: | ------: | -------: | -------: | -----: |
+| sigma_regressor() | 0.9126 | 0.0761 |   0.7942 |    1.0356 |    0.0011 |  0.0008 |  5054.08 |   4966.7 | 1.0005 |
+| alpha()           | 5.0376 | 0.0861 |    4.904 |    5.1769 |    0.0011 |  0.0008 |     5680 |  4716.97 | 1.0003 |
+| df_nu()           | 5.4594 |  1.723 |   2.8927 |    7.6937 |     0.024 |  0.0172 |  5350.48 |  4434.72 | 1.0008 |
+| beta()            | 2.0052 |  0.073 |   1.8851 |     2.119 |     0.001 |  0.0007 |  5503.35 |  4848.91 | 1.0013 |
+
 
 #### $\hat{R}$ diagnostic
-
 
 $\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
 is a test that indicates a lack of convergence by comparing the variance between
@@ -570,9 +558,7 @@ when each of the Markov chains approaches perfect adaptation to the true posteri
 distribution. We do not recommend using inference results if $\hat{R}>1.01$. More
 information about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
 
-
 #### Effective sample size $ess$ diagnostic
-
 
 MCMC samplers do not draw independent samples from the target distribution, which means
 that our samples are correlated. In an ideal situation all samples would be independent,
@@ -592,9 +578,7 @@ in the tails of the posterior. It is a measure of the number of effectively inde
 samples if we sampled the tails of the posterior. The rule of thumb for this value is
 also to be greater than 100 per chain on average.
 
-
 We can plot diagnostic information to assess model fit using ArviZ. Let's take a look:
-
 
 ```python
 # Required for visualizing in Colab.
@@ -604,7 +588,7 @@ samples_diagnostic_plots = gridplot(plots.plot_diagnostics(samples))
 show(samples_diagnostic_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/samples-diagnostic-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/18c06d8f-4f44-42a9-a699-0beacbdbfd46.json')} />
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace
 plots and autocorrelation plots.
@@ -626,13 +610,10 @@ plots and autocorrelation plots.
 From the trace plots, we see each of the chains are relatively healthy: they don't get
 stuck, and do not explore a chain-specific subset of the space.
 
-
 ## Prediction
-
 
 We've built and evaluated our model. Lastly, let's take a quick look at how to predict
 with it.
-
 
 ```python
 def predict(x):
@@ -658,17 +639,16 @@ def predict(x):
 
 Predict for a single value:
 
-
 ```python
 Markdown(predict(4).to_markdown())
 ```
 
-|    |    2.5% |     50% |   97.5% |
-|---:|--------:|--------:|--------:|
-|  4 | 11.1601 | 13.0632 | 14.9579 |
+|     |    2.5% |     50% |   97.5% |
+| --: | ------: | ------: | ------: |
+|   4 | 11.1601 | 13.0632 | 14.9579 |
+
 
 Or for a range:
-
 
 ```python
 # Required for visualizing in Colab.
@@ -716,12 +696,11 @@ prediction_plot.circle(
 show(prediction_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/prediction-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/af56cb4e-7841-4106-a5f9-f82fe5b31c7d.json')} />
 
 <a id="references"></a>
 
 ## References
-
 
 - Baez-Ortega, A (2018) **Robust Bayesian linear regression with Stan in R**. Available
   from :

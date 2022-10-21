@@ -6,9 +6,10 @@ nb_path: tutorials/Hierarchical_modeling.ipynb
 github: https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_modeling.ipynb
 colab: https://colab.research.google.com/github/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_modeling.ipynb
 ---
-import CellOutput from "../../../../website/src/components/CellOutput.jsx";
-import {BokehFigure} from "../../../../website/src/components/Plotting.jsx";
+
 import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
+import CellOutput from "../../../../website/src/components/CellOutput.jsx";
+import {BokehFigure, PlotlyFigure} from "../../../../website/src/components/Plotting.jsx";
 
 <LinkButtons
   githubUrl="https://github.com/facebookresearch/beanmachine/blob/v0.2.0/tutorials/Hierarchical_modeling.ipynb"
@@ -17,14 +18,11 @@ import LinkButtons from "../../../../website/src/components/LinkButtons.jsx";
 
 # Tutorial: **Hierarchical modeling with repeated binary trial data**
 
-
 In this tutorial we will demonstrate the application of hierarchical models with data
 from the 1970 season of [Major League Baseball (MLB)](#references) found in the paper by
 [Efron and Morris 1975](#references).
 
-
 ## Learning Outcomes
-
 
 On completion of this tutorial, you should be able:
 
@@ -33,9 +31,7 @@ On completion of this tutorial, you should be able:
 - to explain what different pooling techniques tell us about the data; and
 - to run diagnostics to understand what Bean Machine is doing.
 
-
 ## Problem
-
 
 Data are from [Efron and Morris 1975](#references), which are taken from the 1970 Major
 League Baseball season for both the American and National leagues,
@@ -49,16 +45,13 @@ congress/parliament, and even rat tumor development, see [Tarone](#references).
 Our task is to use the given baseball data and create a hierarchical model that
 estimates the chances each player has to land a hit when they are at-bat.
 
-
 ## Prerequisites
-
 
 We wil be using the following packages within this tutorial.
 
 - [arviz](https://arviz-devs.github.io/arviz/) and
   [bokeh](https://docs.bokeh.org/en/latest/docs/) for interactive visualizations; and
 - [pandas](https://pandas.pydata.org/) for data manipulation.
-
 
 ```python
 # Install Bean Machine in Colab if using Colab.
@@ -88,7 +81,6 @@ from IPython.display import SVG, Markdown
 The next cell includes convenient configuration settings to improve the notebook
 presentation as well as setting a manual seed for `torch` for reproducibilty.
 
-
 ```python
 # Plotting settings
 az.rcParams["plot.backend"] = "bokeh"
@@ -103,7 +95,6 @@ smoke_test = "SANDCASTLE_NEXUS" in os.environ or "CI" in os.environ
 ```
 
 ## Data
-
 
 We explore the data below to help inform our decisions about priors and sampling
 distributions for our models. The insights will be used to create logical procedures for
@@ -129,7 +120,6 @@ an outlier. See [Efron and Morris, 1977](#references) for further discussion.
 
 We now read the data in as a `pandas` dataframe. The data are replicated below using a
 `StringIO` object rather than reading from a `CSV` file.
-
 
 ```python
 # Data are from Efron and Morris (1975).
@@ -159,7 +149,6 @@ with StringIO(data_string) as f:
 The next cell contains standard `pandas` transformations to make the data clearer for
 later analysis. We also rename a few columns for readability.
 
-
 ```python
 # Rename columns in order to make the data clearer.
 renames = {
@@ -182,26 +171,27 @@ df = df[
 Markdown(df.set_index("Name").to_markdown())
 ```
 
-| Name             |   Current hits |   Current at-bats |   Season hits |   Season at-bats |
-|:-----------------|---------------:|------------------:|--------------:|-----------------:|
-| Roberto Clemente |             18 |                45 |           145 |              412 |
-| Frank Robinson   |             17 |                45 |           144 |              471 |
-| Frank Howard     |             16 |                45 |           160 |              566 |
-| Jay Johnstone    |             15 |                45 |            76 |              320 |
-| Ken Berry        |             14 |                45 |           128 |              463 |
-| Jim Spencer      |             14 |                45 |           140 |              511 |
-| Don Kessinger    |             13 |                45 |           168 |              631 |
-| Luis Alvarado    |             12 |                45 |            41 |              183 |
-| Ron Santo        |             11 |                45 |           148 |              555 |
-| Ron Swaboda      |             11 |                45 |            57 |              245 |
-| Rico Petrocelli  |             10 |                45 |           152 |              583 |
-| Ellie Rodriguez  |             10 |                45 |            52 |              231 |
-| George Scott     |             10 |                45 |           142 |              480 |
-| Del Unser        |             10 |                45 |            83 |              322 |
-| Billy Williams   |             10 |                45 |           205 |              636 |
-| Bert Campaneris  |              9 |                45 |           168 |              603 |
-| Thurman Munson   |              8 |                45 |           137 |              453 |
-| Max Alvis        |              7 |                45 |            21 |              115 |
+| Name             | Current hits | Current at-bats | Season hits | Season at-bats |
+| :--------------- | -----------: | --------------: | ----------: | -------------: |
+| Roberto Clemente |           18 |              45 |         145 |            412 |
+| Frank Robinson   |           17 |              45 |         144 |            471 |
+| Frank Howard     |           16 |              45 |         160 |            566 |
+| Jay Johnstone    |           15 |              45 |          76 |            320 |
+| Ken Berry        |           14 |              45 |         128 |            463 |
+| Jim Spencer      |           14 |              45 |         140 |            511 |
+| Don Kessinger    |           13 |              45 |         168 |            631 |
+| Luis Alvarado    |           12 |              45 |          41 |            183 |
+| Ron Santo        |           11 |              45 |         148 |            555 |
+| Ron Swaboda      |           11 |              45 |          57 |            245 |
+| Rico Petrocelli  |           10 |              45 |         152 |            583 |
+| Ellie Rodriguez  |           10 |              45 |          52 |            231 |
+| George Scott     |           10 |              45 |         142 |            480 |
+| Del Unser        |           10 |              45 |          83 |            322 |
+| Billy Williams   |           10 |              45 |         205 |            636 |
+| Bert Campaneris  |            9 |              45 |         168 |            603 |
+| Thurman Munson   |            8 |              45 |         137 |            453 |
+| Max Alvis        |            7 |              45 |          21 |            115 |
+
 
 The above dataframe shows us that each player had a different number of opportunities to
 be at-bat over the course of the season; the `Season at-bats` column. We also see a
@@ -212,7 +202,6 @@ well as the total number of hits for the season in `Season hits`.
 
 Below we see an ordered scatter plot of the `Current hits` column.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -221,7 +210,7 @@ current_hits = baseball.plot_current_hits(df)
 show(current_hits)
 ```
 
-<BokehFigure data={require('./assets/plot_data/current-hits.json')} />
+<BokehFigure data={require('./assets/plot_data/c5c5f729-5650-4bab-bbe0-a3d82b3cb9c0.json')} />
 
 The data are telling us that each player is unique (there are not a lot with the same
 number of hits), but also that they are similar. The players are similar because they
@@ -231,9 +220,7 @@ captured a slice in time where each player has been given the same number of
 opportunities to be at-bat, and all of them had different amounts of success at landing
 a hit. We can estimate the chance a player has at hitting a ball when at-bat.
 
-
 ## Models
-
 
 We will create three separate models using the above data as we explore how to create a
 hierarchical model using Bean Machine. The models we will be creating are:
@@ -261,7 +248,6 @@ where
 **`NOTE`** We can implement this model in Bean Machine by defining random variable
 objects with the `@bm.random_variable` and `@bm.functional` decorators. These functions
 behave differently than ordinary Python functions.
-
 
 <div
   style={{"background": "#daeaf3", "border_left": "3px solid #2980b9", "display": "block", "margin": "16px 0", "padding": "12px"}}
@@ -296,14 +282,11 @@ behave differently than ordinary Python functions.
   </ul>
 </div>
 
-
 <a id="complete-pooling"></a>
 
 ### Complete-pooling model
 
-
 ![](assets/img/complete-pooling-dag.svg)
-
 
 The image above is a graphical representation of what complete pooling does: it assumes
 that everyone's chance of landing a hit is sampled from the same population distribution
@@ -323,13 +306,10 @@ $$
 \end{aligned}
 $$
 
-
 #### Beta priors _vs_ Uniform priors
-
 
 Below we can see why swapping a `Uniform` distribution for a `Beta(1, 1)` is appropriate
 as they are the same.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -339,11 +319,10 @@ complete_pooling_priors = baseball.plot_complete_pooling_priors()
 show(complete_pooling_priors)
 ```
 
-<BokehFigure data={require('./assets/plot_data/complete-pooling-priors.json')} />
+<BokehFigure data={require('./assets/plot_data/8c06559b-7d41-415e-bede-717a5a41429f.json')} />
 
 We can create our `complete-pooling` model in Bean Machine using the
 `@bm.random_variable` decorator.
-
 
 ```python
 N = df.shape[0]
@@ -374,7 +353,6 @@ iteration. Bean Machine is also able to take advantage of the implicit broadcast
 pytorch tensors and pytorch samplers like `dist.Binomial` allowing us to sample or
 observe all $y$ values at once.
 
-
 ```python
 class CompletePoolingModel:
     @bm.random_variable
@@ -391,7 +369,6 @@ complete_pooling_model = CompletePoolingModel()
 
 #### Complete-pooling inference
 
-
 Inference is the process of combining model and data to obtain insights, in the form of
 probability distributions over values of interest. Bean Machine offers a powerful and
 general inference framework to enable fitting arbitrary models to data.
@@ -400,15 +377,16 @@ Our inference algorithms expect a dictionary where the keys are `@bm.random_vari
 invocations, and tensor data as our observational values. You can see this in the
 example below.
 
-
 ```python
 complete_pooling_observations = {complete_pooling_y(): current_hits}
 complete_pooling_observations
 ```
 
 <CellOutput>
-{`{RVIdentifier(wrapper=<function complete_pooling_y at 0x7f24101392d0>, arguments=()): tensor([18., 17., 16., 15., 14., 14., 13., 12., 11., 11., 10., 10., 10., 10.,
-         10.,  9.,  8.,  7.], dtype=torch.float64)}`}
+{
+  `{RVIdentifier(wrapper=<function complete_pooling_y at 0x7f24101392d0>, arguments=()): tensor([18., 17., 16., 15., 14., 14., 13., 12., 11., 11., 10., 10., 10., 10.,
+         10.,  9.,  8.,  7.], dtype=torch.float64)}`
+}
 </CellOutput>
 
 We are ready to run inference on our model and observations. Bean Machine supports a
@@ -427,7 +405,6 @@ Bean Machine's `GlobalNoUTurnSampler` is the NUTS sampler you have probably used
 with `stan` or `pymc3`. We have chosen to use the NUTS sampler here because it can be
 easily compared to other probabilistic tools.
 
-
 ```python
 num_samples = 2 if smoke_test else 5000
 num_adaptive_samples = 0 if smoke_test else 2500
@@ -445,18 +422,15 @@ complete_pooling_samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{
+  `Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 #### Complete-pooling analysis
-
 
 The `complete_pooling_samples` object contains our inference results. We have only one
 parameter in this model, $\phi$, which was supplied as a single query parameter when we
@@ -464,7 +438,6 @@ ran inference. After inference has been run, we need to ensure our model has fit
 data appropriately. We begin this analysis by printing out summary statistics with two
 important statistics $\hat{R}$ (`r_hat`) and effective sample size (`ess`) values, see
 [Vehtari _et al_](#references).
-
 
 ```python
 complete_pooling_summary_df = az.summary(
@@ -474,12 +447,12 @@ complete_pooling_summary_df = az.summary(
 Markdown(complete_pooling_summary_df.to_markdown())
 ```
 
-|                        |   mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:-----------------------|-------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| complete_pooling_phi() | 0.2664 | 0.0154 |     0.2412 |      0.2903 |      0.0002 |    0.0001 |    6700.83 |    5567.35 |  1.0009 |
+|                        |   mean |     sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail |  r_hat |
+| :--------------------- | -----: | -----: | -------: | --------: | --------: | ------: | -------: | -------: | -----: |
+| complete_pooling_phi() | 0.2664 | 0.0154 |   0.2412 |    0.2903 |    0.0002 |  0.0001 |  6700.83 |  5567.35 | 1.0009 |
+
 
 #### Measuring variance between- and within-chains with $\hat{R}$ (`r_hat`)
-
 
 $\hat{R}$ is a diagnostic tool that measures the between- and within-chain variances. It
 is a test that indicates a lack of convergence by comparing the variance between
@@ -497,9 +470,7 @@ when each of the Markov chains approaches perfect adaptation to the true posteri
 distribution. We do not recommend using inference results if $\hat{R}>1.01$. More
 information about $\hat{R}$ can be found in the [Vehtari _et al_](#references) paper.
 
-
 #### Effective sample size (`ess`)
-
 
 MCMC samplers do not draw independent samples from the target distribution, which means
 that our samples are correlated. In an ideal situation all samples would be independent,
@@ -525,7 +496,6 @@ effective sample size for our parameters. The red horizontal dashed line shows t
 rule-of-thumb value needed for both the bulk and tail `ess` estimates. When the model is
 converging properly, both the bulk and tail lines should be _roughly_ linear.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -542,7 +512,7 @@ complete_pooling_ess_plot.grid.grid_line_width = 0.2
 show(complete_pooling_ess_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/complete-pooling-ess-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/5c4c5a53-e530-4602-a8dc-7631fc1aa3c2.json')} />
 
 When the model is converging properly, both the bulk and tail lines from the `ess`
 evolution plot should be _roughly_ linear. We can see that both the `ess_bulk` and
@@ -565,7 +535,6 @@ autocorrelation plots.
   This is not possible in practice, due to stochastic noise and the mechanics of how
   inference works.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -576,7 +545,7 @@ complete_pooling_diagnostics_plot = gridplot(
 show(complete_pooling_diagnostics_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/complete-pooling-diagnostics-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/49ea3259-5ad2-4901-a684-90facd2012a9.json')} />
 
 The first figure is the distribution for each chain we ran inference for. We can see the
 distributions look well behaved (_i.e._ there are not a lot of oscillations). Next to
@@ -591,7 +560,6 @@ Here we see an interval of 89% that defines the highest density interval (HDI), 
 tells us where the greatest amount of density for the posterior lies. Why an 89% HDI
 instead of 95%? To prevent you from thinking about a 95% confidence interval. See
 [McElreath](#references) for further discussion on this subject.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -611,12 +579,11 @@ complete_pooling_phi_posterior.grid.grid_line_width = 0.2
 show(complete_pooling_phi_posterior)
 ```
 
-<BokehFigure data={require('./assets/plot_data/complete-pooling-phi-posterior.json')} />
+<BokehFigure data={require('./assets/plot_data/66b0ea04-02d3-4c96-a0da-65688724de0e.json')} />
 
 What this is telling us from our model and data is that every player will have the same
 chance of hitting a ball when at-bat. This finding is not correct and is evident when we
 plot all the players in the same plot showing their chances of success when at-bat.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -630,7 +597,7 @@ complete_pooling_model_plot = baseball.plot_complete_pooling_model(
 show(complete_pooling_model_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/complete-pooling-model-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/244cad22-7823-4fb5-be4b-abca9ac169f3.json')} />
 
 The above plot shows our predictions for each player's chance of hitting a ball when
 at-bat, with error bars being the 89% HDI and the markers being the mean of the
@@ -655,14 +622,11 @@ is equally as bad as our complete pooling one. The reason why we do this will be
 evident when we get to our third and final model the
 [partial-pooling model](#partial-pooling).
 
-
 <a id="no-pooling"></a>
 
 ### No-pooling model
 
-
 ![](assets/img/no-pooling-dag.svg)
-
 
 `No-pooling` is the polar opposite to `complete-pooling`, where instead of treating each
 player identically we will treat each player as having their own separate chance of
@@ -682,7 +646,6 @@ $$
 \end{aligned}
 $$
 
-
 ```python
 @bm.random_variable
 def no_pooling_theta() -> RVIdentifier:
@@ -698,14 +661,11 @@ Coding the `no-pooling` and `complete-pooling` models are quite similar. Note th
 difference between the two models is that we use `expand` on the prior and not in the
 likelihood.
 
-
 #### No-pooling inference
-
 
 Just like before we will use the `GlobalNoUTurnSampler` inference method. We construct
 the observations dictionary exactly to how we constructed it in the `complete-pooling`
 model.
-
 
 ```python
 no_pooling_observations = {no_pooling_y(): current_hits}
@@ -713,7 +673,6 @@ no_pooling_observations = {no_pooling_y(): current_hits}
 
 The queries we are interested in from this model are all the $\theta$'s as they are the
 distributions for each player's individual chances of landing a hit.
-
 
 ```python
 no_pooling_queries = [no_pooling_theta()]
@@ -727,54 +686,50 @@ no_pooling_samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{
+  `Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 #### No-pooling analysis
 
-
 Again we will start our analysis of our no pooling model with summary statistics and
 trace plots.
-
 
 ```python
 no_pooling_summary_df = az.summary(no_pooling_samples.to_xarray(), round_to=4)
 Markdown(no_pooling_summary_df.to_markdown())
 ```
 
-|                        |   mean |     sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:-----------------------|-------:|-------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| no_pooling_theta()[0]  | 0.405  | 0.0736 |     0.3029 |      0.5371 |      0.0016 |    0.0011 |   2288.86  |    842.908 |  1.0061 |
-| no_pooling_theta()[1]  | 0.3824 | 0.0711 |     0.2683 |      0.4922 |      0.0017 |    0.0013 |   1810.19  |   1004.45  |  1.0019 |
-| no_pooling_theta()[2]  | 0.3636 | 0.0685 |     0.256  |      0.471  |      0.0011 |    0.0008 |   3631.7   |   2309.97  |  1.0016 |
-| no_pooling_theta()[3]  | 0.3401 | 0.0682 |     0.234  |      0.4505 |      0.0014 |    0.001  |   2453.19  |   1067.64  |  1.0002 |
-| no_pooling_theta()[4]  | 0.3213 | 0.0663 |     0.2098 |      0.4175 |      0.0013 |    0.0009 |   2762.09  |   2601.81  |  1.0011 |
-| no_pooling_theta()[5]  | 0.3213 | 0.0656 |     0.2121 |      0.4218 |      0.0011 |    0.0008 |   3426.87  |   1760.76  |  1.002  |
-| no_pooling_theta()[6]  | 0.2998 | 0.0659 |     0.1974 |      0.4028 |      0.0013 |    0.0009 |   2672.63  |   2501.46  |  1.0013 |
-| no_pooling_theta()[7]  | 0.2758 | 0.0635 |     0.1815 |      0.3811 |      0.0012 |    0.0008 |   3019.29  |   2692.56  |  1.0014 |
-| no_pooling_theta()[8]  | 0.255  | 0.0621 |     0.1518 |      0.3481 |      0.0012 |    0.0008 |   2893.21  |   3360.92  |  1.0015 |
-| no_pooling_theta()[9]  | 0.2545 | 0.064  |     0.1551 |      0.3582 |      0.0012 |    0.0008 |   2871.61  |   1404.8   |  1.0118 |
-| no_pooling_theta()[10] | 0.235  | 0.0627 |     0.1438 |      0.3388 |      0.0012 |    0.0009 |   2936.8   |   1843.95  |  1.0049 |
-| no_pooling_theta()[11] | 0.2326 | 0.0595 |     0.1363 |      0.3227 |      0.0012 |    0.001  |   2915.72  |   1542.88  |  1.0013 |
-| no_pooling_theta()[12] | 0.2339 | 0.0604 |     0.1413 |      0.3289 |      0.0011 |    0.0008 |   2763.86  |   3586.33  |  1.0013 |
-| no_pooling_theta()[13] | 0.2333 | 0.0603 |     0.1384 |      0.3238 |      0.0013 |    0.0009 |   2207.72  |   1269.42  |  1.002  |
-| no_pooling_theta()[14] | 0.2346 | 0.065  |     0.1331 |      0.3389 |      0.0024 |    0.0019 |    798.532 |    698.803 |  1.0118 |
-| no_pooling_theta()[15] | 0.2117 | 0.0611 |     0.1107 |      0.2981 |      0.0016 |    0.0011 |   1355.85  |    712.344 |  1.0129 |
-| no_pooling_theta()[16] | 0.1916 | 0.0567 |     0.0972 |      0.273  |      0.001  |    0.0007 |   3040.46  |   1727.26  |  1.008  |
-| no_pooling_theta()[17] | 0.1696 | 0.0546 |     0.0832 |      0.2529 |      0.001  |    0.0008 |   3504.73  |   1593.75  |  1.0084 |
+|                          |   mean |     sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail |  r_hat |
+| :----------------------- | -----: | -----: | -------: | --------: | --------: | ------: | -------: | -------: | -----: |
+| no_pooling_theta()\[0\]  |  0.405 | 0.0736 |   0.3029 |    0.5371 |    0.0016 |  0.0011 |  2288.86 |  842.908 | 1.0061 |
+| no_pooling_theta()\[1\]  | 0.3824 | 0.0711 |   0.2683 |    0.4922 |    0.0017 |  0.0013 |  1810.19 |  1004.45 | 1.0019 |
+| no_pooling_theta()\[2\]  | 0.3636 | 0.0685 |    0.256 |     0.471 |    0.0011 |  0.0008 |   3631.7 |  2309.97 | 1.0016 |
+| no_pooling_theta()\[3\]  | 0.3401 | 0.0682 |    0.234 |    0.4505 |    0.0014 |   0.001 |  2453.19 |  1067.64 | 1.0002 |
+| no_pooling_theta()\[4\]  | 0.3213 | 0.0663 |   0.2098 |    0.4175 |    0.0013 |  0.0009 |  2762.09 |  2601.81 | 1.0011 |
+| no_pooling_theta()\[5\]  | 0.3213 | 0.0656 |   0.2121 |    0.4218 |    0.0011 |  0.0008 |  3426.87 |  1760.76 |  1.002 |
+| no_pooling_theta()\[6\]  | 0.2998 | 0.0659 |   0.1974 |    0.4028 |    0.0013 |  0.0009 |  2672.63 |  2501.46 | 1.0013 |
+| no_pooling_theta()\[7\]  | 0.2758 | 0.0635 |   0.1815 |    0.3811 |    0.0012 |  0.0008 |  3019.29 |  2692.56 | 1.0014 |
+| no_pooling_theta()\[8\]  |  0.255 | 0.0621 |   0.1518 |    0.3481 |    0.0012 |  0.0008 |  2893.21 |  3360.92 | 1.0015 |
+| no_pooling_theta()\[9\]  | 0.2545 |  0.064 |   0.1551 |    0.3582 |    0.0012 |  0.0008 |  2871.61 |   1404.8 | 1.0118 |
+| no_pooling_theta()\[10\] |  0.235 | 0.0627 |   0.1438 |    0.3388 |    0.0012 |  0.0009 |   2936.8 |  1843.95 | 1.0049 |
+| no_pooling_theta()\[11\] | 0.2326 | 0.0595 |   0.1363 |    0.3227 |    0.0012 |   0.001 |  2915.72 |  1542.88 | 1.0013 |
+| no_pooling_theta()\[12\] | 0.2339 | 0.0604 |   0.1413 |    0.3289 |    0.0011 |  0.0008 |  2763.86 |  3586.33 | 1.0013 |
+| no_pooling_theta()\[13\] | 0.2333 | 0.0603 |   0.1384 |    0.3238 |    0.0013 |  0.0009 |  2207.72 |  1269.42 |  1.002 |
+| no_pooling_theta()\[14\] | 0.2346 |  0.065 |   0.1331 |    0.3389 |    0.0024 |  0.0019 |  798.532 |  698.803 | 1.0118 |
+| no_pooling_theta()\[15\] | 0.2117 | 0.0611 |   0.1107 |    0.2981 |    0.0016 |  0.0011 |  1355.85 |  712.344 | 1.0129 |
+| no_pooling_theta()\[16\] | 0.1916 | 0.0567 |   0.0972 |     0.273 |     0.001 |  0.0007 |  3040.46 |  1727.26 |  1.008 |
+| no_pooling_theta()\[17\] | 0.1696 | 0.0546 |   0.0832 |    0.2529 |     0.001 |  0.0008 |  3504.73 |  1593.75 | 1.0084 |
+
 
 All the $\hat{R}$ values look close to 1, and our `ess` for both the bulk and tail
 regions are large. Below we plot all the diagnostics we did for the `complete-pooling`
 model above. Since we created a model for each player, we have a large number of
 diagnostic plots.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -789,7 +744,7 @@ no_pooling_diag_plots = gridplot([*no_pooling_diagnostic_plots])
 show(no_pooling_diag_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/no-pooling-diag-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/8ab56171-6e23-4d9f-833f-78135bf189a8.json')} />
 
 All of our visual diagnostics above look good. Posteriors are smooth, `ess` plots look
 linear, density and rank plots for each chain look uniform and autocorrelation plots are
@@ -815,7 +770,6 @@ $$
 
 Since this is also our x-axis, we have a straight line.
 
-
 ```python
 # Required for visualizing in Colab.
 output_notebook(hide_banner=True)
@@ -829,7 +783,7 @@ complete_no_plot = gridplot([[complete_pooling_model_plot, no_pooling_model_plot
 show(complete_no_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/complete-no-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/eb950d85-e242-448c-858e-e4225bb01766.json')} />
 
 Player's chances for the no-pooling model show a wide spread from around 0.2 to around
 0.4. It turns out that a hitting average for MLB players in the high 300's (0.3 in our
@@ -844,14 +798,11 @@ different, but similar. What we have done so far is to model the extreme cases f
 data. In the next section we will combine these two models such that we have a more
 accurate representation of player's chances when at-bat.
 
-
 <a id="parital-pooling"></a>
 
 ### Partial-pooling model
 
-
 ![](assets/img/partial-pooling-dag.svg)
-
 
 Partial pooling combines [complete-pooling](#complete-pooling) and
 [no-pooling](#no-pooling) models to create a hybrid model that creates separate models
@@ -881,13 +832,10 @@ and $\beta$, which both need to be estimated. $\kappa$ can be thought of as the
 population "concentration". For a more thorough discussion about $\kappa$, see
 [Carpenter 2016](#references).
 
-
 #### Priors for the partial-pooling model
-
 
 Just as we did before, we plot a few curves of the Pareto distribution with varying
 parameters to get a sense of what our priors look like.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -897,13 +845,12 @@ pareto_plot = baseball.plot_pareto_prior()
 show(pareto_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/pareto-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/3b14f01d-03b7-448e-ad9e-86ef3f79fe2e.json')} />
 
 We can code our partial pooling model easily in Bean Machine. All we need to do is
 reintroduce $\phi$ as our estimate for the population's chance for hitting a ball when
 at-bat, keep our model for each individual's chance for successfully hitting when at-bat
 $\theta$, and introduce $\kappa$ as our population concentration.
-
 
 ```python
 @bm.random_variable
@@ -930,12 +877,10 @@ def partial_pooling_y() -> RVIdentifier:
 
 #### Partial-pooling inference
 
-
 Again we construct our observations into a dictionary, and sample using the
 `GlobalNoUTurnSampler`. The major difference between our previous models and this one,
 is that we now have more than one Bean Machine random variable to include in the
 `queries` parameter of the `infer` method.
-
 
 ```python
 partial_pooling_observations = {partial_pooling_y(): current_hits}
@@ -954,50 +899,47 @@ partial_pooling_samples = bm.GlobalNoUTurnSampler().infer(
 ```
 
 <CellOutput>
-{` 
+{
+  `Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
 Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]
- 
-Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`}
+Samples collected:   0%|          | 0/7500 [00:00<?, ?it/s]`
+}
 </CellOutput>
 
 #### Partial-pooling analysis
 
-
 Just as before, we check the $\hat{R}$ and `ess` summary statistics as well as the rank
 and autocorrelation plots using arviz.
-
 
 ```python
 partial_pooling_summary_df = az.summary(partial_pooling_samples.to_xarray(), round_to=4)
 Markdown(partial_pooling_summary_df.to_markdown())
 ```
 
-|                             |    mean |       sd |   hdi_5.5% |   hdi_94.5% |   mcse_mean |   mcse_sd |   ess_bulk |   ess_tail |   r_hat |
-|:----------------------------|--------:|---------:|-----------:|------------:|------------:|----------:|-----------:|-----------:|--------:|
-| partial_pooling_kappa()     | 94.379  | 106.326  |     9.3574 |    182.74   |      2.9026 |    2.1518 |    2828.55 |    1818.26 |  1.0011 |
-| partial_pooling_theta()[0]  |  0.3231 |   0.052  |     0.2428 |      0.4039 |      0.0005 |    0.0004 |   10488.8  |   13218.7  |  1.0004 |
-| partial_pooling_theta()[1]  |  0.3138 |   0.051  |     0.2368 |      0.3965 |      0.0005 |    0.0003 |   11139.9  |   12959.9  |  1      |
-| partial_pooling_theta()[2]  |  0.3047 |   0.0484 |     0.228  |      0.3797 |      0.0004 |    0.0003 |   13442.6  |   13862.2  |  1.0002 |
-| partial_pooling_theta()[3]  |  0.2953 |   0.0467 |     0.2194 |      0.3663 |      0.0004 |    0.0003 |   16300.3  |   13858.7  |  1      |
-| partial_pooling_theta()[4]  |  0.2859 |   0.0457 |     0.2157 |      0.3595 |      0.0003 |    0.0002 |   18709.9  |   13630.1  |  1.0005 |
-| partial_pooling_theta()[5]  |  0.2855 |   0.0455 |     0.2151 |      0.3583 |      0.0003 |    0.0002 |   18825.1  |   13729.9  |  1.0003 |
-| partial_pooling_theta()[6]  |  0.2765 |   0.0451 |     0.2063 |      0.3495 |      0.0003 |    0.0002 |   19152.1  |   12959    |  1.0007 |
-| partial_pooling_theta()[7]  |  0.2674 |   0.0443 |     0.1944 |      0.3359 |      0.0003 |    0.0002 |   19496.4  |   12683.8  |  1.0005 |
-| partial_pooling_theta()[8]  |  0.2574 |   0.0433 |     0.1858 |      0.3245 |      0.0003 |    0.0002 |   20478.8  |   12399.8  |  1.0003 |
-| partial_pooling_theta()[9]  |  0.2575 |   0.0441 |     0.1868 |      0.3266 |      0.0003 |    0.0002 |   19430.9  |   11696.7  |  1.0003 |
-| partial_pooling_theta()[10] |  0.2492 |   0.0435 |     0.1811 |      0.3193 |      0.0003 |    0.0002 |   17827.8  |   12261.1  |  1      |
-| partial_pooling_theta()[11] |  0.2491 |   0.0435 |     0.1778 |      0.3167 |      0.0003 |    0.0002 |   17092.1  |   13110.4  |  1      |
-| partial_pooling_theta()[12] |  0.2486 |   0.0436 |     0.178  |      0.3168 |      0.0003 |    0.0002 |   17226.1  |   13164.1  |  1.0001 |
-| partial_pooling_theta()[13] |  0.2486 |   0.0437 |     0.18   |      0.3192 |      0.0003 |    0.0002 |   17574.4  |   13216.6  |  1.0001 |
-| partial_pooling_theta()[14] |  0.2489 |   0.0441 |     0.1767 |      0.3174 |      0.0003 |    0.0002 |   18707.4  |   13415.2  |  1.0004 |
-| partial_pooling_theta()[15] |  0.2394 |   0.0435 |     0.1666 |      0.3051 |      0.0004 |    0.0003 |   13857.6  |   12263.8  |  1.0002 |
-| partial_pooling_theta()[16] |  0.2303 |   0.044  |     0.1597 |      0.2996 |      0.0004 |    0.0003 |   12717.7  |   12251    |  1.0001 |
-| partial_pooling_theta()[17] |  0.2207 |   0.0447 |     0.1513 |      0.2931 |      0.0005 |    0.0003 |    9818.48 |   11233    |  1.0006 |
-| partial_pooling_phi()       |  0.2688 |   0.0214 |     0.2334 |      0.3009 |      0.0002 |    0.0001 |   10339.7  |   11845.5  |  1.0001 |
+|                               |   mean |      sd | hdi_5.5% | hdi_94.5% | mcse_mean | mcse_sd | ess_bulk | ess_tail |  r_hat |
+| :---------------------------- | -----: | ------: | -------: | --------: | --------: | ------: | -------: | -------: | -----: |
+| partial_pooling_kappa()       | 94.379 | 106.326 |   9.3574 |    182.74 |    2.9026 |  2.1518 |  2828.55 |  1818.26 | 1.0011 |
+| partial_pooling_theta()\[0\]  | 0.3231 |   0.052 |   0.2428 |    0.4039 |    0.0005 |  0.0004 |  10488.8 |  13218.7 | 1.0004 |
+| partial_pooling_theta()\[1\]  | 0.3138 |   0.051 |   0.2368 |    0.3965 |    0.0005 |  0.0003 |  11139.9 |  12959.9 |      1 |
+| partial_pooling_theta()\[2\]  | 0.3047 |  0.0484 |    0.228 |    0.3797 |    0.0004 |  0.0003 |  13442.6 |  13862.2 | 1.0002 |
+| partial_pooling_theta()\[3\]  | 0.2953 |  0.0467 |   0.2194 |    0.3663 |    0.0004 |  0.0003 |  16300.3 |  13858.7 |      1 |
+| partial_pooling_theta()\[4\]  | 0.2859 |  0.0457 |   0.2157 |    0.3595 |    0.0003 |  0.0002 |  18709.9 |  13630.1 | 1.0005 |
+| partial_pooling_theta()\[5\]  | 0.2855 |  0.0455 |   0.2151 |    0.3583 |    0.0003 |  0.0002 |  18825.1 |  13729.9 | 1.0003 |
+| partial_pooling_theta()\[6\]  | 0.2765 |  0.0451 |   0.2063 |    0.3495 |    0.0003 |  0.0002 |  19152.1 |    12959 | 1.0007 |
+| partial_pooling_theta()\[7\]  | 0.2674 |  0.0443 |   0.1944 |    0.3359 |    0.0003 |  0.0002 |  19496.4 |  12683.8 | 1.0005 |
+| partial_pooling_theta()\[8\]  | 0.2574 |  0.0433 |   0.1858 |    0.3245 |    0.0003 |  0.0002 |  20478.8 |  12399.8 | 1.0003 |
+| partial_pooling_theta()\[9\]  | 0.2575 |  0.0441 |   0.1868 |    0.3266 |    0.0003 |  0.0002 |  19430.9 |  11696.7 | 1.0003 |
+| partial_pooling_theta()\[10\] | 0.2492 |  0.0435 |   0.1811 |    0.3193 |    0.0003 |  0.0002 |  17827.8 |  12261.1 |      1 |
+| partial_pooling_theta()\[11\] | 0.2491 |  0.0435 |   0.1778 |    0.3167 |    0.0003 |  0.0002 |  17092.1 |  13110.4 |      1 |
+| partial_pooling_theta()\[12\] | 0.2486 |  0.0436 |    0.178 |    0.3168 |    0.0003 |  0.0002 |  17226.1 |  13164.1 | 1.0001 |
+| partial_pooling_theta()\[13\] | 0.2486 |  0.0437 |     0.18 |    0.3192 |    0.0003 |  0.0002 |  17574.4 |  13216.6 | 1.0001 |
+| partial_pooling_theta()\[14\] | 0.2489 |  0.0441 |   0.1767 |    0.3174 |    0.0003 |  0.0002 |  18707.4 |  13415.2 | 1.0004 |
+| partial_pooling_theta()\[15\] | 0.2394 |  0.0435 |   0.1666 |    0.3051 |    0.0004 |  0.0003 |  13857.6 |  12263.8 | 1.0002 |
+| partial_pooling_theta()\[16\] | 0.2303 |   0.044 |   0.1597 |    0.2996 |    0.0004 |  0.0003 |  12717.7 |    12251 | 1.0001 |
+| partial_pooling_theta()\[17\] | 0.2207 |  0.0447 |   0.1513 |    0.2931 |    0.0005 |  0.0003 |  9818.48 |    11233 | 1.0006 |
+| partial_pooling_phi()         | 0.2688 |  0.0214 |   0.2334 |    0.3009 |    0.0002 |  0.0001 |  10339.7 |  11845.5 | 1.0001 |
+
 
 ```python
 # Required for visualizing in Colab.
@@ -1009,7 +951,7 @@ partial_pooling_diag_plots = gridplot(
 show(partial_pooling_diag_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/partial-pooling-diag-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/5bb3ee68-a082-4f52-a5eb-83f2f1bf3ebb.json')} />
 
 All summary diagnostics $(\hat{R}\text{ and }ess$) look good. All our `ess` evolution
 plots also look linear and breach the 400 rule-of-thumb threshold. Rank plots all look
@@ -1021,7 +963,6 @@ Below we show how the model affects estimated chances of hitting when at-bat for
 player. We compare this new model to the other model plots and see that the
 partial-pooling model effectively increases weak player's chances of landing a hit,
 while also decreasing strong player's chances of a hit.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1045,14 +986,13 @@ model_plots = gridplot(
 show(model_plots)
 ```
 
-<BokehFigure data={require('./assets/plot_data/model-plots.json')} />
+<BokehFigure data={require('./assets/plot_data/c2b8f359-bf32-4ad5-8bb6-8df94fdac305.json')} />
 
 The partial-pooling model has shifted our predictions. In fact, it has captured our data
 story, which stated that MLB players are unique (they do not lie on the population mean
 orange line) and yet they are not all that different (they do not fall on the grey
 line). What we see is that player's chances of hitting a ball when at-bat have moved
 closer to the mean line from their positions in the no-pooling model.
-
 
 ```python
 # Required for visualizing in Colab.
@@ -1064,10 +1004,9 @@ shrinkage_plot = baseball.plot_shrinkage(
 show(shrinkage_plot)
 ```
 
-<BokehFigure data={require('./assets/plot_data/shrinkage-plot.json')} />
+<BokehFigure data={require('./assets/plot_data/3fab90a8-5edd-4e84-af4f-03ba9c85a30a.json')} />
 
 ## Conclusion
-
 
 To sum up
 
@@ -1091,11 +1030,9 @@ success when at-bat. Bayesian inference has given us a way to make more accurate
 predictions about a player's chance of success with a small data set and Bean Machine
 made creating those models very easy.
 
-
 <a id="references"></a>
 
 ## References
-
 
 - Carpenter B (2016) Hierarchical Partial Pooling for Repeated Binary Trials.
   [https://mc-stan.org/users/documentation/case-studies/pool-binary-trials.html](https://mc-stan.org/users/documentation/case-studies/pool-binary-trials.html)

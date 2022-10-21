@@ -1,0 +1,598 @@
+{
+  "target_id": "db9c0893-2142-4fd2-a851-5c919e4ac96e",
+  "root_id": "1431",
+  "doc": {
+    "defs": [],
+    "roots": {
+      "references": [
+        {
+          "attributes": {
+            "below": [
+              {
+                "id": "1440"
+              }
+            ],
+            "center": [
+              {
+                "id": "1443"
+              },
+              {
+                "id": "1447"
+              },
+              {
+                "id": "1471"
+              }
+            ],
+            "height": 500,
+            "left": [
+              {
+                "id": "1444"
+              }
+            ],
+            "outline_line_color": "black",
+            "renderers": [
+              {
+                "id": "1467"
+              }
+            ],
+            "title": {
+              "id": "1507"
+            },
+            "toolbar": {
+              "id": "1455"
+            },
+            "width": 800,
+            "x_range": {
+              "id": "1432"
+            },
+            "x_scale": {
+              "id": "1436"
+            },
+            "y_range": {
+              "id": "1434"
+            },
+            "y_scale": {
+              "id": "1438"
+            }
+          },
+          "id": "1431",
+          "subtype": "Figure",
+          "type": "Plot"
+        },
+        {
+          "attributes": {},
+          "id": "1516",
+          "type": "Selection"
+        },
+        {
+          "attributes": {},
+          "id": "1432",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "1436",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "1434",
+          "type": "DataRange1d"
+        },
+        {
+          "attributes": {},
+          "id": "1438",
+          "type": "LinearScale"
+        },
+        {
+          "attributes": {},
+          "id": "1451",
+          "type": "SaveTool"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "group": null
+          },
+          "id": "1507",
+          "type": "Title"
+        },
+        {
+          "attributes": {
+            "axis_label": "Counts",
+            "coordinates": null,
+            "formatter": {
+              "id": "1510"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "1511"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "1445"
+            }
+          },
+          "id": "1444",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "1449",
+          "type": "WheelZoomTool"
+        },
+        {
+          "attributes": {
+            "overlay": {
+              "id": "1454"
+            }
+          },
+          "id": "1450",
+          "type": "BoxZoomTool"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.1
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.1
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.1
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1464",
+          "type": "Quad"
+        },
+        {
+          "attributes": {},
+          "id": "1448",
+          "type": "PanTool"
+        },
+        {
+          "attributes": {},
+          "id": "1453",
+          "type": "HelpTool"
+        },
+        {
+          "attributes": {},
+          "id": "1441",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {
+            "source": {
+              "id": "1430"
+            }
+          },
+          "id": "1468",
+          "type": "CDSView"
+        },
+        {
+          "attributes": {
+            "callback": null,
+            "renderers": [
+              {
+                "id": "1467"
+              }
+            ],
+            "tooltips": [
+              [
+                "Counts",
+                "@top"
+              ],
+              [
+                "Bin",
+                "@label"
+              ]
+            ]
+          },
+          "id": "1469",
+          "type": "HoverTool"
+        },
+        {
+          "attributes": {},
+          "id": "1510",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "data_source": {
+              "id": "1430"
+            },
+            "glyph": {
+              "id": "1463"
+            },
+            "group": null,
+            "hover_glyph": {
+              "id": "1465"
+            },
+            "muted_glyph": {
+              "id": "1466"
+            },
+            "nonselection_glyph": {
+              "id": "1464"
+            },
+            "view": {
+              "id": "1468"
+            }
+          },
+          "id": "1467",
+          "type": "GlyphRenderer"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "dimension": "height",
+            "group": null,
+            "line_color": "red",
+            "line_width": 3,
+            "location": -4.0
+          },
+          "id": "1471",
+          "type": "Span"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_color": {
+              "value": "orange"
+            },
+            "left": {
+              "field": "left"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1465",
+          "type": "Quad"
+        },
+        {
+          "attributes": {},
+          "id": "1511",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1440"
+            },
+            "coordinates": null,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1443",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "1513",
+          "type": "BasicTickFormatter"
+        },
+        {
+          "attributes": {
+            "axis": {
+              "id": "1444"
+            },
+            "coordinates": null,
+            "dimension": 1,
+            "grid_line_alpha": 0.2,
+            "grid_line_color": "grey",
+            "grid_line_width": 0.2,
+            "group": null,
+            "ticker": null
+          },
+          "id": "1447",
+          "type": "Grid"
+        },
+        {
+          "attributes": {},
+          "id": "1445",
+          "type": "BasicTicker"
+        },
+        {
+          "attributes": {},
+          "id": "1514",
+          "type": "AllLabels"
+        },
+        {
+          "attributes": {
+            "coordinates": null,
+            "formatter": {
+              "id": "1513"
+            },
+            "group": null,
+            "major_label_policy": {
+              "id": "1514"
+            },
+            "minor_tick_line_color": "grey",
+            "ticker": {
+              "id": "1441"
+            }
+          },
+          "id": "1440",
+          "type": "LinearAxis"
+        },
+        {
+          "attributes": {},
+          "id": "1452",
+          "type": "ResetTool"
+        },
+        {
+          "attributes": {
+            "tools": [
+              {
+                "id": "1448"
+              },
+              {
+                "id": "1449"
+              },
+              {
+                "id": "1450"
+              },
+              {
+                "id": "1451"
+              },
+              {
+                "id": "1452"
+              },
+              {
+                "id": "1453"
+              },
+              {
+                "id": "1469"
+              }
+            ]
+          },
+          "id": "1455",
+          "type": "Toolbar"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.2
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "hatch_alpha": {
+              "value": 0.2
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_alpha": {
+              "value": 0.2
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1466",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "bottom_units": "screen",
+            "coordinates": null,
+            "fill_alpha": 0.5,
+            "fill_color": "lightgrey",
+            "group": null,
+            "left_units": "screen",
+            "level": "overlay",
+            "line_alpha": 1.0,
+            "line_color": "black",
+            "line_dash": [
+              4,
+              4
+            ],
+            "line_width": 2,
+            "right_units": "screen",
+            "syncable": false,
+            "top_units": "screen"
+          },
+          "id": "1454",
+          "type": "BoxAnnotation"
+        },
+        {
+          "attributes": {
+            "bottom": {
+              "field": "bottom"
+            },
+            "fill_alpha": {
+              "value": 0.7
+            },
+            "fill_color": {
+              "value": "steelblue"
+            },
+            "left": {
+              "field": "left"
+            },
+            "line_color": {
+              "value": "white"
+            },
+            "right": {
+              "field": "right"
+            },
+            "top": {
+              "field": "top"
+            }
+          },
+          "id": "1463",
+          "type": "Quad"
+        },
+        {
+          "attributes": {
+            "data": {
+              "bottom": {
+                "__ndarray__": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+                "dtype": "float64",
+                "order": "little",
+                "shape": [
+                  23
+                ]
+              },
+              "label": [
+                "-5.634 - -5.494",
+                "-5.494 - -5.355",
+                "-5.355 - -5.215",
+                "-5.215 - -5.075",
+                "-5.075 - -4.935",
+                "-4.935 - -4.796",
+                "-4.796 - -4.656",
+                "-4.656 - -4.516",
+                "-4.516 - -4.376",
+                "-4.376 - -4.237",
+                "-4.237 - -4.097",
+                "-4.097 - -3.957",
+                "-3.957 - -3.817",
+                "-3.817 - -3.678",
+                "-3.678 - -3.538",
+                "-3.538 - -3.398",
+                "-3.398 - -3.258",
+                "-3.258 - -3.119",
+                "-3.119 - -2.979",
+                "-2.979 - -2.839",
+                "-2.839 - -2.699",
+                "-2.699 - -2.559",
+                "-2.559 - -2.420"
+              ],
+              "left": [
+                -5.634122848510742,
+                -5.49436616897583,
+                -5.354609489440918,
+                -5.214852809906006,
+                -5.075096130371094,
+                -4.935339450836182,
+                -4.7955827713012695,
+                -4.655826091766357,
+                -4.516069412231445,
+                -4.376312732696533,
+                -4.236556053161621,
+                -4.096799373626709,
+                -3.957042694091797,
+                -3.8172860145568848,
+                -3.6775293350219727,
+                -3.5377726554870605,
+                -3.3980159759521484,
+                -3.2582592964172363,
+                -3.118502616882324,
+                -2.978745937347412,
+                -2.8389892578125,
+                -2.699232578277588,
+                -2.559475898742676
+              ],
+              "right": [
+                -5.49436616897583,
+                -5.354609489440918,
+                -5.214852809906006,
+                -5.075096130371094,
+                -4.935339450836182,
+                -4.7955827713012695,
+                -4.655826091766357,
+                -4.516069412231445,
+                -4.376312732696533,
+                -4.236556053161621,
+                -4.096799373626709,
+                -3.957042694091797,
+                -3.8172860145568848,
+                -3.6775293350219727,
+                -3.5377726554870605,
+                -3.3980159759521484,
+                -3.2582592964172363,
+                -3.118502616882324,
+                -2.978745937347412,
+                -2.8389892578125,
+                -2.699232578277588,
+                -2.559475898742676,
+                -2.4197192192077637
+              ],
+              "top": [
+                6,
+                6,
+                14,
+                18,
+                23,
+                37,
+                45,
+                96,
+                111,
+                151,
+                210,
+                232,
+                220,
+                213,
+                176,
+                156,
+                120,
+                70,
+                49,
+                20,
+                12,
+                7,
+                8
+              ]
+            },
+            "selected": {
+              "id": "1516"
+            },
+            "selection_policy": {
+              "id": "1515"
+            }
+          },
+          "id": "1430",
+          "type": "ColumnDataSource"
+        },
+        {
+          "attributes": {},
+          "id": "1515",
+          "type": "UnionRenderers"
+        }
+      ],
+      "root_ids": [
+        "1431"
+      ]
+    },
+    "title": "Bokeh Application",
+    "version": "2.4.2"
+  },
+  "version": "2.4.2"
+}
