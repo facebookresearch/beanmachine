@@ -1,0 +1,12 @@
+{
+  "site_package_search_strategy": "all",
+  "search_path": [
+    {
+      "site-package": "beanmachine"
+    }
+  ],
+  "source_directories": [
+    "./src"
+  ],
+  "version": "0.0.101665573068"
+}
