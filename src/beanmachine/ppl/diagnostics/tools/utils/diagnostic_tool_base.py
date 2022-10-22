@@ -91,7 +91,7 @@ class DiagnosticToolBaseClass(ABC):
         """
         # import Ipython only when we need to render the plot, so that we don't
         # need to have jupyter notebook as one of our dependencies
-        from IPython.display import display, HTML  # pyre-ignore[21]
+        from IPython.display import display, HTML
 
         doc = self.create_document()
         html = file_html(doc, resources=INLINE, template=self.html_template())
