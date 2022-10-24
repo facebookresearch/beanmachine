@@ -16,6 +16,7 @@ from beanmachine.graph import Graph, InferConfig, InferenceType
 
 from beanmachine.ppl.compiler.bm_graph_builder import rv_to_query
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
+from beanmachine.ppl.compiler.gen_bm_python import to_bm_python
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
@@ -363,6 +364,15 @@ class BMGInference:
         produces the graph deduced from the model."""
         bmg = self._accumulate_graph(queries, observations)._bmg
         return to_bmg_python(bmg).code
+
+    def to_bm_python(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, torch.Tensor],
+    ) -> str:
+        """Produce a string containing a BM Python program from the graph."""
+        bmg = self._accumulate_graph(queries, observations)._bmg
+        return to_bm_python(bmg)
 
     def to_graph(
         self,
