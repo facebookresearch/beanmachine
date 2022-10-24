@@ -35,7 +35,25 @@ jobs:
         python-version: ${{ matrix.python-version }}
         activate-environment: test_env
 
-    - name: Install dependencies
+    - name: Install Windows range-v3 dependency
+      if: matrix.os == 'windows-latest'
+      run: |
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        bootstrap-vcpkg.bat
+        vcpkg integrate install
+        vcpkg install range-v3
+
+    - name: Install Unix range-v3 dependency
+      if: matrix.os != 'windows-latest'
+      run: |
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        ./bootstrap-vcpkg.sh
+        ./vcpkg integrate install
+        ./vcpkg install range-v3
+
+    - name: Install other dependencies
       run: |
         conda install -c conda-forge -y boost-cpp eigen=3.4.0
         python -m pip install --upgrade pip
