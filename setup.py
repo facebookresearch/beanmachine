@@ -152,9 +152,10 @@ elif sys.platform.startswith("darwin"):
 elif platform.system() == "Windows":
     RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
         [
-            # GitHub Actions runner
+            "./vcpkg/packages/range-v3_x86-windows/include",
+            # The following two options were observed being used on GitHub Actions runner:
             "C:/vcpkg/packages/range-v3_x86-windows/include",
-            ".vcpkg/packages/range-v3_x86-windows/include",
+            "D:/a/beanmachine/beanmachine/vcpkg/packages/range-v3_x86-windows/include",
         ]
     )
 print(
