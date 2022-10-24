@@ -3,10 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-"""Marginal 1D diagnostic tool for a Bean Machine model."""
+"""Trace diagnostic tool for a Bean Machine model."""
 from __future__ import annotations
 
-from beanmachine.ppl.diagnostics.tools.marginal1d import utils
+from beanmachine.ppl.diagnostics.tools.trace import utils
 from beanmachine.ppl.diagnostics.tools.utils.diagnostic_tool_base import (
     DiagnosticToolBaseClass,
 )
@@ -15,9 +15,8 @@ from bokeh.models import Model
 from bokeh.models.callbacks import CustomJS
 
 
-class Marginal1d(DiagnosticToolBaseClass):
-    """
-    Marginal 1D diagnostic tool.
+class Trace(DiagnosticToolBaseClass):
+    """Trace tool.
 
     Args:
         mcs (MonteCarloSamples): The return object from running a Bean Machine model.
@@ -36,14 +35,12 @@ class Marginal1d(DiagnosticToolBaseClass):
             independently from a Python server.
     """
 
-    def __init__(self: Marginal1d, mcs: MonteCarloSamples) -> None:
-        super(Marginal1d, self).__init__(mcs)
+    def __init__(self: Trace, mcs: MonteCarloSamples) -> None:
+        super(Trace, self).__init__(mcs)
 
-    def create_document(self: Marginal1d) -> Model:
+    def create_document(self: Trace) -> Model:
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
-        bw_factor = 1.0
-        bandwidth = 1.0
 
         # NOTE: We are going to use Python and Bokeh to render the tool in the notebook
         #       output cell, however, we WILL NOT use Python to calculate any of the
@@ -60,30 +57,32 @@ class Marginal1d(DiagnosticToolBaseClass):
         #       work-around.
 
         # Create empty Bokeh sources using Python.
-        sources = utils.create_sources()
+        sources = utils.create_sources(num_chains=self.num_chains)
 
         # Create empty figures for the tool using Python.
-        figures = utils.create_figures(rv_name=rv_name)
+        figures = utils.create_figures(rv_name=rv_name, num_chains=self.num_chains)
 
         # Create empty glyphs and attach them to the figures using Python.
-        glyphs = utils.create_glyphs()
+        glyphs = utils.create_glyphs(num_chains=self.num_chains)
         utils.add_glyphs(sources=sources, figures=figures, glyphs=glyphs)
 
         # Create empty annotations and attach them to the figures using Python.
-        annotations = utils.create_annotations(sources=sources)
+        annotations = utils.create_annotations(
+            figures=figures,
+            num_chains=self.num_chains,
+        )
         utils.add_annotations(figures=figures, annotations=annotations)
 
         # Create empty tool tips and attach them to the figures using Python.
-        tooltips = utils.create_tooltips(figures=figures, rv_name=rv_name)
+        tooltips = utils.create_tooltips(
+            figures=figures,
+            rv_name=rv_name,
+            num_chains=self.num_chains,
+        )
         utils.add_tooltips(figures=figures, tooltips=tooltips)
 
         # Create the widgets for the tool using Python.
-        widgets = utils.create_widgets(
-            rv_names=self.rv_names,
-            rv_name=rv_name,
-            bandwidth=bandwidth,
-            bw_factor=bw_factor,
-        )
+        widgets = utils.create_widgets(rv_names=self.rv_names, rv_name=rv_name)
 
         # Create the view of the tool and serialize it into HTML using static resources
         # from Bokeh. Embedding the tool in this manner prevents external CDN calls for
@@ -94,7 +93,7 @@ class Marginal1d(DiagnosticToolBaseClass):
         # Create callbacks for the tool using JavaScript.
         callback_js = f"""
             const rvName = widgets.rv_select.value;
-            const rvData = data[rvName].flat();
+            const rvData = data[rvName];
             let bw = 0.0;
             // Remove the CSS classes that dim the tool output on initial load.
             const toolTab = toolView.tabs[0];
@@ -102,7 +101,7 @@ class Marginal1d(DiagnosticToolBaseClass):
             const dimmedComponent = toolChildren[1];
             dimmedComponent.css_classes = [];
             try {{
-              bw = marginal1d.update(
+              trace.update(
                 rvData,
                 rvName,
                 bwFactor,
@@ -113,7 +112,7 @@ class Marginal1d(DiagnosticToolBaseClass):
               );
             }} catch (error) {{
               {self.tool_js}
-              bw = marginal1d.update(
+              trace.update(
                 rvData,
                 rvName,
                 bwFactor,
@@ -137,24 +136,22 @@ class Marginal1d(DiagnosticToolBaseClass):
             "toolView": tool_view,
         }
 
-        # Each widget requires slightly different JS, except for the sliders.
+        # Each widget requires slightly different JS.
         rv_select_js = f"""
             const bwFactor = 1.0;
             const hdiProbability = 0.89;
             widgets.bw_factor_slider.value = bwFactor;
             widgets.hdi_slider.value = 100 * hdiProbability;
             {callback_js};
-            widgets.bw_div.text = `Bandwidth: ${{bwFactor * bw}}`;
-            figures.marginal.reset.emit();
+            figures.marginals.reset.emit();
         """
         slider_js = f"""
             const bwFactor = widgets.bw_factor_slider.value;
             const hdiProbability = widgets.hdi_slider.value / 100;
             {callback_js};
-            widgets.bw_div.text = `Bandwidth: ${{bwFactor * bw}}`;
         """
-        rv_select_callback = CustomJS(args=callback_arguments, code=rv_select_js)
         slider_callback = CustomJS(args=callback_arguments, code=slider_js)
+        rv_select_callback = CustomJS(args=callback_arguments, code=rv_select_js)
 
         # Tell Python to use the JavaScript.
         widgets["rv_select"].js_on_change("value", rv_select_callback)

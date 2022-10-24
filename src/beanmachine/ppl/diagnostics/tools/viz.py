@@ -49,7 +49,24 @@ class DiagnosticsTools:
 
     @_requires_dev_packages
     def marginal1d(self: DiagnosticsTools) -> None:
-        """Marginal 1D tool."""
+        """
+        Marginal 1D diagnostic tool for a Bean Machine model.
+
+        Returns:
+            None: Displays the tool directly in a Jupyter notebook.
+        """
         from beanmachine.ppl.diagnostics.tools.marginal1d.tool import Marginal1d
 
         Marginal1d(self.mcs).show()
+
+    @_requires_dev_packages
+    def trace(self: DiagnosticsTools) -> None:
+        """
+        Trace diagnostic tool for a Bean Machine model.
+
+        Returns:
+            None: Displays the tool directly in a Jupyter notebook.
+        """
+        from beanmachine.ppl.diagnostics.tools.trace.tool import Trace
+
+        Trace(self.mcs).show()
