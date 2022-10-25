@@ -3,6 +3,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+#
+# Tensorizing and detensorizing
+#
+# See the comment at the top of devectorizer_transformer.py for a high-level description of
+# what this class is for and how it works with the devectorizer.
+
 import typing
 from enum import Enum
 from typing import Callable, List
@@ -20,10 +26,18 @@ from beanmachine.ppl.compiler.size_assessment import SizeAssessment
 from beanmachine.ppl.compiler.sizer import is_scalar, Sizer, Unsized
 
 
+# The tensorizing transformation does not need to know the *semantic* type of a node;
+# that is, whether it is a bool, natural, probability, positive real, and so on. But
+# we do need information about what the *tensor shape* was in the original PyTorch
+# model.
 class ElementType(Enum):
+    # The node represents a multidimensional tensor that cannot be expressed in BMG.
     TENSOR = 1
+    # The node represents a single value.
     SCALAR = 2
+    # The node represents multiple values that can be expressed in a BMG 2-d matrix.
     MATRIX = 3
+    # We were unable to deduce the size in the original Python model.
     UNKNOWN = 4
 
 
@@ -32,6 +46,14 @@ def _always(node):
 
 
 class Tensorizer(NodeTransformer):
+    # A node transformer exposes two operations to its caller:
+    # * assess_node takes a node and returns an assessement of whether it can be
+    #   transformed.
+    # * transform_node takes a node and either returns a copy, or a new node to
+    #   replace the given node.
+    #
+    # This transformer determines whether a node in the graph accumulated from the
+    # original Python model should be transformed into a matrix-aware BMG node.
     def __init__(self, cloner: Cloner, sizer: Sizer):
         self.cloner = cloner
         self.sizer = sizer
@@ -76,6 +98,8 @@ class Tensorizer(NodeTransformer):
     def _tensorize_div(
         self, node: bn.DivisionNode, new_inputs: List[bn.BMGNode]
     ) -> bn.BMGNode:
+        # If we have DIV(matrix, scalar) then we transform that into
+        # MATRIX_SCALE(matrix, DIV(1, scalar)).
         assert len(node.inputs.inputs) == 2
         tensor_input = new_inputs[0]
         scalar_input = new_inputs[1]
@@ -90,8 +114,9 @@ class Tensorizer(NodeTransformer):
     def _tensorize_sum(
         self, node: bn.SumNode, new_inputs: List[bn.BMGNode]
     ) -> bn.BMGNode:
+        # TODO: Ensure that we correctly insert any necessary broadcasting nodes
+        # in the requirements-fixing pass.
         assert len(new_inputs) >= 1
-        # note that scalars can be broadcast
         if any(
             self._element_type(operand) == ElementType.MATRIX
             for operand in node.inputs.inputs
@@ -105,6 +130,8 @@ class Tensorizer(NodeTransformer):
     def _tensorize_multiply(
         self, node: bn.MultiplicationNode, new_inputs: List[bn.BMGNode]
     ) -> bn.BMGNode:
+        # Note that this function handles *elementwise* multiplication of tensors, not
+        # matrix multiplication.  There are three cases to consider.
         if len(new_inputs) != 2:
             raise ValueError(
                 "Cannot transform a mult into a tensor mult because there are not two operands"
@@ -115,12 +142,15 @@ class Tensorizer(NodeTransformer):
             raise ValueError(
                 f"cannot multiply an unsized quantity. Operands: {new_inputs[0]} and {new_inputs[1]}"
             )
+        # Case one: MULT(matrix, matrix) --> ELEMENTWISEMULT(matrix, matrix)
+        # TODO: Ensure that the requirements fixing pass correctly inserts broadcast operators.
         lhs_is_scalar = is_scalar(lhs_sz)
         rhs_is_scalar = is_scalar(rhs_sz)
         if not lhs_is_scalar and not rhs_is_scalar:
             return self.cloner.bmg.add_elementwise_multiplication(
                 new_inputs[0], new_inputs[1]
             )
+        # Case two: MULT(scalar, scalar) stays just that.
         if lhs_is_scalar and not rhs_is_scalar:
             scalar_parent_image = new_inputs[0]
             tensor_parent_image = new_inputs[1]
@@ -131,6 +161,7 @@ class Tensorizer(NodeTransformer):
             assert is_scalar(rhs_sz)
         else:
             return self.cloner.bmg.add_multiplication(new_inputs[0], new_inputs[1])
+        # Case three: MULT(matrix, scalar) or MULT(scalar, matrix) --> MATRIX_SCALE(matrix, scalar)
         return self.cloner.bmg.add_matrix_scale(
             scalar_parent_image, tensor_parent_image
         )
@@ -141,6 +172,8 @@ class Tensorizer(NodeTransformer):
         new_inputs: List[bn.BMGNode],
         creator: Callable,
     ) -> bn.BMGNode:
+        # Unary operators such as exp, log, and so on, are straightforward. If the operand is
+        # a matrix, generate the matrix-aware node. Otherwise leave it alone.
         assert len(new_inputs) == 1
         if self._element_type(new_inputs[0]) == ElementType.MATRIX:
             return creator(new_inputs[0])
@@ -153,6 +186,23 @@ class Tensorizer(NodeTransformer):
         new_inputs: List[bn.BMGNode],
         creator: Callable,
     ) -> bn.BMGNode:
+        # TODO: This code is only called for addition nodes, so making it generalized
+        # to arbitrary binary operators is slightly misleading. Moreover, once we have
+        # broadcasting operations implemented correctly in the requirements fixing pass,
+        # this code is not quite right.
+        #
+        # The meaning of the code today is: create a MatrixAdd IFF *both* operands are
+        # multidimensional. This means that for the case where we have matrix + scalar,
+        # we do NOT generate a matrix add here; instead we keep it a regular add and the
+        # devectorizer tears the matrix apart, does scalar additions, and then puts it
+        # back together.
+        #
+        # Once we have broadcasting fixers in the requirements fixing pass, the correct
+        # behavior here will be to generate the matrix add if EITHER or BOTH operands are
+        # multidimensional. In the case where we have matrix + scalar, we do not want to
+        # devectorize the matrix, we want to matrix-fill the scalar, and now we have
+        # matrix + matrix.
+
         assert len(new_inputs) == 2
         if (
             self._element_type(new_inputs[0]) == ElementType.MATRIX
