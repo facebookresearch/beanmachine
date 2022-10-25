@@ -38,6 +38,7 @@ Submodules
    beanmachine.ppl.compiler.fix_requirements
    beanmachine.ppl.compiler.fix_transpose
    beanmachine.ppl.compiler.fix_unsupported
+   beanmachine.ppl.compiler.gen_bm_python
    beanmachine.ppl.compiler.gen_bmg_cpp
    beanmachine.ppl.compiler.gen_bmg_graph
    beanmachine.ppl.compiler.gen_bmg_python
