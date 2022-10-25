@@ -72,7 +72,7 @@ class Tensorizer(NodeTransformer):
             bn.SumNode: _always,
         }
         self.transform_map = {
-            bn.AdditionNode: lambda node, inputs: self._tensorize_binary_elementwise(
+            bn.AdditionNode: lambda node, inputs: self._tensorize_addition(
                 node, inputs, self.cloner.bmg.add_matrix_addition
             ),
             bn.MultiplicationNode: self._tensorize_multiply,
@@ -180,33 +180,19 @@ class Tensorizer(NodeTransformer):
         else:
             return self.cloner.clone(node, new_inputs)
 
-    def _tensorize_binary_elementwise(
+    def _tensorize_addition(
         self,
-        node: bn.BinaryOperatorNode,
+        node: bn.AdditionNode,
         new_inputs: List[bn.BMGNode],
         creator: Callable,
     ) -> bn.BMGNode:
-        # TODO: This code is only called for addition nodes, so making it generalized
-        # to arbitrary binary operators is slightly misleading. Moreover, once we have
-        # broadcasting operations implemented correctly in the requirements fixing pass,
-        # this code is not quite right.
-        #
-        # The meaning of the code today is: create a MatrixAdd IFF *both* operands are
-        # multidimensional. This means that for the case where we have matrix + scalar,
-        # we do NOT generate a matrix add here; instead we keep it a regular add and the
-        # devectorizer tears the matrix apart, does scalar additions, and then puts it
-        # back together.
-        #
-        # Once we have broadcasting fixers in the requirements fixing pass, the correct
-        # behavior here will be to generate the matrix add if EITHER or BOTH operands are
-        # multidimensional. In the case where we have matrix + scalar, we do not want to
-        # devectorize the matrix, we want to matrix-fill the scalar, and now we have
-        # matrix + matrix.
-
+        # If we have matrix + matrix, scalar + matrix or matrix + scalar, generate
+        # a matrix add.  In the latter cases, the requirements fixing pass will insert a
+        # matrix fill node to convert the scalar to a matrix of the appropriate size.
         assert len(new_inputs) == 2
         if (
             self._element_type(new_inputs[0]) == ElementType.MATRIX
-            and self._element_type(new_inputs[1]) == ElementType.MATRIX
+            or self._element_type(new_inputs[1]) == ElementType.MATRIX
         ):
             return creator(new_inputs[0], new_inputs[1])
         else:
