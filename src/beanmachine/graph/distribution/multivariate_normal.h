@@ -37,8 +37,9 @@ class MultivariateNormal : public Distribution {
       const override;
 
  private:
+  Eigen::LLT<Eigen::MatrixXd> llt() const;
   Eigen::LLT<Eigen::MatrixXd>
-      llt; // cholesky decomposition of the covariance matrix
+      _llt; // cholesky decomposition of the covariance matrix if constant
 };
 } // namespace distribution
 } // namespace beanmachine
