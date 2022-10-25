@@ -192,9 +192,9 @@ void LKJCholesky::backward_value(
   auto grad_diagonal = adjunct * o / diag_elems;
 
   for (uint i = 1; i < d; i++) {
-    back_grad(i, i) = grad_diagonal(i - 1);
+    back_grad(i, i) += grad_diagonal(i - 1);
   }
-};
+}
 
 void LKJCholesky::backward_param(const graph::NodeValue& value, double adjunct)
     const {

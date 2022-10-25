@@ -475,7 +475,7 @@ void MatrixComplement::backward() {
 void Transpose::backward() {
   assert(in_nodes.size() == 1);
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1 = back_grad1.as_matrix().transpose();
+    in_nodes[0]->back_grad1 += back_grad1.as_matrix().transpose();
   }
 }
 
