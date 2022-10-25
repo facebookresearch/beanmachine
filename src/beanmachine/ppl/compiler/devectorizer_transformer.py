@@ -3,6 +3,99 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+#
+# Tensorizing and detensorizing
+#
+# TODO: The fact that we use vectorizing and tensorizing as synonyms throughout all this code is
+# unnecessarily confusing. Pick one and stick to it.
+#
+# There are a number of important mismatches between the BMG and PyTorch type systems
+# that we need to address when converting the accumulated graph of a PyTorch model into
+# a BMG graph data structure.
+#
+# * PyTorch values are tensors: rectangular arrays of arbitrary dimensionality. BMG
+#   values are either "scalars" -- single values -- or Eigen arrays == two-dimensional
+#   rectangles.
+#
+# * PyTorch uses the same functions regardless of dimensionality; tensor(10).log() and
+#   tensor([[[10, 20, 30], [40, 50, 60]]]).log() are both represented by .log(). BMG
+#   has distinct operators for LOG and MATRIX_LOG, MULTIPLY and ELEMENTWISE_MULTIPLY
+#   and so on.
+#
+# * PyTorch's type system describes *storage format*: a tensor can be a tensor of integers
+#   or a tensor of doubles.  BMG's type system describes *data semantics*: floating point
+#   types are real, positive real, negative real and probability, discrete types are natural
+#   and bool.
+#
+# Moreover: we are gradually adding matrix-flavor operators to BMG, but they're not all
+# there yet. It would be nice to be able to compile models that use multidimensional tensors
+# even if doing so results in a larger graph size due to use of single-value operator nodes.
+#
+# To address these problems we perform two rewrites first, before all other graph rewrites:
+# *tensorizing* (in tensorizer_transformer.py) and *detensorizing* (this module).
+#
+# * Tensorizing is the more straightforward operation. We identify graph nodes in the accumulated
+#   graph which correspond to array operators already implemented in BMG. In particular, we
+#   look for nodes representing elementwise multiplication, addition, division, log, exp, and so
+#   on, where the operands are multidimensional arrays. Those nodes are replaced with the appropriate
+#   matrix-aware operator node.
+#
+# * Detensorizing is the more complex rewrite because it attempts to implement "batch" operations
+#   by doing them on individual elements of a matrix, and then combining the results back into
+#   a matrix. The long-term goal is to render detensorizing unnecessary by having all the necessary
+#   matrix operators in BMG.
+#
+# Detensorizing uses a few basic techniques in combination. We'll go through an example here.
+# Suppose we have a MatrixAdd -> HalfCauchy -> X, where X is a node that expects a matrix input
+# but there is no matrix version of HalfCauchy. What do we do?
+#
+# * "Splitting" takes an indexible node and breaks it up into its individual scalar quantities.
+#
+#     MatrixAdd                0    MatrixAdd  1
+#        |         --split->    \  /       \  /
+#    HalfCauchy                 [ index , index ]
+#        |                              |
+#        ~                          HalfCauchy
+#        |                              |
+#        X                              ~
+#                                       |
+#                                       X
+#
+# In this example the input would be the matrix add and the replacement would be a list of index nodes.
+#
+# * "Scattering" takes the now-ill-formed graph produced by splitting and moves the list "down the graph".
+#
+#       0    MatrixAdd  1                        0   MatrixAdd   1
+#        \  /       \  /                          \  /       \  /
+#       [ index , index ]  --scatter-->           index      index
+#               |                                   |          |
+#           HalfCauchy                          HalfCauchy   HalfCauchy
+#               |                                       |    |
+#               ~                                      [~ ,  ~]
+#               |                                         |
+#               X                                         X
+#
+# * Finally, "merging" turns a list of nodes into a tensor node:
+#
+#       0   MatrixAdd   1                         0   MatrixAdd   1
+#        \  /       \  /                           \  /       \  /
+#        index    index           --merge-->        index    index
+#          |        |                                 |        |
+#   HalfCauchy   HalfCauchy                    HalfCauchy   HalfCauchy
+#           |    |                                      |    |
+#           [~ , ~]                                     ~    ~
+#              |                                         \  /
+#              X                                         Tensor
+#                                                          |
+#                                                          X
+#
+# Now the graph is well-formed again, and we've solved the type system problem that there is
+# not (yet) a "matrix half Cauchy", at the cost of having to run some tricky code and generating
+# O(n) index and HalfCauchy nodes.
+#
+# The task of the devectorizer transformer is for each node to identify whether it currently needs
+# to be split, scattered or merged in order to fix a problem.
+
 import typing
 from enum import Enum
 from typing import Callable, Dict, List
@@ -25,7 +118,8 @@ from beanmachine.ppl.compiler.fix_problem import (
 from beanmachine.ppl.compiler.sizer import is_scalar, Size, Sizer, Unsized
 from beanmachine.ppl.compiler.tensorizer_transformer import Tensorizer
 
-# elements in this list operate over tensors (all parameters are tensors) but do not necessarily produce tensors
+# These operator nodes take a single matrix input; they do not necessarily produce
+# a matrix output.
 _unary_tensor_ops = [
     bn.LogSumExpVectorNode,
     bn.MatrixComplementNode,
@@ -41,8 +135,10 @@ _unary_tensor_ops = [
     bn.CholeskyNode,
 ]
 
+# These operator nodes take two matrix inputs.
 _binary_tensor_ops = [bn.ElementwiseMultiplyNode, bn.MatrixAddNode]
 
+# These nodes represent constant matrix values.
 _tensor_constants = [
     bn.ConstantProbabilityMatrixNode,
     bn.ConstantBooleanMatrixNode,
@@ -54,12 +150,17 @@ _tensor_constants = [
     bn.UntypedConstantNode,
 ]
 
+# Thses distributions produce matrix-valued samples.
+# TODO: Why is categorical on this list? Categorical has a matrix-valued *input* but
+# produces a natural-valued *output*. This is likely an error; investigate further.
 _tensor_valued_distributions = [
     bn.CategoricalNode,
     bn.DirichletNode,
     bn.LKJCholeskyNode,
 ]
 
+# These are nodes which are *possibly* allowed to be the left-hand input of an
+# indexing operation.
 _indexable_node_types = [
     bn.ColumnIndexNode,
     bn.ConstantTensorNode,
@@ -79,16 +180,22 @@ _indexable_node_types = [
     bn.UntypedConstantNode,
 ]
 
-
+# This is used to describe the requirements on the *input* of a node; for example,
+# matrix scale requires that its first input be a matrix ("TENSOR") and its second
+# a scalar.
 class ElementType(Enum):
     TENSOR = 1
     SCALAR = 2
     ANY = 3
 
 
+# This describes what needs to happen to a node.
 class DevectorizeTransformation(Enum):
+    # The node needs to be rewritten.
     YES = 1
+    # The node needs to be rewritten with a merge operation.
     YES_WITH_MERGE = 2
+    # The node is fine as it is.
     NO = 3
 
 
@@ -180,6 +287,19 @@ def _parameter_to_type_torch_log_sum_exp(
         return ElementType.TENSOR
     else:
         return ElementType.SCALAR
+
+
+# The devectorizer has two public APIs.
+#
+# assess_node determines if the devectorizer can operate on this node at all, which comes down
+# to determining if we have information about the shape of the value in the original Python model
+# or not. If we cannot determine the operation's shape then we cannot know how to devectorize it.
+#
+# transform_node says how to replace each node; it returns:
+#
+# * None, indicating that the node should be deleted
+# * a node, giving the drop-in replacement for the given node
+# * a list of nodes, which will later be merged or scattered.
 
 
 class Devectorizer(NodeTransformer):
@@ -376,6 +496,7 @@ class Devectorizer(NodeTransformer):
         return n
 
     def __split(self, node: bn.BMGNode) -> List[bn.BMGNode]:
+        # See comments at the top of this module describing the semantics of split.
         size = self.sizer[node]
         dim = len(size)
         index_list = []
@@ -417,6 +538,7 @@ class Devectorizer(NodeTransformer):
         return index_list
 
     def __scatter(self, node: bn.BMGNode) -> List[bn.BMGNode]:
+        # See comments at the top of the module describing the semantics of scatter.
         parents = self.__get_clone_parents(node)
         if isinstance(node, bn.SampleNode):
             new_nodes = self.__flatten_parents(
