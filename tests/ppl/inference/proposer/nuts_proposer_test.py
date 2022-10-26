@@ -30,8 +30,7 @@ def bar():
 def nuts():
     world = World(observations={bar(): torch.tensor(0.8)})
     world.call(bar())
-    # TODO(T130186904): fix NNC
-    nuts_proposer = NUTSProposer(world, world.latent_nodes, 10, nnc_compile=False)
+    nuts_proposer = NUTSProposer(world, world.latent_nodes, 10)
     return nuts_proposer
 
 
@@ -53,7 +52,7 @@ def tree_args(tree_node, nuts):
     )
     return _TreeArgs(
         log_slice=-initial_energy,
-        direction=1,
+        direction=torch.tensor(1),
         step_size=nuts.step_size,
         initial_energy=initial_energy,
         mass_inv=nuts._mass_inv,

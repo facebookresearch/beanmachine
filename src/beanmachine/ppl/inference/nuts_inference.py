@@ -5,6 +5,8 @@
 
 from typing import List, Set
 
+from beanmachine.ppl.experimental.torch_jit_backend import get_backend
+
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.nuts_proposer import NUTSProposer
@@ -36,6 +38,8 @@ class GlobalNoUTurnSampler(BaseInference):
             lead to smaller step size. Defaults to 0.8.
         nnc_compile: If True, NNC compiler will be used to accelerate the
             inference.
+        experimental_inductor_compile: If True, TorchInductor will be used to
+            accelerate the inference.
     """
 
     def __init__(
@@ -49,6 +53,7 @@ class GlobalNoUTurnSampler(BaseInference):
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = True,
+        experimental_inductor_compile: bool = False,
     ):
         self.max_tree_depth = max_tree_depth
         self.max_delta_energy = max_delta_energy
@@ -58,7 +63,7 @@ class GlobalNoUTurnSampler(BaseInference):
         self.full_mass_matrix = full_mass_matrix
         self.multinomial_sampling = multinomial_sampling
         self.target_accept_prob = target_accept_prob
-        self.nnc_compile = nnc_compile
+        self.jit_backend = get_backend(nnc_compile, experimental_inductor_compile)
         self._proposer = None
 
     def _get_default_num_adaptive_samples(self, num_samples: int) -> int:
@@ -83,7 +88,7 @@ class GlobalNoUTurnSampler(BaseInference):
                 self.full_mass_matrix,
                 self.multinomial_sampling,
                 self.target_accept_prob,
-                self.nnc_compile,
+                self.jit_backend,
             )
         return [self._proposer]
 
@@ -110,8 +115,10 @@ class SingleSiteNoUTurnSampler(BaseInference):
             defaults to True.
         target_accept_prob (float): Target accept probability. Increasing this would
             lead to smaller step size. Defaults to 0.8.
-        nnc_compile: (Experimental) If True, NNC compiler will be used to accelerate the
-            inference (defaults to False).
+        nnc_compile: If True, NNC compiler will be used to accelerate the
+            inference.
+        experimental_inductor_compile: If True, TorchInductor will be used to
+            accelerate the inference.
     """
 
     def __init__(
@@ -125,6 +132,7 @@ class SingleSiteNoUTurnSampler(BaseInference):
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
         nnc_compile: bool = False,
+        experimental_inductor_compile: bool = False,
     ):
         self.max_tree_depth = max_tree_depth
         self.max_delta_energy = max_delta_energy
@@ -134,7 +142,7 @@ class SingleSiteNoUTurnSampler(BaseInference):
         self.full_mass_matrix = full_mass_matrix
         self.multinomial_sampling = multinomial_sampling
         self.target_accept_prob = target_accept_prob
-        self.nnc_compile = nnc_compile
+        self.jit_backend = get_backend(nnc_compile, experimental_inductor_compile)
         self._proposers = {}
 
     def _get_default_num_adaptive_samples(self, num_samples: int) -> int:
@@ -161,7 +169,7 @@ class SingleSiteNoUTurnSampler(BaseInference):
                     self.full_mass_matrix,
                     self.multinomial_sampling,
                     self.target_accept_prob,
-                    self.nnc_compile,
+                    self.jit_backend,
                 )
             proposers.append(self._proposers[node])
         return proposers

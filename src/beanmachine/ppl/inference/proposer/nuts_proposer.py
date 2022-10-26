@@ -6,8 +6,8 @@
 from typing import NamedTuple, Set, Tuple
 
 import torch
+from beanmachine.ppl.experimental.torch_jit_backend import jit_compile, TorchJITBackend
 from beanmachine.ppl.inference.proposer.hmc_proposer import HMCProposer
-from beanmachine.ppl.inference.proposer.nnc import nnc_jit
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
 
@@ -83,7 +83,7 @@ class NUTSProposer(HMCProposer):
         full_mass_matrix: bool = False,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = True,
+        jit_backend: TorchJITBackend = TorchJITBackend.NNC,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
@@ -96,14 +96,15 @@ class NUTSProposer(HMCProposer):
             adapt_mass_matrix=adapt_mass_matrix,
             full_mass_matrix=full_mass_matrix,
             target_accept_prob=target_accept_prob,
-            nnc_compile=False,  # we will use NNC at NUTS level, not at HMC level
+            jit_backend=TorchJITBackend.NONE,  # we will use NNC at NUTS level, not at HMC level
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
         self._multinomial_sampling = multinomial_sampling
-        if nnc_compile:
-            # pyre-ignore[8]
-            self._build_tree_base_case = nnc_jit(self._build_tree_base_case)
+        # pyre-ignore[8]
+        self._build_tree_base_case = jit_compile(
+            self._build_tree_base_case, jit_backend
+        )
 
     def _is_u_turning(
         self,

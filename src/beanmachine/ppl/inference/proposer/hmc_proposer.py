@@ -8,6 +8,7 @@ import warnings
 from typing import Callable, Optional, Set, Tuple
 
 import torch
+from beanmachine.ppl.experimental.torch_jit_backend import jit_compile, TorchJITBackend
 from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.hmc_utils import (
     DualAverageAdapter,
@@ -15,7 +16,6 @@ from beanmachine.ppl.inference.proposer.hmc_utils import (
     RealSpaceTransform,
     WindowScheme,
 )
-from beanmachine.ppl.inference.proposer.nnc import nnc_jit
 from beanmachine.ppl.inference.proposer.utils import DictToVecConverter
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
@@ -61,7 +61,7 @@ class HMCProposer(BaseProposer):
         adapt_mass_matrix: bool = True,
         full_mass_matrix: bool = False,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = True,
+        jit_backend: TorchJITBackend = TorchJITBackend.NNC,
     ):
         self.world = initial_world
         self._target_rvs = target_rvs
@@ -102,9 +102,8 @@ class HMCProposer(BaseProposer):
         # alpha will store the accept prob and will be used to adapt step size
         self._alpha = None
 
-        if nnc_compile:
-            # pyre-ignore[8]
-            self._leapfrog_step = nnc_jit(self._leapfrog_step)
+        # pyre-ignore[8]
+        self._leapfrog_step = jit_compile(self._leapfrog_step, jit_backend)
 
     @property
     def _initialize_momentums(self) -> Callable:
