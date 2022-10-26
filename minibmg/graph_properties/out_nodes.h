@@ -9,13 +9,13 @@
 
 #include <list>
 #include <unordered_set>
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
-// A map from an observation node to its observed value.
-const std::unordered_map<Node2p, double>& observations_by_node(
-    const Graph2& graph);
+// return the set of nodes that have the given node as an input in the given
+// graph.
+const std::list<Nodep>& out_nodes(const Graph& graph, Nodep node);
 
 } // namespace beanmachine::minibmg

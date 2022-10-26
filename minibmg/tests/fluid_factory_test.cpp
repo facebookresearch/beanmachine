@@ -7,8 +7,8 @@
 
 #include <gtest/gtest.h>
 #include "beanmachine/minibmg/fluid_factory.h"
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/pretty2.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/pretty.h"
 
 using namespace ::testing;
 using namespace beanmachine::minibmg;
@@ -109,7 +109,7 @@ std::string raw_json = R"({
 })";
 
 TEST(fluent_factory_test, simple_test) {
-  Graph2::FluidFactory fac;
+  Graph::FluidFactory fac;
   auto b = beta(2, 2);
   auto s = sample(b);
   auto r = bernoulli(s);
@@ -127,7 +127,7 @@ TEST(fluent_factory_test, simple_test) {
 }
 
 TEST(fluent_factory_test, deduplication_01) {
-  Graph2::FluidFactory fac;
+  Graph::FluidFactory fac;
   auto b = beta(2, 2);
   auto s = sample(b, "S0");
   auto r = bernoulli(s);
@@ -168,7 +168,7 @@ fac.observe(sample(temp_2, "S10"), 0);
 }
 
 TEST(fluent_factory_test, deduplication_02) {
-  Value2 final = 0;
+  Value final = 0;
   for (int i = 0; i < 2; i++) {
     auto t1 = beta(2, 2);
     auto t2 = sample(t1, "S0") + sample(t1, "S1");
@@ -197,7 +197,7 @@ TEST(fluent_factory_test, deduplication_02) {
     final = final + t23;
   }
 
-  Graph2::FluidFactory fac;
+  Graph::FluidFactory fac;
   fac.query(final);
   auto graph = fac.build();
   auto pretty = pretty_print(graph);
