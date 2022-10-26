@@ -120,10 +120,10 @@ class RequirementsFixer:
         # a reachable but untypable constant node.  See comment in fix_unsupported
         # regarding UntypedConstantNode support.
 
-        # Are we trying to use a scalar constant where a matrix is expected? Broadcast
-        # the scalar to a matrix of the appropriate size.
+        # Are we trying to use a constant of the wrong size? Try to broadcast the constant
+        # to the correct size first.
 
-        result = self._try_to_matrix_fill(node, requirement)
+        result = self._try_to_broadcast(node, requirement)
         if result is not None:
             return result
 
@@ -444,6 +444,56 @@ class RequirementsFixer:
         assert self._node_meets_requirement(result, requirement)
         return result
 
+    def _try_to_broadcast(
+        self,
+        node: bn.BMGNode,
+        requirement: bt.Requirement,
+    ) -> Optional[bn.BMGNode]:
+        # This detects the case where a matrix of one size is used in a context where a
+        # matrix of another size is required, and the problem can be fixed by broadcasting.
+
+        # We have a special case for "broadcasting" from a scalar. Try that first.
+        result = self._try_to_matrix_fill(node, requirement)
+        if result is not None:
+            return result
+
+        # If the requirement is not a matrix type, we cannot fix it here.
+        if not isinstance(requirement, bt.BMGMatrixType) or requirement.is_singleton():
+            return None
+
+        # If the value is not a matrix, we cannot fix it here.
+        node_type = self._typer[node]
+        if not isinstance(node_type, bt.BMGMatrixType) or node_type.is_singleton():
+            return None
+
+        # If the dimensions are already right, we cannot fix it here.
+        if (
+            node_type.columns == requirement.columns
+            and node_type.rows == requirement.rows
+        ):
+            return None
+
+        # If the dimensions are not broadcast-compatible, we cannot fix it here.
+        if node_type.columns != 1 and node_type.columns != requirement.columns:
+            return None
+
+        if node_type.rows != 1 and node_type.rows != requirement.rows:
+            return None
+
+        # First attempt to convert the wrong-sized matrix to the desired type, and then
+        # broadcast it if that was successful.
+
+        wrong_size_req = requirement.with_dimensions(node_type.rows, node_type.columns)
+        converted_node = self._try_to_meet_requirement(node, wrong_size_req)
+        if converted_node is None:
+            return None
+
+        r = self.bmg.add_natural(requirement.rows)
+        c = self.bmg.add_natural(requirement.columns)
+        result = self.bmg.add_broadcast(converted_node, r, c)
+        assert self._node_meets_requirement(result, requirement)
+        return result
+
     def _try_to_meet_operator_requirement(
         self,
         node: bn.OperatorNode,
@@ -454,21 +504,12 @@ class RequirementsFixer:
 
         assert not self._node_meets_requirement(node, requirement)
 
-        # Have we got a scalar value but we are in a context where we require a
-        # matrix? For example, if we have an elementwise addition of a matrix
-        # to a scalar, we need to broadcast the scalar to a matrix of the same
-        # size and type.
+        # Have we got a requirement of a different size than the size of the node?
+        # If so, try to broadcast to the required size first.
 
-        result = self._try_to_matrix_fill(node, requirement)
+        result = self._try_to_broadcast(node, requirement)
         if result is not None:
             return result
-
-        # ----
-        #
-        # TODO: Is the problem that we have a row or column matrix but we need
-        # a rectangular matrix?  Generate a broadcast operation.
-        #
-        # ----
 
         # Is the requirement that we have a real-valued matrix, but we haven't got
         # a real-valued matrix? Every value can be converted to a real-valued matrix,

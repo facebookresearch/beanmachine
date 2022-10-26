@@ -93,17 +93,70 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # We do not yet insert a broadcast node. Demonstrate here
-        # that the compiler gives a reasonable error message.
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().to_graph(queries, observations)
-
+        g, _ = BMGInference().to_graph(queries, observations)
+        observed = g.to_dot()
         expected = """
-The left of a matrix add is required to be a 2 x 2 real matrix but is a 2 x 1 real matrix.
-The right of a matrix add is required to be a 2 x 2 real matrix but is a 1 x 2 real matrix."""
-
-        observed = str(ex.exception)
+digraph "graph" {
+  N0[label="0"];
+  N1[label="1"];
+  N2[label="Normal"];
+  N3[label="~"];
+  N4[label="~"];
+  N5[label="Normal"];
+  N6[label="~"];
+  N7[label="Normal"];
+  N8[label="~"];
+  N9[label="~"];
+  N10[label="~"];
+  N11[label="Normal"];
+  N12[label="~"];
+  N13[label="Normal"];
+  N14[label="~"];
+  N15[label="2"];
+  N16[label="1"];
+  N17[label="ToMatrix"];
+  N18[label="Broadcast"];
+  N19[label="ToMatrix"];
+  N20[label="Broadcast"];
+  N21[label="MatrixAdd"];
+  N0 -> N2;
+  N1 -> N2;
+  N1 -> N5;
+  N1 -> N7;
+  N1 -> N11;
+  N1 -> N13;
+  N2 -> N3;
+  N2 -> N4;
+  N2 -> N9;
+  N2 -> N10;
+  N3 -> N5;
+  N4 -> N7;
+  N5 -> N6;
+  N6 -> N17;
+  N7 -> N8;
+  N8 -> N17;
+  N9 -> N11;
+  N10 -> N13;
+  N11 -> N12;
+  N12 -> N19;
+  N13 -> N14;
+  N14 -> N19;
+  N15 -> N17;
+  N15 -> N18;
+  N15 -> N18;
+  N15 -> N19;
+  N15 -> N20;
+  N15 -> N20;
+  N16 -> N17;
+  N16 -> N19;
+  N17 -> N18;
+  N18 -> N21;
+  N19 -> N20;
+  N20 -> N21;
+  Q0[label="Query"];
+  N21 -> Q0;
+}
+        """
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_fill_add_1(self) -> None:
