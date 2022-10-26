@@ -75,7 +75,7 @@ class JsonError2 : public std::exception {
   const std::string message;
 };
 
-folly::dynamic graph_to_json2(const Graph2& g);
-Graph2 json2_to_graph(folly::dynamic d); // throw (JsonError)
+folly::dynamic graph_to_json(const Graph2& g);
+Graph2 json_to_graph2(folly::dynamic d); // throw (JsonError)
 
 } // namespace beanmachine::minibmg
