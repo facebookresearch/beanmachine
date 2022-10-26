@@ -51,7 +51,8 @@ Traced exp(const Traced& x);
 Traced log(const Traced& x);
 Traced atan(const Traced& x);
 Traced lgamma(const Traced& x);
-Traced polygamma(int n, const Traced& other);
+Traced polygamma(int n, const Traced& x);
+Traced log1p(const Traced& x);
 Traced if_equal(
     const Traced& value,
     const Traced& comparand,

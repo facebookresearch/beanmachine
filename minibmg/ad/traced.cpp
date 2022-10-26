@@ -88,6 +88,11 @@ Traced polygamma(const int n, const Traced& x) {
   return result;
 }
 
+Traced log1p(const Traced& x) {
+  ScalarNodep result = std::make_shared<ScalarLog1pNode>(x.node);
+  return result;
+}
+
 Traced if_equal(
     const Traced& value,
     const Traced& comparand,
