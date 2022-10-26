@@ -84,7 +84,7 @@ folly::dynamic graph_to_json(const Graph& g);
 Graph json_to_graph2(folly::dynamic d); // throw (JsonError)
 
 template <>
-class DedupAdapter<Graph> {
+class NodeRewriteAdapter<Graph> {
  public:
   std::vector<Nodep> find_roots(const Graph& graph) const {
     std::vector<Nodep> roots;
@@ -98,8 +98,8 @@ class DedupAdapter<Graph> {
   }
   Graph rewrite(const Graph& qo, const std::unordered_map<Nodep, Nodep>& map)
       const {
-    DedupAdapter<std::vector<Nodep>> h1{};
-    DedupAdapter<std::list<std::pair<Nodep, double>>> h2{};
+    NodeRewriteAdapter<std::vector<Nodep>> h1{};
+    NodeRewriteAdapter<std::list<std::pair<Nodep, double>>> h2{};
     return Graph::create(
         h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map));
   }

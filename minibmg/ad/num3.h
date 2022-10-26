@@ -368,8 +368,8 @@ static_assert(Number<Num3<Real>>);
 
 template <class Underlying>
 requires Number<Underlying>
-class DedupAdapter<Num3<Underlying>> {
-  DedupAdapter<Underlying> underlying_adapter{};
+class NodeRewriteAdapter<Num3<Underlying>> {
+  NodeRewriteAdapter<Underlying> underlying_adapter{};
 
  public:
   std::vector<Nodep> find_roots(const Num3<Underlying>& num3) const {

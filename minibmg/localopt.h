@@ -21,7 +21,7 @@ std::unordered_map<Nodep, Nodep> opt_map(std::vector<Nodep> roots);
 // Rewrite a data structure by "optimizing" its nodes, applying local
 // transformations that are expected to improve runtime required to evaluate it.
 template <class T>
-T opt(const T& data, const DedupAdapter<T>& helper = DedupAdapter<T>{}) {
+T opt(const T& data, const NodeRewriteAdapter<T>& helper = NodeRewriteAdapter<T>{}) {
   auto roots = helper.find_roots(data);
   auto map = opt_map(roots);
   return helper.rewrite(data, map);
