@@ -96,3 +96,60 @@ d2 = temp_1 + temp_3 + temp_1 + temp_1 + temp_3
 )";
   ASSERT_EQ(expected, printed.str());
 }
+
+// test local optimizations performed on a whole graph.
+TEST(localopt_test, graph) {
+  Value v = 1.2;
+  Value d = v * v;
+  Graph::FluidFactory f;
+  f.query(d);
+
+  Graph g = f.build();
+  ASSERT_EQ(g.size(), 2); // CONSTANT, MULTIPLY
+  ASSERT_EQ(
+      R"({
+  "comment": "created by graph_to_json",
+  "nodes": [
+    {
+      "operator": "CONSTANT",
+      "sequence": 0,
+      "value": 1.2
+    },
+    {
+      "in_nodes": [
+        0,
+        0
+      ],
+      "operator": "MULTIPLY",
+      "sequence": 1
+    }
+  ],
+  "observations": [],
+  "queries": [
+    1
+  ]
+})",
+      folly::toPrettyJson(beanmachine::minibmg::graph_to_json(g)));
+
+  Graph gopt = opt(g);
+  ASSERT_EQ(gopt.size(), 1); // CONSTANT
+  ASSERT_EQ(
+      R"({
+  "comment": "created by graph_to_json",
+  "nodes": [
+    {
+      "operator": "CONSTANT",
+      "sequence": 0,
+      "value": 1.44
+    }
+  ],
+  "observations": [],
+  "queries": [
+    0
+  ]
+})",
+      folly::toPrettyJson(beanmachine::minibmg::graph_to_json(gopt)));
+
+  ASSERT_EQ(g.queries.size(), gopt.queries.size());
+  ASSERT_EQ(g.observations.size(), gopt.observations.size());
+}

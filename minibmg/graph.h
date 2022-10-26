@@ -9,6 +9,7 @@
 
 #include <folly/json.h>
 #include <list>
+#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/graph_properties/container.h"
 #include "beanmachine/minibmg/node.h"
 
@@ -81,5 +82,27 @@ class JsonError2 : public std::exception {
 
 folly::dynamic graph_to_json(const Graph& g);
 Graph json_to_graph2(folly::dynamic d); // throw (JsonError)
+
+template <>
+class DedupAdapter<Graph> {
+ public:
+  std::vector<Nodep> find_roots(const Graph& graph) const {
+    std::vector<Nodep> roots;
+    for (auto& q : graph.observations) {
+      roots.push_back(q.first);
+    }
+    for (auto& n : graph.queries) {
+      roots.push_back(n);
+    }
+    return roots;
+  }
+  Graph rewrite(const Graph& qo, const std::unordered_map<Nodep, Nodep>& map)
+      const {
+    DedupAdapter<std::vector<Nodep>> h1{};
+    DedupAdapter<std::list<std::pair<Nodep, double>>> h2{};
+    return Graph::create(
+        h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map));
+  }
+};
 
 } // namespace beanmachine::minibmg
