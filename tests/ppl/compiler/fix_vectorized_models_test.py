@@ -753,12 +753,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-    def _disabled_test_fix_vectorized_models_7(self) -> None:
-        # TODO: This test is disabled until broadcasting semantics
-        # are correctly implemented. This model generates an incorrect
-        # BMG graph right now because it tries to add a 2x1 matrix of
-        # probabilities to a 2x2 matrix of reals without inserting the
-        # necessary broadcasting and type conversion nodes.
+    def test_fix_vectorized_models_7(self) -> None:
         self.maxDiff = None
         observations = {}
         queries = [operators()]
@@ -794,45 +789,49 @@ digraph "graph" {
 
         # After:
 
-        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        g, _ = BMGInference().to_graph(queries, observations)
+        observed = g.to_dot()
         expected = """
 digraph "graph" {
-  N00[label=2.0];
-  N01[label=3.0];
-  N02[label=Beta];
-  N03[label=Sample];
-  N04[label=4.0];
-  N05[label=Beta];
-  N06[label=Sample];
-  N07[label=10.0];
-  N08[label=2];
-  N09[label=1];
-  N10[label=ToMatrix];
-  N11[label=ToRealMatrix];
-  N12[label="[[5.0,6.0],\\\\n[7.0,8.0]]"];
-  N13[label=MatrixAdd];
-  N14[label=MatrixScale];
-  N15[label=MatrixExp];
-  N16[label=Query];
-  N00 -> N02;
-  N00 -> N05;
-  N01 -> N02;
-  N02 -> N03;
-  N03 -> N10;
-  N04 -> N05;
-  N05 -> N06;
-  N06 -> N10;
-  N07 -> N14;
-  N08 -> N10;
-  N09 -> N10;
+  N0[label="2"];
+  N1[label="3"];
+  N2[label="Beta"];
+  N3[label="~"];
+  N4[label="4"];
+  N5[label="Beta"];
+  N6[label="~"];
+  N7[label="10"];
+  N8[label="2"];
+  N9[label="1"];
+  N10[label="ToMatrix"];
+  N11[label="ToPosReal"];
+  N12[label="Broadcast"];
+  N13[label="matrix"];
+  N14[label="MatrixAdd"];
+  N15[label="MatrixScale"];
+  N16[label="MatrixExp"];
+  N0 -> N2;
+  N0 -> N5;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N10;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N10;
+  N7 -> N15;
+  N8 -> N10;
+  N8 -> N12;
+  N8 -> N12;
+  N9 -> N10;
   N10 -> N11;
-  N11 -> N13;
-  N12 -> N13;
+  N11 -> N12;
+  N12 -> N14;
   N13 -> N14;
   N14 -> N15;
   N15 -> N16;
-}
-"""
+  Q0[label="Query"];
+  N16 -> Q0;
+}"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_fix_vectorized_models_8(self) -> None:
