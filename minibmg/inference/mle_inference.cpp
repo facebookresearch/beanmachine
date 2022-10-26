@@ -8,7 +8,7 @@
 #include "beanmachine/minibmg/inference/mle_inference.h"
 #include <iostream>
 #include <vector>
-#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/graph2.h"
 #include "beanmachine/minibmg/inference/hmc_world.h"
 
 namespace beanmachine::minibmg {
