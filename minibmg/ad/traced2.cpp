@@ -122,7 +122,8 @@ bool is_constant(const Traced2& x, const double& value) {
 }
 
 std::string to_string(const Traced2& traced) {
-  return to_string(traced.node);
+  Node2p node = traced.node;
+  return to_string(node);
 }
 
 } // namespace beanmachine::minibmg

@@ -14,6 +14,7 @@
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/dedup2.h"
+#include "beanmachine/minibmg/localopt.h"
 #include "beanmachine/minibmg/node2.h"
 
 namespace beanmachine::minibmg {
