@@ -132,30 +132,23 @@ RANGE_V3_INCLUDE_DIR_CANDIDATES = [
 if sys.platform.startswith("linux"):
     RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
         [
-            # first one is GitHub Actions runner
-            "/home/runner/work/beanmachine/beanmachine/vcpkg/packages/range-v3_x64-linux/include",
-            "./vcpkg/packages/range-v3_x64-linux/include",
-            "/usr/include",
+            os.path.join(current_dir, "vcpkg/packages/range-v3_x64-linux/include"),
             "/usr/include/range-v3",
-            "/usr/include/x86_64-linux-gnu",
         ]
     )
 elif sys.platform.startswith("darwin"):
     RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
         [
-            # first one is GitHub Actions runner
-            "/Users/runner/work/beanmachine/beanmachine/vcpkg/packages/range-v3_x64-osx/include",
-            "./vcpkg/packages/range-v3_x64-osx/include",
-            *glob("/usr/local/Cellar/range-v3/*/include/range-v3"),
+            os.path.join(current_dir, "vcpkg/packages/range-v3_x64-osx/include"),
+            *glob("/usr/local/Cellar/range-v3/*/include"),  # Homebrew
         ]
     )
 elif platform.system() == "Windows":
     RANGE_V3_INCLUDE_DIR_CANDIDATES.extend(
         [
-            "./vcpkg/packages/range-v3_x86-windows/include",
-            # The following two options were observed being used on GitHub Actions runner:
+            os.path.join(current_dir, "vcpkg/packages/range-v3_x86-windows/include"),
+            # The following option was observed being used on GitHub Actions runner:
             "C:/vcpkg/packages/range-v3_x86-windows/include",
-            "D:/a/beanmachine/beanmachine/vcpkg/packages/range-v3_x86-windows/include",
         ]
     )
 print(
