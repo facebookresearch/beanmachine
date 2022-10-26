@@ -18,12 +18,14 @@ class Graph2 : public Container {
  public:
   // produces a graph by computing the transitive closure of the input queries
   // and observations and topologically sorting the set of nodes so reached.
-  // valudates that the list of nodes so reached forms a valid graph, and
-  // returns that graph.  Throws an exception if the nodes do not form a valid
-  // graph.
+  // Throws an exception if the nodes do not form a valid graph.  The caller can
+  // optionally pass a pointer to a map in which to receive a copy of a map
+  // from the original nodes to the nodes appearing in the graph (after any
+  // common subexpression elimination or optimization).
   static Graph2 create(
       const std::vector<Node2p>& queries,
-      const std::list<std::pair<Node2p, double>>& observations);
+      const std::list<std::pair<Node2p, double>>& observations,
+      std::unordered_map<Node2p, Node2p>* built_map = nullptr);
   ~Graph2();
 
   // Implement the iterator pattern so clients can iterate over the nodes.

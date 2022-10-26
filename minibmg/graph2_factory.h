@@ -107,7 +107,7 @@ class Graph2::Factory {
   ~Factory();
 
  private:
-  Graph2::Factory& map = *this;
+  Graph2::Factory& map = *this; // for convenience
   bool built = false;
   std::unordered_map<Node2Id, Node2p> identifer_to_node;
   std::unordered_map<Node2p, Node2Id> node_to_identifier;
