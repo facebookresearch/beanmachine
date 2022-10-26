@@ -76,8 +76,6 @@ class RequirementsFixer:
             return _is_real_matrix(t)
         if r is bt.any_pos_real_matrix:
             return _is_pos_real_matrix(t)
-        if r == bt.RealMatrix:
-            return isinstance(t, bt.RealMatrix)
         if isinstance(r, bt.UpperBound):
             return bt.supremum(t, r.bound) == r.bound
         if isinstance(r, bt.AlwaysMatrix):
@@ -122,6 +120,13 @@ class RequirementsFixer:
         # a reachable but untypable constant node.  See comment in fix_unsupported
         # regarding UntypedConstantNode support.
 
+        # Are we trying to use a scalar constant where a matrix is expected? Broadcast
+        # the scalar to a matrix of the appropriate size.
+
+        result = self._try_to_matrix_fill(node, requirement)
+        if result is not None:
+            return result
+
         if requirement is bt.any_real_matrix:
             if _is_real_matrix(it):
                 # It's already an R, R+, R- or P matrix, but it might be a single
@@ -139,12 +144,6 @@ class RequirementsFixer:
                 return self.bmg.add_constant_of_matrix_type(node.value, it)
             else:
                 return self.bmg.add_pos_real_matrix(node.value)
-
-        if requirement == bt.RealMatrix:
-            if isinstance(it, bt.RealMatrix):
-                return self.bmg.add_constant_of_matrix_type(node.value, it)
-            else:
-                return self.bmg.add_real_matrix(node.value)
 
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
             if requirement is bt.any_requirement:
@@ -416,6 +415,35 @@ class RequirementsFixer:
 
         return self.bmg.add_to_negative_real(node)
 
+    def _try_to_matrix_fill(
+        self,
+        node: bn.BMGNode,
+        requirement: bt.Requirement,
+    ) -> Optional[bn.BMGNode]:
+        # This detects the case where a scalar is used in a context where a matrix is required,
+        # and we want to replicate that value into a matrix of the required size.
+
+        # If the requirement is not a matrix type, we cannot fix it here.
+        if not isinstance(requirement, bt.BMGMatrixType) or requirement.is_singleton():
+            return None
+
+        # If the value is not a scalar, we cannot fix it here.
+        node_type = self._typer[node]
+        if not isinstance(node_type, bt.BMGMatrixType) or not node_type.is_singleton():
+            return None
+
+        # If the value cannot be converted to the matrix element type, we cannot fix it here.
+        scalar_req = requirement.with_dimensions(1, 1)
+        converted_node = self._try_to_meet_requirement(node, scalar_req)
+        if converted_node is None:
+            return None
+
+        r = self.bmg.add_natural(requirement.rows)
+        c = self.bmg.add_natural(requirement.columns)
+        result = self.bmg.add_fill_matrix(converted_node, r, c)
+        assert self._node_meets_requirement(result, requirement)
+        return result
+
     def _try_to_meet_operator_requirement(
         self,
         node: bn.OperatorNode,
@@ -426,23 +454,25 @@ class RequirementsFixer:
 
         assert not self._node_meets_requirement(node, requirement)
 
+        # Have we got a scalar value but we are in a context where we require a
+        # matrix? For example, if we have an elementwise addition of a matrix
+        # to a scalar, we need to broadcast the scalar to a matrix of the same
+        # size and type.
+
+        result = self._try_to_matrix_fill(node, requirement)
+        if result is not None:
+            return result
+
         # ----
-        #
-        # TODO: Is the problem that we have a scalar but we need a matrix full
-        # of that value?  Generate a matrix fill operation.
         #
         # TODO: Is the problem that we have a row or column matrix but we need
         # a rectangular matrix?  Generate a broadcast operation.
-        #
-        # TODO: Note that in either of these cases, we might *also* need to
-        # generate a type conversion, so we might not meet the requirement on
-        # after introducing the fill / broadcast node.
         #
         # ----
 
         # Is the requirement that we have a real-valued matrix, but we haven't got
         # a real-valued matrix? Every value can be converted to a real-valued matrix,
-        # so that's the easiest case.  Knock it out first.
+        # so that's an easy case.
 
         result = self._try_to_meet_any_real_matrix_requirement(node, requirement)
         if result is not None:
@@ -566,6 +596,19 @@ class RequirementsFixer:
                 + "needs to know the lattice type of a node when checking requirements on its "
                 + "outgoing edges."
             )
+
+    def _try_to_meet_requirement(
+        self,
+        node: bn.BMGNode,
+        requirement: bt.Requirement,
+    ) -> Optional[bn.BMGNode]:
+        # Attempts to meet a requirement, returns None if it cannot rather than producing an error.
+        if self._node_meets_requirement(node, requirement):
+            return node
+        if isinstance(node, bn.ConstantNode):
+            return self._try_to_meet_constant_requirement(node, requirement)
+        assert isinstance(node, bn.OperatorNode)
+        return self._try_to_meet_operator_requirement(node, requirement)
 
     def meet_requirement(
         self,
