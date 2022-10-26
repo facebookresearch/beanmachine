@@ -119,6 +119,7 @@ class Graph2::Factory {
   ScalarNode2Id add_node(ScalarNode2p node);
   DistributionNode2Id add_node(DistributionNode2p node);
   ScalarSampleNode2Id add_node(std::shared_ptr<ScalarSampleNode2> node);
+  void check_not_built();
 };
 
 } // namespace beanmachine::minibmg
