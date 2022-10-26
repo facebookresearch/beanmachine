@@ -239,7 +239,7 @@ TEST(fluent_factory_test, log1p_kfold) {
   Value folded = std::dynamic_pointer_cast<const ScalarNode>(opt(g.queries[0]));
   Value expected = std::log1p(1.1);
   // assert that the optimized graph is just the resulting constant.
-  ASSERT_TRUE(NodepIdentityEquals{}(expected.node, folded.node));
+  ASSERT_TRUE(NodepValueEquals{}(expected.node, folded.node));
 }
 
 } // namespace fluent_factory_test
