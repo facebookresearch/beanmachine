@@ -84,7 +84,7 @@ Graph Graph::create(
   }
 
   auto qo0 = QueriesAndObservations{queries, observations};
-  auto qo1 = dedup2(qo0, built_map);
+  auto qo1 = dedup(qo0, built_map);
 
   std::vector<Nodep> all_nodes = roots(qo1.queries, qo1.observations);
   return Graph{all_nodes, qo1.queries, qo1.observations};
