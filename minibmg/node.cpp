@@ -39,6 +39,7 @@ inline std::size_t hash_combine(const std::vector<std::size_t>& many) {
   return seed;
 }
 
+// A visitor class used to implement in_nodes.
 class in_node_gatherer : public NodeVisitor {
  private:
   in_node_gatherer() {}
@@ -121,6 +122,113 @@ class in_node_gatherer : public NodeVisitor {
 };
 
 in_node_gatherer in_node_gatherer::instance{};
+
+// A visitor to perform the last step in checking two nodes for value equality:
+// it checks that they have equivalent fields.
+class EqualsTester : public NodeVisitor {
+ public:
+  const Node* other;
+  const NodepValueEquals& node_equals;
+  EqualsTester(const Node* other, const NodepValueEquals& node_equals)
+      : other{other}, node_equals{node_equals} {}
+  bool result;
+  void visit(const ScalarConstantNode* node) override {
+    auto other = static_cast<const ScalarConstantNode*>(this->other);
+    result = node->constant_value == other->constant_value;
+  }
+  void visit(const ScalarVariableNode* node) override {
+    auto other = static_cast<const ScalarVariableNode*>(this->other);
+    result = node->identifier == other->identifier && node->name == other->name;
+  }
+  void visit(const ScalarSampleNode* node) override {
+    auto other = static_cast<const ScalarSampleNode*>(this->other);
+    result = node_equals(node->distribution, other->distribution);
+  }
+  void visit(const ScalarAddNode* node) override {
+    auto other = static_cast<const ScalarAddNode*>(this->other);
+    result = node_equals(node->left, other->left) &&
+        node_equals(node->right, other->right);
+  }
+  void visit(const ScalarSubtractNode* node) override {
+    auto other = static_cast<const ScalarSubtractNode*>(this->other);
+    result = node_equals(node->left, other->left) &&
+        node_equals(node->right, other->right);
+  }
+  void visit(const ScalarNegateNode* node) override {
+    auto other = static_cast<const ScalarNegateNode*>(this->other);
+    result = node_equals(node->x, other->x);
+  }
+  void visit(const ScalarMultiplyNode* node) override {
+    auto other = static_cast<const ScalarMultiplyNode*>(this->other);
+    result = node_equals(node->left, other->left) &&
+        node_equals(node->right, other->right);
+  }
+  void visit(const ScalarDivideNode* node) override {
+    auto other = static_cast<const ScalarDivideNode*>(this->other);
+    result = node_equals(node->left, other->left) &&
+        node_equals(node->right, other->right);
+  }
+  void visit(const ScalarPowNode* node) override {
+    auto other = static_cast<const ScalarPowNode*>(this->other);
+    result = node_equals(node->left, other->left) &&
+        node_equals(node->right, other->right);
+  }
+  void visit(const ScalarExpNode* node) override {
+    auto other = static_cast<const ScalarExpNode*>(this->other);
+    result = node_equals(node->x, other->x);
+  }
+  void visit(const ScalarLogNode* node) override {
+    auto other = static_cast<const ScalarLogNode*>(this->other);
+    result = node_equals(node->x, other->x);
+  }
+  void visit(const ScalarAtanNode* node) override {
+    auto other = static_cast<const ScalarAtanNode*>(this->other);
+    result = node_equals(node->x, other->x);
+  }
+  void visit(const ScalarLgammaNode* node) override {
+    auto other = static_cast<const ScalarLgammaNode*>(this->other);
+    result = node_equals(node->x, other->x);
+  }
+  void visit(const ScalarPolygammaNode* node) override {
+    auto other = static_cast<const ScalarPolygammaNode*>(this->other);
+    result = node_equals(node->n, other->n) && node_equals(node->x, other->x);
+  }
+  void visit(const ScalarLog1pNode* node) override {
+    auto other = static_cast<const ScalarLog1pNode*>(this->other);
+    result = node_equals(node->x, other->x);
+  }
+  void visit(const ScalarIfEqualNode* node) override {
+    auto other = static_cast<const ScalarIfEqualNode*>(this->other);
+    result = node_equals(node->a, other->a) && node_equals(node->b, other->b) &&
+        node_equals(node->c, other->c) && node_equals(node->d, other->d);
+  }
+  void visit(const ScalarIfLessNode* node) override {
+    auto other = static_cast<const ScalarIfLessNode*>(this->other);
+    result = node_equals(node->a, other->a) && node_equals(node->b, other->b) &&
+        node_equals(node->c, other->c) && node_equals(node->d, other->d);
+  }
+  void visit(const DistributionNormalNode* node) override {
+    auto other = static_cast<const DistributionNormalNode*>(this->other);
+    result = node_equals(node->mean, other->mean) &&
+        node_equals(node->stddev, other->stddev);
+  }
+  void visit(const DistributionHalfNormalNode* node) override {
+    auto other = static_cast<const DistributionHalfNormalNode*>(this->other);
+    result = node_equals(node->stddev, other->stddev);
+  }
+  void visit(const DistributionBetaNode* node) override {
+    auto other = static_cast<const DistributionBetaNode*>(this->other);
+    result = node_equals(node->a, other->a) && node_equals(node->b, other->b);
+  }
+  void visit(const DistributionBernoulliNode* node) override {
+    auto other = static_cast<const DistributionBernoulliNode*>(this->other);
+    result = node_equals(node->prob, other->prob);
+  }
+  void visit(const DistributionExponentialNode* node) override {
+    auto other = static_cast<const DistributionExponentialNode*>(this->other);
+    result = node_equals(node->rate, other->rate);
+  }
+};
 
 } // namespace
 
@@ -434,12 +542,12 @@ std::vector<Nodep> in_nodes(const Nodep& n) {
   return in_node_gatherer::gather(n);
 }
 
-std::size_t NodepIdentityHash::operator()(
+std::size_t NodepValueHash::operator()(
     beanmachine::minibmg::Nodep const& p) const noexcept {
   return p->cached_hash_value;
 }
 
-bool NodepIdentityEquals::operator()(
+bool NodepValueEquals::operator()(
     const beanmachine::minibmg::Nodep& lhs,
     const beanmachine::minibmg::Nodep& rhs) const noexcept {
   const Node* l = lhs.get();
@@ -448,122 +556,14 @@ bool NodepIdentityEquals::operator()(
   if (l == r) {
     return true;
   }
-  // equal nodes have equal hash codes and the same types
+  // equal nodes would have equal hash codes and the same types
   if (l == nullptr || r == nullptr ||
       l->cached_hash_value != r->cached_hash_value ||
       typeid(*l) != typeid(*r)) {
     return false;
   }
 
-  class EqualsTester : public NodeVisitor {
-   public:
-    const Node* other;
-    const NodepIdentityEquals& node_equals;
-    EqualsTester(const Node* other, const NodepIdentityEquals& node_equals)
-        : other{other}, node_equals{node_equals} {}
-    bool result;
-    void visit(const ScalarConstantNode* node) override {
-      auto other = static_cast<const ScalarConstantNode*>(this->other);
-      result = node->constant_value == other->constant_value;
-    }
-    void visit(const ScalarVariableNode* node) override {
-      auto other = static_cast<const ScalarVariableNode*>(this->other);
-      result =
-          node->identifier == other->identifier && node->name == other->name;
-    }
-    void visit(const ScalarSampleNode* node) override {
-      auto other = static_cast<const ScalarSampleNode*>(this->other);
-      result = node_equals(node->distribution, other->distribution);
-    }
-    void visit(const ScalarAddNode* node) override {
-      auto other = static_cast<const ScalarAddNode*>(this->other);
-      result = node_equals(node->left, other->left) &&
-          node_equals(node->right, other->right);
-    }
-    void visit(const ScalarSubtractNode* node) override {
-      auto other = static_cast<const ScalarSubtractNode*>(this->other);
-      result = node_equals(node->left, other->left) &&
-          node_equals(node->right, other->right);
-    }
-    void visit(const ScalarNegateNode* node) override {
-      auto other = static_cast<const ScalarNegateNode*>(this->other);
-      result = node_equals(node->x, other->x);
-    }
-    void visit(const ScalarMultiplyNode* node) override {
-      auto other = static_cast<const ScalarMultiplyNode*>(this->other);
-      result = node_equals(node->left, other->left) &&
-          node_equals(node->right, other->right);
-    }
-    void visit(const ScalarDivideNode* node) override {
-      auto other = static_cast<const ScalarDivideNode*>(this->other);
-      result = node_equals(node->left, other->left) &&
-          node_equals(node->right, other->right);
-    }
-    void visit(const ScalarPowNode* node) override {
-      auto other = static_cast<const ScalarPowNode*>(this->other);
-      result = node_equals(node->left, other->left) &&
-          node_equals(node->right, other->right);
-    }
-    void visit(const ScalarExpNode* node) override {
-      auto other = static_cast<const ScalarExpNode*>(this->other);
-      result = node_equals(node->x, other->x);
-    }
-    void visit(const ScalarLogNode* node) override {
-      auto other = static_cast<const ScalarLogNode*>(this->other);
-      result = node_equals(node->x, other->x);
-    }
-    void visit(const ScalarAtanNode* node) override {
-      auto other = static_cast<const ScalarAtanNode*>(this->other);
-      result = node_equals(node->x, other->x);
-    }
-    void visit(const ScalarLgammaNode* node) override {
-      auto other = static_cast<const ScalarLgammaNode*>(this->other);
-      result = node_equals(node->x, other->x);
-    }
-    void visit(const ScalarPolygammaNode* node) override {
-      auto other = static_cast<const ScalarPolygammaNode*>(this->other);
-      result = node_equals(node->n, other->n) && node_equals(node->x, other->x);
-    }
-    void visit(const ScalarLog1pNode* node) override {
-      auto other = static_cast<const ScalarLog1pNode*>(this->other);
-      result = node_equals(node->x, other->x);
-    }
-    void visit(const ScalarIfEqualNode* node) override {
-      auto other = static_cast<const ScalarIfEqualNode*>(this->other);
-      result = node_equals(node->a, other->a) &&
-          node_equals(node->b, other->b) && node_equals(node->c, other->c) &&
-          node_equals(node->d, other->d);
-    }
-    void visit(const ScalarIfLessNode* node) override {
-      auto other = static_cast<const ScalarIfLessNode*>(this->other);
-      result = node_equals(node->a, other->a) &&
-          node_equals(node->b, other->b) && node_equals(node->c, other->c) &&
-          node_equals(node->d, other->d);
-    }
-    void visit(const DistributionNormalNode* node) override {
-      auto other = static_cast<const DistributionNormalNode*>(this->other);
-      result = node_equals(node->mean, other->mean) &&
-          node_equals(node->stddev, other->stddev);
-    }
-    void visit(const DistributionHalfNormalNode* node) override {
-      auto other = static_cast<const DistributionHalfNormalNode*>(this->other);
-      result = node_equals(node->stddev, other->stddev);
-    }
-    void visit(const DistributionBetaNode* node) override {
-      auto other = static_cast<const DistributionBetaNode*>(this->other);
-      result = node_equals(node->a, other->a) && node_equals(node->b, other->b);
-    }
-    void visit(const DistributionBernoulliNode* node) override {
-      auto other = static_cast<const DistributionBernoulliNode*>(this->other);
-      result = node_equals(node->prob, other->prob);
-    }
-    void visit(const DistributionExponentialNode* node) override {
-      auto other = static_cast<const DistributionExponentialNode*>(this->other);
-      result = node_equals(node->rate, other->rate);
-    }
-  };
-
-  EqualsTester et{r, *this};
+  EqualsTester et{l, *this};
   r->accept(et);
   return et.result;
 }
