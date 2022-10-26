@@ -179,6 +179,11 @@ DistributionNode2p Graph2::Factory::operator[](
   return std::dynamic_pointer_cast<const DistributionNode2>(
       identifer_to_node.at(node_id));
 }
+ScalarSampleNode2p Graph2::Factory::operator[](
+    const ScalarSampleNode2Id& node_id) const {
+  return std::dynamic_pointer_cast<const ScalarSampleNode2>(
+      identifer_to_node.at(node_id));
+}
 
 Graph2 Graph2::Factory::build() {
   if (built) {
