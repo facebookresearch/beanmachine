@@ -9,8 +9,8 @@
 
 #include <string>
 #include <unordered_map>
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
@@ -18,7 +18,7 @@ namespace beanmachine::minibmg {
 // Pretty-printing a set of nodes produces a mapping from each node to the
 // string representation of that node.  Because the input nodes may be (directed
 // acyclic) graphs rather than trees, in order to avoid producing an exponential
-// amout of strings, we produce a "prelude" - a list of assignments of reused
+// amount of strings, we produce a "prelude" - a list of assignments of reused
 // intermediate results to temporary values.  Tha way each operator in the graph
 // to be printed appears exactly once in the output.  For example, if you build
 // a tree with this structure
@@ -47,14 +47,14 @@ struct Pretty2Result {
 
   // For each remaining root, the expression for computing it, with identifiers
   // referring to variables declared in the prelude for shared values.
-  std::unordered_map<Node2p, std::string> code;
+  std::unordered_map<Nodep, std::string> code;
 };
 
 // Pretty-print a set of Nodes.  Returns a PrettyResult.
-const Pretty2Result pretty_print(std::vector<Node2p> roots);
+const Pretty2Result pretty_print(std::vector<Nodep> roots);
 
 // Pretty-print a graph into the code that would need to be written using the
 // fluid factory to reproduce it.
-std::string pretty_print(const Graph2& graph);
+std::string pretty_print(const Graph& graph);
 
 } // namespace beanmachine::minibmg

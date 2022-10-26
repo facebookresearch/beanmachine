@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
@@ -28,8 +28,8 @@ template <class T, class DDAdapter>
 concept Dedupable = requires(
     const T& t,
     const DDAdapter& a,
-    const std::unordered_map<Node2p, Node2p>& map) {
-  { a.find_roots(t) } -> std::convertible_to<std::vector<Node2p>>;
+    const std::unordered_map<Nodep, Nodep>& map) {
+  { a.find_roots(t) } -> std::convertible_to<std::vector<Nodep>>;
   { a.rewrite(t, map) } -> std::same_as<T>;
   {
     new DDAdapter {}
@@ -39,7 +39,7 @@ concept Dedupable = requires(
 // In order to deduplicate data in a given data structure, the programmer must
 // specialize this template class to (1) locate the roots contained in
 // that data structure, and (2) write a replacement data structure in which
-// nodes (values of type Node2p) have been deduplicated.  We provide a number of
+// nodes (values of type Nodep) have been deduplicated.  We provide a number of
 // specializations for data structures likely to be needed.  `T` here is the
 // type of the data structure for which nodes contained in it are to be
 // deduplicated.
@@ -53,9 +53,9 @@ class DedupAdapter {
  public:
   DedupAdapter() = delete;
   // locate all of the roots.
-  std::vector<Node2p> find_roots(const T&) const;
+  std::vector<Nodep> find_roots(const T&) const;
   // rewrite the T, given a mapping from each node to its replacement.
-  T rewrite(const T&, const std::unordered_map<Node2p, Node2p>&) const;
+  T rewrite(const T&, const std::unordered_map<Nodep, Nodep>&) const;
 };
 
 // Take a set of root nodes as input, and return a map of deduplicated nodes,
@@ -66,7 +66,7 @@ class DedupAdapter {
 // resulting data structure are semantically different). This is used in the
 // implementation of dedup(), but might occasionally be useful to clients in
 // this form.
-std::unordered_map<Node2p, Node2p> dedup_map(std::vector<Node2p> roots);
+std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots);
 
 // Rewrite a data structure by "deduplicating" nodes reachable from it, and
 // returning a new data structure.  This is also known as common subexpression
@@ -79,7 +79,7 @@ std::unordered_map<Node2p, Node2p> dedup_map(std::vector<Node2p> roots);
 // shared (semantically equivalent) subexpressions.
 template <class T, class DDAdapter = DedupAdapter<T>>
 requires Dedupable<T, DDAdapter> T
-dedup2(const T& data, std::unordered_map<Node2p, Node2p>* ddmap = nullptr) {
+dedup2(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
   DDAdapter adapter = DDAdapter{};
   auto roots = adapter.find_roots(data);
   auto map = dedup_map(roots);
@@ -91,14 +91,13 @@ dedup2(const T& data, std::unordered_map<Node2p, Node2p>* ddmap = nullptr) {
 
 // A single node can be deduplicated
 template <>
-class DedupAdapter<Node2p> {
+class DedupAdapter<Nodep> {
  public:
-  std::vector<Node2p> find_roots(const Node2p& n) const {
+  std::vector<Nodep> find_roots(const Nodep& n) const {
     return {n};
   }
-  Node2p rewrite(
-      const Node2p& node,
-      const std::unordered_map<Node2p, Node2p>& map) const {
+  Nodep rewrite(const Nodep& node, const std::unordered_map<Nodep, Nodep>& map)
+      const {
     auto f = map.find(node);
     return f == map.end() ? node : f->second;
   }
@@ -110,8 +109,8 @@ class DedupAdapter<std::vector<T>> {
   DedupAdapter<T> t_helper{};
 
  public:
-  std::vector<Node2p> find_roots(const std::vector<T>& roots) const {
-    std::vector<Node2p> result;
+  std::vector<Nodep> find_roots(const std::vector<T>& roots) const {
+    std::vector<Nodep> result;
     for (const auto& root : roots) {
       auto more_roots = t_helper.find_roots(root);
       result.push_back(more_roots.begin(), more_roots.end());
@@ -120,7 +119,7 @@ class DedupAdapter<std::vector<T>> {
   }
   std::vector<T> rewrite(
       const std::vector<T>& roots,
-      const std::unordered_map<Node2p, Node2p>& map) const {
+      const std::unordered_map<Nodep, Nodep>& map) const {
     std::vector<T> result;
     for (const auto& root : roots) {
       result.push_back(t_helper.rewrite(root, map));
@@ -135,8 +134,8 @@ class DedupAdapter<std::list<T>> {
   DedupAdapter<T> t_helper{};
 
  public:
-  std::vector<Node2p> find_roots(const std::list<T>& roots) const {
-    std::vector<Node2p> result;
+  std::vector<Nodep> find_roots(const std::list<T>& roots) const {
+    std::vector<Nodep> result;
     for (const auto& root : roots) {
       auto more_roots = t_helper.find_roots(root);
       result.push_back(more_roots.begin(), more_roots.end());
@@ -145,7 +144,7 @@ class DedupAdapter<std::list<T>> {
   }
   std::list<T> rewrite(
       const std::list<T>& roots,
-      const std::unordered_map<Node2p, Node2p>& map) const {
+      const std::unordered_map<Nodep, Nodep>& map) const {
     std::list<T> result;
     for (const auto& root : roots) {
       result.push_back(t_helper.rewrite(root, map));
@@ -161,8 +160,8 @@ class DedupAdapter<std::pair<T, U>> {
   DedupAdapter<U> u_helper{};
 
  public:
-  std::vector<Node2p> find_roots(const std::pair<T, U>& root) const {
-    std::vector<Node2p> result = t_helper(root.first);
+  std::vector<Nodep> find_roots(const std::pair<T, U>& root) const {
+    std::vector<Nodep> result = t_helper(root.first);
     for (auto& r : u_helper.find_roots(root.second)) {
       result.push_back(r);
     }
@@ -170,7 +169,7 @@ class DedupAdapter<std::pair<T, U>> {
   }
   std::pair<T, U> rewrite(
       const std::pair<T, U>& root,
-      const std::unordered_map<Node2p, Node2p>& map) const {
+      const std::unordered_map<Nodep, Nodep>& map) const {
     return {
         t_helper.rewrite(root.first, map), u_helper.rewrite(root.second, map)};
   }
@@ -180,10 +179,10 @@ class DedupAdapter<std::pair<T, U>> {
 template <>
 class DedupAdapter<double> {
  public:
-  std::vector<Node2p> find_roots(const double&) const {
+  std::vector<Nodep> find_roots(const double&) const {
     return {};
   }
-  double rewrite(const double& root, std::unordered_map<Node2p, Node2p>) const {
+  double rewrite(const double& root, std::unordered_map<Nodep, Nodep>) const {
     return root;
   }
 };
@@ -192,11 +191,11 @@ class DedupAdapter<double> {
 template <>
 class DedupAdapter<Real> {
  public:
-  std::vector<Node2p> find_roots(const Real&) const {
+  std::vector<Nodep> find_roots(const Real&) const {
     return {};
   }
   // rewrite the T, given a mapping from each node to its replacement.
-  Real rewrite(const Real& t, const std::unordered_map<Node2p, Node2p>&) const {
+  Real rewrite(const Real& t, const std::unordered_map<Nodep, Nodep>&) const {
     return t;
   }
 };

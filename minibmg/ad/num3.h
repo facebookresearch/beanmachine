@@ -14,7 +14,7 @@
 #include <vector>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/dedup2.h"
+#include "beanmachine/minibmg/dedup.h"
 
 namespace beanmachine::minibmg {
 
@@ -359,8 +359,8 @@ class DedupAdapter<Num3<Underlying>> {
   DedupAdapter<Underlying> underlying_adapter{};
 
  public:
-  std::vector<Node2p> find_roots(const Num3<Underlying>& num3) const {
-    std::vector<Node2p> result = underlying_adapter.find_roots(num3.primal);
+  std::vector<Nodep> find_roots(const Num3<Underlying>& num3) const {
+    std::vector<Nodep> result = underlying_adapter.find_roots(num3.primal);
     for (auto& n : underlying_adapter.find_roots(num3.derivative1)) {
       result.push_back(n);
     }
@@ -371,7 +371,7 @@ class DedupAdapter<Num3<Underlying>> {
   }
   Num3<Underlying> rewrite(
       const Num3<Underlying>& num3,
-      const std::unordered_map<Node2p, Node2p>& map) const {
+      const std::unordered_map<Nodep, Nodep>& map) const {
     auto new_primal = underlying_adapter.rewrite(num3.primal, map);
     auto new_derivative1 = underlying_adapter.rewrite(num3.derivative1, map);
     auto new_derivative2 = underlying_adapter.rewrite(num3.derivative2, map);

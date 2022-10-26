@@ -12,40 +12,40 @@
 
 namespace beanmachine::minibmg {
 
-FluidDistribution::FluidDistribution(DistributionNode2p node) : node{node} {}
+FluidDistribution::FluidDistribution(DistributionNodep node) : node{node} {}
 
-const FluidDistribution half_normal(Value2 stddev) {
-  DistributionNode2p node =
-      std::make_shared<const DistributionHalfNormalNode2>(stddev.node);
+const FluidDistribution half_normal(Value stddev) {
+  DistributionNodep node =
+      std::make_shared<const DistributionHalfNormalNode>(stddev.node);
   return node;
 }
 
-const FluidDistribution normal(Value2 mean, Value2 stddev) {
-  DistributionNode2p node =
-      std::make_shared<const DistributionNormalNode2>(mean.node, stddev.node);
+const FluidDistribution normal(Value mean, Value stddev) {
+  DistributionNodep node =
+      std::make_shared<const DistributionNormalNode>(mean.node, stddev.node);
   return node;
 }
 
-const FluidDistribution beta(Value2 a, Value2 b) {
-  DistributionNode2p node =
-      std::make_shared<const DistributionBetaNode2>(a.node, b.node);
+const FluidDistribution beta(Value a, Value b) {
+  DistributionNodep node =
+      std::make_shared<const DistributionBetaNode>(a.node, b.node);
   return node;
 }
 
-const FluidDistribution bernoulli(Value2 p) {
-  DistributionNode2p node =
-      std::make_shared<const DistributionBernoulliNode2>(p.node);
+const FluidDistribution bernoulli(Value p) {
+  DistributionNodep node =
+      std::make_shared<const DistributionBernoulliNode>(p.node);
   return node;
 }
 
-Value2 sample(const FluidDistribution& d, std::string rvid) {
-  ScalarNode2p node = std::make_shared<const ScalarSampleNode2>(d.node, rvid);
+Value sample(const FluidDistribution& d, std::string rvid) {
+  ScalarNodep node = std::make_shared<const ScalarSampleNode>(d.node, rvid);
   return node;
 }
 
-void Graph2::FluidFactory::observe(const Value2& sample, double value) {
+void Graph::FluidFactory::observe(const Value& sample, double value) {
   auto node = sample.node;
-  if (!dynamic_cast<const ScalarSampleNode2*>(node.get())) {
+  if (!dynamic_cast<const ScalarSampleNode*>(node.get())) {
     throw std::invalid_argument("can only observe a sample");
   }
   for (const auto& n : observations) {
@@ -56,14 +56,14 @@ void Graph2::FluidFactory::observe(const Value2& sample, double value) {
   observations.push_back({node, value});
 }
 
-unsigned Graph2::FluidFactory::query(const Value2& value) {
+unsigned Graph::FluidFactory::query(const Value& value) {
   auto result = queries.size();
   queries.push_back(value.node);
   return result;
 }
 
-Graph2 Graph2::FluidFactory::build() {
-  return Graph2::create(queries, observations);
+Graph Graph::FluidFactory::build() {
+  return Graph::create(queries, observations);
 }
 
 } // namespace beanmachine::minibmg

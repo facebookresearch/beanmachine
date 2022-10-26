@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
