@@ -92,6 +92,10 @@ ScalarNodeId Graph::Factory::polygamma(int n, ScalarNodeId x) {
   ScalarNodep result = std::make_shared<ScalarPolygammaNode>(k, map[x]);
   return add_node(result);
 }
+ScalarNodeId Graph::Factory::log1p(ScalarNodeId x) {
+  ScalarNodep result = std::make_shared<ScalarLog1pNode>(map[x]);
+  return add_node(result);
+}
 ScalarNodeId Graph::Factory::if_equal(
     ScalarNodeId a,
     ScalarNodeId b,

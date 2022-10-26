@@ -157,3 +157,20 @@ TEST(eval_test, derivatives_triune) {
         fpp<Real>(input).as_double(), data[sn].derivative2.as_double());
   }
 }
+
+TEST(eval_test, log1p) {
+  Graph::Factory fac;
+  auto k = 1.1;
+  auto kn = fac.constant(1.1);
+  auto log1p = fac.log1p(kn);
+  auto qi = fac.query(log1p);
+  auto graph = fac.build();
+  std::mt19937 gen{123456};
+  auto read_variable = [=](const std::string&, const unsigned) -> Real {
+    throw nullptr; // this model has no variables to read
+  };
+  std::unordered_map<Nodep, Real> data;
+  auto eval_result = eval_graph<Real>(
+      graph, gen, read_variable, data, /* run_queries = */ true);
+  EXPECT_CLOSE(eval_result.queries[qi], std::log1p(k));
+}

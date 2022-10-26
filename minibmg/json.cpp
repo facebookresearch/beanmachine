@@ -81,6 +81,9 @@ class JsonNodeWriterVisitor : public NodeVisitor {
   void visit(const ScalarPolygammaNode*) override {
     dyn_node["operator"] = "POLYGAMMA";
   }
+  void visit(const ScalarLog1pNode*) override {
+    dyn_node["operator"] = "LOG1P";
+  }
   void visit(const ScalarIfEqualNode*) override {
     dyn_node["operator"] = "IF_EQUAL";
   }
@@ -312,6 +315,13 @@ Nodep json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
       return std::make_shared<ScalarPolygammaNode>(
           std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
           std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    }
+    case "LOG1P"_sh: {
+      if (in_nodes.size() != 1) {
+        throw JsonError2("bad in_node for operator.");
+      }
+      return std::make_shared<ScalarLog1pNode>(
+          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
     }
     case "IF_EQUAL"_sh: {
       if (in_nodes.size() != 4) {

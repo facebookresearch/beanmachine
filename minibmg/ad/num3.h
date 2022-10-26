@@ -287,6 +287,19 @@ requires Number<Underlying> Num3<Underlying> polygamma(
 }
 
 template <class Underlying>
+requires Number<Underlying> Num3<Underlying> log1p(const Num3<Underlying>& x) {
+  Underlying new_primal = log1p(x.primal);
+  // f = log(1 + x)
+  // f' = x' / (1 + x)
+  Underlying xp1 = 1 + x.primal;
+  Underlying new_derivative1 = x.derivative1 / xp1;
+  // f'' = ((x + 1) x'' - x'^2) / (x + 1)^2
+  Underlying new_derivative2 =
+      (xp1 * x.derivative2 - pow(x.derivative1, 2)) / pow(xp1, 2);
+  return Num3<Underlying>{new_primal, new_derivative1, new_derivative2};
+}
+
+template <class Underlying>
 requires Number<Underlying> Num3<Underlying> if_equal(
     const Num3<Underlying>& value,
     const Num3<Underlying>& comparand,

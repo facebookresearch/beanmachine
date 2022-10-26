@@ -170,3 +170,12 @@ TEST(num2_test, polygamma) {
   EXPECT_CLOSE(expected_primal, value.primal.as_double());
   EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
 }
+
+TEST(num2_test, log1p) {
+  Dual a{1.1, 2.2};
+  Dual value = log1p(a);
+  double expected_primal = std::log1p(a.as_double());
+  double expected_grad1 = a.derivative1.as_double() / (1 + a.as_double());
+  EXPECT_CLOSE(expected_primal, value.primal.as_double());
+  EXPECT_CLOSE(expected_grad1, value.derivative1.as_double());
+}
