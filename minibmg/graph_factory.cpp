@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include "beanmachine/minibmg/node.h"
+#include "node.h"
 
 namespace beanmachine::minibmg {
 
@@ -134,6 +135,12 @@ DistributionNodeId Graph::Factory::beta(ScalarNodeId a, ScalarNodeId b) {
 DistributionNodeId Graph::Factory::bernoulli(ScalarNodeId prob) {
   DistributionNodep result =
       std::make_shared<DistributionBernoulliNode>(map[prob]);
+  return add_node(result);
+}
+
+DistributionNodeId Graph::Factory::exponential(ScalarNodeId rate) {
+  DistributionNodep result =
+      std::make_shared<DistributionExponentialNode>(map[rate]);
   return add_node(result);
 }
 
