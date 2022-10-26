@@ -7,47 +7,48 @@
 
 #include <gtest/gtest.h>
 #include <list>
-#include "beanmachine/minibmg/graph_properties/out_nodes.h"
-#include "beanmachine/minibmg/minibmg.h"
+#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph2_factory.h"
+#include "beanmachine/minibmg/graph_properties/out_nodes2.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 TEST(out_nodes_test, simple) {
-  Graph::Factory gf;
-  auto k12 = gf.add_constant(1.2);
-  auto k34 = gf.add_constant(3.4);
-  auto plus = gf.add_operator(Operator::ADD, {k12, k34});
-  auto k56 = gf.add_constant(5.6);
-  auto beta = gf.add_operator(Operator::DISTRIBUTION_BETA, {plus, k56});
-  auto sample = gf.add_sample(beta);
-  gf.add_observation(sample, 7.8);
-  /* auto query_ = */ gf.add_query(sample);
-  Graph g = gf.build();
+  Graph2::Factory gf;
+  auto k12 = gf.constant(1.2);
+  auto k34 = gf.constant(3.4);
+  auto plus = gf.add(k12, k34);
+  auto k56 = gf.constant(5.6);
+  auto beta = gf.beta(plus, k56);
+  auto sample = gf.sample(beta);
+  gf.observe(sample, 7.8);
+  /* auto query_ = */ gf.query(sample);
+  Graph2 g = gf.build();
 
-  Nodep k12n = gf[k12];
-  Nodep k34n = gf[k34];
-  Nodep plusn = gf[plus];
-  Nodep k56n = gf[k56];
-  Nodep betan = gf[beta];
-  Nodep samplen = gf[sample];
+  Node2p k12n = gf[k12];
+  Node2p k34n = gf[k34];
+  Node2p plusn = gf[plus];
+  Node2p k56n = gf[k56];
+  Node2p betan = gf[beta];
+  Node2p samplen = gf[sample];
 
   ASSERT_EQ(out_nodes(g, k12n), std::list{plusn});
   ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn}));
-  ASSERT_EQ(out_nodes(g, plusn), std::list<Nodep>{betan});
+  ASSERT_EQ(out_nodes(g, plusn), std::list<Node2p>{betan});
   ASSERT_EQ(out_nodes(g, k56n), std::list{betan});
   ASSERT_EQ(out_nodes(g, betan), (std::list{samplen}));
-  ASSERT_EQ(out_nodes(g, samplen), std::list<Nodep>{});
+  ASSERT_EQ(out_nodes(g, samplen), std::list<Node2p>{});
 
   ASSERT_EQ(g.queries, std::vector{samplen});
-  std::list<std::pair<Nodep, double>> expected_observations;
+  std::list<std::pair<Node2p, double>> expected_observations;
   expected_observations.push_back(std::pair{samplen, 7.8});
   ASSERT_EQ(g.observations, expected_observations);
 }
 
 TEST(out_nodes_test, not_found2) {
-  Graph::Factory gf;
-  Graph g = gf.build();
-  Nodep n = std::make_shared<const ConstantNode>(0);
+  Graph2::Factory gf;
+  Graph2 g = gf.build();
+  Node2p n = std::make_shared<ScalarConstantNode2>(0);
   ASSERT_THROW(out_nodes(g, n), std::invalid_argument);
 }

@@ -15,7 +15,7 @@ namespace {
 
 using namespace beanmachine::minibmg;
 
-class Out_Nodes_Data {
+class OutNodesData {
  public:
   std::map<Nodep, std::list<Nodep>> node_map{};
   std::list<Nodep>& for_node(Nodep node) {
@@ -27,11 +27,11 @@ class Out_Nodes_Data {
   }
 };
 
-class Out_Nodes_Property
-    : public Property<Out_Nodes_Property, Graph, Out_Nodes_Data> {
+class OutNodesProperty
+    : public Property<OutNodesProperty, Graph, OutNodesData> {
  public:
-  Out_Nodes_Data* create(const Graph& g) const override {
-    Out_Nodes_Data* data = new Out_Nodes_Data{};
+  OutNodesData* create(const Graph& g) const override {
+    OutNodesData* data = new OutNodesData{};
     for (auto node : g) {
       data->node_map[node] = std::list<Nodep>{};
       for (auto in_node : in_nodes(node)) {
@@ -49,7 +49,7 @@ class Out_Nodes_Property
 namespace beanmachine::minibmg {
 
 const std::list<Nodep>& out_nodes(const Graph& graph, Nodep node) {
-  Out_Nodes_Data* data = Out_Nodes_Property::get(graph);
+  OutNodesData* data = OutNodesProperty::get(graph);
   std::list<Nodep>& result = data->for_node(node);
   return result;
 }
