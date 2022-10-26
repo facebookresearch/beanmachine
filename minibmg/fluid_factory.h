@@ -27,6 +27,7 @@ const FluidDistribution half_normal(Value stddev);
 const FluidDistribution normal(Value mean, Value stddev);
 const FluidDistribution beta(Value a, Value b);
 const FluidDistribution bernoulli(Value p);
+const FluidDistribution exponential(Value rate);
 
 Value sample(const FluidDistribution& d, std::string rvid = make_fresh_rvid());
 

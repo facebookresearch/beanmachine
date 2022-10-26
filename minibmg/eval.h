@@ -18,6 +18,7 @@
 #include "beanmachine/minibmg/distribution/bernoulli.h"
 #include "beanmachine/minibmg/distribution/beta.h"
 #include "beanmachine/minibmg/distribution/distribution.h"
+#include "beanmachine/minibmg/distribution/exponential.h"
 #include "beanmachine/minibmg/distribution/half_normal.h"
 #include "beanmachine/minibmg/distribution/normal.h"
 #include "beanmachine/minibmg/eval_error.h"
@@ -158,6 +159,9 @@ class NodeEvaluatorVisitor : public NodeVisitor {
   }
   void visit(const DistributionBernoulliNode* node) override {
     dist_result = std::make_shared<Bernoulli<N>>(evaluate_input(node->prob));
+  }
+  void visit(const DistributionExponentialNode* node) override {
+    dist_result = std::make_shared<Exponential<N>>(evaluate_input(node->rate));
   }
 };
 

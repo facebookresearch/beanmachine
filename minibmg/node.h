@@ -213,6 +213,13 @@ class DistributionBernoulliNode : public DistributionNode {
   void accept(NodeVisitor& visitor) const override;
 };
 
+class DistributionExponentialNode : public DistributionNode {
+ public:
+  explicit DistributionExponentialNode(const ScalarNodep& rate);
+  ScalarNodep rate;
+  void accept(NodeVisitor& visitor) const override;
+};
+
 // A helper function useful when topologically sorting ScalarNodeps (the
 // topological_sort function requires a parameter that is a function of this
 // shape).
@@ -290,6 +297,7 @@ class NodeVisitor {
   virtual void visit(const DistributionHalfNormalNode* node) = 0;
   virtual void visit(const DistributionBetaNode* node) = 0;
   virtual void visit(const DistributionBernoulliNode* node) = 0;
+  virtual void visit(const DistributionExponentialNode* node) = 0;
   virtual ~NodeVisitor() {}
 };
 
@@ -320,6 +328,7 @@ class DefaultNodeVisitor : public NodeVisitor {
   void visit(const DistributionHalfNormalNode* node) override;
   void visit(const DistributionBetaNode* node) override;
   void visit(const DistributionBernoulliNode* node) override;
+  void visit(const DistributionExponentialNode* node) override;
 };
 
 // A visitor for scalar nodes.  Throws an exception for distributions.
@@ -329,6 +338,7 @@ class ScalarNodeVisitor : public NodeVisitor {
   void visit(const DistributionHalfNormalNode* node) override;
   void visit(const DistributionBetaNode* node) override;
   void visit(const DistributionBernoulliNode* node) override;
+  void visit(const DistributionExponentialNode* node) override;
 };
 
 // A visitor for distribution nodes.  Throws an exception for scalars.
