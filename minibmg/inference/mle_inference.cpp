@@ -8,13 +8,13 @@
 #include "beanmachine/minibmg/inference/mle_inference.h"
 #include <iostream>
 #include <vector>
-#include "beanmachine/minibmg/graph2.h"
+#include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/inference/hmc_world.h"
 
 namespace beanmachine::minibmg {
 
 std::vector<double> mle_inference_0(
-    const Graph2& graph,
+    const Graph& graph,
     double learning_rate,
     int num_rounds,
     std::vector<double> initial_proposals,

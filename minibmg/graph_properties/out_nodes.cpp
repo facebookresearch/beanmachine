@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/graph_properties/out_nodes2.h"
+#include "beanmachine/minibmg/graph_properties/out_nodes.h"
 #include <exception>
 #include <list>
 #include <map>
@@ -16,8 +16,8 @@ using namespace beanmachine::minibmg;
 
 class Out_Nodes_Data {
  public:
-  std::map<Node2p, std::list<Node2p>> node_map{};
-  std::list<Node2p>& for_node(Node2p node) {
+  std::map<Nodep, std::list<Nodep>> node_map{};
+  std::list<Nodep>& for_node(Nodep node) {
     auto found = node_map.find(node);
     if (found == node_map.end()) {
       throw std::invalid_argument("node not in graph");
@@ -27,12 +27,12 @@ class Out_Nodes_Data {
 };
 
 class Out_Nodes_Property
-    : public Property<Out_Nodes_Property, Graph2, Out_Nodes_Data> {
+    : public Property<Out_Nodes_Property, Graph, Out_Nodes_Data> {
  public:
-  Out_Nodes_Data* create(const Graph2& g) const override {
+  Out_Nodes_Data* create(const Graph& g) const override {
     Out_Nodes_Data* data = new Out_Nodes_Data{};
     for (auto node : g) {
-      data->node_map[node] = std::list<Node2p>{};
+      data->node_map[node] = std::list<Nodep>{};
       for (auto in_node : in_nodes(node)) {
         auto& predecessor_out_set = data->for_node(in_node);
         predecessor_out_set.push_back(node);
@@ -47,9 +47,9 @@ class Out_Nodes_Property
 
 namespace beanmachine::minibmg {
 
-const std::list<Node2p>& out_nodes(const Graph2& graph, Node2p node) {
+const std::list<Nodep>& out_nodes(const Graph& graph, Nodep node) {
   Out_Nodes_Data* data = Out_Nodes_Property::get(graph);
-  std::list<Node2p>& result = data->for_node(node);
+  std::list<Nodep>& result = data->for_node(node);
   return result;
 }
 

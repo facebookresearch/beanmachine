@@ -7,38 +7,38 @@
 
 #pragma once
 
-#include "beanmachine/minibmg/ad/traced2.h"
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/ad/traced.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
 // For values
-using Value2 = Traced2;
+using Value = Traced;
 
 // For distributions
 class FluidDistribution {
  public:
-  DistributionNode2p node;
-  /* implicit */ FluidDistribution(DistributionNode2p node);
+  DistributionNodep node;
+  /* implicit */ FluidDistribution(DistributionNodep node);
 };
 
-const FluidDistribution half_normal(Value2 stddev);
-const FluidDistribution normal(Value2 mean, Value2 stddev);
-const FluidDistribution beta(Value2 a, Value2 b);
-const FluidDistribution bernoulli(Value2 p);
+const FluidDistribution half_normal(Value stddev);
+const FluidDistribution normal(Value mean, Value stddev);
+const FluidDistribution beta(Value a, Value b);
+const FluidDistribution bernoulli(Value p);
 
-Value2 sample(const FluidDistribution& d, std::string rvid = make_fresh_rvid());
+Value sample(const FluidDistribution& d, std::string rvid = make_fresh_rvid());
 
-class Graph2::FluidFactory {
+class Graph::FluidFactory {
  public:
-  void observe(const Traced2& sample, double value);
-  unsigned query(const Traced2& value);
-  Graph2 build();
+  void observe(const Traced& sample, double value);
+  unsigned query(const Traced& value);
+  Graph build();
 
  private:
-  std::vector<Node2p> queries;
-  std::list<std::pair<Node2p, double>> observations;
+  std::vector<Nodep> queries;
+  std::list<std::pair<Nodep, double>> observations;
 };
 
 } // namespace beanmachine::minibmg

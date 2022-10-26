@@ -9,8 +9,8 @@
 
 #include <string>
 #include <unordered_map>
-#include "beanmachine/minibmg/graph2.h"
-#include "beanmachine/minibmg/node2.h"
+#include "beanmachine/minibmg/graph.h"
+#include "beanmachine/minibmg/node.h"
 
 namespace beanmachine::minibmg {
 
@@ -47,14 +47,14 @@ struct Pretty2Result {
 
   // For each remaining root, the expression for computing it, with identifiers
   // referring to variables declared in the prelude for shared values.
-  std::unordered_map<Node2p, std::string> code;
+  std::unordered_map<Nodep, std::string> code;
 };
 
 // Pretty-print a set of Nodes.  Returns a PrettyResult.
-const Pretty2Result pretty_print(std::vector<Node2p> roots);
+const Pretty2Result pretty_print(std::vector<Nodep> roots);
 
 // Pretty-print a graph into the code that would need to be written using the
 // fluid factory to reproduce it.
-std::string pretty_print(const Graph2& graph);
+std::string pretty_print(const Graph& graph);
 
 } // namespace beanmachine::minibmg
