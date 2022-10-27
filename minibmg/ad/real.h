@@ -36,64 +36,67 @@ class Real {
   INLINE Real(const Real& other) : value{other.value} {}
 };
 
-INLINE Real operator+(const Real left, const Real right) {
+INLINE Real operator+(Real left, Real right) {
   return left.value + right.value;
 }
-INLINE Real operator-(const Real left, const Real right) {
+INLINE Real operator-(Real left, Real right) {
   return left.value - right.value;
 }
-INLINE Real operator-(const Real x) {
+INLINE Real operator-(Real x) {
   return -x.value;
 }
-INLINE Real operator*(const Real left, const Real right) {
+INLINE Real operator*(Real left, Real right) {
   return left.value * right.value;
 }
-INLINE Real operator/(const Real left, const Real right) {
+INLINE Real operator/(Real left, Real right) {
   return left.value / right.value;
 }
-INLINE Real pow(const Real left, const Real right) {
+INLINE Real pow(Real left, Real right) {
   return std::pow(left.value, right.value);
 }
-INLINE Real exp(const Real x) {
+INLINE Real exp(Real x) {
   return std::exp(x.value);
 }
-INLINE Real log(const Real x) {
+INLINE Real log(Real x) {
   return std::log(x.value);
 }
-INLINE Real atan(const Real x) {
+INLINE Real atan(Real x) {
   return std::atan(x.value);
 }
-INLINE Real lgamma(const Real x) {
+INLINE Real lgamma(Real x) {
   return std::lgamma(x.value);
 }
-INLINE Real polygamma(const int n, const Real x) {
+INLINE Real polygamma(const int n, Real x) {
   return boost::math::polygamma(n, x.value);
+}
+INLINE Real log1p(Real x) {
+  return std::log1p(x.value);
 }
 template <class T>
 INLINE const T& if_equal(
-    const Real value,
-    const Real comparand,
+    Real value,
+    Real comparand,
     const T& when_equal,
     const T& when_not_equal) {
   return (value.value == comparand.value) ? when_equal : when_not_equal;
 }
 template <class T>
 INLINE const T& if_less(
-    const Real value,
-    const Real comparand,
+    Real value,
+    Real comparand,
     const T& when_less,
     const T& when_not_less) {
   return (value.value < comparand.value) ? when_less : when_not_less;
 }
-INLINE bool is_constant(const Real x, double& value) {
+INLINE bool is_constant(Real x, double& value) {
   value = x.value;
   return true;
 }
-INLINE bool is_constant(const Real x, const double& value) {
+INLINE bool is_constant(Real x, const double& value) {
   double v = 0;
   return is_constant(x, v) && v == value;
 }
-inline std::string to_string(const Real x) {
+inline std::string to_string(Real x) {
   // The behavior of std::to_string(double) is that it uses a fixed number of
   // digits of precision.  We would prefer to use the minimum number of digits
   // that round-trips to the same value, so we use fmt::format.

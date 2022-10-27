@@ -456,6 +456,25 @@ class RewriteOneVisitor : NodeVisitor {
     }
   }
 
+  void visit(const ScalarLog1pNode* node) override {
+    auto x = map.at(node->x);
+    auto x_constant = std::dynamic_pointer_cast<const ScalarConstantNode>(x);
+
+    // {log1p(k), k3}, // constant fold
+    if (x_constant) {
+      rewritten = std::make_shared<ScalarConstantNode>(
+          std::log1p(x_constant->constant_value));
+    }
+
+    else if (x == node->x) {
+      rewritten = original;
+    }
+
+    else {
+      rewritten = std::make_shared<ScalarLog1pNode>(x);
+    }
+  }
+
   void visit(const ScalarIfEqualNode* node) override {
     auto a = map.at(node->a);
     auto b = map.at(node->b);

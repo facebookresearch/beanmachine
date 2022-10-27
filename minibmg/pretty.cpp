@@ -134,6 +134,10 @@ class PrintedFormVisitor : public NodeVisitor {
             "polygamma({}, {})", cache[node->n].string, cache[node->x].string),
         Precedence::Term};
   }
+  void visit(const ScalarLog1pNode* node) override {
+    result = {
+        fmt::format("log1p({})", cache[node->x].string), Precedence::Term};
+  }
   void visit(const ScalarIfEqualNode* node) override {
     result = {
         fmt::format(

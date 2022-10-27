@@ -86,6 +86,7 @@ class Graph::Factory {
   ScalarNodeId atan(ScalarNodeId x);
   ScalarNodeId lgamma(ScalarNodeId x);
   ScalarNodeId polygamma(int n, ScalarNodeId x);
+  ScalarNodeId log1p(ScalarNodeId x);
   ScalarNodeId
   if_equal(ScalarNodeId a, ScalarNodeId b, ScalarNodeId c, ScalarNodeId d);
   ScalarNodeId

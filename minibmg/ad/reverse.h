@@ -314,6 +314,18 @@ requires Number<Underlying> Reverse<Underlying> polygamma(
 }
 
 template <class Underlying>
+requires Number<Underlying> Reverse<Underlying> log1p(
+    const Reverse<Underlying>& x) {
+  Underlying x_value = x.ptr->primal;
+  Underlying new_primal = log1p(x_value);
+  Underlying new_derivative1 = 1.0 / (x_value + 1);
+  return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
+      new_primal,
+      std::list<Reverse<Underlying>>{x},
+      std::list<Underlying>{new_derivative1})};
+}
+
+template <class Underlying>
 requires Number<Underlying> Reverse<Underlying> if_equal(
     const Reverse<Underlying>& value,
     const Reverse<Underlying>& comparand,
