@@ -55,7 +55,6 @@ DEV_REQUIRES = (
     + TUTORIALS_REQUIRES
     + [
         "flake8==4.0.1",
-        "flake8-bugbear",
         "libcst==0.4.1",
         "nbval",
         "sphinx==4.2.0",
