@@ -91,7 +91,8 @@ def studentt_2_3():
 def operators():
     # Note that we do NOT devectorize the multiplication; it gets
     # turned into a MatrixScale.
-    return ((beta_2_2() + tensor([[5.0, 6.0], [7.0, 8.0]])) * 10.0).exp()
+    phi = Normal(0, 1).cdf
+    return phi(((beta_2_2() + tensor([[5.0, 6.0], [7.0, 8.0]])) * 10.0).exp())
 
 
 @bm.functional
@@ -764,30 +765,32 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="[2.0,2.0]"];
-  N1[label="[3.0,4.0]"];
-  N2[label=Beta];
-  N3[label=Sample];
-  N4[label="[[5.0,6.0],\\\\n[7.0,8.0]]"];
-  N5[label="+"];
-  N6[label=10.0];
-  N7[label="*"];
-  N8[label=Exp];
-  N9[label=Query];
-  N0 -> N2;
-  N1 -> N2;
-  N2 -> N3;
-  N3 -> N5;
-  N4 -> N5;
-  N5 -> N7;
-  N6 -> N7;
-  N7 -> N8;
-  N8 -> N9;
+  N00[label="[2.0,2.0]"];
+  N01[label="[3.0,4.0]"];
+  N02[label=Beta];
+  N03[label=Sample];
+  N04[label="[[5.0,6.0],\\\\n[7.0,8.0]]"];
+  N05[label="+"];
+  N06[label=10.0];
+  N07[label="*"];
+  N08[label=Exp];
+  N09[label=Phi];
+  N10[label=Query];
+  N00 -> N02;
+  N01 -> N02;
+  N02 -> N03;
+  N03 -> N05;
+  N04 -> N05;
+  N05 -> N07;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N10;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # After:
+        # Verify that it works in BMG.
 
         g, _ = BMGInference().to_graph(queries, observations)
         observed = g.to_dot()
@@ -810,6 +813,8 @@ digraph "graph" {
   N14[label="MatrixAdd"];
   N15[label="MatrixScale"];
   N16[label="MatrixExp"];
+  N17[label="ToReal"];
+  N18[label="MatrixPhi"];
   N0 -> N2;
   N0 -> N5;
   N1 -> N2;
@@ -829,9 +834,12 @@ digraph "graph" {
   N13 -> N14;
   N14 -> N15;
   N15 -> N16;
+  N16 -> N17;
+  N17 -> N18;
   Q0[label="Query"];
-  N16 -> Q0;
-}"""
+  N18 -> Q0;
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_fix_vectorized_models_8(self) -> None:

@@ -69,6 +69,7 @@ class Tensorizer(NodeTransformer):
             bn.LogNode: _always,
             bn.Log1mexpNode: _always,
             bn.NegateNode: self.negate_can_be_tensorized,
+            bn.PhiNode: _always,
             bn.SumNode: _always,
         }
         self.transform_map = {
@@ -91,6 +92,9 @@ class Tensorizer(NodeTransformer):
             ),
             bn.NegateNode: lambda node, inputs: self._tensorize_unary_elementwise(
                 node, inputs, self.cloner.bmg.add_matrix_negate
+            ),
+            bn.PhiNode: lambda node, inputs: self._tensorize_unary_elementwise(
+                node, inputs, self.cloner.bmg.add_matrix_phi
             ),
             bn.SumNode: self._tensorize_sum,
         }

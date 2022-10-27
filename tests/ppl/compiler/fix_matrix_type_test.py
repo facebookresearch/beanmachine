@@ -508,7 +508,7 @@ digraph "graph" {
 """
         self.assertEqual(expectation.strip(), observed_bmg.strip())
 
-    def test_fix_matrix_exp_log(self) -> None:
+    def test_fix_matrix_exp_log_phi(self) -> None:
         self.maxDiff = None
         bmg = BMGraphBuilder()
         probs = bmg.add_real_matrix(torch.tensor([[0.75, 0.25], [0.125, 0.875]]))
@@ -525,8 +525,10 @@ digraph "graph" {
         matrix = bmg.add_tensor(Size([2, 2]), *tensor_elements)
         me = bmg.add_matrix_exp(matrix)
         ml = bmg.add_matrix_log(matrix)
+        mp = bmg.add_matrix_phi(matrix)
         bmg.add_query(me, _rv_id())
         bmg.add_query(ml, _rv_id())
+        bmg.add_query(mp, _rv_id())
         observed_beanstalk = to_dot(bmg, after_transform=True)
         expectation = """
 digraph "graph" {
@@ -559,6 +561,8 @@ digraph "graph" {
   N26[label=ToPosRealMatrix];
   N27[label=MatrixLog];
   N28[label=Query];
+  N29[label=MatrixPhi];
+  N30[label=Query];
   N00 -> N02[label=left];
   N00 -> N12[label=left];
   N01 -> N02[label=right];
@@ -592,9 +596,11 @@ digraph "graph" {
   N22 -> N23[label=operand];
   N22 -> N26[label=operand];
   N23 -> N24[label=operand];
+  N23 -> N29[label=operand];
   N24 -> N25[label=operator];
   N26 -> N27[label=operand];
   N27 -> N28[label=operator];
+  N29 -> N30[label=operator];
 }
         """
         self.assertEqual(expectation.strip(), observed_beanstalk.strip())
@@ -630,6 +636,7 @@ digraph "graph" {
   N24[label="MatrixExp"];
   N25[label="ToPosReal"];
   N26[label="MatrixLog"];
+  N27[label="MatrixPhi"];
   N0 -> N2;
   N0 -> N12;
   N1 -> N2;
@@ -663,11 +670,14 @@ digraph "graph" {
   N22 -> N23;
   N22 -> N25;
   N23 -> N24;
+  N23 -> N27;
   N25 -> N26;
   Q0[label="Query"];
   N24 -> Q0;
   Q1[label="Query"];
   N26 -> Q1;
+  Q2[label="Query"];
+  N27 -> Q2;
 }
 """
         self.assertEqual(expectation.strip(), observed_bmg.strip())
