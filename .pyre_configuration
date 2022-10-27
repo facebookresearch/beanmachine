@@ -1,0 +1,17 @@
+{
+  "ignore_all_errors": [
+    "src/beanmachine/ppl/compiler/bm_graph_builder.py",
+    "src/beanmachine/ppl/compiler/gen_bmg_graph.py",
+    "src/beanmachine/ppl/compiler/runtime.py",
+    "src/beanmachine/ppl/inference/base_inference.py",
+    "src/beanmachine/ppl/inference/bmg_inference.py",
+    "src/beanmachine/ppl/testlib/abstract_conjugate.py",
+    "src/beanmachine/ppl/testlib/hypothesis_testing.py",
+    "src/beanmachine/ppl/experimental/torch_jit_backend.py"
+  ],
+  "site_package_search_strategy": "all",
+  "source_directories": [
+    "./src/beanmachine/ppl"
+  ],
+  "version": "0.0.101665573068"
+}
