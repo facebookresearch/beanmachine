@@ -22,8 +22,10 @@ namespace beanmachine::minibmg {
 template <class T>
 class DedupAdapter;
 
-// A concept asserting that the type T is a valid argument to dedup2 using the
-// adapter DDAdapter.
+// A concept asserting that the type `T` is a valid argument to `dedup` using
+// the adapter `DDAdapter`.  In this case `T` is a type containing values of
+// type `Nodep` which will undergo common subexpression elimination, and a new
+// value of type `T` will be constructed and returned by `dedup`.
 template <class T, class DDAdapter = DedupAdapter<T>>
 concept Dedupable = requires(
     const T& t,
@@ -82,7 +84,7 @@ std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots);
 // shared (semantically equivalent) subexpressions.
 template <class T, class DDAdapter = DedupAdapter<T>>
 requires Dedupable<T, DDAdapter> T
-dedup2(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
+dedup(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
   DDAdapter adapter = DDAdapter{};
   auto roots = adapter.find_roots(data);
   auto map = dedup_map(roots);
@@ -91,6 +93,11 @@ dedup2(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
   }
   return adapter.rewrite(data, map);
 }
+
+/*
+  Below here we implement many deduplication adapters for commonly used types
+  ===========================================================================
+*/
 
 // A single node can be deduplicated
 template <>
