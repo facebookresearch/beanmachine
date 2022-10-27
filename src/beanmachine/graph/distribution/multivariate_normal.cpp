@@ -52,15 +52,35 @@ MultivariateNormal::MultivariateNormal(
   }
   if (sample_type.rows != rows or sample_type.cols != 1) {
     throw std::invalid_argument(
-        "Multivariate Normal's second parent must be a real-valued square matrix with the same number of rows as the first parent");
+        "Multivariate Normal's sample type should match the shape of the first parent");
   }
   // We also require that the covariance matrix be positive definite. We check
   // this using Cholesky decomposition and store the lower triangular matrix for
   // use in sampling later.
-  llt = in_nodes[1]->value._matrix.llt();
-  if (llt.info() == Eigen::NumericalIssue) {
-    throw std::invalid_argument(
-        "Multivariate Normal's covariance matrix must be positive definite");
+  if (in_nodes[1]->node_type == graph::NodeType::CONSTANT) {
+    // LLT is the Eigen operation for Cholesky decomposition. We store this
+    // value for constant covariance to avoid recomputation.
+
+    _llt = in_nodes[1]->value._matrix.llt();
+    if (_llt.info() == Eigen::NumericalIssue) {
+      throw std::invalid_argument(
+          "Multivariate Normal's covariance matrix must be positive definite");
+    }
+  }
+}
+
+Eigen::LLT<Eigen::MatrixXd> MultivariateNormal::llt() const {
+  if (in_nodes[1]->node_type == graph::NodeType::CONSTANT) {
+    return _llt;
+  } else {
+    // If the covariance is not constant, we need to recompute the
+    // Cholesky decomposition each time we sample or take the log prob.
+    auto result = in_nodes[1]->value._matrix.llt();
+    if (result.info() == Eigen::NumericalIssue) {
+      throw std::invalid_argument(
+          "Multivariate Normal's covariance matrix must be positive definite");
+    }
+    return result;
   }
 }
 
@@ -78,7 +98,7 @@ Eigen::MatrixXd MultivariateNormal::_matrix_sampler(std::mt19937& gen) const {
   }
 
   Eigen::MatrixXd mean = in_nodes[0]->value._matrix;
-  return llt.matrixL() * sample + mean;
+  return llt().matrixL() * sample + mean;
 }
 
 double MultivariateNormal::log_prob(const graph::NodeValue& value) const {
@@ -89,10 +109,11 @@ double MultivariateNormal::log_prob(const graph::NodeValue& value) const {
   Eigen::MatrixXd mean = in_nodes[0]->value._matrix;
   int dims = static_cast<int>(in_nodes[0]->value._matrix.rows());
 
-  double mdist = llt.matrixL().solve(x - mean).squaredNorm();
+  auto computed_llt = llt();
+  double mdist = computed_llt.matrixL().solve(x - mean).squaredNorm();
   const double log2pi = std::log(2 * M_PI);
   double log_det =
-      2 * std::log(llt.matrixL().nestedExpression().diagonal().prod());
+      2 * std::log(computed_llt.matrixL().nestedExpression().diagonal().prod());
 
   return -0.5 * (dims * log2pi + log_det + mdist);
 }

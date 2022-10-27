@@ -194,3 +194,41 @@ TEST(testdistrib, multivariate_normal_sample) {
   EXPECT_NEAR(cov(2, 1), 0.25, 0.01);
   EXPECT_NEAR(cov(2, 2), 1.0, 0.01);
 }
+
+TEST(testdistrib, lkj_multivariate_normal_sample) {
+  Graph g;
+  Eigen::MatrixXd m1(3, 1);
+  m1 << 1.5, 1.0, 2.0;
+
+  uint cm1 = g.add_constant_real_matrix(m1);
+  uint eta = g.add_constant_pos_real(3.0);
+  uint lkj_chol_dist = g.add_distribution(
+      DistributionType::LKJ_CHOLESKY,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 3),
+      std::vector<uint>{eta});
+  uint cov_llt =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{lkj_chol_dist});
+  uint cov_llt_t =
+      g.add_operator(OperatorType::TRANSPOSE, std::vector<uint>{cov_llt});
+  uint cov = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cov_llt, cov_llt_t});
+  uint mv_dist = g.add_distribution(
+      DistributionType::MULTIVARIATE_NORMAL,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 1),
+      std::vector<uint>{cm1, cov});
+
+  // test mean
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{mv_dist});
+  g.query(x);
+  std::vector<std::vector<NodeValue>> samples =
+      g.infer(100000, InferenceType::REJECTION);
+  Eigen::MatrixXd mean(3, 1);
+  for (int i = 0; i < samples.size(); i++) {
+    mean += samples[i][0]._matrix;
+  };
+  mean /= samples.size();
+
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(mean(i), m1(i), 0.01);
+  }
+}
