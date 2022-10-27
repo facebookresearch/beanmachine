@@ -49,7 +49,7 @@ struct QueriesAndObservations {
 namespace beanmachine::minibmg {
 
 template <>
-class DedupAdapter<QueriesAndObservations> {
+class NodeRewriteAdapter<QueriesAndObservations> {
  public:
   std::vector<Nodep> find_roots(const QueriesAndObservations& qo) const {
     std::vector<Nodep> roots;
@@ -64,8 +64,8 @@ class DedupAdapter<QueriesAndObservations> {
   QueriesAndObservations rewrite(
       const QueriesAndObservations& qo,
       const std::unordered_map<Nodep, Nodep>& map) const {
-    DedupAdapter<std::vector<Nodep>> h1{};
-    DedupAdapter<std::list<std::pair<Nodep, double>>> h2{};
+    NodeRewriteAdapter<std::vector<Nodep>> h1{};
+    NodeRewriteAdapter<std::list<std::pair<Nodep, double>>> h2{};
     return QueriesAndObservations{
         h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map)};
   }

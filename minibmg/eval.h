@@ -343,8 +343,8 @@ requires Number<N> EvalResult<N> eval_graph(
 
 template <class Underlying>
 requires Number<Underlying>
-class DedupAdapter<EvalResult<Underlying>> {
-  DedupAdapter<Underlying> underlying_adapter{};
+class NodeRewriteAdapter<EvalResult<Underlying>> {
+  NodeRewriteAdapter<Underlying> underlying_adapter{};
 
  public:
   std::vector<Nodep> find_roots(const EvalResult<Underlying>& e) const {

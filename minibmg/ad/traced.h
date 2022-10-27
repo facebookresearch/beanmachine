@@ -70,7 +70,7 @@ std::string to_string(const Traced& x);
 static_assert(Number<Traced>);
 
 template <>
-class DedupAdapter<Traced> {
+class NodeRewriteAdapter<Traced> {
  public:
   std::vector<Nodep> find_roots(const Traced& t) const {
     return {t.node};

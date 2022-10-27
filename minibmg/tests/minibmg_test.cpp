@@ -67,16 +67,16 @@ TEST(test_minibmg, duplicate_build) {
   ASSERT_THROW(gf.build();, std::invalid_argument);
 }
 
-// tests the Dedupable concept
+// tests the Rewritable concept
 TEST(test_minibmg, dedupable_concept) {
-  ASSERT_TRUE(Dedupable<std::vector<Nodep>>);
-  ASSERT_TRUE(Dedupable<std::vector<std::vector<Nodep>>>);
-  ASSERT_FALSE(Dedupable<std::vector<int>>);
-  ASSERT_FALSE(Dedupable<std::vector<std::vector<int>>>);
-  ASSERT_TRUE((Dedupable<std::pair<Nodep, double>>));
-  ASSERT_FALSE((Dedupable<std::pair<int, double>>));
-  ASSERT_TRUE(Dedupable<std::list<Nodep>>);
-  ASSERT_TRUE(Dedupable<std::list<std::list<Nodep>>>);
-  ASSERT_FALSE(Dedupable<std::list<int>>);
-  ASSERT_FALSE(Dedupable<std::list<std::list<int>>>);
+  ASSERT_TRUE(Rewritable<std::vector<Nodep>>);
+  ASSERT_TRUE(Rewritable<std::vector<std::vector<Nodep>>>);
+  ASSERT_FALSE(Rewritable<std::vector<int>>);
+  ASSERT_FALSE(Rewritable<std::vector<std::vector<int>>>);
+  ASSERT_TRUE((Rewritable<std::pair<Nodep, double>>));
+  ASSERT_FALSE((Rewritable<std::pair<int, double>>));
+  ASSERT_TRUE(Rewritable<std::list<Nodep>>);
+  ASSERT_TRUE(Rewritable<std::list<std::list<Nodep>>>);
+  ASSERT_FALSE(Rewritable<std::list<int>>);
+  ASSERT_FALSE(Rewritable<std::list<std::list<int>>>);
 }
