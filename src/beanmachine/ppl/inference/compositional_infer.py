@@ -17,6 +17,8 @@ from typing import (
     Union,
 )
 
+from beanmachine.ppl.experimental.torch_jit_backend import get_backend
+
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import BaseProposer
 from beanmachine.ppl.inference.proposer.nuts_proposer import NUTSProposer
@@ -50,7 +52,7 @@ class _DefaultInference(BaseInference):
         self._disc_proposers = {}
         self._cont_proposer = None
         self._continuous_rvs = set()
-        self._nnc_compile = nnc_compile
+        self._jit_backend = get_backend(nnc_compile, False)
 
     def get_proposers(
         self,
@@ -81,7 +83,7 @@ class _DefaultInference(BaseInference):
                     world,
                     self._continuous_rvs,
                     num_adaptive_sample,
-                    nnc_compile=self._nnc_compile,
+                    jit_backend=self._jit_backend,
                 )
                 self._cont_proposer = continuous_proposer
                 proposers.append(self._cont_proposer)

@@ -30,10 +30,7 @@ def world():
 
 @pytest.fixture
 def hmc(world):
-    # TODO(T130186904): fix NNC
-    hmc_proposer = HMCProposer(
-        world, world.latent_nodes, 10, trajectory_length=1.0, nnc_compile=False
-    )
+    hmc_proposer = HMCProposer(world, world.latent_nodes, 10, trajectory_length=1.0)
     return hmc_proposer
 
 
@@ -56,7 +53,7 @@ def test_kinetic_grads(hmc):
 
 
 def test_leapfrog_step(hmc):
-    step_size = 0.0
+    step_size = torch.tensor(0.0)
     momentums = hmc._initialize_momentums(hmc._positions)
     new_positions, new_momentums, pe, pe_grad = hmc._leapfrog_step(
         hmc._positions, momentums, step_size, hmc._mass_inv

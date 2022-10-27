@@ -32,6 +32,9 @@ filterwarnings = [
     "default:The register_cmap function will be deprecated in a future version.*:PendingDeprecationWarning",
     # gpytorch < 1.9.0 uses torch.triangular_solve
     "default:torch.triangular_solve is deprecated*:UserWarning",
+    # NNC/TorchInductor warning
+    "ignore:The support of TorchInductor is experimental*:UserWarning",
+    "ignore:The support of NNC compiler is experimental*:UserWarning",
 ]
 
 [tool.usort]
