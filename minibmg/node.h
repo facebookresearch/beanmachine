@@ -229,14 +229,14 @@ std::string to_string(const Nodep& node);
 
 // Provide a good hash function so ScalarNodep values can be used in unordered
 // maps and sets.  This treats ScalarNodep values as semantically value-based.
-struct NodepIdentityHash {
+struct NodepValueHash {
   std::size_t operator()(const beanmachine::minibmg::Nodep& p) const noexcept;
 };
 
 // Provide a good equality function so ScalarNodep values can be used in
 // unordered maps and sets.  This treats ScalarNodep values, recursively, as
 // semantically value-based.
-struct NodepIdentityEquals {
+struct NodepValueEquals {
   bool operator()(
       const beanmachine::minibmg::Nodep& lhs,
       const beanmachine::minibmg::Nodep& rhs) const noexcept;
@@ -246,7 +246,7 @@ struct NodepIdentityEquals {
 // optimizing a graph.
 class NodeNodeValueMap {
  private:
-  std::unordered_map<Nodep, Nodep, NodepIdentityHash, NodepIdentityEquals> map;
+  std::unordered_map<Nodep, Nodep, NodepValueHash, NodepValueEquals> map;
 
  public:
   ~NodeNodeValueMap() {}

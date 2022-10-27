@@ -16,7 +16,7 @@ namespace {
 
 using namespace beanmachine::minibmg;
 
-NodepIdentityEquals same{};
+NodepValueEquals same{};
 
 // This is a temporary hack to perform some local optimizations on the a graph
 // node. Ultimately, these should be organized into a rewriter based on tree
