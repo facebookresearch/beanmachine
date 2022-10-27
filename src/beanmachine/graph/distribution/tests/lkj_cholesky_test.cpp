@@ -329,6 +329,77 @@ TEST(testdistrib, lkj_cholesky_log_prob_backward_value) {
   }
 }
 
+TEST(testdistrib, lkj_cholesky_log_prob_backward_value_2) {
+  Graph g;
+  const double ETA = 3.0;
+  Eigen::MatrixXd mu(3, 1);
+  mu << 3.0, 2.0, -1.5;
+  auto pos1 = g.add_constant_pos_real(ETA);
+  auto means = g.add_constant_real_matrix(mu);
+
+  /***
+   * For PyTorch verification:
+   * # x needed to be sampled to avoid support validation issues. The value
+   * # used in this test is:
+   * # x = torch.tensor([[1.0, 0.0, 0.0], [0.1206, 0.9927, 0.0], [0.1033,
+   * #      0.4061, 0.9080]])
+   *
+   * torch.manual_seed(0)
+   * eta = torch.tensor([3.0])
+   * mu = torch.tensor([3.0, 2.0, -1.5], requires_grad=True)
+   * dist = torch.distributions.LKJCholesky(3, eta)
+   * x = dist.sample()[0]
+   * x.requires_grad = True
+   * cov = torch.matmul(x, x.t())
+   * mv_normal = torch.distributions.MultivariateNormal(mu, cov)
+   * obs = torch.tensor([3.0, 3.0, -1.0])
+   * log_p = mv_normal.log_prob(obs) + dist.log_prob(x).sum()
+   * grad = torch.autograd.grad(log_p, x)[0]
+   * # grad = tensor([[-1.0000e+00, -7.7852e-03,  4.6564e-02],
+   * #  [ 2.8756e-10,  5.0062e+00,  5.4763e-01],
+   * #  [-6.1548e-09,  1.1110e-01,  3.3151e+00]])
+   ***/
+
+  auto lkj_chol_dist = g.add_distribution(
+      DistributionType::LKJ_CHOLESKY,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 3),
+      std::vector<uint>{pos1});
+
+  uint cov_llt = g.add_operator(OperatorType::SAMPLE, {lkj_chol_dist});
+  uint cov_llt_t = g.add_operator(OperatorType::TRANSPOSE, {cov_llt});
+  uint cov =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, {cov_llt, cov_llt_t});
+
+  auto mv_dist = g.add_distribution(
+      DistributionType::MULTIVARIATE_NORMAL,
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 3, 1),
+      std::vector<uint>{means, cov});
+
+  uint mv_sample = g.add_operator(OperatorType::SAMPLE, {mv_dist});
+
+  Eigen::MatrixXd obs(3, 1), obs2(3, 3), expected_grad(3, 3);
+  obs << 3.0, 3.0, -1.0;
+  obs2 << 1.0, 0.0, 0.0, 0.1206, 0.9927, 0.0, 0.1033, 0.4061, 0.9080;
+  expected_grad << -1.0000, -0.007852, 0.046564, 0.0000, 5.0062, 0.54763,
+      0.0000, 0.1110, 3.3151;
+
+  uint lkj_chol_sample = g.add_operator(OperatorType::SAMPLE, {lkj_chol_dist});
+  g.observe(cov_llt, obs2);
+  g.observe(mv_sample, obs);
+
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 2);
+
+  auto grad = grad1[0]->as_matrix();
+
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_NEAR(grad(i, j), expected_grad(i, j), 0.001);
+    }
+  }
+}
+
 TEST(testdistrib, lkj_cholesky_log_prob_backward_param) {
   Graph g;
   auto scale = g.add_constant_pos_real(3.0);
@@ -356,7 +427,7 @@ TEST(testdistrib, lkj_cholesky_log_prob_backward_param) {
    * For PyTorch verification of first derivative:
    *
    * torch.manual_seed(0)
-   * eta = torch.tensor([0.3], requires_grad=True)
+   * eta = torch.tensor([3.0], requires_grad=True)
    * dist = torch.distributions.LKJCholesky(3, eta)
    * x = dist.sample()
    *
