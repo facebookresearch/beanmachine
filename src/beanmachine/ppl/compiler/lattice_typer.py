@@ -150,6 +150,7 @@ _always_matrix_types: Set[type] = {
     bn.MatrixLogNode,
     bn.MatrixLog1mexpNode,
     bn.MatrixComplementNode,
+    bn.MatrixPhiNode,
     bn.MatrixScaleNode,
     bn.ToMatrixNode,
     bn.TransposeNode,
@@ -202,6 +203,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.MatrixLogNode: self._type_matrix_log,
             bn.MatrixLog1mexpNode: self._type_matrix_log1mexp,
             bn.MatrixComplementNode: self._type_matrix_complement,
+            bn.MatrixPhiNode: self._type_matrix_phi,
             bn.MatrixSumNode: self._type_matrix_sum,
             bn.MultiplicationNode: self._type_multiplication,
             bn.MatrixNegateNode: self._type_matrix_negate,
@@ -295,6 +297,13 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         if isinstance(op, bt.NegativeRealMatrix):
             return bt.ProbabilityMatrix(op.rows, op.columns)
         return bt.PositiveRealMatrix(op.rows, op.columns)
+
+    def _type_matrix_phi(self, node: bn.MatrixPhiNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 1
+        op = self[node.operand]
+        assert op is not bt.Untypable
+        assert isinstance(op, bt.BMGMatrixType)
+        return bt.ProbabilityMatrix(op.rows, op.columns)
 
     def _type_matrix_log(self, node: bn.MatrixLogNode) -> bt.BMGLatticeType:
         assert len(node.inputs) == 1

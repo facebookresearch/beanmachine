@@ -1079,6 +1079,14 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_matrix_phi(self, matrix: BMGNode) -> BMGNode:
+        if isinstance(matrix, ConstantNode):
+            return self.add_constant(phi(matrix.value))
+        node = bn.MatrixPhiNode(matrix)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_matrix_log(self, matrix: BMGNode) -> BMGNode:
         if isinstance(matrix, ConstantNode):
             return self.add_constant(matrix.value.log())

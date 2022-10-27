@@ -1294,6 +1294,17 @@ class MatrixExpNode(UnaryOperatorNode):
         return "MatrixExp(" + str(self.operand) + ")"
 
 
+class MatrixPhiNode(UnaryOperatorNode):
+    """This represents an phi operation; it is generated when
+    a model contains calls to Normal(0,1).cdf"""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "MatrixPhi" + str(self.operand) + ")"
+
+
 class MatrixSumNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)

@@ -118,6 +118,7 @@ class EdgeRequirements:
             # see comment above
             bn.MatrixComplementNode: self._requirements_matrix_complement,
             bn.MatrixAddNode: self._requirements_matrix_add,
+            bn.MatrixPhiNode: self._requirements_matrix_phi,
             bn.MatrixScaleNode: self._requirements_matrix_scale,
             bn.MultiplicationNode: self._requirements_multiplication,
             bn.NegateNode: self._requirements_exp_neg,
@@ -451,6 +452,11 @@ class EdgeRequirements:
         it = self.typer[node]
         assert isinstance(it, bt.BMGMatrixType)
         return [it, it]
+
+    def _requirements_matrix_phi(self, node: bn.MatrixPhiNode) -> List[bt.Requirement]:
+        it = self.typer[node]
+        assert isinstance(it, bt.BMGMatrixType)
+        return [bt.RealMatrix(it.rows, it.columns)]
 
     def _requirements_matrix_scale(
         self, node: bn.MatrixScaleNode

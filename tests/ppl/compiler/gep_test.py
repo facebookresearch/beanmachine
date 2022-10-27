@@ -77,6 +77,8 @@ class GEPTest(unittest.TestCase):
         g, _ = BMGInference().to_graph(queries, observations)
         observed = g.to_dot()
 
+        # TODO: We're not generating matrix complement or matrix log here after the matrix phi.
+        # It seems like we could be; what's going wrong in the tensorizer?
         expected = """
 digraph "graph" {
   N0[label="5"];
@@ -118,30 +120,30 @@ digraph "graph" {
   N36[label="Normal"];
   N37[label="~"];
   N38[label="matrix"];
-  N39[label="Phi"];
-  N40[label="Phi"];
-  N41[label="ToMatrix"];
-  N42[label="MatrixLog"];
-  N43[label="ToReal"];
-  N44[label="ElementwiseMultiply"];
-  N45[label="matrix"];
+  N39[label="ToMatrix"];
+  N40[label="MatrixPhi"];
+  N41[label="MatrixLog"];
+  N42[label="ToReal"];
+  N43[label="ElementwiseMultiply"];
+  N44[label="matrix"];
+  N45[label="Index"];
   N46[label="Complement"];
   N47[label="Log"];
-  N48[label="Complement"];
-  N49[label="Log"];
-  N50[label="ToMatrix"];
-  N51[label="ToReal"];
-  N52[label="ElementwiseMultiply"];
-  N53[label="MatrixAdd"];
-  N54[label="MatrixSum"];
-  N55[label="ToNegReal"];
-  N56[label="Log1mExp"];
-  N57[label="Negate"];
-  N58[label="ToReal"];
-  N59[label="+"];
-  N60[label="BernoulliLogit"];
-  N61[label="~"];
-  N62[label="ToMatrix"];
+  N48[label="Index"];
+  N49[label="Complement"];
+  N50[label="Log"];
+  N51[label="ToMatrix"];
+  N52[label="ToReal"];
+  N53[label="ElementwiseMultiply"];
+  N54[label="MatrixAdd"];
+  N55[label="MatrixSum"];
+  N56[label="ToNegReal"];
+  N57[label="Log1mExp"];
+  N58[label="Negate"];
+  N59[label="ToReal"];
+  N60[label="+"];
+  N61[label="BernoulliLogit"];
+  N62[label="~"];
   N0 -> N1;
   N1 -> N2;
   N2 -> N14;
@@ -176,38 +178,36 @@ digraph "graph" {
   N25 -> N26;
   N26 -> N30;
   N27 -> N29;
-  N27 -> N41;
-  N27 -> N50;
-  N27 -> N62;
+  N27 -> N39;
+  N27 -> N51;
   N28 -> N29;
   N28 -> N35;
-  N28 -> N41;
-  N28 -> N50;
-  N28 -> N62;
+  N28 -> N39;
+  N28 -> N48;
+  N28 -> N51;
   N29 -> N30;
   N30 -> N32;
   N30 -> N35;
   N31 -> N32;
+  N31 -> N45;
   N32 -> N33;
   N33 -> N34;
   N34 -> N39;
-  N34 -> N62;
   N35 -> N36;
   N36 -> N37;
-  N37 -> N40;
-  N37 -> N62;
-  N38 -> N44;
-  N39 -> N41;
-  N39 -> N46;
+  N37 -> N39;
+  N38 -> N43;
+  N39 -> N40;
   N40 -> N41;
+  N40 -> N45;
   N40 -> N48;
   N41 -> N42;
   N42 -> N43;
-  N43 -> N44;
+  N43 -> N54;
   N44 -> N53;
-  N45 -> N52;
+  N45 -> N46;
   N46 -> N47;
-  N47 -> N50;
+  N47 -> N51;
   N48 -> N49;
   N49 -> N50;
   N50 -> N51;
@@ -215,17 +215,18 @@ digraph "graph" {
   N52 -> N53;
   N53 -> N54;
   N54 -> N55;
-  N54 -> N59;
   N55 -> N56;
+  N55 -> N60;
   N56 -> N57;
   N57 -> N58;
   N58 -> N59;
   N59 -> N60;
   N60 -> N61;
+  N61 -> N62;
   O0[label="Observation"];
-  N61 -> O0;
+  N62 -> O0;
   Q0[label="Query"];
-  N62 -> Q0;
+  N39 -> Q0;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())

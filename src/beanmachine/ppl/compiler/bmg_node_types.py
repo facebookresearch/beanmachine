@@ -100,6 +100,7 @@ _operator_types = {
     bn.MatrixComplementNode: OperatorType.MATRIX_COMPLEMENT,
     bn.MatrixMultiplicationNode: OperatorType.MATRIX_MULTIPLY,
     bn.MatrixNegateNode: OperatorType.MATRIX_NEGATE,
+    bn.MatrixPhiNode: OperatorType.MATRIX_PHI,
     bn.MatrixScaleNode: OperatorType.MATRIX_SCALE,
     bn.MatrixSumNode: OperatorType.MATRIX_SUM,
     bn.MultiplicationNode: OperatorType.MULTIPLY,
