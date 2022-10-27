@@ -24,25 +24,24 @@ class DedupAdapter;
 
 // A concept asserting that the type T is a valid argument to dedup2 using the
 // adapter DDAdapter.
-template <class T, class DDAdapter>
+template <class T, class DDAdapter = DedupAdapter<T>>
 concept Dedupable = requires(
     const T& t,
     const DDAdapter& a,
     const std::unordered_map<Nodep, Nodep>& map) {
   { a.find_roots(t) } -> std::convertible_to<std::vector<Nodep>>;
   { a.rewrite(t, map) } -> std::same_as<T>;
-  {
-    new DDAdapter {}
-    } -> std::same_as<DDAdapter*>;
+  DDAdapter();
 };
 
 // In order to deduplicate data in a given data structure, the programmer must
 // specialize this template class to (1) locate the roots contained in
 // that data structure, and (2) write a replacement data structure in which
-// nodes (values of type Nodep) have been deduplicated.  We provide a number of
-// specializations for data structures likely to be needed.  `T` here is the
-// type of the data structure for which nodes contained in it are to be
-// deduplicated.
+// nodes (values of type Nodep) have been deduplicated.  Those methods should be
+// provided by the programmer in the specialization and have the signatures of
+// the two abstract methods below.  We provide a number of specializations for
+// data structures likely to be needed.  `T` here is the type of the data
+// structure for which nodes contained in it are to be deduplicated.
 //
 // The idea of organizing the code this way, with a type that the caller may
 // specialize, is something I learned from the C++ standard template library.
@@ -52,8 +51,12 @@ template <class T>
 class DedupAdapter {
  public:
   DedupAdapter() = delete;
+  // To implement the `Dedupable` concept, you can specialize this template
+  // class and provide methods with the signatures shown below.
+
   // locate all of the roots.
   std::vector<Nodep> find_roots(const T&) const;
+
   // rewrite the T, given a mapping from each node to its replacement.
   T rewrite(const T&, const std::unordered_map<Nodep, Nodep>&) const;
 };
@@ -105,6 +108,7 @@ class DedupAdapter<Nodep> {
 
 // A vector can be deduplicated.
 template <class T>
+requires Dedupable<T>
 class DedupAdapter<std::vector<T>> {
   DedupAdapter<T> t_helper{};
 
@@ -130,6 +134,7 @@ class DedupAdapter<std::vector<T>> {
 
 // A list can be deduplicated
 template <class T>
+requires Dedupable<T>
 class DedupAdapter<std::list<T>> {
   DedupAdapter<T> t_helper{};
 
@@ -155,6 +160,7 @@ class DedupAdapter<std::list<T>> {
 
 // A pair can be deduplicated
 template <class T, class U>
+requires Dedupable<T> && Dedupable<U>
 class DedupAdapter<std::pair<T, U>> {
   DedupAdapter<T> t_helper{};
   DedupAdapter<U> u_helper{};

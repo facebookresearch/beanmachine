@@ -64,3 +64,11 @@ TEST(real_test, definite) {
   EXPECT_TRUE(is_constant(Real(1), 1));
   EXPECT_FALSE(is_constant(Real(1.001), 1));
 }
+
+// Tests the "number" concept
+TEST(real_test, concept) {
+  EXPECT_TRUE(Number<Real>);
+  // double isn't a number because you cannot use some operations without
+  // importing an appropriate namespace.
+  EXPECT_FALSE(Number<double>);
+}

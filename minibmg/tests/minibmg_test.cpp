@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 
+#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/graph_factory.h"
 #include "beanmachine/minibmg/node.h"
@@ -64,4 +65,18 @@ TEST(test_minibmg, duplicate_build) {
   Graph g = gf.build();
   ASSERT_THROW(gf.constant(1.2);, std::invalid_argument);
   ASSERT_THROW(gf.build();, std::invalid_argument);
+}
+
+// tests the Dedupable concept
+TEST(test_minibmg, dedupable_concept) {
+  ASSERT_TRUE(Dedupable<std::vector<Nodep>>);
+  ASSERT_TRUE(Dedupable<std::vector<std::vector<Nodep>>>);
+  ASSERT_FALSE(Dedupable<std::vector<int>>);
+  ASSERT_FALSE(Dedupable<std::vector<std::vector<int>>>);
+  ASSERT_TRUE((Dedupable<std::pair<Nodep, double>>));
+  ASSERT_FALSE((Dedupable<std::pair<int, double>>));
+  ASSERT_TRUE(Dedupable<std::list<Nodep>>);
+  ASSERT_TRUE(Dedupable<std::list<std::list<Nodep>>>);
+  ASSERT_FALSE(Dedupable<std::list<int>>);
+  ASSERT_FALSE(Dedupable<std::list<std::list<int>>>);
 }
