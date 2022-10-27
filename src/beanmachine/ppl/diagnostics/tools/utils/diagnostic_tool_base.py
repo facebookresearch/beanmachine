@@ -89,6 +89,7 @@ class DiagnosticToolBaseClass(ABC):
         """
         # import Ipython only when we need to render the plot, so that we don't
         # need to have jupyter notebook as one of our dependencies
+        # pyre-fixme[21]: Could not find module `IPython.display`.
         from IPython.display import display, HTML
 
         doc = self.create_document()
