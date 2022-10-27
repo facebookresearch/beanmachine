@@ -215,6 +215,14 @@ class NodeReplacementVisitor : NodeVisitor {
       result = std::make_shared<DistributionBernoulliNode>(prob);
     }
   }
+  void visit(const DistributionExponentialNode* node) override {
+    const ScalarNodep rate = map.at(node->rate);
+    if (rate == node->rate) {
+      result = original;
+    } else {
+      result = std::make_shared<DistributionExponentialNode>(rate);
+    }
+  }
 };
 
 } // namespace

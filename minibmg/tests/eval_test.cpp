@@ -42,7 +42,6 @@ TEST(eval_test, simple1) {
 TEST(eval_test, sample1) {
   // a graph that produces normal samples is evaluated many times
   // and the statistics of the samples are compared to their expected values.
-  std::exception x1;
   Graph::Factory fac;
   double expected_mean = 12.34;
   double expected_stdev = 5.67;
@@ -173,4 +172,41 @@ TEST(eval_test, log1p) {
   auto eval_result = eval_graph<Real>(
       graph, gen, read_variable, data, /* run_queries = */ true);
   EXPECT_CLOSE(eval_result.queries[qi], std::log1p(k));
+}
+
+TEST(eval_test, sample_exponential) {
+  // a graph that produces exponential samples is evaluated many times
+  // and the statistics of the samples are compared to their expected values.
+  Graph::Factory fac;
+  double rate = 1.2345;
+  auto k0 = fac.constant(rate);
+  auto exp = fac.exponential(k0);
+  auto samp = fac.sample(exp);
+  fac.query(samp);
+  auto graph = fac.build();
+
+  // We create a new random number generator with a specific seed so that this
+  // test will be deterministic and not be flaky.
+  std::mt19937 gen{123456};
+  // Evaluate the graph many times and gather stats.
+  int n = 10000;
+  double sum = 0;
+  double sum_squared = 0;
+  int graph_size = graph.size();
+  std::unordered_map<Nodep, Real> data;
+  for (int i = 0; i < n; i++) {
+    auto eval_result =
+        eval_graph<Real>(graph, gen, nullptr, data, /* run_queries= */ true);
+    auto sample = eval_result.queries[0];
+    sum += sample;
+    sum_squared += sample * sample;
+  }
+
+  double mean = sum / n;
+  double variance = sum_squared / n - (mean * mean);
+
+  double expected_mean = 1 / rate;
+  double expected_variance = 1 / (rate * rate);
+  EXPECT_CLOSE_EPS(expected_mean, mean, 0.01);
+  EXPECT_CLOSE_EPS(expected_variance, variance, 0.01);
 }

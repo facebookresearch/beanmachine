@@ -95,6 +95,7 @@ class Graph::Factory {
   DistributionNodeId half_normal(ScalarNodeId stddev);
   DistributionNodeId beta(ScalarNodeId a, ScalarNodeId b);
   DistributionNodeId bernoulli(ScalarNodeId prob);
+  DistributionNodeId exponential(ScalarNodeId rate);
 
   void observe(ScalarNodeId sample, double value);
   unsigned query(ScalarNodeId value);
