@@ -108,33 +108,6 @@ class NodeRewriteAdapter<std::vector<T>> {
 };
 static_assert(Rewritable<std::vector<Nodep>>);
 
-// A list can be deduplicated
-template <class T>
-requires Rewritable<T>
-class NodeRewriteAdapter<std::list<T>> {
-  NodeRewriteAdapter<T> t_helper{};
-
- public:
-  std::vector<Nodep> find_roots(const std::list<T>& roots) const {
-    std::vector<Nodep> result;
-    for (const auto& root : roots) {
-      auto more_roots = t_helper.find_roots(root);
-      result.push_back(more_roots.begin(), more_roots.end());
-    }
-    return result;
-  }
-  std::list<T> rewrite(
-      const std::list<T>& roots,
-      const std::unordered_map<Nodep, Nodep>& map) const {
-    std::list<T> result;
-    for (const auto& root : roots) {
-      result.push_back(t_helper.rewrite(root, map));
-    }
-    return result;
-  }
-};
-static_assert(Rewritable<std::list<Nodep>>);
-
 // A pair can be deduplicated
 template <class T, class U>
 requires Rewritable<T> && Rewritable<U>

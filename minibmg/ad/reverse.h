@@ -49,12 +49,12 @@ requires Number<Underlying>
 class ReverseBody {
  public:
   Underlying primal;
-  std::list<Reverse<Underlying>> inputs;
+  std::vector<Reverse<Underlying>> inputs;
   Underlying adjoint = 0;
 
   /* implicit */ ReverseBody(double primal);
   /* implicit */ ReverseBody(Underlying primal);
-  ReverseBody(Underlying primal, const std::list<Reverse<Underlying>>& inputs);
+  ReverseBody(Underlying primal, const std::vector<Reverse<Underlying>>& inputs);
   ReverseBody(const ReverseBody<Underlying>& other);
   ReverseBody<Underlying>& operator=(const ReverseBody<Underlying>& other);
   virtual ~ReverseBody() {}
@@ -95,17 +95,17 @@ requires Number<Underlying> Reverse<Underlying>
 template <class Underlying>
 class PrecomputedGradients : public ReverseBody<Underlying> {
  public:
-  const std::list<Underlying> computed_partial_derivatives;
+  const std::vector<Underlying> computed_partial_derivatives;
   PrecomputedGradients(
       Underlying primal,
-      const std::list<Reverse<Underlying>>& inputs,
-      const std::list<Underlying>& computed_partial_derivatives)
+      const std::vector<Reverse<Underlying>>& inputs,
+      const std::vector<Underlying>& computed_partial_derivatives)
       : ReverseBody<Underlying>{primal, inputs},
         computed_partial_derivatives{computed_partial_derivatives} {}
   void backprop() override {
-    auto& /*std::list<Reverse<Underlying>>*/ t = this->inputs;
-    typename std::list<Reverse<Underlying>>::iterator it1 = t.begin();
-    typename std::list<Underlying>::const_iterator it2 =
+    auto& /*std::vector<Reverse<Underlying>>*/ t = this->inputs;
+    typename std::vector<Reverse<Underlying>>::iterator it1 = t.begin();
+    typename std::vector<Underlying>::const_iterator it2 =
         computed_partial_derivatives.begin();
     for (; it1 != t.end() && it2 != computed_partial_derivatives.end();
          ++it1, ++it2) {
@@ -132,7 +132,7 @@ requires Number<Underlying>
 void Reverse<Underlying>::reverse(double initial_adjoint) {
   // topologically sort the set of ReverseBody pointers reachable - these are
   // the nodes to which we need to backprop.
-  std::list<Bodyp> roots = {ptr};
+  std::vector<Bodyp> roots = {ptr};
   std::function<std::vector<Bodyp>(const Bodyp&)> predecessors =
       [&](const Bodyp& ptr) -> std::vector<Bodyp> {
     std::vector<Bodyp> result;
@@ -172,7 +172,7 @@ requires Number<Underlying> ReverseBody<Underlying>::ReverseBody(
 template <class Underlying>
 requires Number<Underlying> ReverseBody<Underlying>::ReverseBody(
     Underlying primal,
-    const std::list<Reverse<Underlying>>& inputs)
+    const std::vector<Reverse<Underlying>>& inputs)
     : primal{primal}, inputs{inputs} {}
 
 template <class Underlying>
@@ -185,8 +185,8 @@ operator+(const Reverse<Underlying>& left, const Reverse<Underlying>& right) {
   Underlying new_primal = left.ptr->primal + right.ptr->primal;
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{left, right},
-      std::list<Underlying>{1, 1})};
+      std::vector<Reverse<Underlying>>{left, right},
+      std::vector<Underlying>{1, 1})};
 }
 
 template <class Underlying>
@@ -194,8 +194,8 @@ requires Number<Underlying> Reverse<Underlying>
 operator-(const Reverse<Underlying>& left, const Reverse<Underlying>& right) {
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       left.ptr->primal - right.ptr->primal,
-      std::list<Reverse<Underlying>>{left, right},
-      std::list<Underlying>{1, -1})};
+      std::vector<Reverse<Underlying>>{left, right},
+      std::vector<Underlying>{1, -1})};
 }
 
 template <class Underlying>
@@ -203,8 +203,8 @@ requires Number<Underlying> Reverse<Underlying>
 operator-(const Reverse<Underlying>& x) {
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       -x.ptr->primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{-1})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{-1})};
 }
 
 template <class Underlying>
@@ -212,8 +212,8 @@ requires Number<Underlying> Reverse<Underlying>
 operator*(const Reverse<Underlying>& left, const Reverse<Underlying>& right) {
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       left.ptr->primal * right.ptr->primal,
-      std::list<Reverse<Underlying>>{left, right},
-      std::list<Underlying>{right.ptr->primal, left.ptr->primal})};
+      std::vector<Reverse<Underlying>>{left, right},
+      std::vector<Underlying>{right.ptr->primal, left.ptr->primal})};
 }
 
 template <class Underlying>
@@ -224,8 +224,8 @@ operator/(const Reverse<Underlying>& left, const Reverse<Underlying>& right) {
 
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{left, right},
-      std::list<Underlying>{
+      std::vector<Reverse<Underlying>>{left, right},
+      std::vector<Underlying>{
           1 / right.ptr->primal, -new_primal / right.ptr->primal})};
 }
 
@@ -255,8 +255,8 @@ requires Number<Underlying> Reverse<Underlying> pow(
                          .derivative1;
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{base, exponent},
-      std::list<Underlying>{grad1, grad2})};
+      std::vector<Reverse<Underlying>>{base, exponent},
+      std::vector<Underlying>{grad1, grad2})};
 }
 
 template <class Underlying>
@@ -265,8 +265,8 @@ requires Number<Underlying> Reverse<Underlying> exp(
   Underlying new_primal = exp(x.ptr->primal);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{new_primal})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{new_primal})};
 }
 
 template <class Underlying>
@@ -275,8 +275,8 @@ requires Number<Underlying> Reverse<Underlying> log(
   Underlying new_primal = log(x.ptr->primal);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{1 / x.ptr->primal})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{1 / x.ptr->primal})};
 }
 
 template <class Underlying>
@@ -286,8 +286,8 @@ requires Number<Underlying> Reverse<Underlying> atan(
   Underlying new_derivative1 = 1 / (x.ptr->primal * x.ptr->primal + 1.0f);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{new_derivative1})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{new_derivative1})};
 }
 
 template <class Underlying>
@@ -297,8 +297,8 @@ requires Number<Underlying> Reverse<Underlying> lgamma(
   Underlying new_derivative1 = polygamma(0, x.ptr->primal);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{new_derivative1})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{new_derivative1})};
 }
 
 template <class Underlying>
@@ -309,8 +309,8 @@ requires Number<Underlying> Reverse<Underlying> polygamma(
   Underlying new_derivative1 = polygamma(n + 1, x.ptr->primal);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{new_derivative1})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{new_derivative1})};
 }
 
 template <class Underlying>
@@ -321,8 +321,8 @@ requires Number<Underlying> Reverse<Underlying> log1p(
   Underlying new_derivative1 = 1.0 / (x_value + 1);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{x},
-      std::list<Underlying>{new_derivative1})};
+      std::vector<Reverse<Underlying>>{x},
+      std::vector<Underlying>{new_derivative1})};
 }
 
 template <class Underlying>
@@ -340,8 +340,8 @@ requires Number<Underlying> Reverse<Underlying> if_equal(
       when_not_equal.ptr->primal);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{when_equal, when_not_equal},
-      std::list<Underlying>{
+      std::vector<Reverse<Underlying>>{when_equal, when_not_equal},
+      std::vector<Underlying>{
           if_equal(value.ptr->primal, comparand.ptr->primal, 1, 0),
           if_equal(value.ptr->primal, comparand.ptr->primal, 0, 1)})};
 }
@@ -361,8 +361,8 @@ requires Number<Underlying> Reverse<Underlying> if_less(
       when_not_less.ptr->primal);
   return Reverse<Underlying>{std::make_shared<PrecomputedGradients<Underlying>>(
       new_primal,
-      std::list<Reverse<Underlying>>{when_less, when_not_less},
-      std::list<Underlying>{
+      std::vector<Reverse<Underlying>>{when_less, when_not_less},
+      std::vector<Underlying>{
           if_less(value.ptr->primal, comparand.ptr->primal, 1, 0),
           if_less(value.ptr->primal, comparand.ptr->primal, 0, 1)})};
 }

@@ -80,7 +80,7 @@ TEST(topological_test, ensure_sorted) {
     // topologically sort them.
     std::vector<Node*> result;
     auto sorted = topological_sort<Node*>(
-        std::list<Node*>{nodes.begin(), nodes.end()},
+        std::vector<Node*>{nodes.begin(), nodes.end()},
         [](Node* node) {
           return std::vector<Node*>{
               node->successors.begin(), node->successors.end()};
@@ -105,7 +105,7 @@ TEST(topological_test, ensure_sorted) {
     // topologically sort them.  if there was a cycle, this should return false.
     result.clear();
     sorted = topological_sort<Node*>(
-        std::list<Node*>{nodes.begin(), nodes.end()},
+        std::vector<Node*>{nodes.begin(), nodes.end()},
         [](Node* const& node) {
           return std::vector<Node*>{
               node->successors.begin(), node->successors.end()};
