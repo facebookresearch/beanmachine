@@ -150,7 +150,7 @@ void Graph::Factory::check_not_built() {
   }
 }
 
-void Graph::Factory::observe(ScalarNodeId sample, double value) {
+void Graph::Factory::observe(ScalarSampleNodeId sample, double value) {
   check_not_built();
   observations.push_back({map[sample], value});
 }
