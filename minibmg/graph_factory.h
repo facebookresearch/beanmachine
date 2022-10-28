@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <fmt/format.h>
 #include <list>
 #include <memory>
 #include <unordered_map>
@@ -56,6 +57,14 @@ struct std::hash<beanmachine::minibmg::NodeId> {
     return (std::size_t)n->_value();
   }
 };
+template <>
+struct std::equal_to<beanmachine::minibmg::NodeId> {
+  bool operator()(
+      const beanmachine::minibmg::NodeId& lhs,
+      const beanmachine::minibmg::NodeId& rhs) const {
+    return lhs->_value() == rhs->_value();
+  }
+};
 
 // Make NodeId values printable using format.
 template <>
@@ -97,7 +106,7 @@ class Graph::Factory {
   DistributionNodeId bernoulli(ScalarNodeId prob);
   DistributionNodeId exponential(ScalarNodeId rate);
 
-  void observe(ScalarNodeId sample, double value);
+  void observe(ScalarSampleNodeId sample, double value);
   unsigned query(ScalarNodeId value);
 
   Nodep operator[](const NodeId& node_id) const;

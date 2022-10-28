@@ -6,7 +6,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <memory>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/graph.h"
@@ -79,4 +81,15 @@ TEST(test_minibmg, dedupable_concept) {
   ASSERT_TRUE(Rewritable<std::list<std::list<Nodep>>>);
   ASSERT_FALSE(Rewritable<std::list<int>>);
   ASSERT_FALSE(Rewritable<std::list<std::list<int>>>);
+}
+
+TEST(test_minibmg, graph_factory_nodeid_equality) {
+  NodeId a = std::make_shared<NodeIdentifier>(2);
+  NodeId b = std::make_shared<NodeIdentifier>(2);
+  std::unordered_set<NodeId> set{};
+  ASSERT_FALSE(set.contains(a));
+  ASSERT_FALSE(set.contains(b));
+  set.insert(a);
+  ASSERT_TRUE(set.contains(a));
+  ASSERT_TRUE(set.contains(b));
 }
