@@ -26,7 +26,7 @@ namespace beanmachine::minibmg {
 // resulting data structure are semantically different). This is used in the
 // implementation of dedup(), but might occasionally be useful to clients in
 // this form.
-std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots);
+std::unordered_map<Nodep, Nodep> dedup_map(const std::vector<Nodep>& roots);
 
 // Rewrite a data structure by "deduplicating" nodes reachable from it, and
 // returning a new data structure.  This is also known as common subexpression
@@ -44,7 +44,7 @@ dedup(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
   auto roots = adapter.find_roots(data);
   auto map = dedup_map(roots);
   if (ddmap != nullptr) {
-    ddmap->insert(map.begin(), map.end());
+    (*ddmap) = map;
   }
   return adapter.rewrite(data, map);
 }
