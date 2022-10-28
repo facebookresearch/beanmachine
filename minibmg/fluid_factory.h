@@ -39,7 +39,7 @@ class Graph::FluidFactory {
 
  private:
   std::vector<Nodep> queries;
-  std::list<std::pair<Nodep, double>> observations;
+  std::vector<std::pair<Nodep, double>> observations;
 };
 
 } // namespace beanmachine::minibmg

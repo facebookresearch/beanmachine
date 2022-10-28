@@ -9,7 +9,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
-#include <list>
 #include <random>
 
 #include "beanmachine/minibmg/ad/num2.h"

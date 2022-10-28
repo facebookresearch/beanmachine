@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <list>
+#include <vector>
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/graph_factory.h"
 #include "beanmachine/minibmg/graph_properties/out_nodes.h"
@@ -33,15 +33,15 @@ TEST(out_nodes_test, simple) {
   Nodep betan = gf[beta];
   Nodep samplen = gf[sample];
 
-  ASSERT_EQ(out_nodes(g, k12n), std::list{plusn});
-  ASSERT_EQ(out_nodes(g, k34n), (std::list{plusn}));
-  ASSERT_EQ(out_nodes(g, plusn), std::list<Nodep>{betan});
-  ASSERT_EQ(out_nodes(g, k56n), std::list{betan});
-  ASSERT_EQ(out_nodes(g, betan), (std::list{samplen}));
-  ASSERT_EQ(out_nodes(g, samplen), std::list<Nodep>{});
+  ASSERT_EQ(out_nodes(g, k12n), std::vector{plusn});
+  ASSERT_EQ(out_nodes(g, k34n), (std::vector{plusn}));
+  ASSERT_EQ(out_nodes(g, plusn), std::vector<Nodep>{betan});
+  ASSERT_EQ(out_nodes(g, k56n), std::vector{betan});
+  ASSERT_EQ(out_nodes(g, betan), (std::vector{samplen}));
+  ASSERT_EQ(out_nodes(g, samplen), std::vector<Nodep>{});
 
   ASSERT_EQ(g.queries, std::vector{samplen});
-  std::list<std::pair<Nodep, double>> expected_observations;
+  std::vector<std::pair<Nodep, double>> expected_observations;
   expected_observations.push_back(std::pair{samplen, 7.8});
   ASSERT_EQ(g.observations, expected_observations);
 }

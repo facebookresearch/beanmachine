@@ -8,9 +8,9 @@
 #pragma once
 
 #include <functional>
-#include <list>
 #include <map>
 #include <set>
+#include <vector>
 
 namespace {
 
@@ -18,15 +18,24 @@ namespace {
 // given.
 template <class T>
 std::map<T, unsigned> count_predecessors_internal(
-    const std::list<T>& root_nodes,
+    const std::vector<T>& root_nodes,
     std::function<std::vector<T>(const T&)> successors,
-    std::list<T>& nodes) {
+    std::vector<T>& nodes,
+    bool include_roots = false) {
   std::map<T, unsigned> predecessor_counts;
-  std::list<T> to_count;
+  std::vector<T> to_count;
   std::set<T> counted;
   for (const auto& node : root_nodes) {
     to_count.push_back(node);
+    if (include_roots) {
+      if (!predecessor_counts.contains(node)) {
+        predecessor_counts[node] = 1;
+      } else {
+        predecessor_counts[node] = predecessor_counts[node] + 1;
+      }
+    }
   }
+  std::reverse(to_count.begin(), to_count.end());
 
   while (!to_count.empty()) {
     auto node = to_count.back();
@@ -64,10 +73,10 @@ template <class T>
 bool topological_sort_internal(
     std::map<T, unsigned>& predecessor_counts,
     std::function<std::vector<T>(const T&)> successors,
-    std::list<T>& nodes,
+    std::vector<T>& nodes,
     std::vector<T>& result) {
   // initialize the ready set with those nodes that have no predecessors
-  std::list<T> ready;
+  std::vector<T> ready;
   for (auto node : nodes) {
     if (predecessor_counts[node] == 0) {
       ready.push_back(node);
@@ -104,9 +113,9 @@ namespace beanmachine::minibmg {
 // given.
 template <class T>
 std::map<T, unsigned> count_predecessors(
-    const std::list<T>& root_nodes,
+    const std::vector<T>& root_nodes,
     std::function<std::vector<T>(const T&)> successors) {
-  std::list<T> ready;
+  std::vector<T> ready;
   return count_predecessors_internal<T>(root_nodes, successors, ready);
 }
 
@@ -116,10 +125,10 @@ std::map<T, unsigned> count_predecessors(
 // sorted result in the `result` parameter.
 template <class T>
 bool topological_sort(
-    const std::list<T>& root_nodes,
+    const std::vector<T>& root_nodes,
     std::function<std::vector<T>(const T&)> successors,
     std::vector<T>& result) {
-  std::list<T> ready;
+  std::vector<T> ready;
   // count the predecessors of each node.
   std::map<T, unsigned> predecessor_counts =
       count_predecessors_internal<T>(root_nodes, successors, ready);
