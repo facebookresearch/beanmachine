@@ -278,7 +278,7 @@ class NUTSProposer(HMCProposer):
             log_slice = -current_energy
         else:
             # this is a more stable way to sample from log(Uniform(0, exp(-current_energy)))
-            log_slice = torch.log1p(-torch.rand(())) - current_energy
+            log_slice = torch.log1p(-torch.rand_like(current_energy)) - current_energy
         tree_node = _TreeNode(self._positions, momentums, self._pe_grad)
         tree = _Tree(
             left=tree_node,
@@ -286,9 +286,10 @@ class NUTSProposer(HMCProposer):
             proposal=self._positions,
             pe=self._pe,
             pe_grad=self._pe_grad,
-            log_weight=torch.tensor(0.0),  # log accept prob of staying at current state
+            # log accept prob of staying at current state
+            log_weight=torch.zeros_like(log_slice),
             sum_momentums=momentums,
-            sum_accept_prob=torch.tensor(0.0),
+            sum_accept_prob=torch.zeros_like(log_slice),
             num_proposals=torch.tensor(0),
             turned_or_diverged=torch.tensor(False),
         )

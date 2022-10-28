@@ -117,9 +117,9 @@ class MassMatrixAdapter:
         https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric
     """
 
-    def __init__(self, matrix_size: int, full_mass_matrix: bool = False):
+    def __init__(self, initial_positions: torch.Tensor, full_mass_matrix: bool = False):
         # inverse mass matrices, aka the inverse "metric"
-        self.mass_inv = torch.ones(matrix_size)
+        self.mass_inv = torch.ones_like(initial_positions)
         # distribution objects for generating momentums
         self.momentum_dist: dist.Distribution = dist.Normal(0.0, self.mass_inv)
         if full_mass_matrix:

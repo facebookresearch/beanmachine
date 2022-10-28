@@ -80,9 +80,7 @@ class HMCProposer(BaseProposer):
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
         # we need mass matrix adapter to sample momentums
-        self._mass_matrix_adapter = MassMatrixAdapter(
-            len(self._positions), full_mass_matrix
-        )
+        self._mass_matrix_adapter = MassMatrixAdapter(self._positions, full_mass_matrix)
         if self.adapt_step_size:
             self.step_size = self._find_reasonable_step_size(
                 torch.as_tensor(initial_step_size),
