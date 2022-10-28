@@ -14,7 +14,7 @@
 using namespace ::testing;
 using namespace beanmachine::minibmg;
 
-namespace fluent_factory_test {
+namespace fluid_factory_test {
 
 std::string raw_json = R"({
   "comment": "created by graph_to_json",
@@ -109,7 +109,7 @@ std::string raw_json = R"({
   ]
 })";
 
-TEST(fluent_factory_test, simple_test) {
+TEST(fluid_factory_test, simple_test) {
   Graph::FluidFactory fac;
   auto b = beta(2, 2);
   auto s = sample(b);
@@ -127,7 +127,7 @@ TEST(fluent_factory_test, simple_test) {
   ASSERT_EQ(raw_json, json);
 }
 
-TEST(fluent_factory_test, deduplication_01) {
+TEST(fluid_factory_test, deduplication_01) {
   Graph::FluidFactory fac;
   auto b = beta(2, 2);
   auto s = sample(b, "S0");
@@ -168,7 +168,7 @@ fac.observe(sample(temp_2, "S10"), 0);
   ASSERT_EQ(expected, pretty);
 }
 
-TEST(fluent_factory_test, deduplication_02) {
+TEST(fluid_factory_test, deduplication_02) {
   Value final = 0;
   for (int i = 0; i < 2; i++) {
     auto t1 = beta(2, 2);
@@ -229,7 +229,7 @@ fac.query(0 + temp_20 + temp_20);
 }
 
 // test constant folding of log1p
-TEST(fluent_factory_test, log1p_kfold) {
+TEST(fluid_factory_test, log1p_kfold) {
   Value k = 1.1;
   Value l = log1p(k);
   Graph::FluidFactory fac;
@@ -242,4 +242,4 @@ TEST(fluent_factory_test, log1p_kfold) {
   ASSERT_TRUE(NodepValueEquals{}(expected.node, folded.node));
 }
 
-} // namespace fluent_factory_test
+} // namespace fluid_factory_test
