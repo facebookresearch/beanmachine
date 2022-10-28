@@ -6,7 +6,6 @@
  */
 
 #include "beanmachine/minibmg/graph.h"
-#include <list>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -19,8 +18,8 @@ using namespace beanmachine::minibmg;
 
 const std::vector<Nodep> roots(
     const std::vector<Nodep>& queries,
-    const std::list<std::pair<Nodep, double>>& observations) {
-  std::list<Nodep> roots;
+    const std::vector<std::pair<Nodep, double>>& observations) {
+  std::vector<Nodep> roots;
   for (auto& n : queries) {
     roots.push_back(n);
   }
@@ -28,7 +27,7 @@ const std::vector<Nodep> roots(
     if (!std::dynamic_pointer_cast<const ScalarSampleNode>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
-    roots.push_front(p.first);
+    roots.push_back(p.first);
   }
   std::vector<Nodep> all_nodes;
   if (!topological_sort<Nodep>(roots, &in_nodes, all_nodes)) {
@@ -40,7 +39,7 @@ const std::vector<Nodep> roots(
 
 struct QueriesAndObservations {
   std::vector<Nodep> queries;
-  std::list<std::pair<Nodep, double>> observations;
+  std::vector<std::pair<Nodep, double>> observations;
   ~QueriesAndObservations() {}
 };
 
@@ -65,7 +64,7 @@ class NodeRewriteAdapter<QueriesAndObservations> {
       const QueriesAndObservations& qo,
       const std::unordered_map<Nodep, Nodep>& map) const {
     NodeRewriteAdapter<std::vector<Nodep>> h1{};
-    NodeRewriteAdapter<std::list<std::pair<Nodep, double>>> h2{};
+    NodeRewriteAdapter<std::vector<std::pair<Nodep, double>>> h2{};
     return QueriesAndObservations{
         h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map)};
   }
@@ -75,7 +74,7 @@ using dynamic = folly::dynamic;
 
 Graph Graph::create(
     const std::vector<Nodep>& queries,
-    const std::list<std::pair<Nodep, double>>& observations,
+    const std::vector<std::pair<Nodep, double>>& observations,
     std::unordered_map<Nodep, Nodep>* built_map) {
   for (auto& p : observations) {
     if (!std::dynamic_pointer_cast<const ScalarSampleNode>(p.first)) {
@@ -95,7 +94,7 @@ Graph::~Graph() {}
 Graph::Graph(
     const std::vector<Nodep>& nodes,
     const std::vector<Nodep>& queries,
-    const std::list<std::pair<Nodep, double>>& observations)
+    const std::vector<std::pair<Nodep, double>>& observations)
     : nodes{nodes}, queries{queries}, observations{observations} {}
 
 } // namespace beanmachine::minibmg

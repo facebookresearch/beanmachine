@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <unordered_map>
 #include "beanmachine/minibmg/node.h"
-#include "node.h"
 
 namespace beanmachine::minibmg {
 
