@@ -90,9 +90,9 @@ auto temp_4 = 1 / rvid.constrained;
 auto temp_5 = -1 / temp_2;
 auto temp_6 = -pow(rvid.constrained, -2);
 auto temp_7 = -pow(temp_2, -2);
-log_prob = temp_1 + temp_3 + 1.791759469228055 + temp_1 + temp_1 + temp_3
-d1 = temp_4 + temp_5 + temp_4 + temp_4 + temp_5
-d2 = temp_6 + temp_7 + temp_6 + temp_6 + temp_7
+log_prob = temp_1 + temp_3 + 1.791759469228055 + 2 * temp_1 + temp_3
+d1 = temp_4 + temp_5 + 2 * temp_4 + temp_5
+d2 = temp_6 + temp_7 + 2 * temp_6 + temp_7
 )";
   ASSERT_EQ(expected, printed.str());
 }
