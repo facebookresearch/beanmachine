@@ -26,11 +26,11 @@ std::vector<double> mle_inference_0(
   proposals.resize(num_samples);
 
   for (int round = 0; round < num_rounds; round++) {
-    auto result = abstraction->evaluate(proposals);
+    auto grads = abstraction->gradients(proposals);
     if (print_progress) {
       std::cout << fmt::format(
           "log_prob: {} inferred: {}\n",
-          result.log_prob,
+          abstraction->log_prob(proposals),
           abstraction->queries(proposals)[0]);
     }
     assert(!proposals.empty());
@@ -38,7 +38,7 @@ std::vector<double> mle_inference_0(
       // We use + rather than - here because we want to maximize (not minimize)
       // the log_prob; we move in the direction of the gradient rather than
       // opposite to it as we would in gradient descent.
-      proposals[samp] += result.gradients[samp] * learning_rate;
+      proposals[samp] += grads[samp] * learning_rate;
     }
   }
 
