@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <list>
 #include <unordered_set>
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/node.h"

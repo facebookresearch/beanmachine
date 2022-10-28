@@ -431,7 +431,7 @@ Graph json_to_graph2(folly::dynamic d) {
     }
   }
 
-  std::list<std::pair<Nodep, double>> observations;
+  std::vector<std::pair<Nodep, double>> observations;
   auto observation_nodes = d["observations"];
   if (observation_nodes.isArray()) {
     for (auto& obs : observation_nodes) {

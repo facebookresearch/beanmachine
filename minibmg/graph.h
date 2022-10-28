@@ -8,7 +8,7 @@
 #pragma once
 
 #include <folly/json.h>
-#include <list>
+#include <vector>
 #include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/graph_properties/container.h"
 #include "beanmachine/minibmg/node.h"
@@ -27,7 +27,7 @@ class Graph : public Container {
 
   static Graph create(
       const std::vector<Nodep>& queries,
-      const std::list<std::pair<Nodep, double>>& observations,
+      const std::vector<std::pair<Nodep, double>>& observations,
       std::unordered_map<Nodep, Nodep>* built_map = nullptr);
   ~Graph();
 
@@ -55,7 +55,7 @@ class Graph : public Container {
 
   // Observations of the model.  These are SAMPLE nodes in the model whose
   // values are known.
-  const std::list<std::pair<Nodep, double>> observations;
+  const std::vector<std::pair<Nodep, double>> observations;
 
  private:
   // A private constructor that forms a graph without validation.
@@ -63,7 +63,7 @@ class Graph : public Container {
   Graph(
       const std::vector<Nodep>& nodes,
       const std::vector<Nodep>& queries,
-      const std::list<std::pair<Nodep, double>>& observations);
+      const std::vector<std::pair<Nodep, double>>& observations);
 
  public:
   // A factory for making graphs, like the bmg API used by Beanstalk
@@ -99,7 +99,7 @@ class NodeRewriteAdapter<Graph> {
   Graph rewrite(const Graph& qo, const std::unordered_map<Nodep, Nodep>& map)
       const {
     NodeRewriteAdapter<std::vector<Nodep>> h1{};
-    NodeRewriteAdapter<std::list<std::pair<Nodep, double>>> h2{};
+    NodeRewriteAdapter<std::vector<std::pair<Nodep, double>>> h2{};
     return Graph::create(
         h1.rewrite(qo.queries, map), h2.rewrite(qo.observations, map));
   }
