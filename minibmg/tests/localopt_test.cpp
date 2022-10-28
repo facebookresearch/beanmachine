@@ -41,8 +41,8 @@ TEST(localopt_test, symbolic_derivatives) {
   // evaluate the graph's log prob, and its first and second derivatives.
   using T = Num3<Traced>;
   std::mt19937 gen;
-  std::function<T(const std::string&, const unsigned int)> read_variable =
-      [](const std::string& name, const unsigned int id) -> T {
+  std::function<T(const std::string&, const int)> read_variable =
+      [](const std::string& name, const int id) -> T {
     return Traced::variable(name, id);
   };
   std::unordered_map<Nodep, T> data;

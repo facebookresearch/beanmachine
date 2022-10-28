@@ -14,8 +14,28 @@
 
 namespace beanmachine::minibmg {
 
-MinibmgGlobalState::MinibmgGlobalState(beanmachine::minibmg::Graph& graph)
-    : graph{graph}, world{hmc_world_0(graph)} {
+std::unique_ptr<MinibmgGlobalState> MinibmgGlobalState::create0(
+    const beanmachine::minibmg::Graph& graph) {
+  return std::unique_ptr<MinibmgGlobalState>{
+      new MinibmgGlobalState{graph, hmc_world_0(graph)}};
+}
+
+std::unique_ptr<MinibmgGlobalState> MinibmgGlobalState::create1(
+    const beanmachine::minibmg::Graph& graph) {
+  return std::unique_ptr<MinibmgGlobalState>{
+      new MinibmgGlobalState{graph, hmc_world_1(graph)}};
+}
+
+std::unique_ptr<MinibmgGlobalState> MinibmgGlobalState::create2(
+    const beanmachine::minibmg::Graph& graph) {
+  return std::unique_ptr<MinibmgGlobalState>{
+      new MinibmgGlobalState{graph, hmc_world_2(graph)}};
+}
+
+MinibmgGlobalState::MinibmgGlobalState(
+    const beanmachine::minibmg::Graph& graph,
+    std::unique_ptr<const HMCWorld> world)
+    : graph{graph}, world{std::move(world)} {
   samples.clear();
   // Since we only support scalars, we count the unobserved samples by ones.
   int num_unobserved_samples = -graph.observations.size();
@@ -47,6 +67,7 @@ void MinibmgGlobalState::initialize_values(
         samples.push_back(result.unconstrained.as_double());
         return result;
       };
+      std::unordered_map<Nodep, Real> real_eval_data;
       auto eval_result = eval_graph<Real>(
           graph,
           gen,
@@ -139,11 +160,12 @@ void MinibmgGlobalState::update_log_prob() {
 }
 
 void MinibmgGlobalState::update_backgrad() {
-  unconstrained_grads = world->gradients(this->unconstrained_values);
+  world->gradients(this->unconstrained_values, unconstrained_grads);
 }
 
 void MinibmgGlobalState::collect_sample() {
-  auto queries = world->queries(this->unconstrained_values);
+  std::vector<double> queries;
+  world->queries(this->unconstrained_values, queries);
   std::vector<beanmachine::graph::NodeValue> compat_query;
   for (auto v : queries) {
     compat_query.emplace_back(v);
