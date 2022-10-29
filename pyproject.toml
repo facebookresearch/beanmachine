@@ -35,6 +35,8 @@ filterwarnings = [
     # NNC/TorchInductor warning
     "ignore:The support of TorchInductor is experimental*:UserWarning",
     "ignore:The support of NNC compiler is experimental*:UserWarning",
+    # NNC warning introduced in PyTorch 1.13
+    "ignore:The TorchScript type system doesn't support*:UserWarning",
 ]
 
 [tool.usort]
