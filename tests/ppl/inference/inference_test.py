@@ -134,7 +134,8 @@ def test_initialization_resampling():
 @pytest.mark.parametrize(
     "algorithm",
     [
-        bm.GlobalNoUTurnSampler(),
+        bm.GlobalNoUTurnSampler(full_mass_matrix=False),
+        bm.GlobalNoUTurnSampler(full_mass_matrix=True),
         bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0),
         bm.SingleSiteAncestralMetropolisHastings(),
         bm.SingleSiteNewtonianMonteCarlo(),

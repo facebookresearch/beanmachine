@@ -104,7 +104,7 @@ def test_mass_matrix_adapter(full_mass_matrix):
     positions_dict = RealSpaceTransform(world, world.latent_nodes)(dict(world))
     dict2vec = DictToVecConverter(positions_dict)
     positions = dict2vec.to_vec(positions_dict)
-    mass_matrix_adapter = MassMatrixAdapter(len(positions), full_mass_matrix)
+    mass_matrix_adapter = MassMatrixAdapter(positions, full_mass_matrix)
     momentums = mass_matrix_adapter.initialize_momentums(positions)
     assert isinstance(momentums, torch.Tensor)
     assert momentums.shape == positions.shape
