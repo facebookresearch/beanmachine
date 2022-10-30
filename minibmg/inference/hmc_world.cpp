@@ -15,6 +15,7 @@
 #include "beanmachine/minibmg/eval.h"
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/graph_properties/observations_by_node.h"
+#include "beanmachine/minibmg/graph_properties/unobserved_samples.h"
 #include "beanmachine/minibmg/node.h"
 
 namespace {
@@ -24,36 +25,33 @@ using namespace beanmachine::minibmg;
 class HMCWorld0 : public HMCWorld {
  private:
   const Graph& graph;
-  std::unordered_set<Nodep> unobserved_samples;
+  std::unordered_set<Nodep> unobserved_sample_set;
+  std::unordered_map<Nodep, double> observations;
 
  public:
   explicit HMCWorld0(const Graph& graph);
 
   unsigned num_unobserved_samples() const override;
 
-  HMCWorldEvalResult evaluate(
+  double log_prob(
+      const std::vector<double>& proposed_unconstrained_values) const override;
+
+  std::vector<double> gradients(
       const std::vector<double>& proposed_unconstrained_values) const override;
 
   std::vector<double> queries(
       const std::vector<double>& proposed_unconstrained_values) const override;
 };
 
-HMCWorld0::HMCWorld0(const Graph& graph) : graph{graph} {
-  // we identify the set of unobserved samples by...
-  for (const auto& node : graph.nodes) {
-    // ...counting the samples...
-    if (dynamic_cast<const ScalarSampleNode*>(node.get())) {
-      unobserved_samples.insert(node);
-    }
-  }
-  // and subtracting the observed ones.
-  for (const auto& p : graph.observations) {
-    unobserved_samples.erase(p.first);
-  }
-}
+HMCWorld0::HMCWorld0(const Graph& graph)
+    : graph{graph},
+      unobserved_sample_set{
+          unobserved_samples(graph).begin(),
+          unobserved_samples(graph).end()},
+      observations{observations_by_node(graph)} {}
 
 unsigned HMCWorld0::num_unobserved_samples() const {
-  return unobserved_samples.size();
+  return unobserved_sample_set.size();
 }
 
 template <class T>
@@ -66,8 +64,9 @@ requires Number<T> EvalResult<T> evaluate_internal(
     bool eval_log_prob) {
   unsigned next_sample = 0;
 
-  // Here is our function for producing an unobserved sample.  We consume the
-  // data provided by the caller, transforming it if necessary.
+  // Here is our function for producing an unobserved sample by drawing from
+  // `proposed_unconstrained_values`.  We consume that data provided by the
+  // caller, transforming it if necessary.
   std::function<SampledValue<T>(
       const Distribution<T>& distribution, std::mt19937& gen)>
       sample_from_distribution = [&](const Distribution<T>& distribution,
@@ -86,8 +85,9 @@ requires Number<T> EvalResult<T> evaluate_internal(
       // highest likelihood value.  For example, with a beta(7, 5), the peak is
       // at X=0.6.  However, when viewed in the transformed space with the
       // log_prob value also transformed, the peak occurs at a value
-      // corresponding to X=0.625.  I need help understanding what to do here.
-      // For now we just avoid transforming the log_prob value.
+      // corresponding to X=0.625.  I am probably misunderstanding the math.  I
+      // need help understanding what to do here. For now we just avoid
+      // transforming the log_prob value.
       //
       // // logp = transform->transform_log_prob(constrained, logp);
       return {constrained, unconstrained, logp};
@@ -111,7 +111,25 @@ requires Number<T> EvalResult<T> evaluate_internal(
       sample_from_distribution);
 }
 
-HMCWorldEvalResult HMCWorld0::evaluate(
+double HMCWorld0::log_prob(
+    const std::vector<double>& proposed_unconstrained_values) const {
+  using T = Real;
+  std::unordered_map<Nodep, T> data;
+  std::mt19937 gen;
+
+  // evaluate the graph and its log_prob in normal mode
+  auto eval_result = evaluate_internal<T>(
+      graph,
+      proposed_unconstrained_values,
+      data,
+      gen,
+      /* run_queries = */ false,
+      /* eval_log_prob = */ true);
+
+  return eval_result.log_prob.as_double();
+}
+
+std::vector<double> HMCWorld0::gradients(
     const std::vector<double>& proposed_unconstrained_values) const {
   using T = Reverse<Real>;
   std::unordered_map<Nodep, T> data;
@@ -144,8 +162,7 @@ HMCWorldEvalResult HMCWorld0::evaluate(
     }
   }
 
-  return HMCWorldEvalResult{
-      eval_result.log_prob.as_double(), std::move(gradients)};
+  return gradients;
 }
 
 std::vector<double> HMCWorld0::queries(

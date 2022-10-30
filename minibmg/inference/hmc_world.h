@@ -34,11 +34,19 @@ class HMCWorld {
   // model (transformed, if necessary, so that they are unconstrained -
   // supported over the real numbers), given in the same order as the
   // observation nodes appear in the graph, compute the log probability of the
-  // model with that assignment, as well as the the first derivative of the log
-  // probability with respect to each of the proposed values.  The input vector
-  // is required to be of a size that is equal to the return value of
+  // model with that assignment.  The input vector is required to be of a size
+  // that is equal to the return value of num_unobserved_samples.
+  virtual double log_prob(
+      const std::vector<double>& proposed_unconstrained_values) const = 0;
+
+  // Given proposed assigned values for all of the onobserved samples in the
+  // model (transformed, if necessary, so that they are unconstrained -
+  // supported over the real numbers), given in the same order as the
+  // observation nodes appear in the graph, compute the first derivative of the
+  // log probability with respect to each of the proposed values.  The input
+  // vector is required to be of a size that is equal to the return value of
   // num_unobserved_samples.
-  virtual HMCWorldEvalResult evaluate(
+  virtual std::vector<double> gradients(
       const std::vector<double>& proposed_unconstrained_values) const = 0;
 
   // Given proposed assigned values for all of the onobserved samples in the
@@ -50,16 +58,6 @@ class HMCWorld {
       const std::vector<double>& proposed_unconstrained_values) const = 0;
 
   virtual ~HMCWorld() {}
-};
-
-struct HMCWorldEvalResult {
-  // The computed log probability of a given assignment to the samples in a
-  // model.
-  double log_prob;
-
-  // The derivative of the log probability with respect to each of the
-  // unobserved samples in a model.
-  std::vector<double> gradients;
 };
 
 // produce an abstraction of the graph for use by inference.  This
