@@ -8,7 +8,6 @@
 #pragma once
 
 #include <fmt/format.h>
-#include <list>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -123,7 +122,7 @@ class Graph::Factory {
   std::unordered_map<NodeId, Nodep> identifer_to_node;
   std::unordered_map<Nodep, NodeId> node_to_identifier;
   std::vector<Nodep> queries;
-  std::list<std::pair<Nodep, double>> observations;
+  std::vector<std::pair<Nodep, double>> observations;
   unsigned long next_identifier = 0;
 
   ScalarNodeId add_node(ScalarNodep node);
