@@ -12,6 +12,9 @@
 // before any other header files have the chance of including cmath
 // without the macro.
 
+#include <boost/algorithm/string/join.hpp>
+#include <boost/range/adaptor/transformed.hpp>
+#include <range/v3/algorithm/contains.hpp>
 #include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/numeric/accumulate.hpp>
 #include <algorithm>
@@ -332,19 +335,20 @@ Eigen::MatrixXd Node::log_prob_iid(const graph::NodeValue& value) const {
   return temp; // fine because of move semantics
 }
 
-string Graph::to_string() const {
+string Graph::to_string(bool show_pointers) const {
   ostringstream os;
-  for (auto const& node : nodes) {
-    os << "Node " << node->index << " type "
-       << static_cast<int>(node->node_type) << " parents [ ";
-    for (Node* parent : node->in_nodes) {
-      os << parent->index << " ";
+  for (auto& node : nodes) {
+    auto query_str = rg::contains(queries, node->index) ? " queried" : "";
+    auto observed_str = observed.contains(node->index)
+        ? string(" observed to be ") + node->value.to_string()
+        : "";
+    os << node->index << ": " << node->to_string()
+       << " (out nodes: " << join(node->out_nodes) << ")" << query_str
+       << observed_str;
+    if (show_pointers) {
+      os << " " << node.get();
     }
-    os << "] children [ ";
-    for (Node* child : node->out_nodes) {
-      os << child->index << " ";
-    }
-    os << "] " << node->value.to_string() << endl;
+    os << "\n";
   }
   return os.str();
 }
@@ -647,7 +651,7 @@ function<NodeID(NodeID)> Graph::remove_node(unique_ptr<Node>& node) {
   return from_old_to_new_id;
 }
 
-void Graph::check_node_id(NodeID node_id) {
+void Graph::check_node_id(NodeID node_id) const {
   if (node_id >= static_cast<NodeID>(nodes.size())) {
     throw out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
@@ -655,7 +659,7 @@ void Graph::check_node_id(NodeID node_id) {
   }
 }
 
-Node* Graph::get_node(NodeID node_id) {
+Node* Graph::get_node(NodeID node_id) const {
   check_node_id(node_id);
   return nodes[node_id].get();
 }
@@ -1254,10 +1258,6 @@ vector<vector<double>>& Graph::variational(
   cavi(num_iters, steps_per_iter, generator, elbo_samples);
   return variational_params; // TODO: this should have been defined as a
                              // field, but a value returned by cavi.
-}
-
-vector<NodeID> Graph::get_node_ids(const vector<Node*>& nodes) const {
-  return map2vec(nodes, std::function(get_index));
 }
 
 void Graph::reindex_nodes() {

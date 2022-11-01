@@ -157,7 +157,11 @@ PYBIND11_MODULE(graph, module) {
   // add_constant(tensor(2.5)) has the effect of calling add_constant(True).
   py::class_<Graph>(module, "Graph")
       .def(py::init())
-      .def("to_string", &Graph::to_string, "string representation of the graph")
+      .def(
+          "to_string",
+          &Graph::to_string,
+          "string representation of the graph",
+          py::arg("show_pointers") = false)
       .def("to_dot", &Graph::to_dot, "DOT representation of the graph")
       .def(
           "add_constant_bool",
