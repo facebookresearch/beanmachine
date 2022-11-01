@@ -5,13 +5,23 @@
 
 
 from collections import defaultdict
-from typing import Dict, List
+from enum import Enum
+from typing import Dict, List, Tuple
 
 from beanmachine.ppl.compiler import bmg_nodes as bn
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problems import fix_problems
 from beanmachine.ppl.compiler.internal_error import InternalError
+from beanmachine.ppl.inference.nuts_inference import GlobalNoUTurnSampler
+from beanmachine.ppl.inference.single_site_nmc import SingleSiteNewtonianMonteCarlo
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+
+
+class InferenceType(Enum):
+    SingleSiteNewtonianMonteCarlo = SingleSiteNewtonianMonteCarlo
+    GlobalNoUTurnSampler = GlobalNoUTurnSampler
+
 
 _node_type_to_distribution = {
     bn.BernoulliNode: "torch.distributions.Bernoulli",
@@ -37,6 +47,8 @@ class ToBMPython:
     no_dist_samples: Dict[bn.BMGNode, int]
     queries: List[str]
     observations: List[str]
+    node_to_rv_id: Dict[str, str]
+    node_to_query_map: Dict[str, RVIdentifier]
 
     def __init__(self, bmg: BMGraphBuilder) -> None:
         self.code = ""
@@ -51,6 +63,8 @@ class ToBMPython:
         self.no_dist_samples = defaultdict(lambda: 0)
         self.queries = []
         self.observations = []
+        self.node_to_rv_id = {}
+        self.node_to_query_map = {}
 
     def _get_node_id_mapping(self, node: bn.BMGNode) -> str:
         if node in self.node_to_var_id:
@@ -132,12 +146,17 @@ class ToBMPython:
         total_samples = self._no_dist_samples(node.operand)
         if total_samples > 1:
             param = f"{self.no_dist_samples[node.operand]}"
+            self._code.append(f"v{var_id} = rv{rv_id}({param},)")
+            self.node_to_rv_id[f"v{var_id}"] = f"rv{rv_id}({param},)"
         else:
             param = ""
-        self._code.append(f"v{var_id} = rv{rv_id}({param})")
+            self._code.append(f"v{var_id} = rv{rv_id}({param})")
+            self.node_to_rv_id[f"v{var_id}"] = f"rv{rv_id}({param})"
 
     def _add_query(self, node: bn.Query) -> None:
-        self.queries.append(f"{self._get_node_id_mapping(node.operator)}")
+        query_id = self._get_node_id_mapping(node.operator)
+        self.node_to_query_map[self.node_to_rv_id[query_id]] = node.rv_identifier
+        self.queries.append(f"{query_id}")
 
     def _add_observation(self, node: bn.Observation) -> None:
         val = node.value
@@ -163,18 +182,34 @@ class ToBMPython:
         elif isinstance(node, bn.Observation):
             self._add_observation(node)
 
-    def _generate_bm_python(self) -> str:
+    def _generate_bm_python(
+        self, inference_type, infer_config
+    ) -> Tuple[str, Dict[str, RVIdentifier]]:
         bmg, error_report = fix_problems(self.bmg)
         self.bmg = bmg
         error_report.raise_errors()
+        self._code.append(
+            f"from {inference_type.value.__module__} import {inference_type.value.__name__}"
+        )
         for node in self.bmg.all_ancestor_nodes():
             self._generate_python(node)
-        self._code.append(f"queries = [{(','.join(self.queries))}]")
-        self._code.append(f"observations = {{{','.join(self.observations)}}}")
+        self._code.append(f"opt_queries = [{(','.join(self.queries))}]")
+        self._code.append(f"opt_observations = {{{','.join(self.observations)}}}")
+        self._code.append(
+            f"""samples = {inference_type.value.__name__}().infer(
+                opt_queries,
+                opt_observations,
+                num_samples={infer_config['num_samples']},
+                num_chains={infer_config['num_chains']},
+                num_adaptive_samples={infer_config['num_adaptive_samples']}
+            )"""
+        )
         self.code = "\n".join(self._code)
-        return self.code
+        return self.code, self.node_to_query_map
 
 
-def to_bm_python(bmg: BMGraphBuilder) -> str:
+def to_bm_python(
+    bmg: BMGraphBuilder, inference_type: InferenceType, infer_config: Dict
+) -> Tuple[str, Dict[str, RVIdentifier]]:
     bmp = ToBMPython(bmg)
-    return bmp._generate_bm_python()
+    return bmp._generate_bm_python(inference_type, infer_config)
