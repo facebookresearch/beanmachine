@@ -1128,7 +1128,7 @@ class Graph {
  private:
   CACHED_PRIVATE_PROPERTY(
       std::vector<std::vector<Node*>>,
-      det_affected_operator_nodes)
+      det_affected_mutable_nodes)
   CACHED_PRIVATE_PROPERTY(std::vector<std::vector<Node*>>, sto_affected_nodes)
 
 #undef CACHED_PROPERTY
@@ -1190,11 +1190,11 @@ class Graph {
   void collect_sample(InferConfig infer_config);
 
  public:
-  const std::vector<Node*>& get_det_affected_operator_nodes(NodeID node_id);
+  const std::vector<Node*>& get_det_affected_mutable_nodes(NodeID node_id);
   const std::vector<Node*>& get_sto_affected_nodes(NodeID node_id);
 
-  inline const std::vector<Node*>& get_det_affected_operator_nodes(Node* node) {
-    return get_det_affected_operator_nodes(node->index);
+  inline const std::vector<Node*>& get_det_affected_mutable_nodes(Node* node) {
+    return get_det_affected_mutable_nodes(node->index);
   }
 
   inline const std::vector<Node*>& get_sto_affected_nodes(Node* node) {
