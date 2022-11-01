@@ -135,6 +135,9 @@ Eigen::MatrixXd log1pexp(const Eigen::MatrixXd& x) {
 }
 
 double log1mexp(double x) {
+  if (std::isnan(x)) {
+    return x;
+  }
   assert(x <= 0);
   if (x < -0.693) {
     return std::log1p(-std::exp(x));
