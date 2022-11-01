@@ -568,22 +568,19 @@ double Graph::full_log_prob() {
 // Note that methods for determining support and affected nodes are in
 // support.cpp, for not a very clear reason.
 
-vector<Node*> Graph::convert_parent_ids(
-    // TODO: this does not have to apply to parents only; make it a more general
-    // function from ids to nodes.
-    const vector<NodeID>& parent_ids) const {
+vector<Node*> Graph::convert_node_ids(const vector<NodeID>& node_ids) const {
   // check that the parent ids are valid indices and convert them to
   // an array of Node* pointers
-  vector<Node*> parent_nodes;
-  for (NodeID parent_id : parent_ids) {
-    if (parent_id >= static_cast<NodeID>(nodes.size())) {
+  vector<Node*> result;
+  for (NodeID node_id : node_ids) {
+    if (node_id >= static_cast<NodeID>(nodes.size())) {
       throw out_of_range(
-          "parent node_id " + std::to_string(parent_id) + "must be less than " +
+          "Node id " + std::to_string(node_id) + "must be less than " +
           std::to_string(nodes.size()));
     }
-    parent_nodes.push_back(nodes[parent_id].get());
+    result.push_back(nodes[node_id].get());
   }
-  return parent_nodes;
+  return result;
 }
 
 NodeID Graph::add_node(unique_ptr<Node> node) {
@@ -811,7 +808,7 @@ NodeID Graph::add_distribution(
     DistributionType dist_type,
     AtomicType sample_type,
     vector<NodeID> parent_ids) {
-  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  vector<Node*> parent_nodes = convert_node_ids(parent_ids);
   // create a distribution node
   unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, ValueType(sample_type), parent_nodes);
@@ -823,7 +820,7 @@ NodeID Graph::add_distribution(
     DistributionType dist_type,
     ValueType sample_type,
     vector<NodeID> parent_ids) {
-  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  vector<Node*> parent_nodes = convert_node_ids(parent_ids);
   // create a distribution node
   unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, sample_type, parent_nodes);
@@ -832,14 +829,14 @@ NodeID Graph::add_distribution(
 }
 
 NodeID Graph::add_operator(OperatorType op_type, vector<NodeID> parent_ids) {
-  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  vector<Node*> parent_nodes = convert_node_ids(parent_ids);
   unique_ptr<Node> node =
       oper::OperatorFactory::create_op(op_type, parent_nodes);
   return add_node(move(node));
 }
 
 NodeID Graph::add_factor(FactorType fac_type, vector<NodeID> parent_ids) {
-  vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  vector<Node*> parent_nodes = convert_node_ids(parent_ids);
   unique_ptr<Node> node = factor::Factor::new_factor(fac_type, parent_nodes);
   NodeID node_id = add_node(move(node));
   // factors are both stochastic nodes and observed nodes
@@ -1259,12 +1256,8 @@ vector<vector<double>>& Graph::variational(
                              // field, but a value returned by cavi.
 }
 
-vector<NodeID> Graph::get_parent_ids(const vector<Node*>& parent_nodes) const {
-  vector<NodeID> parent_ids;
-  for (auto node : parent_nodes) {
-    parent_ids.push_back(node->index);
-  }
-  return parent_ids;
+vector<NodeID> Graph::get_node_ids(const vector<Node*>& nodes) const {
+  return map2vec(nodes, std::function(get_index));
 }
 
 void Graph::reindex_nodes() {
@@ -1288,7 +1281,7 @@ Graph& Graph::operator=(const Graph& other) {
   // (if available) from the source graph.
   for (NodeID i = 0; i < static_cast<NodeID>(other.nodes.size()); i++) {
     Node* node = other.nodes[i].get();
-    vector<NodeID> parent_ids = get_parent_ids(node->in_nodes);
+    vector<NodeID> parent_ids = get_node_ids(node->in_nodes);
     switch (node->node_type) {
       case NodeType::CONSTANT: {
         NodeValue value_copy = NodeValue(node->value);
@@ -1578,17 +1571,6 @@ void duplicate_subgraph(
     clone_of[subgraph_node] = clone.get();
     graph.add_node(std::move(clone));
   }
-}
-
-vector<Node*> from_id_to_ptr(
-    const Graph& graph,
-    const vector<NodeID>& node_ids) {
-  vector<Node*> result;
-  for (auto node_id : node_ids) {
-    assert(graph.nodes.size() >= node_id);
-    result.push_back(graph.nodes[node_id].get());
-  }
-  return result;
 }
 
 } // namespace graph
