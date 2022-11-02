@@ -604,6 +604,7 @@ NodeID Graph::add_node(unique_ptr<Node> node) {
   if (node_is_observed) {
     observe(index, node_value);
   }
+  update_structure_based_properties();
   return index;
 }
 
@@ -614,6 +615,8 @@ void Graph::update_structure_based_properties() {
   ready_for_evaluation_and_inference = false;
   // Stored old values no longer valid
   _old_values_vector_has_the_right_size = false;
+  support_cache_is_valid = false;
+  mutable_support_cache_is_valid = false;
 }
 
 function<NodeID(NodeID)> Graph::remove_node(NodeID node_id) {
@@ -1063,6 +1066,9 @@ void Graph::add_observe(Node* node, NodeValue value) {
   node->value = value;
   node->is_observed = true;
   observed.insert(node->index);
+  ready_for_evaluation_and_inference = false;
+  support_cache_is_valid = false;
+  mutable_support_cache_is_valid = false;
 }
 
 void Graph::customize_transformation(
@@ -1141,6 +1147,9 @@ NodeID Graph::query(NodeID node_id) {
     return static_cast<NodeID>(it - queries.begin());
   }
   queries.push_back(node_id);
+  ready_for_evaluation_and_inference = false;
+  support_cache_is_valid = false;
+  mutable_support_cache_is_valid = false;
   return static_cast<NodeID>(queries.size() - 1); // the index is 0-based
 }
 

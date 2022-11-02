@@ -99,6 +99,13 @@ namespace beanmachine::graph {
 //
 void marginalize(const Node* discrete, Graph& graph);
 
+/* Indicates whether a node is marginalizable from the graph. */
+bool is_marginalizable(Graph& graph, const Node* node);
+
+void marginalize_all_marginalizable_variables(Graph& graph);
+
+/**** Exceptions ****/
+
 struct marginalization_on_non_sample_node : std::invalid_argument {
   marginalization_on_non_sample_node()
       : std::invalid_argument("Marginalization requested on non-sample node") {}

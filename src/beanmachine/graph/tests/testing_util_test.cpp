@@ -8,12 +8,14 @@
 #include <iostream>
 #include <typeinfo>
 
+#include <gtest/gtest.h>
+
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
-#include "beanmachine/graph/testing_util.h"
+#include "beanmachine/graph/tests/testing_util_test.h"
 
 namespace beanmachine::util {
 
@@ -25,16 +27,14 @@ void test_nmc_against_nuts(
     int num_rounds,
     int num_samples,
     int warmup_samples,
-    function<unsigned()> seed_getter,
-    function<void(double, double)> tester) {
+    unsigned seed,
+    double max_abs_mean_diff) {
   if (graph.queries.empty()) {
     throw invalid_argument(
         "test_nmc_against_nuts requires at least one query in graph.");
   }
   auto measured_max_abs_mean_diff = 0.0;
   for (int i = 0; i != num_rounds; i++) {
-    auto seed = seed_getter();
-
     auto means_nmc = graph.infer_mean(num_samples, InferenceType::NMC, seed);
 
     NUTS nuts = NUTS(std::make_unique<GraphGlobalState>(graph));
@@ -44,7 +44,7 @@ void test_nmc_against_nuts(
     assert(!means_nmc.empty());
     assert(!means_nuts.empty());
 
-    tester(means_nmc[0], means_nuts[0]);
+    ASSERT_NEAR(means_nmc[0], means_nuts[0], max_abs_mean_diff);
 
     auto abs_diff = std::abs(means_nmc[0] - means_nuts[0]);
     if (abs_diff > measured_max_abs_mean_diff) {

@@ -17,11 +17,19 @@ namespace graph {
 using namespace std;
 
 Support Graph::compute_support() {
-  return _compute_support_given_mutable_choice(false);
+  if (not support_cache_is_valid) {
+    support_cache = _compute_support_given_mutable_choice(false);
+    support_cache_is_valid = true;
+  }
+  return support_cache;
 }
 
 MutableSupport Graph::compute_mutable_support() {
-  return _compute_support_given_mutable_choice(true);
+  if (not mutable_support_cache_is_valid) {
+    mutable_support_cache = _compute_support_given_mutable_choice(true);
+    mutable_support_cache_is_valid = true;
+  }
+  return mutable_support_cache;
 }
 
 Support Graph::_compute_support_given_mutable_choice(bool mutable_only) {

@@ -1131,6 +1131,12 @@ class Graph {
   std::vector<NodeValue> _old_values;
   double _old_sto_affected_nodes_log_prob = 0;
 
+  bool support_cache_is_valid = false;
+  Support support_cache;
+
+  bool mutable_support_cache_is_valid = false;
+  Support mutable_support_cache;
+
   inline void _ensure_old_values_has_the_right_size() {
     if (not _old_values_vector_has_the_right_size) {
       _old_values = std::vector<NodeValue>(nodes.size());

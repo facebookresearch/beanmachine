@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include <range/v3/algorithm/contains.hpp>
+#include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/core.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/join.hpp>
@@ -27,41 +28,17 @@ using namespace util;
 using namespace distribution;
 using namespace oper;
 
-void check_discrete_is_a_sample_node(const Node* discrete) {
-  if (!is_sample_or_sample_iid(discrete)) {
-    throw marginalization_on_non_sample_node();
-  }
-}
+/*
+Information about the child of the discrete marginalized variable.
+child: the child if there is a single one, or nullptr otherwise.
+number_of_children: how many children were found.
+*/
+struct ChildInfo {
+  Node* child;
+  size_t number_of_children;
+};
 
-void check_discrete_is_not_observed(const Node* discrete, const Graph& graph) {
-  if (contains(graph.observed, discrete->index) or
-      contains(graph.queries, discrete->index)) {
-    throw marginalization_on_observed_or_queried_node();
-  }
-}
-
-void check_distribution_is_supported(const Node* discrete) {
-  assert(discrete->in_nodes.size() == 1);
-  auto parent = discrete->in_nodes[0];
-  Bernoulli* bernoulli = dynamic_cast<Bernoulli*>(parent);
-  if (bernoulli == nullptr) {
-    auto* distribution = dynamic_cast<Distribution*>(parent);
-    throw marginalization_not_supported_for_samples_of(distribution->dist_type);
-  }
-}
-
-// NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
-vector<NodeValue> values_of(const Node* discrete) {
-  // Only distribution supported as of yet is Bernoulli:
-  return {NodeValue(false), NodeValue(true)};
-}
-
-const Distribution* distribution_of(const Node* node) {
-  assert(node->in_nodes.size() == 1);
-  return dynamic_cast<const Distribution*>(node->in_nodes[0]);
-}
-
-Node* child_of(const vector<Node*>& det_affected) {
+ChildInfo get_child_info(const vector<Node*>& det_affected) {
   // clang-format off
   auto children = det_affected
                 | views::filter(is(NodeType::DISTRIBUTION))
@@ -71,13 +48,114 @@ Node* child_of(const vector<Node*>& det_affected) {
                 | to<vector>();
   // clang-format on
 
-  if (children.size() == 1) {
-    return children[0];
-  } else if (children.size() == 0) {
-    throw marginalization_no_children();
-  } else {
-    throw marginalization_multiple_children();
+  auto child = children.size() == 1 ? children[0] : nullptr;
+  return {child, children.size()};
+}
+
+/*
+Information about the local descandants of a marginalized variable.
+Contains the deterministic affected nodes, the child if there is a single one,
+and the number of children found.
+*/
+struct LocalDescendants {
+  LocalDescendants(vector<Node*> det_affected, ChildInfo child_info)
+      : det_affected(det_affected),
+        child(child_info.child),
+        number_of_children(child_info.number_of_children) {}
+  vector<Node*> det_affected;
+  Node* child;
+  size_t number_of_children;
+};
+
+LocalDescendants get_local_descendants(Graph& graph, const Node* discrete) {
+  AffectedNodes affected_ids = graph.compute_affected_nodes_except_self(
+      discrete->index, graph.compute_support());
+  const auto& det_affected_ids = get<0>(affected_ids);
+  auto det_affected = graph.convert_node_ids(det_affected_ids);
+  return {det_affected, get_child_info(det_affected)};
+}
+
+bool discrete_is_a_sample_node(const Node* discrete) {
+  return is_sample_or_sample_iid(discrete);
+}
+
+bool discrete_is_not_observed_or_queried(
+    const Node* discrete,
+    const Graph& graph) {
+  return not(
+      contains(graph.observed, discrete->index) or
+      contains(graph.queries, discrete->index));
+}
+
+DistributionType distribution_type(const Node* discrete) {
+  assert(discrete->in_nodes.size() == 1);
+  auto parent = discrete->in_nodes[0];
+  return dynamic_cast<Distribution*>(parent)->dist_type;
+}
+
+bool distribution_is_supported(const Node* discrete) {
+  assert(discrete->in_nodes.size() == 1);
+  auto parent = discrete->in_nodes[0];
+  Bernoulli* bernoulli = dynamic_cast<Bernoulli*>(parent);
+  return bernoulli != nullptr;
+}
+
+/* Indicates whether a node is marginalizable from the graph. */
+bool is_marginalizable(Graph& graph, const Node* discrete) {
+  return discrete_is_a_sample_node(discrete) and
+      discrete_is_not_observed_or_queried(discrete, graph) and
+      distribution_is_supported(discrete) and
+      get_local_descendants(graph, discrete).number_of_children == 1;
+}
+
+void check_discrete_is_a_sample_node(const Node* discrete) {
+  if (not discrete_is_a_sample_node(discrete)) {
+    throw marginalization_on_non_sample_node();
   }
+}
+
+void check_discrete_is_not_observed_or_queried(
+    const Node* discrete,
+    const Graph& graph) {
+  if (not discrete_is_not_observed_or_queried(discrete, graph)) {
+    throw marginalization_on_observed_or_queried_node();
+  }
+}
+
+void check_distribution_is_supported(const Node* discrete) {
+  if (not distribution_is_supported(discrete)) {
+    throw marginalization_not_supported_for_samples_of(
+        distribution_type(discrete));
+  }
+}
+
+/*
+Returns local descendants if they contain a single child ("valid")
+or throw an appropriate exception.
+*/
+LocalDescendants get_valid_local_descendants_or_throw_exceptions(
+    Graph& graph,
+    const Node* discrete) {
+  auto local_descendants = get_local_descendants(graph, discrete);
+
+  switch (local_descendants.number_of_children) {
+    case 0:
+      throw marginalization_no_children();
+    case 1:
+      return local_descendants;
+    default:
+      throw marginalization_multiple_children();
+  }
+}
+
+vector<NodeValue> values_of(const Node* discrete) {
+  // Only distribution supported as of yet is Bernoulli:
+  return {NodeValue(false), NodeValue(true)};
+}
+
+const Distribution* distribution_of(const Node* node) {
+  assert(node->in_nodes.size() == 1);
+  return dynamic_cast<const Distribution*>(node->in_nodes[0]);
 }
 
 Node* add_mixture(
@@ -123,20 +201,20 @@ Node* add_mixture(
 
 void marginalize(const Node* discrete, Graph& graph) {
   check_discrete_is_a_sample_node(discrete);
-  check_discrete_is_not_observed(discrete, graph);
+  check_discrete_is_not_observed_or_queried(discrete, graph);
   check_distribution_is_supported(discrete);
 
   // Capture neighborhood of 'discrete':
   // The distribution of 'discrete':
   auto prior_discrete = distribution_of(discrete);
-  // The deterministic nodes directly affected by 'discrete':
-  AffectedNodes affected_ids = graph.compute_affected_nodes_except_self(
-      discrete->index, graph.compute_support());
-  auto det_affected_ids = get<0>(affected_ids);
-  auto det_affected = graph.convert_node_ids(det_affected_ids);
+  auto valid_local_descendants = // guaranteed to contain a single child
+      get_valid_local_descendants_or_throw_exceptions(graph, discrete);
+  // the deterministic nodes immediately affected by discrete before
+  // we find a stochastic variable:
+  auto det_affected = valid_local_descendants.det_affected;
   // the (required to be the only one for now) sample node
   // descending from 'discrete' through deterministic nodes only:
-  auto child = child_of(det_affected);
+  auto child = valid_local_descendants.child;
 
   // As we duplicate det_affected, the child's distribution will always
   // occupy the same position in the list of nodes.
@@ -182,6 +260,23 @@ void marginalize(const Node* discrete, Graph& graph) {
   auto mixture_ptr =
       add_mixture(graph, value_weight_nodes, value_child_distributions);
   graph.set_edge(child, /* in-node index=*/0, /* new_in-node=*/mixture_ptr);
+}
+
+const Node* find_first_marginalizable(Graph& graph) {
+  auto first = ::ranges::find_if(graph.node_ptrs(), [&](const Node* node) {
+    return is_marginalizable(graph, node);
+  });
+  if (first != graph.node_ptrs().end()) {
+    return *first;
+  } else {
+    return nullptr; // NOLINT(facebook-hte-NullableReturn)
+  }
+}
+
+void marginalize_all_marginalizable_variables(Graph& graph) {
+  while (auto next = find_first_marginalizable(graph)) {
+    marginalize(next, graph);
+  }
 }
 
 } // namespace beanmachine::graph

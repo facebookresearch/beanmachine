@@ -15,6 +15,7 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/marginalization/marginalization_extensional.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/util.h"
 
 using namespace ::testing;
@@ -184,7 +185,9 @@ TEST(marginalization_extensional_test, marginalization_no_children) {
       marginalization_no_children);
 }
 
-TEST(marginalization_extensional_test, marginalization_inference) {
+TEST(
+    marginalization_extensional_test,
+    marginalization_inference_single_variable) {
   Graph graph;
   NodeID discrete, normal, y;
   std::tie(discrete, normal, y) = make_base_graph(graph);
@@ -200,5 +203,51 @@ TEST(marginalization_extensional_test, marginalization_inference) {
   cout << "Mean from marginalized graph: " << util::join(marginalized_mean)
        << endl;
 
-  ASSERT_NEAR(original_mean[0], marginalized_mean[0], 1e-2);
+  ASSERT_NEAR(original_mean[0], marginalized_mean[0], 1e-1);
+
+  test_nmc_against_nuts(
+      graph,
+      1, // num_rounds
+      5000, // num_samples
+      1000, // warmup_samples
+      std::time(nullptr), // seed
+      1e-1 // max_abs_mean_diff
+  );
+}
+
+TEST(
+    marginalization_extensional_test,
+    marginalization_inference_on_all_discretes) {
+  Graph graph;
+  size_t number_of_sections = 5;
+  for (auto i : range(number_of_sections)) {
+    auto p = graph.add_constant_probability(0.2);
+    auto bernoulli = graph.add_distribution(
+        DistributionType::BERNOULLI, AtomicType::BOOLEAN, {p});
+    auto s = graph.add_operator(OperatorType::SAMPLE, {bernoulli});
+    auto s_real = graph.add_operator(OperatorType::TO_REAL, {s});
+    auto diff = graph.add_constant_real(1.0);
+    auto mu = graph.add_operator(OperatorType::MULTIPLY, {diff, s_real});
+    auto stddev = graph.add_constant_pos_real(1.0);
+    auto normal = graph.add_distribution(
+        DistributionType::NORMAL, AtomicType::REAL, {mu, stddev});
+    auto x = graph.add_operator(OperatorType::SAMPLE, {normal});
+    graph.query(x);
+  }
+
+  auto num_samples = 50000;
+  auto seed = std::time(nullptr);
+  auto original_mean = graph.infer_mean(num_samples, InferenceType::NMC, seed);
+  cout << "Mean from original graph: " << util::join(original_mean) << endl;
+
+  marginalize_all_marginalizable_variables(graph);
+
+  auto marginalized_mean =
+      graph.infer_mean(num_samples, InferenceType::NMC, seed);
+  cout << "Mean from marginalized graph: " << util::join(marginalized_mean)
+       << endl;
+
+  for (auto i : range(number_of_sections)) {
+    ASSERT_NEAR(original_mean[i], marginalized_mean[i], 1e-1);
+  }
 }
