@@ -34,7 +34,7 @@ class Traced {
   /* implicit */ inline Traced(Real value)
       : node{std::make_shared<ScalarConstantNode>(value.as_double())} {}
 
-  static Traced variable(const std::string& name, const unsigned identifier) {
+  static Traced variable(const std::string& name, const int identifier) {
     return Traced{std::make_shared<ScalarVariableNode>(name, identifier)};
   }
 
