@@ -14,7 +14,7 @@
 #include <vector>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/dedup.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
 
 namespace beanmachine::minibmg {
 

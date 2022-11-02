@@ -12,9 +12,7 @@
 #include <memory>
 #include <random>
 #include <stdexcept>
-#include <variant>
 #include "beanmachine/minibmg/ad/number.h"
-#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/distribution/bernoulli.h"
 #include "beanmachine/minibmg/distribution/beta.h"
 #include "beanmachine/minibmg/distribution/distribution.h"
@@ -25,6 +23,7 @@
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/graph_properties/observations_by_node.h"
 #include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
 
 namespace beanmachine::minibmg {
 

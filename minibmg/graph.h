@@ -9,9 +9,9 @@
 
 #include <folly/json.h>
 #include <vector>
-#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/graph_properties/container.h"
 #include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
 
 namespace beanmachine::minibmg {
 

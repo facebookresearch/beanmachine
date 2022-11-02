@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 #include "beanmachine/minibmg/node.h"
-#include "beanmachine/minibmg/rewrite_adapter.h"
+#include "beanmachine/minibmg/rewriters/rewrite_adapter.h"
 
 namespace beanmachine::minibmg {
 

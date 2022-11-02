@@ -5,13 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/minibmg/dedup.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
 #include <map>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
-#include "beanmachine/minibmg/dedag.h"
 #include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/rewriters/dedag.h"
 #include "beanmachine/minibmg/topological.h"
 
 namespace {
