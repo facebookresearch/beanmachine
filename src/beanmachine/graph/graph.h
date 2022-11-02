@@ -1011,12 +1011,36 @@ class Graph {
   std::function<NodeID(NodeID)> remove_node(NodeID node_id);
   std::function<NodeID(NodeID)> remove_node(std::unique_ptr<Node>& node);
 
+  /*
+  Replace all edges from `old_in_node` to a given 'node' by
+  edges from 'new_in_node' to 'node'.
+  All parameter nodes must already be in graph with correct indices.
+  'node' must be topologically later than 'new_in_node' in graph.
+  Violation of these conditions is *not* checked
+  after 'assert's are removed, and lead to undefined behavior.
+  */
+  void replace_edges(Node* node, const Node* old_in_node, Node* new_in_node);
+
+  /*
+  Set 'in_node_index'-th in-node of 'node' to 'new_in_node'
+  and updates any other bookeeping in the graph.
+  Both nodes must already be in graph with correct indices.
+  'node' must be topologically later than 'new_in_node' in graph.
+  Violation of these conditions is *not* checked
+  after 'assert's are removed, and lead to undefined behavior.
+  */
+  void set_edge(Node* node, size_t in_node_index, Node* new_in_node);
+
   std::vector<Node*> convert_node_ids(
       const std::vector<NodeID>& node_ids) const;
 
   template <typename Range>
   std::vector<NodeID> get_node_ids(const Range& nodes) const {
     return util::map2vec(nodes, std::function(get_index));
+  }
+
+  bool is_in_graph(const Node* node) {
+    return node->index < nodes.size() and nodes[node->index].get() == node;
   }
 
   void _infer(
@@ -1087,6 +1111,12 @@ class Graph {
     }
   }
 
+  // Reset field 'index' of nodes to agree with their position in graph's
+  // 'nodes' field.
+  // IMPORTANT: the field 'queries' must be updated externally
+  // when changing ids.
+  // It is impossible to update it here because Node does not
+  // contain the information that it is queried.
   void reindex_nodes();
 
   // Every node in the graph has a value; when we propose a new graph state,
@@ -1107,6 +1137,26 @@ class Graph {
       _old_values_vector_has_the_right_size = true;
     }
   }
+
+  // Methods altering the graph's structure
+  // must call this method to reindex nodes and invalidate
+  // structure-dependent caches.
+  void update_structure_based_properties();
+
+  /*
+  Ensures n1 appears after n2 in internal 'nodes' vector field.
+  If this is already the case, return, since there is nothing to do.
+  Otherwise, proceed.
+  If n2 is a descendant of n1, throw an exception (because the task is
+  impossible).
+  Otherwise, moves n1 and the subset of its descendants not already
+  after n2 in 'nodes' immediately after n2's position in 'nodes', and reindex
+  all moved nodes so their field 'index' agrees with their position in 'nodes.
+
+  The purpose of this method is to prepare the graph for a new edge from n2 to
+  n1.
+  */
+  void ensure_topological_comparison(Node* n1, Node* n2);
 
   inline void _check_old_values_are_valid() {
     if (not _old_values_vector_has_the_right_size) {
@@ -1377,8 +1427,9 @@ for each node N in S:
 Note that it is important that S be topologically ordered
 so that each in-node I of C that happens to be in S
 will have already been cloned when it is redirected.
+Returns a vector of the duplicate nodes.
 */
-void duplicate_subgraph(
+std::vector<Node*> duplicate_subgraph(
     Graph& graph,
     const std::vector<Node*>& subgraph_ordered_nodes);
 
