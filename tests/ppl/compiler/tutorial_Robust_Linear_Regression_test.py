@@ -16,8 +16,10 @@ import unittest
 # TODO: Check imports for conistency
 
 import beanmachine.ppl as bm
+import pytest
 import torch  # from torch import manual_seed, tensor
 import torch.distributions as dist  # from torch.distributions import Bernoulli, Normal, Uniform
+from beanmachine.ppl.distributions import Flat
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from sklearn import model_selection
 from torch import tensor
@@ -65,12 +67,19 @@ def df_nu():
 
 
 @bm.random_variable
-def y_robust(X):
+def X():
+    return Flat()
+
+
+@bm.random_variable
+def y_robust():
     """
     Heavy-Tailed Noise model for regression utilizing StudentT
     Student's T : https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
-    return dist.StudentT(df=df_nu(), loc=beta() * X + alpha(), scale=sigma_regressor())
+    return dist.StudentT(
+        df=df_nu(), loc=beta() * X() + alpha(), scale=sigma_regressor()
+    )
 
 
 # Creating sample data
@@ -88,8 +97,9 @@ cov = torch.tensor(
 
 dist_clean = dist.MultivariateNormal(loc=torch.zeros(2), covariance_matrix=cov)
 points = tensor([dist_clean.sample().tolist() for i in range(N)]).view(N, 2)
-X = X_clean = points[:, 0]
-Y = Y_clean = points[:, 1]
+
+X_clean = points[:, 0]
+Y_clean = points[:, 1]
 
 true_beta_1 = 2.0
 true_beta_0 = 5.0
@@ -102,7 +112,7 @@ points_noisy[2, :] = torch.tensor([40, 40])
 X_corr = points_noisy[:, 0]
 Y_corr = points_noisy[:, 1]
 
-X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X, Y)
+X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X_corr, Y_corr)
 
 # Inference parameters
 
@@ -111,7 +121,7 @@ num_samples = (
 )
 num_chains = 4
 
-observations = {y_robust(X_train): Y_train}
+observations = {y_robust(): Y_train, X(): X_train}
 
 queries = [beta(), alpha(), sigma_regressor(), df_nu()]
 
@@ -137,6 +147,10 @@ class tutorialRobustLinearRegresionTest(unittest.TestCase):
 
         self.assertTrue(True, msg="We just want to check this point is reached")
 
+    # TODO: re-enable once we can compile Flat distribution
+    @pytest.mark.xfail(
+        raises=TypeError, reason="Flat distribution not supported by BMG yet"
+    )
     def test_tutorial_Robust_Linear_Regression_to_dot_cpp_python(
         self,
     ) -> None:

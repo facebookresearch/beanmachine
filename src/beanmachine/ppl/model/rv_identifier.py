@@ -26,7 +26,8 @@ class RVIdentifier:
                 warnings.warn(
                     "PyTorch tensors are hashed by memory address instead of value. "
                     "Therefore, it is not recommended to use tensors as indices of random variables.",
-                    stacklevel=3,
+                    # display the warning on where the RVIdentifier is created
+                    stacklevel=5,
                 )
 
     def __str__(self):
