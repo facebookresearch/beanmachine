@@ -6,6 +6,7 @@
  */
 
 import {density1d} from 'fast-kde/src/density1d';
+import {density2d} from 'fast-kde/src/density2d';
 import {scaleToOne} from './dataTransformation';
 
 /**
@@ -46,4 +47,45 @@ export const oneD = (
     y: scaleToOne(y),
     bandwidth: kde1d.bandwidth(),
   };
+};
+
+/**
+ * Computes the 2D Kernel Density Estimate.
+ *
+ * @param {number[]} x - The raw random variable data of the model in the x direction.
+ * @param {number[]} y - The raw random variable data of the model in the y direction.
+ * @param {number} bwFactor - Multiplicative factor to be applied to the bandwidth when
+ *     calculating the Kernel Density Estimate (KDE).
+ * @param {number[]} [bins] - The number of bins to use for calculating the 2D KDE.
+ * @returns {{x: number[]; y: number[]; z: number[]; bw: {x: number; y: number}}}
+ *     The computed 2D KDE with bandwidths for both sets of data.
+ */
+export const twoD = (
+  x: number[],
+  y: number[],
+  bwFactor: number,
+  bins: number[] = [128, 128],
+): {x: number[]; y: number[]; z: number[]; bw: {x: number; y: number}} => {
+  // Prepare the random variables for calculating the 2D KDE using fast-kde.
+  const data = [];
+  for (let i: number = 0; i < x.length; i += 1) {
+    data.push({u: x[i], v: y[i]});
+  }
+
+  // Calculate the 2D KDE.
+  const kde2d = density2d(data, {x: 'u', y: 'v', bins: bins, adjust: bwFactor, pad: 3});
+  const [bwX, bwY] = kde2d.bandwidth();
+
+  // Extract the 2D data points from the 2D KDE calculation.
+  const points: {x: number; y: number; z: number}[] = [...kde2d];
+  const X: number[] = [];
+  const Y: number[] = [];
+  const Z: number[] = [];
+  for (let i: number = 0; i < points.length; i += 1) {
+    X[i] = points[i].x;
+    Y[i] = points[i].y;
+    Z[i] = points[i].z;
+  }
+
+  return {x: X, y: Y, z: Z, bw: {x: bwX, y: bwY}};
 };

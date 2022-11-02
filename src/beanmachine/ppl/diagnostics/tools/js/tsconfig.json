@@ -23,12 +23,7 @@
         "node_modules/@bokeh/bokehjs/build/js/lib/*",
         "node_modules/@bokeh/bokehjs/build/js/types/*"
       ],
-      "fast-kde/*": ["node_modules/fast-kde/*"],
-      "ndarray/*": ["node_modules/ndarray/*"],
-      "ndarray-fft/*": [
-        "node_modules/ndarray-fft/*",
-        "bokeh_extensions/types/ndarray-fft.d.ts"
-      ]
+      "fast-kde/*": ["node_modules/fast-kde/*"]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,

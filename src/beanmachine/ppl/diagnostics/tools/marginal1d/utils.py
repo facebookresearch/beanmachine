@@ -62,7 +62,7 @@ SIZING = {
 
 
 def create_sources() -> typing.Sources:
-    """Create Bokeh sources from the given data that will be bound to glyphs.
+    """Create Bokeh sources that will be bound to glyphs.
 
     Returns
     -------

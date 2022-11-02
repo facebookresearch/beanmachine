@@ -5,30 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {Axis} from '@bokehjs/models/axes/axis';
 import * as interfaces from './interfaces';
-import {linearRange, shape} from '../stats/array';
+import {arrayMean, linearRange, shape} from '../stats/array';
 import {interval as hdiInterval} from '../stats/highestDensityInterval';
 import {rankHistogram} from '../stats/histogram';
 import {oneD} from '../stats/marginal';
-import {mean} from '../stats/pointStatistic';
+import {updateAxisLabel} from '../utils/plottingUtils';
 
 const figureNames = ['marginals', 'forests', 'traces', 'ranks'];
-
-/**
- * Update the given Bokeh Axis object with the new label string. You must use this
- * method to update axis strings using TypeScript, otherwise the ts compiler will throw
- * a type check error.
- *
- * @param {Axis} axis - The Bokeh Axis object needing a new label.
- * @param {string | null} label - The new label for the Bokeh Axis object.
- */
-export const updateAxisLabel = (axis: Axis, label: string | null): void => {
-  // Type check requirement.
-  if ('axis_label' in axis) {
-    axis.axis_label = label;
-  }
-};
 
 /**
  * Compute data for the trace diagnostic tool.
@@ -69,7 +53,7 @@ export const computeData = (
         const chainName = `chain${chainIndex}`;
         const chainData = data[j];
         const marginal = oneD(chainData, bwFactor);
-        const marginalMean = mean(marginal.x);
+        const marginalMean = arrayMean(marginal.x);
         let hdiBounds;
         switch (figureName) {
           case 'marginals':

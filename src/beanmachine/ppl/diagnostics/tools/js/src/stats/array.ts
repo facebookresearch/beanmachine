@@ -6,9 +6,32 @@
  */
 
 /**
+ * Syntactic sugar for summing an array of numbers.
+ *
+ * @param {number[]} data - The array of data.
+ * @returns {number} The sum of the array of data.
+ */
+export const arraySum = (data: number[]): number => {
+  return data.reduce((previousValue, currentValue) => {
+    return previousValue + currentValue;
+  });
+};
+
+/**
+ * Calculate the mean of the given array of data.
+ *
+ * @param {number[]} data - The array of data.
+ * @returns {number} The mean of the given data.
+ */
+export const arrayMean = (data: number[]): number => {
+  const dataSum = arraySum(data);
+  return dataSum / data.length;
+};
+
+/**
  * Cumulative sum of the given data.
  *
- * @param {number[]} data - Any array of data.
+ * @param {number[]} data - Any one dimensional array of data.
  * @returns {number[]} The cumulative sum of the given data.
  */
 export const cumulativeSum = (data: number[]): number[] => {
@@ -115,9 +138,9 @@ export const argSort = (data: number[]): number[] => {
 };
 
 /**
- * Count the number of time a value appears in an array.
+ * Count the number of times a value appears in an array.
  *
- * @param {number[]} data - The numeric array to count objects for.
+ * @param {number[]} data - The numeric array that we will count the values in.
  * @returns {{[key: string]: number}} An object that contains the keys as the items in
  *     the original array, and values that are counts of the key.
  */
