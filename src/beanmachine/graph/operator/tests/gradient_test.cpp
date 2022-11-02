@@ -1194,10 +1194,10 @@ TEST(testgradient, matrix_log_grad_forward) {
   auto cm = g.add_operator(OperatorType::MATRIX_SCALE, {c, cm1});
   auto mlog = g.add_operator(OperatorType::MATRIX_LOG, {cm});
   // f(x) = log(2 * g(x))
-  // g(x) = [2, 3]
-  // but we artificially set
-  // g'(x) = [1, 1]
-  // g''(x) = [0, 0]
+  // g(x) = x, x = [2, 3]
+  // hence we set
+  // g'(x) = 1
+  // g''(x) = 0
   // for testing.
 
   Node* cm1_node = g.get_node(cm1);
@@ -1218,9 +1218,9 @@ TEST(testgradient, matrix_log_grad_forward) {
   Eigen::MatrixXd second_grad = mlog_node->Grad2;
   Eigen::MatrixXd expected_second_grad(1, 2);
   // f''(x) = (g''(x) * g'(x) + g'(x) * g'(x)) / (g(x) * g(x))
-  // = ([0, 0] * [1, 1] + [1, 1] * [1, 1]) / ([2, 3] * [2, 3])
-  // = [0.25, 0.11]
-  expected_second_grad << 0.25, 1.0 / 9.0;
+  // = ([0, 0] * [1, 1] - [1, 1] * [1, 1]) / ([2, 3] * [2, 3])
+  // = [-0.25, -0.11]
+  expected_second_grad << -0.25, -1.0 / 9.0;
   EXPECT_NEAR_MATRIX(second_grad, expected_second_grad);
 }
 
