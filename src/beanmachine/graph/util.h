@@ -12,11 +12,15 @@
 
 #include <boost/iterator/transform_iterator.hpp>
 #include <boost/range/irange.hpp>
+#include <range/v3/action/push_back.hpp>
+
 #include <Eigen/Dense>
 #include <algorithm>
+#include <list>
 #include <map>
 #include <numeric>
 #include <random>
+#include <set>
 #include <stdexcept>
 #include <type_traits>
 
@@ -332,6 +336,63 @@ decltype(auto) range(Integer first, Integer last, StepSize step_size) {
 template <class Integer>
 decltype(auto) range(Integer last) {
   return boost::irange(static_cast<Integer>(0), last);
+}
+
+/*
+A generic function for breadth-first search on a directed graph.
+Parameters:
+- start: a starting vertex
+- get_children: a function from a vertex to a range-v3 range of its children
+- prune: a function from a vector to booleans b1 and b2 where b1 indicates
+  whether the search should be pruned at the node, and b2 indicates
+  whether the pruning should include the node itself
+  (that is, whether the action should *not* be applied to node)
+- abort: a function from a vector to booleans b1 and b2 where b1 indicates
+  whether the search should be aborted altogether when the node is reached,
+  and b2 indicates whether the abort should include the node itself
+  (that is, whether the action should *not* be applied to node before aborting)
+- action: a function applied to each reached vertex.
+Returns whether the search completed successfully (as opposed to aborted).
+*/
+template <typename Vertex, typename Range>
+bool bfs(
+    const Vertex& start,
+    std::function<Range(const Vertex&)> get_children,
+    std::function<std::pair<bool, bool>(const Vertex&)> prune,
+    std::function<std::pair<bool, bool>(const Vertex&)> abort,
+    std::function<void(const Vertex&)> action) {
+  std::set<Vertex> visited;
+  std::list<Vertex> queue({start});
+  while (not queue.empty()) {
+    auto vertex = queue.front();
+    queue.pop_front();
+    if (visited.contains(vertex)) {
+      continue;
+    }
+    visited.insert(vertex);
+    auto abort_and_abort_self = abort(vertex);
+    if (abort_and_abort_self.first) {
+      if (not abort_and_abort_self.second) {
+        action(vertex);
+      }
+      return false;
+    }
+    auto prune_and_prune_self = prune(vertex);
+    if (prune_and_prune_self.first) {
+      if (not prune_and_prune_self.second) {
+        action(vertex);
+      }
+    } else {
+      action(vertex);
+      ranges::actions::push_back(queue, get_children(vertex));
+    }
+  }
+  return true;
+}
+
+template <typename T>
+std::function<void(const T& t)> push_back_to(std::vector<T>& vec) {
+  return [&](const T& t) { vec.push_back(t); };
 }
 
 } // namespace util
