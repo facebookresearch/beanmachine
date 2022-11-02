@@ -122,6 +122,8 @@ class RewriteOneVisitor : NodeVisitor {
         std::dynamic_pointer_cast<const ScalarConstantNode>(left);
     auto right_constant =
         std::dynamic_pointer_cast<const ScalarConstantNode>(right);
+    auto left_product =
+        std::dynamic_pointer_cast<const ScalarMultiplyNode>(left);
 
     // {k1 + k2, k3}, // constant fold
     if (left_constant && right_constant) {
@@ -146,12 +148,59 @@ class RewriteOneVisitor : NodeVisitor {
       rewritten = std::make_shared<ScalarMultiplyNode>(two, left);
     }
 
-    else if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarAddNode>(left, right);
+    // {y * x + x, (1 + y) * x}
+    if (rewritten == nullptr && left_product &&
+        same(left_product->right, right)) {
+      ScalarNodep one =
+          rewrite_scalar_node(std::make_shared<ScalarConstantNode>(1));
+      auto new_left = rewrite_scalar_node(
+          std::make_shared<ScalarAddNode>(one, left_product->left));
+      rewritten = std::make_shared<ScalarMultiplyNode>(new_left, right);
     }
 
-    else {
-      rewritten = original;
+    // {z + x + x, z + (2 * x)}
+    if (rewritten == nullptr) {
+      if (auto left_sum =
+              std::dynamic_pointer_cast<const ScalarAddNode>(left)) {
+        if (same(left_sum->right, right)) {
+          ScalarNodep two =
+              rewrite_scalar_node(std::make_shared<ScalarConstantNode>(2));
+          auto new_left = left_sum->left;
+          auto new_right = rewrite_scalar_node(
+              std::make_shared<ScalarMultiplyNode>(two, right));
+          rewritten = std::make_shared<ScalarAddNode>(new_left, new_right);
+        }
+      }
+    }
+
+    // {(z + (y * x)) + x, z + (1 + y) * x}
+    if (rewritten == nullptr) {
+      if (auto left_sum =
+              std::dynamic_pointer_cast<const ScalarAddNode>(left)) {
+        auto left_right_product =
+            std::dynamic_pointer_cast<const ScalarMultiplyNode>(
+                left_sum->right);
+        if (left_right_product && same(left_right_product, right)) {
+          ScalarNodep one =
+              rewrite_scalar_node(std::make_shared<ScalarConstantNode>(1));
+          auto one_plus_y = rewrite_scalar_node(
+              std::make_shared<ScalarAddNode>(one, left_right_product->left));
+          auto new_left = left_sum->left;
+          auto new_right =
+              rewrite_scalar_node(std::make_shared<ScalarMultiplyNode>(
+                  one_plus_y, left_right_product->right));
+          rewritten = rewrite_scalar_node(
+              std::make_shared<ScalarAddNode>(new_left, new_right));
+        }
+      }
+    }
+
+    if (rewritten == nullptr) {
+      if (left != node->left || right != node->right) {
+        rewritten = std::make_shared<ScalarAddNode>(left, right);
+      } else {
+        rewritten = original;
+      }
     }
   }
 
@@ -310,12 +359,21 @@ class RewriteOneVisitor : NodeVisitor {
       rewritten = std::make_shared<ScalarMultiplyNode>(k3, left);
     }
 
-    else if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarDivideNode>(left, right);
+    // {y / (y / x), x}
+    else if (
+        auto right_divide =
+            std::dynamic_pointer_cast<const ScalarDivideNode>(right)) {
+      if (same(left, right_divide->left)) {
+        rewritten = right_divide->right;
+      }
     }
 
-    else {
-      rewritten = original;
+    if (rewritten == nullptr) {
+      if (left != node->left || right != node->right) {
+        rewritten = std::make_shared<ScalarDivideNode>(left, right);
+      } else {
+        rewritten = original;
+      }
     }
   }
 
