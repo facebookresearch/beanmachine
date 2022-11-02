@@ -448,7 +448,7 @@ digraph "graph" {
         self.assertTrue("neg_real must be <=0" in str(cm.exception))
         neg1 = g.add_constant_neg_real(-1.25)
         expected = """
-        Node 0 type 1 parents [ ] children [ ] negative real -1.25
+        0: CONSTANT(negative real -1.25) (out nodes: )
         """
         self.assertEqual(g.to_string().strip(), expected.strip())
         add_negs = g.add_operator(graph.OperatorType.ADD, [neg1, neg1])

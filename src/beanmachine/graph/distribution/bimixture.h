@@ -11,6 +11,15 @@
 namespace beanmachine {
 namespace distribution {
 
+/*
+  A distribution representing the mixture of two distributions D1 and D2
+  with probability P1 of sampling from D1 and 1 - P1 of sampling from D2.
+
+  It must have exactly three parents.
+  The first parent for bimixture distribution must be the probability P1.
+  The second and third parents must be distributions D1 and D2.
+  The sample type must be consistent with the distribution parents.
+*/
 class Bimixture : public Distribution {
  public:
   Bimixture(
