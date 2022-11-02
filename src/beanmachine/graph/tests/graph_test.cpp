@@ -1040,15 +1040,15 @@ TEST(testgraph, duplicate_subgraph_basic1) {
   auto subgraph_node_ids = vector<NodeID>({c1, c2, exp, times});
 
   auto expected_g_printout =
-      R"(Node 0 type 1 parents [ ] children [ 2 4 ] real 10
-Node 1 type 1 parents [ ] children [ 2 ] real 20
-Node 2 type 3 parents [ 0 1 ] children [ 3 4 7 8 ] real 0
-Node 3 type 3 parents [ 2 ] children [ ] positive real 1e-10
-Node 4 type 3 parents [ 2 0 ] children [ ] real 0
-Node 5 type 1 parents [ ] children [ 8 ] real 10
-Node 6 type 1 parents [ ] children [ ] real 20
-Node 7 type 3 parents [ 2 ] children [ ] positive real 1e-10
-Node 8 type 3 parents [ 2 5 ] children [ ] real 0
+      R"(0: CONSTANT(real 10) (out nodes: 2, 4)
+1: CONSTANT(real 20) (out nodes: 2)
+2: ADD(0, 1) (out nodes: 3, 4, 7, 8)
+3: EXP(2) (out nodes: )
+4: MULTIPLY(2, 0) (out nodes: )
+5: CONSTANT(real 10) (out nodes: 8)
+6: CONSTANT(real 20) (out nodes: )
+7: EXP(2) (out nodes: )
+8: MULTIPLY(2, 5) (out nodes: )
 )";
 
   test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);
@@ -1065,13 +1065,13 @@ TEST(testgraph, duplicate_subgraph_basic2) {
   auto subgraph_node_ids = vector<NodeID>({plus, times});
 
   auto expected_g_printout =
-      R"(Node 0 type 1 parents [ ] children [ 2 4 5 6 ] real 10
-Node 1 type 1 parents [ ] children [ 2 5 ] real 20
-Node 2 type 3 parents [ 0 1 ] children [ 3 4 ] real 0
-Node 3 type 3 parents [ 2 ] children [ ] positive real 1e-10
-Node 4 type 3 parents [ 2 0 ] children [ ] real 0
-Node 5 type 3 parents [ 0 1 ] children [ 6 ] real 0
-Node 6 type 3 parents [ 5 0 ] children [ ] real 0
+      R"(0: CONSTANT(real 10) (out nodes: 2, 4, 5, 6)
+1: CONSTANT(real 20) (out nodes: 2, 5)
+2: ADD(0, 1) (out nodes: 3, 4)
+3: EXP(2) (out nodes: )
+4: MULTIPLY(2, 0) (out nodes: )
+5: ADD(0, 1) (out nodes: 6)
+6: MULTIPLY(5, 0) (out nodes: )
 )";
 
   test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);
@@ -1103,16 +1103,16 @@ TEST(testgraph, duplicate_full_graph) {
   auto subgraph_node_ids = vector<NodeID>({c1, c2, plus, exp, times});
 
   auto expected_g_printout =
-      R"(Node 0 type 1 parents [ ] children [ 2 4 ] real 10
-Node 1 type 1 parents [ ] children [ 2 ] real 20
-Node 2 type 3 parents [ 0 1 ] children [ 3 4 ] real 0
-Node 3 type 3 parents [ 2 ] children [ ] positive real 1e-10
-Node 4 type 3 parents [ 2 0 ] children [ ] real 0
-Node 5 type 1 parents [ ] children [ 7 9 ] real 10
-Node 6 type 1 parents [ ] children [ 7 ] real 20
-Node 7 type 3 parents [ 5 6 ] children [ 8 9 ] real 0
-Node 8 type 3 parents [ 7 ] children [ ] positive real 1e-10
-Node 9 type 3 parents [ 7 5 ] children [ ] real 0
+      R"(0: CONSTANT(real 10) (out nodes: 2, 4)
+1: CONSTANT(real 20) (out nodes: 2)
+2: ADD(0, 1) (out nodes: 3, 4)
+3: EXP(2) (out nodes: )
+4: MULTIPLY(2, 0) (out nodes: )
+5: CONSTANT(real 10) (out nodes: 7, 9)
+6: CONSTANT(real 20) (out nodes: 7)
+7: ADD(5, 6) (out nodes: 8, 9)
+8: EXP(7) (out nodes: )
+9: MULTIPLY(7, 5) (out nodes: )
 )";
 
   test_duplicate_subgraph(g, subgraph_node_ids, expected_g_printout);

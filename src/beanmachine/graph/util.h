@@ -219,7 +219,7 @@ auto map(const Container& c, Function f) {
 }
 
 template <typename Container, typename R, typename... Args>
-auto map2vec(const Container& c, const std::function<R(Args...)>& f) {
+auto map2vec(const Container& c, std::function<R(Args...)> f) {
   return std::vector<R>(
       boost::make_transform_iterator(c.begin(), f),
       boost::make_transform_iterator(c.end(), f));

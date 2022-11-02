@@ -259,11 +259,12 @@ q2 = g.query(n2)
 
         # Note that what was a row vector in the original code is now a column vector.
         expected = """
-Node 0 type 1 parents [ ] children [ ] matrix<positive real> 1
-Node 1 type 1 parents [ ] children [ ] matrix<positive real>   1
- 1.5
-Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
- 1.5 2.5"""
+0: CONSTANT(matrix<positive real> 1) (out nodes: ) queried
+1: CONSTANT(matrix<positive real>   1
+1.5) (out nodes: ) queried
+2: CONSTANT(matrix<positive real>   1   2
+1.5 2.5) (out nodes: ) queried
+"""
         observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(expected), tidy(observed))
 
