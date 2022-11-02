@@ -12,7 +12,7 @@
 #include <set>
 #include <vector>
 
-namespace {
+namespace beanmachine::minibmg {
 
 // Compute the predecessor count for all nodes reachable from the set of roots
 // given.
@@ -104,10 +104,6 @@ bool topological_sort_internal(
   // cycle.  We return true when we succeed (no cycle).
   return predecessor_counts.size() == result.size();
 }
-
-} // namespace
-
-namespace beanmachine::minibmg {
 
 // Compute the predecessor count for all nodes reachable from the set of roots
 // given.
