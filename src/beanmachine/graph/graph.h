@@ -978,9 +978,9 @@ class Graph {
   std::function<NodeID(NodeID)> remove_node(NodeID node_id);
   std::function<NodeID(NodeID)> remove_node(std::unique_ptr<Node>& node);
 
-  std::vector<Node*> convert_parent_ids(
-      const std::vector<NodeID>& parents) const;
-  std::vector<NodeID> get_parent_ids(
+  std::vector<Node*> convert_node_ids(
+      const std::vector<NodeID>& node_ids) const;
+  std::vector<NodeID> get_node_ids(
       const std::vector<Node*>& parent_nodes) const;
   void _infer(
       uint num_samples,
@@ -1357,10 +1357,9 @@ void duplicate_subgraph(
     Graph& graph,
     const std::vector<Node*>& subgraph_ordered_nodes);
 
-/* Returns a vector of Node * from a vector of node ids for given graph. */
-std::vector<Node*> from_id_to_ptr(
-    const Graph& graph,
-    const std::vector<NodeID>& node_ids);
+inline NodeID get_index(const Node* node) {
+  return node->index;
+}
 
 } // namespace graph
 } // namespace beanmachine

@@ -1024,7 +1024,7 @@ void test_duplicate_subgraph(
     Graph& g,
     const vector<NodeID>& subgraph_node_ids,
     const string& expected_g_printout) {
-  auto subgraph_nodes = from_id_to_ptr(g, subgraph_node_ids);
+  auto subgraph_nodes = g.convert_node_ids(subgraph_node_ids);
   duplicate_subgraph(g, subgraph_nodes);
   EXPECT_EQ(g.to_string(), expected_g_printout);
 }
