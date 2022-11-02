@@ -17,7 +17,12 @@ namespace oper {
 using namespace std;
 
 unique_ptr<graph::Node> Operator::clone() {
-  return OperatorFactory::create_op(op_type, in_nodes);
+  auto result = OperatorFactory::create_op(op_type, in_nodes);
+  result->is_observed = this->is_observed;
+  if (result->is_observed) {
+    result->value = this->value;
+  }
+  return result;
 }
 
 double Operator::log_prob() const {

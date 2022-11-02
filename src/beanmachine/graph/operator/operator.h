@@ -78,5 +78,12 @@ class OperatorFactory {
   static bool factories_are_registered;
 };
 
+inline bool is_sample_or_sample_iid(const graph::Node* node) {
+  auto* op = dynamic_cast<const Operator*>(node);
+  return op != nullptr and
+      (op->op_type == graph::OperatorType::SAMPLE or
+       op->op_type == graph::OperatorType::IID_SAMPLE);
+}
+
 } // namespace oper
 } // namespace beanmachine
