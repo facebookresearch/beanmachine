@@ -86,7 +86,7 @@ TEST(testdistrib, lkj_cholesky_betas) {
   Graph g;
   const double ETA = 3.0;
   auto pos1 = g.add_constant_pos_real(ETA);
-  auto parents = g.convert_parent_ids(std::vector<uint>{pos1});
+  auto parents = g.convert_node_ids(std::vector<uint>{pos1});
 
   auto lkj_chol_dist = std::make_unique<beanmachine::distribution::LKJCholesky>(
       ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 5, 5),
@@ -108,7 +108,7 @@ TEST(testdistrib, lkj_cholesky_sample) {
   std::mt19937 mt1(0);
   const double ETA = 3.0;
   auto pos1 = g.add_constant_pos_real(ETA);
-  auto parents = g.convert_parent_ids(std::vector<uint>{pos1});
+  auto parents = g.convert_node_ids(std::vector<uint>{pos1});
 
   auto lkj_chol_dist = std::make_unique<beanmachine::distribution::LKJCholesky>(
       ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL, 5, 5),
