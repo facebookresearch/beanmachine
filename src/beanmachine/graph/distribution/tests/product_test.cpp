@@ -15,7 +15,7 @@
 #include "beanmachine/graph/global/global_state.h"
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/testing_util.h"
+#include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/third-party/nameof.h"
 #include "beanmachine/graph/util.h"
 
@@ -117,22 +117,17 @@ TEST(testdistrib, product_construction_and_log_prob) {
 }
 
 void run_nmc_against_nuts_test(Graph& g) {
-  auto max_abs_mean_diff = 0.1;
   // Increase number of rounds and observe
   // output to see the maximum absolute mean difference found
   // in case you need to adjust max_abs_mean_diff.
   auto num_rounds = 1;
   auto num_samples = 10000;
   auto warmup_samples = 1000;
-  auto seed_getter = [] { return time(nullptr); };
-  // Defining assert_near here because gtest macros
-  // are not available in util.cpp where test_nmc_against_nuts is.
-  auto assert_near = [&](double d1, double d2) {
-    ASSERT_NEAR(d1, d2, max_abs_mean_diff);
-  };
+  auto seed = time(nullptr);
+  auto max_abs_mean_diff = 0.1;
 
   test_nmc_against_nuts(
-      g, num_rounds, num_samples, warmup_samples, seed_getter, assert_near);
+      g, num_rounds, num_samples, warmup_samples, seed, max_abs_mean_diff);
 }
 
 TEST(testdistrib, product_inference_downstream) {

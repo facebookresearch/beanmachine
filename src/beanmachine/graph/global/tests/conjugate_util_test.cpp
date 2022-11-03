@@ -5,10 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include <gtest/gtest.h>
+
+#include "beanmachine/graph/global/tests/conjugate_util_test.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/testing_util.h"
+#include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
