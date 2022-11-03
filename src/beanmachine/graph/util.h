@@ -9,10 +9,12 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <sstream>
 
 #include <boost/iterator/transform_iterator.hpp>
 #include <boost/range/irange.hpp>
 #include <range/v3/action/push_back.hpp>
+#include <range/v3/view/transform.hpp>
 
 #include <Eigen/Dense>
 #include <algorithm>
@@ -229,6 +231,17 @@ auto map2vec(const Container& c, std::function<R(Args...)> f) {
       boost::make_transform_iterator(c.end(), f));
 }
 
+template <typename Container, typename T>
+std::vector<T> collect2vec(const Container& c, std::function<bool(T)> p) {
+  std::vector<T> result;
+  for (auto t : c) {
+    if (p(t)) {
+      result.push_back(t);
+    }
+  }
+  return result;
+}
+
 template <typename Iterator>
 auto sum(const std::pair<Iterator, Iterator>& range) {
   return std::accumulate(range.first, range.second, 0.0);
@@ -338,6 +351,16 @@ decltype(auto) range(Integer last) {
   return boost::irange(static_cast<Integer>(0), last);
 }
 
+template <class Integer>
+decltype(auto) range(std::pair<Integer, Integer> begin_end) {
+  return boost::irange(begin_end.first, begin_end.second);
+}
+
+template <typename T>
+inline auto find_index(const std::vector<T>& vec, const T& element) {
+  return std::find(vec.begin(), vec.end(), element) - vec.begin();
+}
+
 /*
 A generic function for breadth-first search on a directed graph.
 Parameters:
@@ -393,6 +416,20 @@ bool bfs(
 template <typename T>
 std::function<void(const T& t)> push_back_to(std::vector<T>& vec) {
   return [&](const T& t) { vec.push_back(t); };
+}
+
+template <typename Range>
+std::string join(const Range& range, const char* sep = ", ") {
+  std::ostringstream os;
+  bool first = true;
+  for (const auto& element : range) {
+    if (not first) {
+      os << sep;
+    }
+    os << element;
+    first = false;
+  }
+  return os.str();
 }
 
 } // namespace util

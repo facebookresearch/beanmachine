@@ -30,6 +30,7 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
+#include "beanmachine/graph/out_nodes_reflexive_transitive_closure.h"
 #include "beanmachine/graph/transform/transform.h"
 #include "beanmachine/graph/util.h"
 
@@ -593,8 +594,26 @@ NodeID Graph::add_node(unique_ptr<Node> node) {
   for (auto in_node : node->in_nodes) {
     in_node->out_nodes.push_back(node.get());
   }
+  // record is_observed before node is moved.
+  // We must invoke observe(index, node_value)
+  // only after insertion into nodes
+  // in order for the index to be valid.
+  bool node_is_observed = node->is_observed;
+  auto node_value = node->value;
   nodes.push_back(move(node));
+  if (node_is_observed) {
+    observe(index, node_value);
+  }
   return index;
+}
+
+void Graph::update_structure_based_properties() {
+  // Node ids no longer coincide with their positions, fix that.
+  reindex_nodes();
+  // auxiliary inference caches are invalidated
+  ready_for_evaluation_and_inference = false;
+  // Stored old values no longer valid
+  _old_values_vector_has_the_right_size = false;
 }
 
 function<NodeID(NodeID)> Graph::remove_node(NodeID node_id) {
@@ -625,13 +644,7 @@ function<NodeID(NodeID)> Graph::remove_node(unique_ptr<Node>& node) {
   observed.erase(node_id);
   erase_position(nodes, node_id);
 
-  // Node ids no longer coincide with their positions, fix that.
-  reindex_nodes();
-
-  // auxiliary inference caches are invalidated
-  ready_for_evaluation_and_inference = false;
-  // Stored old values no longer valid
-  _old_values_vector_has_the_right_size = false;
+  update_structure_based_properties();
 
   // Map from old to new ids reflects that fact that
   // nodes with greater ids were shifted down one position:
@@ -649,6 +662,113 @@ function<NodeID(NodeID)> Graph::remove_node(unique_ptr<Node>& node) {
   };
 
   return from_old_to_new_id;
+}
+
+void Graph::replace_edges(
+    Node* node,
+    const Node* old_in_node,
+    Node* new_in_node) {
+  for (auto in_node_index : util::range(node->in_nodes.size())) {
+    // NOLINTNEXTLINE(facebook-hte-ParameterUncheckedArrayBounds)
+    if (node->in_nodes[in_node_index] == old_in_node) {
+      set_edge(node, in_node_index, new_in_node);
+    }
+  }
+}
+
+void Graph::ensure_topological_comparison(Node* n1, Node* n2) {
+  if (n1->index >= n2->index) {
+    return;
+  } else {
+    /*
+    We want to add a new edge going from n2 to n1 where n2 appears _after_ n1 in
+    graph.nodes. This is a problem because graph.nodes must respect topological
+    order but adding such an edge would establish n2 < n1 in topological order
+    while n2->index > n1->index.
+
+    The problem is fixable, though. Because we are building a
+    DAG, we only want to add the n2 -> n1 if n2 is not a descendant of n1. This
+    means that we can *move* n1 and its descendants past n2 before adding the
+    edge, so that after adding the edge, all invariants remain satisfied.
+
+    We find the
+    descendants of n1 by a breadth-first search starting at it and going down
+    following its out-nodes. To save time, we abort the search if reaching n2
+    since that means the new edge would create a cycle.
+
+    We can in fact do a little better
+    than that: it may be that *some* descendants of n1 are *already* after n2 in
+    graph.nodes and don't need to be moved at all. So when performing the
+    breath-first search from n1 to identify its descendants, we can prune this
+    search once we get to descendants past n2 because they won't need to be
+    moved.
+
+    The fact that we are moving n1 and its descendants that occur before n2 in
+    graph.nodes past n2, but leaving descendants already past n2 in place also
+    means that the ones being moved past n2 must be moved *immediately* past n2
+    to ensure they continue their position *before* any of *their* own
+    descendants that were already past n2.
+    */
+    auto prune = // prune search at descendants already past n2
+        std::function([&](Node* node) {
+          return make_pair(
+              /* prune */ node->index > n2->index,
+              /* prune node itself */ true);
+        });
+    auto abort = // abort if reaching n2 because task is impossible.
+        std::function([&](Node* node) { return make_pair(node == n2, false); });
+    auto ortc = OutNodesReflexiveTransitiveClosure(n1, prune, abort);
+    if (ortc.aborted()) {
+      throw std::invalid_argument(
+          "Cannot move n1 and its descendants after n2 because n2 is a descendant of n1");
+    } else {
+      // vector has this format now:
+      // I-...
+      // -n1
+      // -(mix of n1-descendants-before-n2 D and non-n1-descendants-before-n2 N)
+      // -n2-L-...L
+      // where I are irrelevant nodes and L are later-than-n2
+      // nodes (possibly including descendants of n2).
+      //
+      // We want to reorganize the vector as
+      // I-...-N-n2-n1-D-L-...L
+      // so n1 and all its descendants are after n2,
+      // while preserving relative order.
+      //
+      // Therefore we want to stable-partition range [n1, n2 + 1) by moving the
+      // elements in the ortc to the end of the range.
+
+      // Save queries pointers to recreate queries after ids change.
+      auto query_ptrs = convert_node_ids(queries);
+
+      auto before_n1 = nodes.begin() + n1->index;
+      auto after_n2 = nodes.begin() + n2->index + 1;
+      auto& ortc_nodes = ortc.get_result();
+      auto not_in_ortc = [&](const auto& node) {
+        return not rg::contains(ortc_nodes, node.get());
+      };
+      std::stable_partition(before_n1, after_n2, not_in_ortc);
+      update_structure_based_properties();
+
+      // Restores queries with updated ids.
+      queries = get_node_ids(query_ptrs);
+
+      assert(n1->index > n2->index);
+    }
+  }
+}
+
+void Graph::set_edge(Node* node, size_t in_node_index, Node* new_in_node) {
+  // Ensure proper Graph properties, particularly topological order
+  assert(is_in_graph(node));
+  assert(is_in_graph(new_in_node));
+  ensure_topological_comparison(node, new_in_node);
+
+  assert(in_node_index < node->in_nodes.size());
+  auto old_in_node = node->in_nodes[in_node_index];
+  erase(old_in_node->out_nodes, node);
+  node->in_nodes[in_node_index] = new_in_node;
+  new_in_node->out_nodes.push_back(node);
 }
 
 void Graph::check_node_id(NodeID node_id) const {
@@ -1261,10 +1381,18 @@ vector<vector<double>>& Graph::variational(
 }
 
 void Graph::reindex_nodes() {
+  // IMPORTANT: the field 'queries' must be updated externally
+  // when changing ids.
+  // It is impossible to update it here because Node does not
+  // contain the information that it is queried.
   NodeID index = 0;
+  observed.clear();
   for (auto const& node : nodes) {
     if (node) {
       node->index = index;
+      if (node->is_observed) {
+        observed.insert(node->index);
+      }
       index++;
     }
   }
@@ -1556,9 +1684,10 @@ bool are_equal(const Node& node1, const Node& node2) {
       "are_equal(const Node& node1, const Node& node2): node1 is not instance of any supported subclass");
 }
 
-void duplicate_subgraph(
+std::vector<Node*> duplicate_subgraph(
     Graph& graph,
     const vector<Node*>& subgraph_ordered_nodes) {
+  vector<Node*> result;
   auto clone_of = std::map<const Node*, Node*>();
   for (Node* subgraph_node : subgraph_ordered_nodes) {
     auto clone = subgraph_node->clone();
@@ -1569,8 +1698,10 @@ void duplicate_subgraph(
       }
     }
     clone_of[subgraph_node] = clone.get();
+    result.push_back(clone.get());
     graph.add_node(std::move(clone));
   }
+  return result;
 }
 
 } // namespace graph
