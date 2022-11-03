@@ -6,6 +6,7 @@
 """Collection of serializers for the diagnostics tool use."""
 from typing import Dict, List
 
+from arviz.data.inference_data import InferenceData
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 
 
@@ -49,3 +50,11 @@ def serialize_bm(samples: MonteCarloSamples) -> Dict[str, List[List[float]]]:
                 )
     model = dict(sorted(reshaped_data.items(), key=lambda item: item[0]))
     return model
+
+
+def serialize_idata(idata: InferenceData) -> Dict[str, List[List[float]]]:
+    posterior = {}
+    for rv_name, rv_data in idata["posterior"].items():
+        posterior[str(rv_name)] = rv_data.data.tolist()
+    posterior = dict(sorted(posterior.items(), key=lambda items: items[0]))
+    return posterior

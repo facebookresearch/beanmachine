@@ -10,10 +10,10 @@ import re
 from abc import ABC, abstractmethod
 from typing import Any, Mapping
 
+from arviz.data.inference_data import InferenceData
 from beanmachine.ppl.diagnostics.tools import JS_DIST_DIR
 from beanmachine.ppl.diagnostics.tools.utils import plotting_utils
-from beanmachine.ppl.diagnostics.tools.utils.model_serializers import serialize_bm
-from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.ppl.diagnostics.tools.utils.model_serializers import serialize_idata
 from bokeh.embed import file_html, json_item
 from bokeh.models import Model
 from bokeh.resources import INLINE
@@ -24,7 +24,7 @@ class DiagnosticToolBaseClass(ABC):
     Base class for visual diagnostic tools.
 
     Args:
-        mcs (MonteCarloSamples): The return object from running a Bean Machine model.
+        idata (InferenceData): ArviZ InferenceData object.
 
     Attributes:
         data (Dict[str, List[List[float]]]): JSON serializable representation of the
@@ -41,11 +41,11 @@ class DiagnosticToolBaseClass(ABC):
     """
 
     @abstractmethod
-    def __init__(self: DiagnosticToolBaseClass, mcs: MonteCarloSamples) -> None:
-        self.data = serialize_bm(mcs)
+    def __init__(self: DiagnosticToolBaseClass, idata: InferenceData) -> None:
+        self.data = serialize_idata(idata)
         self.rv_names = ["Select a random variable..."] + list(self.data.keys())
-        self.num_chains = mcs.num_chains
-        self.num_draws = mcs.get_num_samples()
+        self.num_chains = len(idata["posterior"].chain)
+        self.num_draws = len(idata["posterior"].draw)
         self.palette = plotting_utils.choose_palette(self.num_chains)
         self.tool_js = self.load_tool_js()
 
