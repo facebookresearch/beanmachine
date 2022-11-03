@@ -63,7 +63,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
   Grad1 << 1, -1;
   sto_tgt_node->Grad1 = Grad1;
   sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  graph->compute_gradients(graph->get_det_affected_operator_nodes(tgt_node));
+  graph->compute_gradients(graph->get_det_affected_mutable_nodes(tgt_node));
 
   // Use gradients to obtain NMC proposal
   // @lint-ignore CLANGTIDY
