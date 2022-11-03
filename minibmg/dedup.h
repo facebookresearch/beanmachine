@@ -26,7 +26,7 @@ namespace beanmachine::minibmg {
 // resulting data structure are semantically different). This is used in the
 // implementation of dedup(), but might occasionally be useful to clients in
 // this form.
-std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots);
+std::unordered_map<Nodep, Nodep> dedup_map(const std::vector<Nodep>& roots);
 
 // Rewrite a data structure by "deduplicating" nodes reachable from it, and
 // returning a new data structure.  This is also known as common subexpression
@@ -36,15 +36,20 @@ std::unordered_map<Nodep, Nodep> dedup_map(std::vector<Nodep> roots);
 // programmer must either specialize DedupAdapter<T> or provide a type to be
 // used in its place.  If the input has a tree of nodes, the result may contain
 // a DAG (directed acyclic graph) of nodes that is no longer a tree due to
-// shared (semantically equivalent) subexpressions.
+// shared (semantically equivalent) subexpressions.  The caller can receive a
+// copy of the deduplication map by passing a non-null pointer to the ddmap
+// parameter.  In that case the provided map will be assigned a copy of the
+// node-to-node map that is the result of the deduplication.
 template <class T, class RewriteAdapter = NodeRewriteAdapter<T>>
-requires Rewritable<T, RewriteAdapter> T
-dedup(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
+// clang-format off
+requires Rewritable<T, RewriteAdapter>
+T dedup(const T& data, std::unordered_map<Nodep, Nodep>* ddmap = nullptr) {
+  // clang-format on
   RewriteAdapter adapter = RewriteAdapter{};
   auto roots = adapter.find_roots(data);
   auto map = dedup_map(roots);
   if (ddmap != nullptr) {
-    ddmap->insert(map.begin(), map.end());
+    (*ddmap) = map;
   }
   return adapter.rewrite(data, map);
 }

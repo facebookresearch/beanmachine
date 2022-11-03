@@ -12,10 +12,18 @@
 #include <set>
 #include <vector>
 
-namespace {
+namespace beanmachine::minibmg {
 
 // Compute the predecessor count for all nodes reachable from the set of roots
-// given.
+// given.  Parameters:
+//
+// root_nodes: the set of root nodes from which nodes are identified
+//
+// successors: a function mapping each node to the nodes that are successors
+//
+// nodes: a vector that will receive the full set of nodes found reachable
+//
+// include_roots: whether a root should be counted as a predecessor
 template <class T>
 std::map<T, unsigned> count_predecessors_internal(
     const std::vector<T>& root_nodes,
@@ -105,18 +113,23 @@ bool topological_sort_internal(
   return predecessor_counts.size() == result.size();
 }
 
-} // namespace
-
-namespace beanmachine::minibmg {
-
 // Compute the predecessor count for all nodes reachable from the set of roots
-// given.
+// given.  A node 'a' is a predecessor of a node 'b' if node 'b' has node 'a' as
+// a successor.  Parameters:
+//
+// root_nodes: the set of root nodes from which nodes are identified
+//
+// successors: a function mapping each node to the nodes that are its successors
+//
+// include_roots: whether or not a root should be counted as a predecessor
 template <class T>
 std::map<T, unsigned> count_predecessors(
     const std::vector<T>& root_nodes,
-    std::function<std::vector<T>(const T&)> successors) {
+    std::function<std::vector<T>(const T&)> successors,
+    bool include_roots = false) {
   std::vector<T> ready;
-  return count_predecessors_internal<T>(root_nodes, successors, ready);
+  return count_predecessors_internal<T>(
+      root_nodes, successors, ready, include_roots);
 }
 
 // Perform a topological sort of the nodes in the directed acyclic graph imposed

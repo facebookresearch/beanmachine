@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <memory>
 #include <utility>
 #include <vector>
 #include "beanmachine/minibmg/ad/real.h"
@@ -20,11 +21,9 @@ namespace beanmachine::minibmg {
 // (2) write a replacement data structure in which nodes (values of type Nodep)
 // have been deduplicated.  Those methods should be provided by the programmer
 // in the specialization and have the signatures of the two methods shown in the
-// body of this class.  They are commented out here because we don't have a way
-// of doing it for all types, and we don't want this unspecialized class to
-// satisfy the `Rewritable` concept.  We provide a number of specializations for
-// data structures likely to be needed.  `T` here is the type of the data
-// structure for which nodes contained in it are to be deduplicated.
+// body of this class.  We provide a number of specializations for data
+// structures likely to be needed.  `T` here is the type of the data structure
+// for which nodes contained in it are to be deduplicated.
 //
 // The idea of organizing the code this way, with a type that the caller may
 // specialize, is something I learned from the C++ standard template library.
@@ -39,10 +38,10 @@ class NodeRewriteAdapter {
   // class and provide methods with the signatures shown below.
 
   // locate all of the roots.
-  // std::vector<Nodep> find_roots(const T&) const;
+  std::vector<Nodep> find_roots(const T&) const;
 
   // rewrite the T, given a mapping from each node to its replacement.
-  // T rewrite(const T&, const std::unordered_map<Nodep, Nodep>&) const;
+  T rewrite(const T&, const std::unordered_map<Nodep, Nodep>&) const;
 };
 
 // A cancept asserting that the type `T` is a container that may contain nodes
@@ -58,11 +57,7 @@ concept Rewritable = requires(
     const std::unordered_map<Nodep, Nodep>& map) {
   { a.find_roots(t) } -> std::convertible_to<std::vector<Nodep>>;
   { a.rewrite(t, map) } -> std::same_as<T>;
-  // TODO: require that RewriteAdapter is default-constructible, as its instance
-  // methods would not be usable without an instance.  Once we do that we can
-  // uncomment the two methods in NodeRewriteAdapter as a guide for programmers
-  // specializing it, as the lack of a default constructor would be enough for
-  // it to fail to satisfy the `Rewritable` concept.
+  RewriteAdapter();
 };
 
 // A single node can be deduplicated
@@ -80,6 +75,25 @@ class NodeRewriteAdapter<Nodep> {
 };
 static_assert(Rewritable<Nodep>);
 
+// A scalar node can be deduplicated
+template <>
+class NodeRewriteAdapter<ScalarNodep> {
+ public:
+  std::vector<Nodep> find_roots(const ScalarNodep& n) const {
+    return {n};
+  }
+  ScalarNodep rewrite(
+      const ScalarNodep& node,
+      const std::unordered_map<Nodep, Nodep>& map) const {
+    auto f = map.find(node);
+    if (f == map.end()) {
+      return node;
+    }
+    return std::dynamic_pointer_cast<const ScalarNode>(f->second);
+  }
+};
+static_assert(Rewritable<ScalarNodep>);
+
 // A vector can be deduplicated.
 template <class T>
 requires Rewritable<T>
@@ -90,8 +104,8 @@ class NodeRewriteAdapter<std::vector<T>> {
   std::vector<Nodep> find_roots(const std::vector<T>& roots) const {
     std::vector<Nodep> result;
     for (const auto& root : roots) {
-      auto more_roots = t_helper.find_roots(root);
-      result.push_back(more_roots.begin(), more_roots.end());
+      std::vector<Nodep> more_roots = t_helper.find_roots(root);
+      result.insert(result.end(), more_roots.begin(), more_roots.end());
     }
     return result;
   }
