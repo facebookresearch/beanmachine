@@ -55,13 +55,13 @@ digraph "graph" {
 
         observed = to_bmg_graph(bmg).graph.to_string()
         expected = """
-Node 0 type 1 parents [ ] children [ 2 ] real 3
-Node 1 type 1 parents [ ] children [ 2 ] positive real 2
-Node 2 type 2 parents [ 0 1 ] children [ 3 ] unknown
-Node 3 type 3 parents [ 2 ] children [ 5 5 6 ] real 7
-Node 4 type 1 parents [ ] children [ 6 ] probability 0.4
-Node 5 type 3 parents [ 3 3 ] children [ 6 ] real 0
-Node 6 type 4 parents [ 3 4 5 ] children [ ] unknown
+0: CONSTANT(real 3) (out nodes: 2)
+1: CONSTANT(positive real 2) (out nodes: 2)
+2: NORMAL(0, 1) (out nodes: 3)
+3: SAMPLE(2) (out nodes: 5, 5, 6) observed to be real 7
+4: CONSTANT(probability 0.4) (out nodes: 6)
+5: MULTIPLY(3, 3) (out nodes: 6)
+6: EXP_PRODUCT(3, 4, 5) (out nodes: ) observed to be unknown
 """
         self.assertEqual(tidy(expected), tidy(observed))
 

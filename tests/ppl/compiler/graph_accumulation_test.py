@@ -100,39 +100,39 @@ def chi2():
 
 
 expected_bmg_1 = """
-Node 0 type 1 parents [ ] children [ 1 22 ] probability 0.5
-Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
-Node 2 type 3 parents [ 1 ] children [ ] boolean 0
-Node 3 type 1 parents [ ] children [ 4 ] probability 0.119203
-Node 4 type 2 parents [ 3 ] children [ 5 ] unknown
-Node 5 type 3 parents [ 4 ] children [ ] boolean 0
-Node 6 type 1 parents [ ] children [ 8 ] real 0
-Node 7 type 1 parents [ ] children [ 8 12 12 14 25 ] positive real 1
-Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown
-Node 9 type 3 parents [ 8 ] children [ 10 19 ] real 0
-Node 10 type 2 parents [ 9 ] children [ 11 ] unknown
-Node 11 type 3 parents [ 10 ] children [ ] boolean 0
-Node 12 type 2 parents [ 7 7 ] children [ 13 ] unknown
-Node 13 type 3 parents [ 12 ] children [ ] probability 1e-10
-Node 14 type 2 parents [ 7 ] children [ 15 16 ] unknown
-Node 15 type 3 parents [ 14 ] children [ 17 19 ] positive real 1e-10
-Node 16 type 3 parents [ 14 ] children [ 17 19 ] positive real 1e-10
-Node 17 type 2 parents [ 15 16 ] children [ 18 ] unknown
-Node 18 type 3 parents [ 17 ] children [ ] probability 1e-10
-Node 19 type 2 parents [ 15 9 16 ] children [ 20 ] unknown
-Node 20 type 3 parents [ 19 ] children [ ] real 0
-Node 21 type 1 parents [ ] children [ 22 ] natural 3
-Node 22 type 2 parents [ 21 0 ] children [ 23 ] unknown
-Node 23 type 3 parents [ 22 ] children [ ] natural 0
-Node 24 type 1 parents [ ] children [ 25 ] positive real 2
-Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown
-Node 26 type 3 parents [ 25 ] children [ ] positive real 1e-10
-Node 27 type 2 parents [ ] children [ 28 ] unknown
-Node 28 type 3 parents [ 27 ] children [ ] probability 1e-10
-Node 29 type 1 parents [ ] children [ 31 ] positive real 4
-Node 30 type 1 parents [ ] children [ 31 ] positive real 0.5
-Node 31 type 2 parents [ 29 30 ] children [ 32 ] unknown
-Node 32 type 3 parents [ 31 ] children [ ] positive real 1e-10
+0: CONSTANT(probability 0.5) (out nodes: 1, 22)
+1: BERNOULLI(0) (out nodes: 2)
+2: SAMPLE(1) (out nodes: ) queried
+3: CONSTANT(probability 0.119203) (out nodes: 4)
+4: BERNOULLI(3) (out nodes: 5)
+5: SAMPLE(4) (out nodes: ) queried
+6: CONSTANT(real 0) (out nodes: 8)
+7: CONSTANT(positive real 1) (out nodes: 8, 12, 12, 14, 25)
+8: NORMAL(6, 7) (out nodes: 9)
+9: SAMPLE(8) (out nodes: 10, 19) queried
+10: BERNOULLI_LOGIT(9) (out nodes: 11)
+11: SAMPLE(10) (out nodes: ) queried
+12: BETA(7, 7) (out nodes: 13)
+13: SAMPLE(12) (out nodes: ) queried
+14: HALF_CAUCHY(7) (out nodes: 15, 16)
+15: SAMPLE(14) (out nodes: 17, 19) queried
+16: SAMPLE(14) (out nodes: 17, 19) queried
+17: BETA(15, 16) (out nodes: 18)
+18: SAMPLE(17) (out nodes: ) queried
+19: STUDENT_T(15, 9, 16) (out nodes: 20)
+20: SAMPLE(19) (out nodes: ) queried
+21: CONSTANT(natural 3) (out nodes: 22)
+22: BINOMIAL(21, 0) (out nodes: 23)
+23: SAMPLE(22) (out nodes: ) queried
+24: CONSTANT(positive real 2) (out nodes: 25)
+25: GAMMA(7, 24) (out nodes: 26)
+26: SAMPLE(25) (out nodes: ) queried
+27: FLAT() (out nodes: 28)
+28: SAMPLE(27) (out nodes: ) queried
+29: CONSTANT(positive real 4) (out nodes: 31)
+30: CONSTANT(positive real 0.5) (out nodes: 31)
+31: GAMMA(29, 30) (out nodes: 32)
+32: SAMPLE(31) (out nodes: ) queried
 """
 
 # These are cases where we have a type conversion on a sample.
@@ -156,21 +156,21 @@ def binomial_from_bools():
 
 
 expected_bmg_2 = """
-Node 0 type 1 parents [ ] children [ 1 ] probability 0.5
-Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
-Node 2 type 3 parents [ 1 ] children [ 3 4 9 12 ] boolean 0
-Node 3 type 3 parents [ 2 ] children [ 5 ] real 0
-Node 4 type 3 parents [ 2 ] children [ 5 ] positive real 1e-10
-Node 5 type 2 parents [ 3 4 ] children [ 6 ] unknown
-Node 6 type 3 parents [ 5 ] children [ ] real 0
-Node 7 type 1 parents [ ] children [ 9 ] natural 1
-Node 8 type 1 parents [ ] children [ 9 ] natural 0
-Node 9 type 3 parents [ 2 7 8 ] children [ 13 ] natural 1
-Node 10 type 1 parents [ ] children [ 12 ] probability 1
-Node 11 type 1 parents [ ] children [ 12 ] probability 1e-10
-Node 12 type 3 parents [ 2 10 11 ] children [ 13 ] probability 1
-Node 13 type 2 parents [ 9 12 ] children [ 14 ] unknown
-Node 14 type 3 parents [ 13 ] children [ ] natural 0
+0: CONSTANT(probability 0.5) (out nodes: 1)
+1: BERNOULLI(0) (out nodes: 2)
+2: SAMPLE(1) (out nodes: 3, 4, 9, 12)
+3: TO_REAL(2) (out nodes: 5)
+4: TO_POS_REAL(2) (out nodes: 5)
+5: NORMAL(3, 4) (out nodes: 6)
+6: SAMPLE(5) (out nodes: ) queried
+7: CONSTANT(natural 1) (out nodes: 9)
+8: CONSTANT(natural 0) (out nodes: 9)
+9: IF_THEN_ELSE(2, 7, 8) (out nodes: 13)
+10: CONSTANT(probability 1) (out nodes: 12)
+11: CONSTANT(probability 1e-10) (out nodes: 12)
+12: IF_THEN_ELSE(2, 10, 11) (out nodes: 13)
+13: BINOMIAL(9, 12) (out nodes: 14)
+14: SAMPLE(13) (out nodes: ) queried
 """
 
 
@@ -189,16 +189,16 @@ def bool_times_natural():
 
 
 expected_bmg_3 = """
-Node 0 type 1 parents [ ] children [ 2 ] natural 3
-Node 1 type 1 parents [ ] children [ 2 4 8 ] probability 0.5
-Node 2 type 2 parents [ 0 1 ] children [ 3 ] unknown
-Node 3 type 3 parents [ 2 ] children [ 7 ] natural 0
-Node 4 type 2 parents [ 1 ] children [ 5 ] unknown
-Node 5 type 3 parents [ 4 ] children [ 7 ] boolean 0
-Node 6 type 1 parents [ ] children [ 7 ] natural 0
-Node 7 type 3 parents [ 5 3 6 ] children [ 8 ] natural 0
-Node 8 type 2 parents [ 7 1 ] children [ 9 ] unknown
-Node 9 type 3 parents [ 8 ] children [ ] natural 0
+0: CONSTANT(natural 3) (out nodes: 2)
+1: CONSTANT(probability 0.5) (out nodes: 2, 4, 8)
+2: BINOMIAL(0, 1) (out nodes: 3)
+3: SAMPLE(2) (out nodes: 7)
+4: BERNOULLI(1) (out nodes: 5)
+5: SAMPLE(4) (out nodes: 7)
+6: CONSTANT(natural 0) (out nodes: 7)
+7: IF_THEN_ELSE(5, 3, 6) (out nodes: 8)
+8: BINOMIAL(7, 1) (out nodes: 9)
+9: SAMPLE(8) (out nodes: ) queried
 """
 
 # Tests for math functions
@@ -231,24 +231,24 @@ def math4():
 
 
 expected_bmg_4 = """
-Node 0 type 1 parents [ ] children [ 1 ] positive real 1
-Node 1 type 2 parents [ 0 ] children [ 2 3 8 9 13 ] unknown
-Node 2 type 3 parents [ 1 ] children [ 4 ] positive real 1e-10
-Node 3 type 3 parents [ 1 ] children [ 5 ] positive real 1e-10
-Node 4 type 3 parents [ 2 ] children [ 6 ] real 0
-Node 5 type 3 parents [ 3 ] children [ 6 ] positive real 1e-10
-Node 6 type 2 parents [ 4 5 ] children [ 7 ] unknown
-Node 7 type 3 parents [ 6 ] children [ ] real 0
-Node 8 type 3 parents [ 1 ] children [ 10 ] positive real 1e-10
-Node 9 type 3 parents [ 1 ] children [ 10 ] positive real 1e-10
-Node 10 type 3 parents [ 8 9 ] children [ 11 ] positive real 1e-10
-Node 11 type 2 parents [ 10 ] children [ 12 ] unknown
-Node 12 type 3 parents [ 11 ] children [ ] positive real 1e-10
-Node 13 type 3 parents [ 1 ] children [ 14 ] positive real 1e-10
-Node 14 type 3 parents [ 13 ] children [ 15 ] real 0
-Node 15 type 3 parents [ 14 ] children [ 16 ] probability 1e-10
-Node 16 type 2 parents [ 15 ] children [ 17 ] unknown
-Node 17 type 3 parents [ 16 ] children [ ] boolean 0
+0: CONSTANT(positive real 1) (out nodes: 1)
+1: HALF_CAUCHY(0) (out nodes: 2, 3, 8, 9, 13)
+2: SAMPLE(1) (out nodes: 4)
+3: SAMPLE(1) (out nodes: 5)
+4: LOG(2) (out nodes: 6)
+5: EXP(3) (out nodes: 6)
+6: NORMAL(4, 5) (out nodes: 7)
+7: SAMPLE(6) (out nodes: ) queried
+8: SAMPLE(1) (out nodes: 10)
+9: SAMPLE(1) (out nodes: 10)
+10: POW(8, 9) (out nodes: 11)
+11: HALF_CAUCHY(10) (out nodes: 12)
+12: SAMPLE(11) (out nodes: ) queried
+13: SAMPLE(1) (out nodes: 14)
+14: TO_REAL(13) (out nodes: 15)
+15: PHI(14) (out nodes: 16)
+16: BERNOULLI(15) (out nodes: 17)
+17: SAMPLE(16) (out nodes: ) queried
 """
 
 # Demonstrate that we generate 1-p as a complement
@@ -260,12 +260,12 @@ def flip_complement():
 
 
 expected_bmg_5 = """
-Node 0 type 1 parents [ ] children [ 1 1 ] positive real 1
-Node 1 type 2 parents [ 0 0 ] children [ 2 ] unknown
-Node 2 type 3 parents [ 1 ] children [ 3 ] probability 1e-10
-Node 3 type 3 parents [ 2 ] children [ 4 ] probability 1e-10
-Node 4 type 2 parents [ 3 ] children [ 5 ] unknown
-Node 5 type 3 parents [ 4 ] children [ ] boolean 0
+0: CONSTANT(positive real 1) (out nodes: 1, 1)
+1: BETA(0, 0) (out nodes: 2)
+2: SAMPLE(1) (out nodes: 3)
+3: COMPLEMENT(2) (out nodes: 4)
+4: BERNOULLI(3) (out nodes: 5)
+5: SAMPLE(4) (out nodes: ) queried
 """
 
 
@@ -278,13 +278,13 @@ def beta_neg_log():
 
 
 expected_bmg_6 = """
-Node 0 type 1 parents [ ] children [ 1 1 5 ] positive real 1
-Node 1 type 2 parents [ 0 0 ] children [ 2 ] unknown
-Node 2 type 3 parents [ 1 ] children [ 3 ] probability 1e-10
-Node 3 type 3 parents [ 2 ] children [ 4 ] negative real -1e-10
-Node 4 type 3 parents [ 3 ] children [ 5 ] positive real 1e-10
-Node 5 type 2 parents [ 4 0 ] children [ 6 ] unknown
-Node 6 type 3 parents [ 5 ] children [ ] probability 1e-10
+0: CONSTANT(positive real 1) (out nodes: 1, 1, 5)
+1: BETA(0, 0) (out nodes: 2)
+2: SAMPLE(1) (out nodes: 3)
+3: LOG(2) (out nodes: 4)
+4: NEGATE(3) (out nodes: 5)
+5: BETA(4, 0) (out nodes: 6)
+6: SAMPLE(5) (out nodes: ) queried
 """
 
 # Demonstrate that identity additions and multiplications

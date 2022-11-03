@@ -85,14 +85,15 @@ digraph "graph" {
         g = to_bmg_graph(bmg).graph
         observed = g.to_string()
         expected = """
-Node 0 type 1 parents [ ] children [ 1 ] probability 0.5
-Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
-Node 2 type 3 parents [ 1 ] children [ 4 ] boolean 1
-Node 3 type 1 parents [ ] children [ 6 7 ] real 2
-Node 4 type 3 parents [ 2 ] children [ 5 ] real 0
-Node 5 type 3 parents [ 4 ] children [ 6 ] real 0
-Node 6 type 3 parents [ 3 5 ] children [ 7 ] real 0
-Node 7 type 3 parents [ 3 6 ] children [ ] real 0"""
+0: CONSTANT(probability 0.5) (out nodes: 1)
+1: BERNOULLI(0) (out nodes: 2)
+2: SAMPLE(1) (out nodes: 4) observed to be boolean 1
+3: CONSTANT(real 2) (out nodes: 6, 7)
+4: TO_REAL(2) (out nodes: 5)
+5: NEGATE(4) (out nodes: 6)
+6: ADD(3, 5) (out nodes: 7)
+7: MULTIPLY(3, 6) (out nodes: ) queried
+"""
         self.assertEqual(tidy(expected), tidy(observed))
 
         observed = to_bmg_python(bmg).code
@@ -197,16 +198,17 @@ digraph "graph" {
         observed = g.to_string()
         # Here however the orphaned nodes are never added to the graph.
         expected = """
-Node 0 type 1 parents [ ] children [ 1 ] probability 0.25
-Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
-Node 2 type 3 parents [ 1 ] children [ 3 ] boolean 0
-Node 3 type 3 parents [ 2 ] children [ 4 ] boolean 0
-Node 4 type 3 parents [ 3 ] children [ 6 ] positive real 1e-10
-Node 5 type 1 parents [ ] children [ 6 ] positive real 0.5
-Node 6 type 3 parents [ 4 5 ] children [ 8 ] positive real 1e-10
-Node 7 type 1 parents [ ] children [ 8 ] positive real 2
-Node 8 type 3 parents [ 6 7 ] children [ 9 ] positive real 1e-10
-Node 9 type 3 parents [ 8 ] children [ ] real 0"""
+0: CONSTANT(probability 0.25) (out nodes: 1)
+1: BERNOULLI(0) (out nodes: 2)
+2: SAMPLE(1) (out nodes: 3)
+3: COMPLEMENT(2) (out nodes: 4)
+4: TO_POS_REAL(3) (out nodes: 6)
+5: CONSTANT(positive real 0.5) (out nodes: 6)
+6: MULTIPLY(4, 5) (out nodes: 8)
+7: CONSTANT(positive real 2) (out nodes: 8)
+8: POW(6, 7) (out nodes: 9)
+9: LOG(8) (out nodes: ) queried
+"""
         self.assertEqual(tidy(expected), tidy(observed))
 
     def test_to_positive_real(self) -> None:

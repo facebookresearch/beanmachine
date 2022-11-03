@@ -662,6 +662,39 @@ using StochasticAffectedNodes = std::vector<NodeID>;
 using AffectedNodes =
     std::tuple<DeterministicAffectedNodes, StochasticAffectedNodes>;
 
+/*
+Indicates whether two nodes are equal (same type and same in-nodes).
+This ignores out-nodes and node index.
+*/
+bool are_equal(const graph::Node& node1, const graph::Node& node2);
+
+template <typename NodePtr>
+std::string in_nodes_string(const NodePtr& node) {
+  return join(node->in_nodes);
+}
+
+inline auto is(const NodeType& node_type) {
+  return [&](const Node* n) { return n->node_type == node_type; };
+}
+
+inline std::vector<Node*> const& get_out_nodes(const Node* n) {
+  return n->out_nodes;
+}
+
+inline std::string join(std::vector<Node*> nodes, const char* sep = ", ") {
+  using boost::adaptors::transformed;
+  using boost::algorithm::join;
+  return join(
+      nodes | transformed([](const Node* node) {
+        return std::to_string(node->index);
+      }),
+      sep);
+}
+
+inline NodeID get_index(const Node* node) {
+  return node->index;
+}
+
 class Graph {
  public:
   Graph() {}
@@ -674,7 +707,7 @@ class Graph {
   Graph& operator=(const Graph& other);
 
   ~Graph() {}
-  std::string to_string() const;
+  std::string to_string(bool show_pointers = false) const;
   std::string to_dot() const;
   // Graph builder APIs -> return the node number
   NodeID add_constant(bool value);
@@ -954,8 +987,8 @@ class Graph {
   // so all this needs to be cleaned up.
   Node* check_observed_node(NodeID node_id, bool is_scalar);
   void add_observe(Node* node, NodeValue val);
-  Node* get_node(NodeID node_id);
-  void check_node_id(NodeID node_id);
+  Node* get_node(NodeID node_id) const;
+  void check_node_id(NodeID node_id) const;
 
   /*
   Adds node to graph, assuming it is already properly connected to parents,
@@ -980,8 +1013,12 @@ class Graph {
 
   std::vector<Node*> convert_node_ids(
       const std::vector<NodeID>& node_ids) const;
-  std::vector<NodeID> get_node_ids(
-      const std::vector<Node*>& parent_nodes) const;
+
+  template <typename Range>
+  std::vector<NodeID> get_node_ids(const Range& nodes) const {
+    return util::map2vec(nodes, std::function(get_index));
+  }
+
   void _infer(
       uint num_samples,
       InferenceType algorithm,
@@ -1193,7 +1230,8 @@ class Graph {
   const std::vector<Node*>& get_det_affected_mutable_nodes(NodeID node_id);
   const std::vector<Node*>& get_sto_affected_nodes(NodeID node_id);
 
-  inline const std::vector<Node*>& get_det_affected_mutable_nodes(Node* node) {
+  inline const std::vector<Node*>& get_det_affected_mutable_nodes(
+      const Node* node) {
     return get_det_affected_mutable_nodes(node->index);
   }
 
@@ -1323,21 +1361,8 @@ class Graph {
   };
 };
 
-/*
-Indicates whether two nodes are equal (same type and same in-nodes).
-This ignores out-nodes and node index.
-*/
-bool are_equal(const graph::Node& node1, const graph::Node& node2);
-
-template <typename NodePtr>
-std::string in_nodes_string(const NodePtr& node) {
-  using boost::adaptors::transformed;
-  using boost::algorithm::join;
-  return join(
-      node->in_nodes | transformed([](const Node* node) {
-        return std::to_string(node->index);
-      }),
-      ", ");
+inline auto get_node(const Graph& graph) {
+  return [&](NodeID id) { return graph.get_node(id); };
 }
 
 /*
@@ -1356,10 +1381,6 @@ will have already been cloned when it is redirected.
 void duplicate_subgraph(
     Graph& graph,
     const std::vector<Node*>& subgraph_ordered_nodes);
-
-inline NodeID get_index(const Node* node) {
-  return node->index;
-}
 
 } // namespace graph
 } // namespace beanmachine
