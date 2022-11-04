@@ -30,7 +30,7 @@ namespace beanmachine::minibmg {
 
 const std::unordered_map<Nodep, double>& observations_by_node(
     const Graph& graph) {
-  return *ObservationByNodeProperty::get(graph);
+  return ObservationByNodeProperty::get(graph);
 }
 
 } // namespace beanmachine::minibmg
