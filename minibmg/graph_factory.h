@@ -17,35 +17,20 @@ namespace beanmachine::minibmg {
 
 class Node;
 
-// An opaque identifier for a node.
-class NodeIdentifier {
- public:
-  NodeIdentifier() = delete;
-  explicit NodeIdentifier(unsigned long value);
-  unsigned long _value() const;
-
- private:
+struct NodeId {
   unsigned long value;
+  NodeId() : value{0} {}
+  explicit NodeId(unsigned long value) : value{value} {}
 };
-using NodeId = std::shared_ptr<NodeIdentifier>;
-
-class ScalarNodeIdentifier : public NodeIdentifier {
- public:
-  explicit ScalarNodeIdentifier(unsigned long value);
+struct ScalarNodeId : public NodeId {
+  explicit ScalarNodeId(unsigned long value) : NodeId{value} {}
 };
-using ScalarNodeId = std::shared_ptr<ScalarNodeIdentifier>;
-
-class ScalarSampleNodeIdentifier : public ScalarNodeIdentifier {
- public:
-  explicit ScalarSampleNodeIdentifier(unsigned long value);
+struct ScalarSampleNodeId : public ScalarNodeId {
+  explicit ScalarSampleNodeId(unsigned long value) : ScalarNodeId{value} {}
 };
-using ScalarSampleNodeId = std::shared_ptr<ScalarSampleNodeIdentifier>;
-
-class DistributionNodeIdentifier : public NodeIdentifier {
- public:
-  explicit DistributionNodeIdentifier(unsigned long value);
+struct DistributionNodeId : public NodeId {
+  explicit DistributionNodeId(unsigned long value) : NodeId{value} {}
 };
-using DistributionNodeId = std::shared_ptr<DistributionNodeIdentifier>;
 
 } // namespace beanmachine::minibmg
 
@@ -53,7 +38,7 @@ using DistributionNodeId = std::shared_ptr<DistributionNodeIdentifier>;
 template <>
 struct std::hash<beanmachine::minibmg::NodeId> {
   std::size_t operator()(const beanmachine::minibmg::NodeId& n) const noexcept {
-    return (std::size_t)n->_value();
+    return (std::size_t)n.value;
   }
 };
 template <>
@@ -61,7 +46,7 @@ struct std::equal_to<beanmachine::minibmg::NodeId> {
   bool operator()(
       const beanmachine::minibmg::NodeId& lhs,
       const beanmachine::minibmg::NodeId& rhs) const {
-    return lhs->_value() == rhs->_value();
+    return lhs.value == rhs.value;
   }
 };
 
@@ -70,7 +55,7 @@ template <>
 struct fmt::formatter<beanmachine::minibmg::NodeId>
     : fmt::formatter<std::string> {
   auto format(const beanmachine::minibmg::NodeId& n, format_context& ctx) {
-    return formatter<std::string>::format(fmt::format("{}", n->_value()), ctx);
+    return formatter<std::string>::format(fmt::format("{}", n.value), ctx);
   }
 };
 
