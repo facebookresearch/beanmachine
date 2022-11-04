@@ -10,7 +10,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <random>
-
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/num3.h"
 #include "beanmachine/minibmg/ad/real.h"
