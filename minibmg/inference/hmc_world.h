@@ -30,7 +30,7 @@ class HMCWorld {
   // The total number of samples appearing in the model that are NOT observed.
   virtual unsigned num_unobserved_samples() const = 0;
 
-  // Given proposed assigned values for all of the onobserved samples in the
+  // Given proposed assigned values for all of the unobserved samples in the
   // model (transformed, if necessary, so that they are unconstrained -
   // supported over the real numbers), given in the same order as the
   // observation nodes appear in the graph, compute the log probability of the
@@ -39,23 +39,25 @@ class HMCWorld {
   virtual double log_prob(
       const std::vector<double>& proposed_unconstrained_values) const = 0;
 
-  // Given proposed assigned values for all of the onobserved samples in the
+  // Given proposed assigned values for all of the unobserved samples in the
   // model (transformed, if necessary, so that they are unconstrained -
   // supported over the real numbers), given in the same order as the
   // observation nodes appear in the graph, compute the first derivative of the
   // log probability with respect to each of the proposed values.  The input
   // vector is required to be of a size that is equal to the return value of
   // num_unobserved_samples.
-  virtual std::vector<double> gradients(
-      const std::vector<double>& proposed_unconstrained_values) const = 0;
+  virtual void gradients(
+      const std::vector<double>& proposed_unconstrained_values,
+      std::vector<double>& result) const = 0;
 
-  // Given proposed assigned values for all of the onobserved samples in the
+  // Given proposed assigned values for all of the unobserved samples in the
   // model (as in evaluate), compute the value of queried nodes in the model.
   // Queried values are returned in the untransformed space.  The input
   // vector is required to be of a size that is equal to the return value of
   // num_unobserved_samples.
-  virtual std::vector<double> queries(
-      const std::vector<double>& proposed_unconstrained_values) const = 0;
+  virtual void queries(
+      const std::vector<double>& proposed_unconstrained_values,
+      std::vector<double>& result) const = 0;
 
   virtual ~HMCWorld() {}
 };

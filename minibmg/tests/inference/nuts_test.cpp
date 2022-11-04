@@ -55,7 +55,7 @@ TEST(nuts_test, coin_flipping) {
   f.query(s);
   auto graph = f.build();
 
-  auto state = std::make_unique<MinibmgGlobalState>(graph);
+  auto state = MinibmgGlobalState::create1(graph);
   auto nuts = NUTS(std::move(state));
 
   auto start = std::chrono::high_resolution_clock::now();
