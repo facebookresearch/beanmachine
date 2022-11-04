@@ -48,19 +48,16 @@ TEST(testcontainer, idempotence) {
   MyContainer g2;
 
   // get the corresponding value for each.
-  auto v2 = MyProperty::get(g2);
-  auto v1 = MyProperty::get(g1);
-
-  ASSERT_NE(v1, nullptr);
-  ASSERT_NE(v2, nullptr);
+  auto& v2 = MyProperty::get(g2);
+  auto& v1 = MyProperty::get(g1);
 
   // assert that the values were created in the order accessed.
-  ASSERT_EQ(v1->sequence, 1);
-  ASSERT_EQ(v2->sequence, 0);
+  ASSERT_EQ(v1.sequence, 1);
+  ASSERT_EQ(v2.sequence, 0);
 
   // assert that the value is created only once.
-  ASSERT_EQ(MyProperty::get(g1)->sequence, 1);
-  ASSERT_EQ(MyProperty::get(g2)->sequence, 0);
+  ASSERT_EQ(MyProperty::get(g1).sequence, 1);
+  ASSERT_EQ(MyProperty::get(g2).sequence, 0);
 }
 
 class Value1 : public SomeValue {};
@@ -92,14 +89,14 @@ TEST(testcontainer, ordering) {
   // cycle between value creators, they can reference each other.
   // TODO: we could detect cycles and report them (and test that we do).
   MyContainer g1;
-  auto v1 = Property1::get(g1);
-  auto v2 = Property2::get(g1);
-  ASSERT_EQ(v1->sequence, 1);
-  ASSERT_EQ(v2->sequence, 0);
+  auto& v1 = Property1::get(g1);
+  auto& v2 = Property2::get(g1);
+  ASSERT_EQ(v1.sequence, 1);
+  ASSERT_EQ(v2.sequence, 0);
 
   MyContainer g2;
-  auto v3 = Property2::get(g2);
-  auto v4 = Property1::get(g2);
-  ASSERT_EQ(v3->sequence, 2);
-  ASSERT_EQ(v4->sequence, 3);
+  auto& v3 = Property2::get(g2);
+  auto& v4 = Property1::get(g2);
+  ASSERT_EQ(v3.sequence, 2);
+  ASSERT_EQ(v4.sequence, 3);
 }
