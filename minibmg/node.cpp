@@ -272,7 +272,7 @@ void ScalarConstantNode::accept(NodeVisitor& visitor) const {
 
 ScalarVariableNode::ScalarVariableNode(
     const std::string& name,
-    const unsigned identifier)
+    const int identifier)
     : ScalarNode{hash_combine(
           std::hash<std::string>{}("ScalarVariableNode"),
           std::hash<std::string>{}(name),
