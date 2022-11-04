@@ -25,9 +25,9 @@ requires Number<T> T expit(const T& x) {
   return 1 / (1 + exp(-x));
 }
 
-const int num_heads = 15;
-const int num_tails = 1;
-const int num_samples = 1000;
+const int num_heads = 85;
+const int num_tails = 16;
+const int num_samples = 10000;
 const int skip_samples = std::min(num_samples / 2, 500);
 const int seed = 12345;
 
@@ -82,8 +82,8 @@ TEST(nuts_test, coin_flipping) {
   double average = sum / num_samples;
   // the following is the actual computed value using bmg
   double expected =
-      0.46432190477921237; // num_heads / (num_heads + num_tails + 0.0);
-  ASSERT_NEAR(average, expected, 0.001);
+      0.79917571447213298; // num_heads / (num_heads + num_tails + 0.0);
+  ASSERT_NEAR(average, expected, 1e-7);
 }
 
 // Take a familiar-looking model and runs NUTS using bmg.
@@ -152,6 +152,6 @@ TEST(nuts_test, coin_flipping_bmg) {
   double average = sum / num_samples;
   // the following is the actual computed value using bmg
   double expected =
-      0.46432190477921237; // num_heads / (num_heads + num_tails + 0.0);
-  ASSERT_NEAR(average, expected, 0.001);
+      0.79917571447213298; // num_heads / (num_heads + num_tails + 0.0);
+  ASSERT_NEAR(average, expected, 1e-7);
 }
