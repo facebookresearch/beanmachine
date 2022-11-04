@@ -79,7 +79,7 @@ namespace beanmachine::minibmg {
 class Graph::Factory {
  public:
   ScalarNodeId constant(double value);
-  ScalarNodeId variable(const std::string& name, const unsigned identifier);
+  ScalarNodeId variable(const std::string& name, const int identifier);
   ScalarSampleNodeId sample(
       DistributionNodeId distribution,
       const std::string& rvid = make_fresh_rvid());

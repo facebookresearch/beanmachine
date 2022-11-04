@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <vector>
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/topological.h"

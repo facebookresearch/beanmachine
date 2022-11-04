@@ -34,7 +34,7 @@ ScalarNodeId Graph::Factory::constant(double value) {
 }
 ScalarNodeId Graph::Factory::variable(
     const std::string& name,
-    const unsigned identifier) {
+    const int identifier) {
   ScalarNodep result = std::make_shared<ScalarVariableNode>(name, identifier);
   return add_node(result);
 }
