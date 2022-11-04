@@ -261,9 +261,7 @@ std::string make_fresh_rvid() {
 }
 
 ScalarConstantNode::ScalarConstantNode(double constant_value)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarConstantNode"),
-          std::hash<double>{}(constant_value))},
+    : ScalarNode{hash_combine(1, std::hash<double>{}(constant_value))},
       constant_value(constant_value) {}
 
 void ScalarConstantNode::accept(NodeVisitor& visitor) const {
@@ -274,7 +272,7 @@ ScalarVariableNode::ScalarVariableNode(
     const std::string& name,
     const int identifier)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarVariableNode"),
+          2,
           std::hash<std::string>{}(name),
           std::hash<unsigned>{}(identifier))},
       name{name},
@@ -288,7 +286,7 @@ ScalarSampleNode::ScalarSampleNode(
     const DistributionNodep& distribution,
     const std::string& rvid)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarSampleNode"),
+          3,
           distribution->cached_hash_value,
           std::hash<std::string>{}(rvid))},
       distribution{distribution},
@@ -300,7 +298,7 @@ void ScalarSampleNode::accept(NodeVisitor& visitor) const {
 
 ScalarAddNode::ScalarAddNode(const ScalarNodep& left, const ScalarNodep& right)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarAddNode"),
+          4,
           left->cached_hash_value,
           right->cached_hash_value)},
       left{left},
@@ -314,7 +312,7 @@ ScalarSubtractNode::ScalarSubtractNode(
     const ScalarNodep& left,
     const ScalarNodep& right)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarSubtractNode"),
+          5,
           left->cached_hash_value,
           right->cached_hash_value)},
       left{left},
@@ -325,10 +323,7 @@ void ScalarSubtractNode::accept(NodeVisitor& visitor) const {
 }
 
 ScalarNegateNode::ScalarNegateNode(const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarNegateNode"),
-          x->cached_hash_value)},
-      x{x} {}
+    : ScalarNode{hash_combine(6, x->cached_hash_value)}, x{x} {}
 
 void ScalarNegateNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
@@ -338,7 +333,7 @@ ScalarMultiplyNode::ScalarMultiplyNode(
     const ScalarNodep& left,
     const ScalarNodep& right)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarMultiplyNode"),
+          7,
           left->cached_hash_value,
           right->cached_hash_value)},
       left{left},
@@ -352,7 +347,7 @@ ScalarDivideNode::ScalarDivideNode(
     const ScalarNodep& left,
     const ScalarNodep& right)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarDivideNode"),
+          8,
           left->cached_hash_value,
           right->cached_hash_value)},
       left{left},
@@ -364,7 +359,7 @@ void ScalarDivideNode::accept(NodeVisitor& visitor) const {
 
 ScalarPowNode::ScalarPowNode(const ScalarNodep& left, const ScalarNodep& right)
     : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarPowNode"),
+          9,
           left->cached_hash_value,
           right->cached_hash_value)},
       left{left},
@@ -375,40 +370,28 @@ void ScalarPowNode::accept(NodeVisitor& visitor) const {
 }
 
 ScalarExpNode::ScalarExpNode(const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarExpNode"),
-          x->cached_hash_value)},
-      x{x} {}
+    : ScalarNode{hash_combine(10, x->cached_hash_value)}, x{x} {}
 
 void ScalarExpNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
 }
 
 ScalarLogNode::ScalarLogNode(const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarLogNode"),
-          x->cached_hash_value)},
-      x{x} {}
+    : ScalarNode{hash_combine(11, x->cached_hash_value)}, x{x} {}
 
 void ScalarLogNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
 }
 
 ScalarAtanNode::ScalarAtanNode(const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarAtanNode"),
-          x->cached_hash_value)},
-      x{x} {}
+    : ScalarNode{hash_combine(12, x->cached_hash_value)}, x{x} {}
 
 void ScalarAtanNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
 }
 
 ScalarLgammaNode::ScalarLgammaNode(const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarLgammaNode"),
-          x->cached_hash_value)},
-      x{x} {}
+    : ScalarNode{hash_combine(13, x->cached_hash_value)}, x{x} {}
 
 void ScalarLgammaNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
@@ -417,10 +400,7 @@ void ScalarLgammaNode::accept(NodeVisitor& visitor) const {
 ScalarPolygammaNode::ScalarPolygammaNode(
     const ScalarNodep& n,
     const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarPolygammaNode"),
-          n->cached_hash_value,
-          x->cached_hash_value)},
+    : ScalarNode{hash_combine(14, n->cached_hash_value, x->cached_hash_value)},
       n{n},
       x{x} {}
 
@@ -429,10 +409,7 @@ void ScalarPolygammaNode::accept(NodeVisitor& visitor) const {
 }
 
 ScalarLog1pNode::ScalarLog1pNode(const ScalarNodep& x)
-    : ScalarNode{hash_combine(
-          std::hash<std::string>{}("ScalarLog1pNode"),
-          x->cached_hash_value)},
-      x{x} {}
+    : ScalarNode{hash_combine(15, x->cached_hash_value)}, x{x} {}
 
 void ScalarLog1pNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
@@ -444,7 +421,7 @@ ScalarIfEqualNode::ScalarIfEqualNode(
     const ScalarNodep& c,
     const ScalarNodep& d)
     : ScalarNode{hash_combine(
-          {std::hash<std::string>{}("ScalarIfEqualNode"),
+          {16,
            a->cached_hash_value,
            b->cached_hash_value,
            c->cached_hash_value,
@@ -464,7 +441,7 @@ ScalarIfLessNode::ScalarIfLessNode(
     const ScalarNodep& c,
     const ScalarNodep& d)
     : ScalarNode{hash_combine(
-          {std::hash<std::string>{}("ScalarIfLessNode"),
+          {17,
            a->cached_hash_value,
            b->cached_hash_value,
            c->cached_hash_value,
@@ -482,7 +459,7 @@ DistributionNormalNode::DistributionNormalNode(
     const ScalarNodep& mean,
     const ScalarNodep& stddev)
     : DistributionNode{hash_combine(
-          std::hash<std::string>{}("DistributionNormalNode"),
+          18,
           mean->cached_hash_value,
           stddev->cached_hash_value)},
       mean{mean},
@@ -494,9 +471,7 @@ void DistributionNormalNode::accept(NodeVisitor& visitor) const {
 
 DistributionHalfNormalNode::DistributionHalfNormalNode(
     const ScalarNodep& stddev)
-    : DistributionNode{hash_combine(
-          std::hash<std::string>{}("DistributionHalfNormalNode"),
-          stddev->cached_hash_value)},
+    : DistributionNode{hash_combine(19, stddev->cached_hash_value)},
       stddev{stddev} {}
 
 void DistributionHalfNormalNode::accept(NodeVisitor& visitor) const {
@@ -507,7 +482,7 @@ DistributionBetaNode::DistributionBetaNode(
     const ScalarNodep& a,
     const ScalarNodep& b)
     : DistributionNode{hash_combine(
-          std::hash<std::string>{}("DistributionBetaNode"),
+          20,
           a->cached_hash_value,
           b->cached_hash_value)},
       a{a},
@@ -518,10 +493,7 @@ void DistributionBetaNode::accept(NodeVisitor& visitor) const {
 }
 
 DistributionBernoulliNode::DistributionBernoulliNode(const ScalarNodep& prob)
-    : DistributionNode{hash_combine(
-          std::hash<std::string>{}("DistributionBernoulliNode"),
-          prob->cached_hash_value)},
-      prob{prob} {}
+    : DistributionNode{hash_combine(21, prob->cached_hash_value)}, prob{prob} {}
 
 void DistributionBernoulliNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
@@ -529,10 +501,7 @@ void DistributionBernoulliNode::accept(NodeVisitor& visitor) const {
 
 DistributionExponentialNode::DistributionExponentialNode(
     const ScalarNodep& rate)
-    : DistributionNode{hash_combine(
-          std::hash<std::string>{}("DistributionExponentialNode"),
-          rate->cached_hash_value)},
-      rate{rate} {}
+    : DistributionNode{hash_combine(22, rate->cached_hash_value)}, rate{rate} {}
 
 void DistributionExponentialNode::accept(NodeVisitor& visitor) const {
   visitor.visit(this);
