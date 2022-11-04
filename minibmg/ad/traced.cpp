@@ -13,6 +13,7 @@
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/eval_error.h"
 #include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/rewriters/constant_fold.h"
 
 namespace beanmachine::minibmg {
 
@@ -25,72 +26,70 @@ double Traced::as_double() const {
   throw EvalError("constant value expected but found " + to_string(*this));
 }
 
-// We perform some optimizations during construction.
-// It might be better to do no optimizations at this point and have a tree
-// rewriter that can be reused, but for now this is a simpler approach.
+// We perform few optimizations during construction - only constant folding.
 Traced operator+(const Traced& left, const Traced& right) {
   ScalarNodep result = std::make_shared<ScalarAddNode>(left.node, right.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced operator-(const Traced& left, const Traced& right) {
   ScalarNodep result =
       std::make_shared<ScalarSubtractNode>(left.node, right.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced operator-(const Traced& x) {
   ScalarNodep result = std::make_shared<ScalarNegateNode>(x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced operator*(const Traced& left, const Traced& right) {
   ScalarNodep result =
       std::make_shared<ScalarMultiplyNode>(left.node, right.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced operator/(const Traced& left, const Traced& right) {
   ScalarNodep result =
       std::make_shared<ScalarDivideNode>(left.node, right.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced pow(const Traced& base, const Traced& exponent) {
   ScalarNodep result =
       std::make_shared<ScalarPowNode>(base.node, exponent.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced exp(const Traced& x) {
   ScalarNodep result = std::make_shared<ScalarExpNode>(x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced log(const Traced& x) {
   ScalarNodep result = std::make_shared<ScalarLogNode>(x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced atan(const Traced& x) {
   ScalarNodep result = std::make_shared<ScalarAtanNode>(x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced lgamma(const Traced& x) {
   ScalarNodep result = std::make_shared<ScalarLgammaNode>(x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced polygamma(const int n, const Traced& x) {
   ScalarNodep nn = std::make_shared<ScalarConstantNode>(n);
   ScalarNodep result = std::make_shared<ScalarPolygammaNode>(nn, x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced log1p(const Traced& x) {
   ScalarNodep result = std::make_shared<ScalarLog1pNode>(x.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced if_equal(
@@ -100,7 +99,7 @@ Traced if_equal(
     const Traced& when_not_equal) {
   ScalarNodep result = std::make_shared<ScalarIfEqualNode>(
       value.node, comparand.node, when_equal.node, when_not_equal.node);
-  return result;
+  return constant_fold(result);
 }
 
 Traced if_less(
@@ -110,7 +109,7 @@ Traced if_less(
     const Traced& when_not_less) {
   ScalarNodep result = std::make_shared<ScalarIfLessNode>(
       value.node, comparand.node, when_less.node, when_not_less.node);
-  return result;
+  return constant_fold(result);
 }
 
 bool is_constant(const Traced& x, double& value) {

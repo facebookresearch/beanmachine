@@ -13,9 +13,9 @@
 #include <vector>
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
-#include "beanmachine/minibmg/dedup.h"
-#include "beanmachine/minibmg/localopt.h"
 #include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
+#include "beanmachine/minibmg/rewriters/localopt.h"
 
 namespace beanmachine::minibmg {
 
@@ -28,6 +28,7 @@ class Traced {
  public:
   ScalarNodep node;
 
+  inline Traced() : node{nullptr} {}
   /* implicit */ inline Traced(ScalarNodep node) : node{node} {}
   /* implicit */ inline Traced(double value)
       : node{std::make_shared<ScalarConstantNode>(value)} {}

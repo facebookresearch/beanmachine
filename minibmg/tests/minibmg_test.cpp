@@ -10,10 +10,10 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include "beanmachine/minibmg/dedup.h"
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/graph_factory.h"
 #include "beanmachine/minibmg/node.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
 
 using namespace ::testing;
 using namespace beanmachine::minibmg;

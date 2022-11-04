@@ -13,8 +13,8 @@
 #include "beanmachine/minibmg/eval.h"
 #include "beanmachine/minibmg/fluid_factory.h"
 #include "beanmachine/minibmg/graph.h"
-#include "beanmachine/minibmg/localopt.h"
 #include "beanmachine/minibmg/pretty.h"
+#include "beanmachine/minibmg/rewriters/localopt.h"
 
 using namespace ::testing;
 using namespace ::beanmachine::minibmg;
@@ -86,18 +86,17 @@ TEST(localopt_test, symbolic_derivatives) {
   auto expected = R"(auto temp_1 = log(rvid.constrained);
 auto temp_2 = 1 - rvid.constrained;
 auto temp_3 = log(temp_2);
-auto temp_4 = 1 / rvid.constrained;
-auto temp_5 = -1 / temp_2;
-auto temp_6 = -pow(rvid.constrained, -2);
-auto temp_7 = -pow(temp_2, -2);
+auto temp_4 = -1 / temp_2;
+auto temp_5 = pow(rvid.constrained, -2);
+auto temp_6 = pow(temp_2, -2);
 log_prob = temp_1 + temp_3 + 1.791759469228055 + 2 * temp_1 + temp_3
-d1 = temp_4 + temp_5 + 2 * temp_4 + temp_5
-d2 = temp_6 + temp_7 + 2 * temp_6 + temp_7
+d1 = 1 / rvid.constrained + temp_4 + 2 / rvid.constrained + temp_4
+d2 = -temp_5 - temp_6 - 2 * temp_5 - temp_6
 )";
   ASSERT_EQ(expected, printed.str());
 }
 
-// test local optimizations performed on a whole graph.
+// test local constant folding performed on a graph during construction.
 TEST(localopt_test, graph) {
   Value v = 1.2;
   Value d = v * v;
@@ -105,34 +104,7 @@ TEST(localopt_test, graph) {
   f.query(d);
 
   Graph g = f.build();
-  ASSERT_EQ(g.size(), 2); // CONSTANT, MULTIPLY
-  ASSERT_EQ(
-      R"({
-  "comment": "created by graph_to_json",
-  "nodes": [
-    {
-      "operator": "CONSTANT",
-      "sequence": 0,
-      "value": 1.2
-    },
-    {
-      "in_nodes": [
-        0,
-        0
-      ],
-      "operator": "MULTIPLY",
-      "sequence": 1
-    }
-  ],
-  "observations": [],
-  "queries": [
-    1
-  ]
-})",
-      folly::toPrettyJson(beanmachine::minibmg::graph_to_json(g)));
-
-  Graph gopt = opt(g);
-  ASSERT_EQ(gopt.size(), 1); // CONSTANT
+  ASSERT_EQ(g.size(), 1); // CONSTANT
   ASSERT_EQ(
       R"({
   "comment": "created by graph_to_json",
@@ -148,8 +120,5 @@ TEST(localopt_test, graph) {
     0
   ]
 })",
-      folly::toPrettyJson(beanmachine::minibmg::graph_to_json(gopt)));
-
-  ASSERT_EQ(g.queries.size(), gopt.queries.size());
-  ASSERT_EQ(g.observations.size(), gopt.observations.size());
+      folly::toPrettyJson(beanmachine::minibmg::graph_to_json(g)));
 }
