@@ -13,21 +13,6 @@
 
 namespace beanmachine::minibmg {
 
-NodeIdentifier::NodeIdentifier(unsigned long value) : value{value} {}
-
-unsigned long NodeIdentifier::_value() const {
-  return value;
-}
-
-ScalarNodeIdentifier::ScalarNodeIdentifier(unsigned long value)
-    : NodeIdentifier{value} {}
-
-ScalarSampleNodeIdentifier::ScalarSampleNodeIdentifier(unsigned long value)
-    : ScalarNodeIdentifier{value} {}
-
-DistributionNodeIdentifier::DistributionNodeIdentifier(unsigned long value)
-    : NodeIdentifier{value} {}
-
 ScalarNodeId Graph::Factory::constant(double value) {
   ScalarNodep result = std::make_shared<ScalarConstantNode>(value);
   return add_node(result);
@@ -156,14 +141,14 @@ void Graph::Factory::observe(ScalarSampleNodeId sample, double value) {
 
 ScalarNodeId Graph::Factory::add_node(ScalarNodep node) {
   check_not_built();
-  auto id = std::make_shared<ScalarNodeIdentifier>(next_identifier++);
+  auto id = ScalarNodeId{next_identifier++};
   identifer_to_node[id] = node;
   node_to_identifier[node] = id;
   return id;
 }
 DistributionNodeId Graph::Factory::add_node(DistributionNodep node) {
   check_not_built();
-  auto id = std::make_shared<DistributionNodeIdentifier>(next_identifier++);
+  auto id = DistributionNodeId{next_identifier++};
   identifer_to_node[id] = node;
   node_to_identifier[node] = id;
   return id;
@@ -171,7 +156,7 @@ DistributionNodeId Graph::Factory::add_node(DistributionNodep node) {
 ScalarSampleNodeId Graph::Factory::add_node(
     std::shared_ptr<ScalarSampleNode> node) {
   check_not_built();
-  auto id = std::make_shared<ScalarSampleNodeIdentifier>(next_identifier++);
+  auto id = ScalarSampleNodeId{next_identifier++};
   identifer_to_node[id] = node;
   node_to_identifier[node] = id;
   return id;
