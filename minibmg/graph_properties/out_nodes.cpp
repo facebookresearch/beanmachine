@@ -38,7 +38,7 @@ class OutNodesProperty : public Property<
 namespace beanmachine::minibmg {
 
 const std::vector<Nodep>& out_nodes(const Graph& graph, Nodep node) {
-  std::map<Nodep, std::vector<Nodep>>& node_map = *OutNodesProperty::get(graph);
+  std::map<Nodep, std::vector<Nodep>>& node_map = OutNodesProperty::get(graph);
   auto found = node_map.find(node);
   if (found == node_map.end()) {
     throw std::invalid_argument("node not in graph");
