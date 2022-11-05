@@ -15,7 +15,6 @@
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/ad/reverse.h"
 #include "beanmachine/minibmg/ad/traced.h"
-#include "beanmachine/minibmg/dedag.h"
 #include "beanmachine/minibmg/distribution/bernoulli.h"
 #include "beanmachine/minibmg/eval.h"
 #include "beanmachine/minibmg/graph.h"
@@ -23,6 +22,7 @@
 #include "beanmachine/minibmg/graph_properties/unobserved_samples.h"
 #include "beanmachine/minibmg/node.h"
 #include "beanmachine/minibmg/pretty.h"
+#include "beanmachine/minibmg/rewriters/dedag.h"
 
 namespace {
 
@@ -346,14 +346,27 @@ HMCWorld1::HMCWorld1(const Graph& graph)
 
   // We optimize each of the saved symbolic forms and prepare them for fast
   // evaluation.
-  this->log_prob_graph = dedag(opt(log_prob));
-  this->gradients_graph = dedag(opt(gradients));
 
-  // set print_optimized_gradients to true to print out the optimized gradients
-  // for debugging purposes.  This is useful to see what further optimization
+  // set print_optimized_code to true to print out the optimized code for
+  // debugging purposes.  This is useful to see what further optimization
   // opportunities might exist.
-  const bool print_optimized_gradients = false;
-  if (print_optimized_gradients) {
+  const bool print_optimized_code = false;
+
+  this->log_prob_graph = dedag(opt(log_prob));
+  if (print_optimized_code) {
+    std::cout << "\ncode for optimized log_prob:\n";
+    for (auto& p : this->log_prob_graph.prelude) {
+      std::cout << " " << p.first->name << " = " << to_string(p.second)
+                << std::endl;
+    }
+    for (auto& p : this->log_prob_graph.result) {
+      const Nodep& q = p;
+      std::cout << "   " << to_string(q) << std::endl;
+    }
+  }
+
+  this->gradients_graph = dedag(opt(gradients));
+  if (print_optimized_code) {
     std::cout << "\ncode for optimized gradients:\n";
     for (auto& p : this->gradients_graph.prelude) {
       std::cout << " " << p.first->name << " = " << to_string(p.second)
@@ -361,11 +374,23 @@ HMCWorld1::HMCWorld1(const Graph& graph)
     }
     for (auto& p : this->gradients_graph.result) {
       const Nodep& q = p;
-      std::cout << " " << to_string(q) << std::endl;
+      std::cout << "   " << to_string(q) << std::endl;
     }
   }
 
   this->queries_graph = dedag(opt(queries));
+  if (print_optimized_code) {
+    std::cout << "\ncode for optimized queries:\n";
+    for (auto& p : this->queries_graph.prelude) {
+      std::cout << " " << p.first->name << " = " << to_string(p.second)
+                << std::endl;
+    }
+    for (auto& p : this->queries_graph.result) {
+      const Nodep& q = p;
+      std::cout << "   " << to_string(q) << std::endl;
+    }
+    std::cout << std::endl;
+  }
 }
 
 unsigned HMCWorld1::num_unobserved_samples() const {
