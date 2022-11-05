@@ -56,9 +56,9 @@ class ScalarConstantNode : public ScalarNode {
 
 class ScalarVariableNode : public ScalarNode {
  public:
-  ScalarVariableNode(const std::string& name, const unsigned identifier);
+  ScalarVariableNode(const std::string& name, const int identifier);
   std::string name;
-  unsigned identifier;
+  int identifier;
   void accept(NodeVisitor& visitor) const override;
 };
 

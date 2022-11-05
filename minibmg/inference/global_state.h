@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <memory>
 #include "beanmachine/graph/global/global_state.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/minibmg/ad/real.h"
@@ -22,7 +23,20 @@ namespace beanmachine::minibmg {
 // needed to use the NUTS api from bmg.
 class MinibmgGlobalState : public beanmachine::graph::GlobalState {
  public:
-  explicit MinibmgGlobalState(beanmachine::minibmg::Graph& graph);
+  // Create a global state that uses brute-force evaluation over the graph
+  static std::unique_ptr<MinibmgGlobalState> create0(
+      const beanmachine::minibmg::Graph& graph);
+
+  // Create a global state that first compiles the model to an expression tree
+  // and evaluates by interpreting that tree.
+  static std::unique_ptr<MinibmgGlobalState> create1(
+      const beanmachine::minibmg::Graph& graph);
+
+  // Create a global state that first compiles the model to an expression tree,
+  // generates code from that tree, and evaluates by running the generated code.
+  static std::unique_ptr<MinibmgGlobalState> create2(
+      const beanmachine::minibmg::Graph& graph);
+
   void initialize_values(beanmachine::graph::InitType init_type, uint seed)
       override;
   void backup_unconstrained_values() override;
@@ -48,6 +62,10 @@ class MinibmgGlobalState : public beanmachine::graph::GlobalState {
   void clear_samples() override;
 
  private:
+  explicit MinibmgGlobalState(
+      const beanmachine::minibmg::Graph& graph,
+      std::unique_ptr<const HMCWorld> world);
+
   const beanmachine::minibmg::Graph& graph;
   const std::unique_ptr<const HMCWorld> world;
   std::vector<std::vector<beanmachine::graph::NodeValue>> samples;
@@ -57,10 +75,6 @@ class MinibmgGlobalState : public beanmachine::graph::GlobalState {
   std::vector<double> unconstrained_grads;
   std::vector<double> saved_unconstrained_values;
   std::vector<double> saved_unconstrained_grads;
-
-  // scratchpads for evaluation
-  std::unordered_map<Nodep, Reverse<Real>> reverse_eval_data;
-  std::unordered_map<Nodep, Real> real_eval_data;
 };
 
 } // namespace beanmachine::minibmg

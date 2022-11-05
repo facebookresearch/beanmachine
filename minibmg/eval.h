@@ -36,12 +36,6 @@ struct SampledValue {
   N log_prob;
 };
 
-} // namespace beanmachine::minibmg
-
-namespace {
-
-using namespace beanmachine::minibmg;
-
 // A visitor that evaluates a single node.  This method does not implement a
 // particular policy for providing values for the inputs to the node being
 // evaluated; the programmer must inherit from this class and implement several
@@ -79,7 +73,7 @@ class NodeEvaluatorVisitor : public NodeVisitor {
       const DistributionNodep& node) = 0;
 
   N result;
-  N evaluate_scalar(ScalarNodep& node) {
+  N evaluate_scalar(const ScalarNodep& node) {
     node->accept(*this);
     return result;
   }
@@ -171,8 +165,7 @@ class NodeEvaluatorVisitor : public NodeVisitor {
 template <class N>
 requires Number<N>
 class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
-  std::function<N(const std::string& name, const unsigned identifier)>
-      read_variable;
+  std::function<N(const std::string& name, const int identifier)> read_variable;
   std::unordered_map<const Node*, double> observations;
   N& log_prob;
   std::unordered_map<Nodep, N>& data;
@@ -196,7 +189,7 @@ class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
  public:
   OneNodeAtATimeEvaluatorVisitor(
       const Graph& graph,
-      std::function<N(const std::string& name, const unsigned identifier)>
+      std::function<N(const std::string& name, const int identifier)>
           read_variable,
       std::unordered_map<Nodep, N>& data,
       std::unordered_map<Nodep, std::shared_ptr<const Distribution<N>>>&
@@ -245,10 +238,6 @@ class OneNodeAtATimeEvaluatorVisitor : public NodeEvaluatorVisitor<N> {
   }
 };
 
-} // namespace
-
-namespace beanmachine::minibmg {
-
 template <class N>
 requires Number<N>
 struct EvalResult {
@@ -256,7 +245,7 @@ struct EvalResult {
   N log_prob;
 
   // The value of the queries.
-  std::vector<double> queries;
+  std::vector<N> queries;
 };
 
 template <class N>
@@ -290,7 +279,7 @@ template <class N>
 requires Number<N> EvalResult<N> eval_graph(
     const Graph& graph,
     std::mt19937& gen,
-    std::function<N(const std::string& name, const unsigned identifier)>
+    std::function<N(const std::string& name, const int identifier)>
         read_variable,
     std::unordered_map<Nodep, N>& data,
     bool run_queries = false,
@@ -330,11 +319,11 @@ requires Number<N> EvalResult<N> eval_graph(
     }
   }
 
-  std::vector<double> queries;
+  std::vector<N> queries;
   if (run_queries) {
     for (const auto& q : graph.queries) {
       auto d = data.find(q);
-      double value = (d == data.end()) ? 0 : d->second.as_double();
+      N value = (d == data.end()) ? 0 : d->second;
       queries.push_back(value);
     }
   }
@@ -357,5 +346,41 @@ class NodeRewriteAdapter<EvalResult<Underlying>> {
     return {new_log_prob, e.queries};
   }
 };
+
+class RecursiveNodeEvaluatorVisitor : public NodeEvaluatorVisitor<Real> {
+ private:
+  std::function<double(const std::string& name, const int identifier)>
+      read_variable;
+
+ public:
+  explicit RecursiveNodeEvaluatorVisitor(
+      std::function<double(const std::string& name, const int identifier)>
+          read_variable);
+
+ private:
+  void visit(const ScalarVariableNode* node) override;
+
+  // The caller must provide a mechanism for proposing values for a sample node,
+  // e.g. by sampling from the distribution.
+  void visit(const ScalarSampleNode* node) override;
+
+  // The caller must provide a mechanism for evaluating the inputs to a node.
+  // For example, if the graph is a tree it might be done recursively.  Or it
+  // might keep values in a map from node to value.
+  Real evaluate_input(const ScalarNodep& node) override;
+
+  // Similarly, the caller must provide a mechanism to evaluate inputs that are
+  // distributions.
+  std::shared_ptr<const Distribution<Real>> evaluate_input_distribution(
+      const DistributionNodep& node) override;
+};
+
+// Evaluate a single node by recursive descent.  This works best if the node is
+// a tree, rather than a directed acyclic graph with shared values.  This
+// cannot sample from a distribution or compute log_prob values unless that
+// computation is already inlined into the node's tree.
+double eval_node(
+    RecursiveNodeEvaluatorVisitor& evaluator,
+    const ScalarNodep& node);
 
 } // namespace beanmachine::minibmg
