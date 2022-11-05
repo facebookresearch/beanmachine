@@ -7,6 +7,7 @@
 
 #include "beanmachine/minibmg/rewriters/localopt.h"
 #include <cmath>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <typeindex>
@@ -42,10 +43,57 @@ auto k2 = Traced::variable("k2", 12);
 auto k3 = Traced::variable("k3", 13);
 auto k4 = Traced::variable("k4", 14);
 
+using Environment = std::unordered_map<Nodep, Nodep>;
+
 struct LocalRewriteRule {
   Traced pattern;
   Traced replacement;
+  std::function<bool(Nodep node, Environment env)> predicate;
+  LocalRewriteRule(Traced pattern, Traced replacement)
+      : pattern{pattern}, replacement{replacement}, predicate{nullptr} {}
+  LocalRewriteRule(
+      Traced pattern,
+      Traced replacement,
+      std::function<bool(Nodep node, Environment env)> predicate)
+      : pattern{pattern}, replacement{replacement}, predicate{predicate} {}
 };
+
+// Skip though products, returning the rightmost node.
+Nodep skip_products(Nodep node) {
+  while (true) {
+    if (auto n = std::dynamic_pointer_cast<const ScalarMultiplyNode>(node)) {
+      node = n->right;
+    } else if (
+        auto n = std::dynamic_pointer_cast<const ScalarDivideNode>(node)) {
+      node = n->left;
+    } else {
+      return node;
+    }
+  }
+}
+
+// Is the node a summation operator?
+bool is_sum(Nodep node) {
+  return std::dynamic_pointer_cast<const ScalarAddNode>(node) ||
+      std::dynamic_pointer_cast<const ScalarSubtractNode>(node);
+}
+
+// Used to decide if we should reorder elements of a summation.
+bool should_precede(Nodep left, Nodep right) {
+  if (is_sum(left) || is_sum(right)) {
+    return false;
+  }
+  while (auto l = std::dynamic_pointer_cast<const ScalarMultiplyNode>(left)) {
+    left = l->right;
+  }
+  while (auto r = std::dynamic_pointer_cast<const ScalarMultiplyNode>(right)) {
+    right = r->right;
+  }
+  return std::dynamic_pointer_cast<const ScalarConstantNode>(right) ||
+      (!std::dynamic_pointer_cast<const ScalarConstantNode>(left) &&
+       skip_products(left)->cached_hash_value <
+           skip_products(right)->cached_hash_value);
+}
 
 std::vector<LocalRewriteRule> local_rewrite_rules = {
     {0 + x, x},
@@ -56,42 +104,72 @@ std::vector<LocalRewriteRule> local_rewrite_rules = {
     {a + y * x + x, a + (y + 1) * x},
     {y * x + z * x, (y + z) * x},
     {a + y * x + z * x, a + (y + z) * x},
-    {a + (-b), a - b},
+
+    // normalise sums to minimize parens.
+    {x + (y + z), x + y + z},
+    {x + (y - z), x + y - z},
+    {x - (y + z), x - y - z},
+    {x - (y - z), x - y + z},
 
     {0 - x, -x},
     {x - 0, x},
     {x - x, 0},
-    {a - k1 - k2, a - (k1 + k2)},
     {a - x - x, a - 2 * x},
     {a - b * x - x, a - (b + 1) * x},
     {a - b * x - c * x, a - (b + c) * x},
     {a - x + b * x, a + (b - 1) * x},
-    {a - k1 / x - k2 / x, a - (k1 + k2) / x},
-    {-(k1 / x) - k2 / x, -(k1 + k2) / x},
-    {(k1 / x) - k2 / x, (k1 - k2) / x},
+    {a - k, a + (-k)},
+    {a - (-x), a + x},
+    {x - a * x, (1 - a) * x},
+    {b + x - a * x, b + (1 - a) * x},
+    {b - x - a * x, b - (1 - a) * x},
 
+    // fold constants into the numerator of a sum
+    {-(k1 / x), (-k1) / x},
+    {k1 / -x, (-k1) / x},
+    {a - k1 / x, a + (-k1) / x},
+    {-k1 / x - k2 / x, (-(k1 + k2)) / x},
+    {k1 / x - k2 / x, (k1 - k2) / x},
+    {-k1 / x + k2 / x, (k2 - k1) / x},
+    {k1 / x + k2 / x, (k1 + k2) / x},
+    {a - k1 / x - k2 / x, a + (-(k1 + k2)) / x},
+    {a + k1 / x - k2 / x, a + (k1 - k2) / x},
+    {a - k1 / x + k2 / x, a + (k2 - k1) / x},
+    {a + k1 / x + k2 / x, a + (k1 + k2) / x},
+
+    // Move constants in a sum to the right.
+    {k + a, a + k},
+    {k - a, (-a) + k},
+    {a - k1 - k2, a + (-(k1 + k2))},
+    {a + k1 + k2, a + (k1 + k2)},
+    {a - k1 + k2, a + (k2 - k1)},
+    {a + k1 - k2, a + (k1 - k2)},
+
+    // Move constants in a product to the left.
+    {a * k, k* a},
+
+    // Move negations out
     {-(-x), x},
+    {x * (-1), -x},
+    {(-1) * x, -x},
+    {(-x) * y, -(x* y)},
+    {x * (-y), -(x* y)},
+    {a + (-b), a - b},
+    {(-x) / y, -(x / y)},
+    {x / (-y), -(x / y)},
 
     {0 * x, 0},
     {x * 0, 0},
     {1 * x, x},
     {x * 1, x},
     {k1 * (k2 * x), (k1 * k2) * x},
-    {x * (-1), -x},
-    {(-1) * x, -x},
-    {(-x) * y, -(x* y)},
-    {x * (-y), -(x* y)},
-    {x * (1 / y), x / y},
-    {(1 / y) * x, x / y},
-    {(-x) * y, -(x* y)},
-    {x * (-y), -(x* y)},
+    {x * (y / z), (x * y) / z},
+    {(y / z) * x, (x * y) / z},
     {k1 * (k2 / a), (k1 * k2) / a},
 
     {0 / x, 0},
     {x / k, (1 / k) * x},
     {x / (x / y), y},
-    {(-x) / y, -(x / y)},
-    {x / (-y), -(x / y)},
     {x / y / y, x* pow(y, -2)},
 
     // note: we will never see pow(0, 0) because it would be constant-folded.
@@ -100,7 +178,40 @@ std::vector<LocalRewriteRule> local_rewrite_rules = {
     {pow(x, 1), x},
 
     {exp(log(x)), x},
-    {log(exp(x)), x}};
+    {log(exp(x)), x},
+
+    // special rules to reorder long sums, gathering like terms.
+    {y + x,
+     x + y,
+     [](Nodep node, Environment env) {
+       return should_precede(env.at(x.node), env.at(y.node));
+     }},
+    {y - x,
+     x - y,
+     [](Nodep node, Environment env) {
+       return should_precede(env.at(x.node), env.at(y.node));
+     }},
+    {a + y + x,
+     a + x + y,
+     [](Nodep node, Environment env) {
+       return should_precede(env.at(x.node), env.at(y.node));
+     }},
+    {a + y - x,
+     a - x + y,
+     [](Nodep node, Environment env) {
+       return should_precede(env.at(x.node), env.at(y.node));
+     }},
+    {a - y + x,
+     a + x - y,
+     [](Nodep node, Environment env) {
+       return should_precede(env.at(x.node), env.at(y.node));
+     }},
+    {a - y - x,
+     a - x - y,
+     [](Nodep node, Environment env) {
+       return should_precede(env.at(x.node), env.at(y.node));
+     }},
+};
 
 std::map<std::type_index, std::vector<LocalRewriteRule>>
 local_rewrite_rules_by_node_type(
@@ -125,8 +236,6 @@ std::map<std::type_index, std::vector<LocalRewriteRule>>
         local_rewrite_rules_by_node_type(local_rewrite_rules);
 
 NodepValueEquals same{};
-
-using Environment = std::unordered_map<Nodep, Nodep>;
 
 bool unify(const Nodep& pattern, const Nodep& value, Environment& environment) {
   if (auto var = std::dynamic_pointer_cast<const ScalarVariableNode>(pattern)) {
@@ -239,8 +348,11 @@ Nodep apply_one_rewrite_rule(Nodep node) {
   for (auto& rule : local_rewrite_rules) {
     environment.clear();
     auto scalar_node = std::dynamic_pointer_cast<const ScalarNode>(node);
-    auto [pattern, replacement] = rule;
-    if (scalar_node && unify(pattern.node, scalar_node, environment)) {
+    auto [pattern, replacement, predicate] = rule;
+    auto pattern_node = pattern.node;
+    auto replacement_node = replacement.node;
+    if (scalar_node && unify(pattern.node, scalar_node, environment) &&
+        (predicate == nullptr || predicate(scalar_node, environment))) {
       return ReplacementInterpolator{environment}.interpolate(
           replacement.node, true);
     }
