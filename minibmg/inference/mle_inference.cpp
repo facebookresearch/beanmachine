@@ -26,12 +26,16 @@ std::vector<double> mle_inference_0(
   proposals.resize(num_samples);
 
   for (int round = 0; round < num_rounds; round++) {
-    auto grads = abstraction->gradients(proposals);
+    std::vector<double> grads;
+    abstraction->gradients(proposals, grads);
     if (print_progress) {
+      std::vector<double> queries;
+      abstraction->queries(proposals, queries);
+      assert(!queries.empty());
       std::cout << fmt::format(
           "log_prob: {} inferred: {}\n",
           abstraction->log_prob(proposals),
-          abstraction->queries(proposals)[0]);
+          queries[0]);
     }
     assert(!proposals.empty());
     for (int samp = 0; samp < num_samples; samp++) {
@@ -42,7 +46,9 @@ std::vector<double> mle_inference_0(
     }
   }
 
-  return abstraction->queries(proposals);
+  std::vector<double> queries;
+  abstraction->queries(proposals, queries);
+  return queries;
 }
 
 } // namespace beanmachine::minibmg

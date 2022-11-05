@@ -36,7 +36,7 @@ TEST(eval_test, simple1) {
   unordered_map<Nodep, Real> data;
   auto eval_result = eval_graph<Real>(
       graph, gen, read_variable, data, /* run_queries= */ true);
-  EXPECT_CLOSE(1.995, eval_result.queries[0]);
+  EXPECT_CLOSE(1.995, eval_result.queries[0].value);
 }
 
 TEST(eval_test, sample1) {
@@ -63,7 +63,7 @@ TEST(eval_test, sample1) {
   for (int i = 0; i < n; i++) {
     auto eval_result =
         eval_graph<Real>(graph, gen, nullptr, data, /* run_queries= */ true);
-    auto sample = eval_result.queries[0];
+    auto sample = eval_result.queries[0].value;
     sum += sample;
     sum_squared += sample * sample;
   }
@@ -171,7 +171,7 @@ TEST(eval_test, log1p) {
   std::unordered_map<Nodep, Real> data;
   auto eval_result = eval_graph<Real>(
       graph, gen, read_variable, data, /* run_queries = */ true);
-  EXPECT_CLOSE(eval_result.queries[qi], std::log1p(k));
+  EXPECT_CLOSE(eval_result.queries[qi].value, std::log1p(k));
 }
 
 TEST(eval_test, sample_exponential) {
@@ -197,7 +197,7 @@ TEST(eval_test, sample_exponential) {
   for (int i = 0; i < n; i++) {
     auto eval_result =
         eval_graph<Real>(graph, gen, nullptr, data, /* run_queries= */ true);
-    auto sample = eval_result.queries[0];
+    auto sample = eval_result.queries[0].value;
     sum += sample;
     sum_squared += sample * sample;
   }
