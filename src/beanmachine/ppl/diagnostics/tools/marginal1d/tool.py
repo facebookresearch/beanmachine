@@ -24,14 +24,14 @@ class Marginal1d(DiagnosticToolBaseClass):
 
     Attributes:
         data (Dict[str, List[List[float]]]): JSON serializable representation of the
-            given `mcs` object.
+            given ``mcs`` object.
         rv_names (List[str]): The list of random variables string names for the given
             model.
         num_chains (int): The number of chains of the model.
         num_draws (int): The number of draws of the model for each chain.
         palette (List[str]): A list of color values used for the glyphs in the figures.
-            The colors are specifically chosen from the Colorblind palette defined in
-            Bokeh.
+            The colors are specifically chosen from the ``Colorblind`` palette defined
+            in Bokeh.
         tool_js (str):The JavaScript callbacks needed to render the Bokeh tool
             independently from a Python server.
     """
@@ -40,6 +40,12 @@ class Marginal1d(DiagnosticToolBaseClass):
         super(Marginal1d, self).__init__(mcs)
 
     def create_document(self: Marginal1d) -> Model:
+        """
+        Create the Bokeh document for the diagnostic tool.
+
+        Returns:
+            Model: A Bokeh Model object.
+        """
         # Initialize widget values using Python.
         rv_name = self.rv_names[0]
         bw_factor = 1.0
@@ -110,6 +116,7 @@ class Marginal1d(DiagnosticToolBaseClass):
                 sources,
                 figures,
                 tooltips,
+                widgets,
               );
             }} catch (error) {{
               {self.tool_js}
@@ -121,6 +128,7 @@ class Marginal1d(DiagnosticToolBaseClass):
                 sources,
                 figures,
                 tooltips,
+                widgets,
               );
             }}
         """
@@ -135,6 +143,7 @@ class Marginal1d(DiagnosticToolBaseClass):
             "figures": figures,
             "tooltips": tooltips,
             "toolView": tool_view,
+            "widgets": widgets,
         }
 
         # Each widget requires slightly different JS, except for the sliders.
@@ -155,10 +164,12 @@ class Marginal1d(DiagnosticToolBaseClass):
         """
         rv_select_callback = CustomJS(args=callback_arguments, code=rv_select_js)
         slider_callback = CustomJS(args=callback_arguments, code=slider_js)
+        button_callback = CustomJS(args=callback_arguments, code=slider_js)
 
         # Tell Python to use the JavaScript.
         widgets["rv_select"].js_on_change("value", rv_select_callback)
         widgets["bw_factor_slider"].js_on_change("value", slider_callback)
         widgets["hdi_slider"].js_on_change("value", slider_callback)
+        widgets["stats_button"].js_on_change("active", button_callback)
 
         return tool_view

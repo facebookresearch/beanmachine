@@ -14,6 +14,7 @@ from bokeh.models.glyphs import Circle, Line
 from bokeh.models.layouts import Column, Row
 from bokeh.models.sources import ColumnDataSource
 from bokeh.models.tools import HoverTool
+from bokeh.models.widgets.groups import RadioButtonGroup
 from bokeh.models.widgets.inputs import Select
 from bokeh.models.widgets.markups import Div
 from bokeh.models.widgets.panels import Panel, Tabs
@@ -62,12 +63,11 @@ SIZING = {
 
 
 def create_sources() -> typing.Sources:
-    """Create Bokeh sources from the given data that will be bound to glyphs.
+    """
+    Create Bokeh sources that will be bound to glyphs.
 
-    Returns
-    -------
-    typing.Sources
-        A dictionary of Bokeh ColumnDataSource objects.
+    Returns:
+        typing.Sources: A dictionary of Bokeh ColumnDataSource objects.
     """
     output = {}
     for figure_name, figure_data in EMPTY_DATA.items():
@@ -80,17 +80,14 @@ def create_sources() -> typing.Sources:
 
 
 def create_figures(rv_name: str) -> typing.Figures:
-    """Create the Bokeh figures used for the tool.
+    """
+    Create the Bokeh figures used for the tool.
 
-    Parameters
-    ----------
-    rv_name : str
-        The string representation of the random variable data.
+    Args:
+        rv_name (str): The string representation of the random variable data.
 
-    Returns
-    -------
-    typing.Figures
-        A dictionary of Bokeh Figure objects.
+    Returns:
+        typing.Figures: A dictionary of Bokeh Figure objects.
     """
     output = {}
     for figure_name in FIGURE_NAMES:
@@ -112,12 +109,11 @@ def create_figures(rv_name: str) -> typing.Figures:
 
 
 def create_glyphs() -> typing.Glyphs:
-    """Create the glyphs used for the figures of the tool.
+    """
+    Create the glyphs used for the figures of the tool.
 
-    Returns
-    -------
-    typing.Glyphs
-        A dictionary of Bokeh Glyphs objects.
+    Returns:
+        typing.Glyphs: A dictionary of Bokeh Glyphs objects.
     """
     palette = plotting_utils.choose_palette(num_colors=2)
     output = {}
@@ -173,21 +169,16 @@ def add_glyphs(
     glyphs: typing.Glyphs,
     sources: typing.Sources,
 ) -> None:
-    """Bind source data to glyphs and add the glyphs to the given figures.
+    """
+    Bind source data to glyphs and add the glyphs to the given figures.
 
-    Parameters
-    ----------
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
-    glyphs : typing.Glyphs
-        A dictionary of Bokeh Glyphs objects.
-    sources : typing.Sources
-        A dictionary of Bokeh ColumnDataSource objects.
+    Args:
+        figures (typing.Figures): A dictionary of Bokeh Figure objects.
+        glyphs (typing.Glyphs): A dictionary of Bokeh Glyphs objects.
+        sources (typing.Sources): A dictionary of Bokeh ColumnDataSource objects.
 
-    Returns
-    -------
-    None
-        Adds data bound glyphs to the given figures directly.
+    Returns:
+        None: Adds data bound glyphs to the given figures directly.
     """
     for figure_name, figure_glyphs in glyphs.items():
         fig = figures[figure_name]
@@ -203,17 +194,14 @@ def add_glyphs(
 
 
 def create_annotations(sources: typing.Sources) -> typing.Annotations:
-    """Create any annotations for the figures of the tool.
+    """
+    Create any annotations for the figures of the tool.
 
-    Parameters
-    ----------
-    source : typing.Sources
-        A dictionary of Bokeh ColumnDataSource objects.
+    Args:
+        source (typing.Sources): A dictionary of Bokeh ColumnDataSource objects.
 
-    Returns
-    -------
-    typing.Annotations
-        A dictionary of Bokeh Annotation objects.
+    Returns:
+        typing.Annotations: A dictionary of Bokeh Annotation objects.
     """
     palette = plotting_utils.choose_palette(num_colors=1)
     output = {}
@@ -250,19 +238,15 @@ def create_annotations(sources: typing.Sources) -> typing.Annotations:
 
 
 def add_annotations(figures: typing.Figures, annotations: typing.Annotations) -> None:
-    """Add the given annotations to the given figures of the tool.
+    """
+    Add the given annotations to the given figures of the tool.
 
-    Parameters
-    ----------
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
-    annotations : typing.Annotations
-        A dictionary of Bokeh Annotation objects.
+    Args:
+        figures (typing.Figures): A dictionary of Bokeh Figure objects.
+        annotations (typing.Annotations): A dictionary of Bokeh Annotation objects.
 
-    Returns
-    -------
-    None
-        Adds annotations directly to the given figures.
+    Returns:
+        None: Adds annotations directly to the given figures.
     """
     for figure_name, annotation_sources in annotations.items():
         fig = figures[figure_name]
@@ -271,19 +255,15 @@ def add_annotations(figures: typing.Figures, annotations: typing.Annotations) ->
 
 
 def create_tooltips(rv_name: str, figures: typing.Figures) -> typing.Tooltips:
-    """Create hover tools for the glyphs used in the figures of the tool.
+    """
+    Create hover tools for the glyphs used in the figures of the tool.
 
-    Parameters
-    ----------
-    rv_name : str
-        The string representation of the random variable data.
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
+    Args:
+        rv_name (str): The string representation of the random variable data.
+        figures (typing.Figures): A dictionary of Bokeh Figure objects.
 
-    Returns
-    -------
-    typing.Tooltips
-        A dictionary of Bokeh HoverTools objects.
+    Returns:
+        typing.Tooltips: A dictionary of Bokeh HoverTools objects.
     """
     output = {}
     for figure_name, fig in figures.items():
@@ -311,19 +291,15 @@ def create_tooltips(rv_name: str, figures: typing.Figures) -> typing.Tooltips:
 
 
 def add_tooltips(figures: typing.Figures, tooltips: typing.Tooltips) -> None:
-    """Add the given tools to the figures.
+    """
+    Add the given tools to the figures.
 
-    Parameters
-    ----------
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
-    tooltips : typing.Tooltips
-        A dictionary of Bokeh HoverTools objects.
+    Args:
+        figures (typing.Figures): A dictionary of Bokeh Figure objects.
+        tooltips (typing.Tooltips): A dictionary of Bokeh HoverTools objects.
 
-    Returns
-    -------
-    None
-        Adds the tooltips directly to the given figures.
+    Returns:
+        None: Adds the tooltips directly to the given figures.
     """
     for figure_name, figure_tooltips in tooltips.items():
         fig = figures[figure_name]
@@ -337,25 +313,20 @@ def create_widgets(
     bw_factor: float,
     bandwidth: float,
 ) -> typing.Widgets:
-    """Create the widgets used in the tool.
-
-    Parameters
-    ----------
-    rv_name : str
-        The string representation of the random variable data.
-    rv_names : List[str]
-        A list of all available random variable names.
-    bw_factor : float
-        Multiplicative factor used when calculating the kernel density estimate.
-    bandwidth : float
-        The bandwidth used to calculate the KDE.
-
-    Returns
-    -------
-    typing.Widgets
-        A dictionary of Bokeh widget objects.
     """
-    return {
+    Create the widgets used in the tool.
+
+    Args:
+        rv_name (str): The string representation of the random variable data.
+        rv_names (List[str]): A list of all available random variable names.
+        bw_factor (float): Multiplicative factor used when calculating the kernel
+            density estimate.
+        bandwidth (float): The bandwidth used to calculate the KDE.
+
+    Returns:
+        typing.Widgets: A dictionary of Bokeh widget objects.
+    """
+    output = {
         "rv_select": Select(value=rv_name, options=rv_names, title="Query"),
         "bw_factor_slider": Slider(
             title="Bandwidth factor",
@@ -366,16 +337,17 @@ def create_widgets(
         ),
         "bw_div": Div(text=f"Bandwidth: {bw_factor * bandwidth}"),
         "hdi_slider": Slider(start=1, end=99, step=1, value=89, title="HDI"),
+        "stats_button": RadioButtonGroup(labels=["Mean", "Median"], active=0),
     }
+    return output
 
 
 def help_page() -> Div:
-    """Help tab for the tool.
+    """
+    Help tab for the tool.
 
-    Returns
-    -------
-    Div
-        Bokeh Div widget containing the help tab information.
+    Returns:
+        Div: Bokeh Div widget containing the help tab information.
     """
     text = """
     <h2>
@@ -413,45 +385,44 @@ def help_page() -> Div:
     return Div(text=text, disable_math=False, min_width=PLOT_WIDTH)
 
 
-def create_figure_grid(figures: typing.Figures) -> Row:
-    """Layout the given figures in a grid, and make one toolbar.
+def create_view(widgets: typing.Widgets, figures: typing.Figures) -> Tabs:
+    """
+    Create the tool view.
 
-    Parameters
-    ----------
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
+    Args:
+        widgets (typing.Widgets): A dictionary of Bokeh widget objects.
+        figures (typing.Figures): A dictionary of Bokeh Figure objects.
 
-    Returns
-    -------
-    Row
-        A Bokeh layout object.
+    Returns:
+        Tabs: Bokeh Tabs objects.
     """
     toolbar = plotting_utils.create_toolbar(figures=list(figures.values()))
-    return Row(children=[*list(figures.values()), toolbar], css_classes=["bk-loading"])
-
-
-def create_view(widgets: typing.Widgets, figures: typing.Figures) -> Tabs:
-    """Create the tool view.
-
-    Parameters
-    ----------
-    widgets : typing.Widgets
-        A dictionary of Bokeh widget objects.
-    figures : typing.Figures
-        A dictionary of Bokeh Figure objects.
-
-    Returns
-    -------
-    Tabs
-        Bokeh Tabs objects.
-    """
     help_panel = Panel(child=help_page(), title="Help", name="helpPanel")
     fig_child = Column(
         children=[
-            create_figure_grid(figures),
-            widgets["bw_factor_slider"],
-            widgets["bw_div"],
-            widgets["hdi_slider"],
+            widgets["stats_button"],
+            Column(
+                children=[
+                    Row(
+                        children=[
+                            Column(
+                                children=[
+                                    figures["marginal"],
+                                    widgets["bw_factor_slider"],
+                                ]
+                            ),
+                            Column(
+                                children=[
+                                    figures["cumulative"],
+                                    widgets["hdi_slider"],
+                                ]
+                            ),
+                            toolbar,
+                        ]
+                    ),
+                    widgets["bw_div"],
+                ],
+            ),
         ],
         css_classes=["bm-tool-loading", "arcs"],
     )

@@ -6,6 +6,29 @@
  */
 
 /**
+ * Syntactic sugar for summing an array of numbers.
+ *
+ * @param {number[]} data - The array of data.
+ * @returns {number} The sum of the array of data.
+ */
+export const arraySum = (data: number[]): number => {
+  return data.reduce((previousValue, currentValue) => {
+    return previousValue + currentValue;
+  });
+};
+
+/**
+ * Calculate the mean of the given array of data.
+ *
+ * @param {number[]} data - The array of data.
+ * @returns {number} The mean of the given data.
+ */
+export const arrayMean = (data: number[]): number => {
+  const dataSum = arraySum(data);
+  return dataSum / data.length;
+};
+
+/**
  * Cumulative sum of the given data.
  *
  * @param {number[]} data - Any array of data.
@@ -127,4 +150,24 @@ export const valueCounts = (data: number[]): {[key: string]: number} => {
     counts[data[i]] = (counts[data[i]] || 0) + 1;
   }
   return counts;
+};
+
+/**
+ * Calculate the median value for the given array.
+ *
+ * @param {number[]} data - Numerical array of data.
+ * @returns {number} The median value of the given data.
+ */
+export const arrayMedian = (data: number[]): number => {
+  const sortedArray = numericalSort(data);
+  const arrayLength = sortedArray.length;
+  const isEven = sortedArray.length % 2 === 0;
+  let median;
+  if (isEven) {
+    const index = arrayLength / 2;
+    median = (sortedArray[index - 1] + sortedArray[index]) / 2;
+  } else {
+    median = sortedArray[Math.floor(arrayLength / 2)];
+  }
+  return median;
 };
