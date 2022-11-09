@@ -7,6 +7,7 @@
 
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/third-party/nameof.h"
 
 namespace beanmachine {
 namespace oper {
@@ -145,7 +146,8 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
   }
   if (in_nodes[0]->node_type != graph::NodeType::DISTRIBUTION) {
     throw std::invalid_argument(
-        "operator SAMPLE requires a distribution parent");
+        "operator SAMPLE requires a distribution parent but got " +
+        std::string(NAMEOF_ENUM(in_nodes[0]->node_type)));
   }
   const distribution::Distribution* dist =
       static_cast<distribution::Distribution*>(in_nodes[0]);

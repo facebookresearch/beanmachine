@@ -357,8 +357,13 @@ decltype(auto) range(std::pair<Integer, Integer> begin_end) {
 }
 
 template <typename T>
-inline auto find_index(const std::vector<T>& vec, const T& element) {
-  return std::find(vec.begin(), vec.end(), element) - vec.begin();
+inline size_t find_index(const std::vector<T>& vec, const T& element) {
+  auto it = std::find(vec.begin(), vec.end(), element);
+  if (it == vec.end()) {
+    return -1;
+  } else {
+    return std::find(vec.begin(), vec.end(), element) - vec.begin();
+  }
 }
 
 /*
