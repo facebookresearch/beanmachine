@@ -215,11 +215,7 @@ TEST(
   );
 }
 
-TEST(
-    marginalization_extensional_test,
-    marginalization_inference_on_all_discretes) {
-  Graph graph;
-  size_t number_of_sections = 5;
+void make_repetitive_graph(Graph& graph, size_t number_of_sections) {
   for (auto i : range(number_of_sections)) {
     auto p = graph.add_constant_probability(0.2);
     auto bernoulli = graph.add_distribution(
@@ -234,8 +230,16 @@ TEST(
     auto x = graph.add_operator(OperatorType::SAMPLE, {normal});
     graph.query(x);
   }
+}
 
-  auto num_samples = 50000;
+TEST(
+    marginalization_extensional_test,
+    marginalization_inference_on_all_discretes) {
+  Graph graph;
+  size_t number_of_sections = 5;
+  make_repetitive_graph(graph, number_of_sections);
+
+  auto num_samples = 5000;
   auto seed = std::time(nullptr);
   auto original_mean = graph.infer_mean(num_samples, InferenceType::NMC, seed);
   cout << "Mean from original graph: " << util::join(original_mean) << endl;
@@ -249,5 +253,75 @@ TEST(
 
   for (auto i : range(number_of_sections)) {
     ASSERT_NEAR(original_mean[i], marginalized_mean[i], 1e-1);
+  }
+}
+
+TEST(
+    marginalization_extensional_test,
+    marginalization_inference_on_all_discretes_via_Graph_API) {
+  Graph graph;
+  size_t number_of_sections = 5;
+  make_repetitive_graph(graph, number_of_sections);
+
+  auto num_samples = 5000;
+  auto seed = std::time(nullptr);
+  auto original_mean = graph.infer_mean(num_samples, InferenceType::NMC, seed);
+  cout << "Mean from original graph: " << util::join(original_mean) << endl;
+
+  auto marginalized_mean = graph.infer_mean(
+      num_samples, InferenceType::AUTOMATIC_DISCRETE_MARGINALIZATION_NMC, seed);
+  cout << "Mean from marginalized graph: " << util::join(marginalized_mean)
+       << endl;
+
+  for (auto i : range(number_of_sections)) {
+    ASSERT_NEAR(original_mean[i], marginalized_mean[i], 1e-1);
+  }
+}
+
+TEST(
+    marginalization_extensional_test,
+    marginalization_inference_on_all_discretes_via_Graph_API_infer) {
+  Graph graph;
+  make_base_graph(graph);
+
+  auto num_samples = 5000;
+  auto seed = std::time(nullptr);
+  auto samples = graph.infer(
+      num_samples, InferenceType::AUTOMATIC_DISCRETE_MARGINALIZATION_NMC, seed);
+
+  ASSERT_EQ(samples.size(), num_samples);
+  ASSERT_EQ(samples[0].size(), graph.queries.size());
+
+  auto first_query_variable = 0;
+  double actual_mean = compute_means(samples)[first_query_variable];
+  double expected_mean = 1.9; // computed in previous tests
+  ASSERT_NEAR(expected_mean, actual_mean, 1e-1);
+}
+
+TEST(
+    marginalization_extensional_test,
+    marginalization_inference_on_all_discretes_via_Graph_API_infer_parallel) {
+  Graph graph;
+  make_base_graph(graph);
+
+  auto num_samples = 5000;
+  auto num_chains = 4;
+  auto seed = std::time(nullptr);
+  auto samples = graph.infer(
+      num_samples,
+      InferenceType::AUTOMATIC_DISCRETE_MARGINALIZATION_NMC,
+      seed,
+      num_chains);
+
+  ASSERT_EQ(samples.size(), num_chains);
+  ASSERT_EQ(samples[0].size(), num_samples);
+  ASSERT_EQ(samples[0][0].size(), graph.queries.size());
+
+  auto first_query_variable = 0;
+
+  for (auto chain : range(num_chains)) {
+    double actual_mean = compute_means(samples[chain])[first_query_variable];
+    double expected_mean = 1.9; // computed in previous tests
+    ASSERT_NEAR(expected_mean, actual_mean, 1e-1);
   }
 }

@@ -279,4 +279,51 @@ void marginalize_all_marginalizable_variables(Graph& graph) {
   }
 }
 
+void Graph::automatic_discrete_marginalization(
+    InferenceType base_inference_type,
+    uint num_samples,
+    uint seed,
+    InferConfig infer_config) {
+  auto graph_copy{*this}; // copy graph, since marginalization is done in-place.
+
+  marginalize_all_marginalizable_variables(graph_copy);
+
+  // automatic_discrete_marginalization is invoked by Graph::_infer
+  // which in turn is invoked by Graph::infer.
+  // Graph::infer initializes several Graph fields and _infer
+  // stores samples in the appropriate fields
+  // (depending on things like agg_type).
+  // However, because we are running _infer on a *copy*
+  // of the original graph, samples will be stored
+  // in the appropriate fields in the graph copy.
+  // Therefore, it is important to copy these fields
+  // (which at this point have already been initialized)
+  // to the graph copy, then run _infer to the copy
+  // and, finally, copy back the results to the main graph.
+
+  graph_copy.agg_type = agg_type;
+  graph_copy.samples = samples;
+  graph_copy.means = means;
+  graph_copy.log_prob_vals = log_prob_vals;
+  graph_copy.master_graph = master_graph;
+  graph_copy.thread_index = thread_index;
+  graph_copy.samples_allchains = samples_allchains;
+  graph_copy.means_allchains = means_allchains;
+  graph_copy.log_prob_allchains = log_prob_allchains;
+
+  graph_copy._infer(num_samples, base_inference_type, seed, infer_config);
+
+  agg_type = graph_copy.agg_type;
+  samples = graph_copy.samples;
+  means = graph_copy.means;
+  log_prob_vals = graph_copy.log_prob_vals;
+  // No need to copy parallel chains data since that
+  // is already automatically placed in the master graph.
+  // master_graph = graph_copy.master_graph;
+  // thread_index = graph_copy.thread_index;
+  // samples_allchains = graph_copy.samples_allchains;
+  // means_allchains = graph_copy.means_allchains;
+  // log_prob_allchains = graph_copy.log_prob_allchains;
+}
+
 } // namespace beanmachine::graph
