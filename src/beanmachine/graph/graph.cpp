@@ -1234,18 +1234,24 @@ void Graph::_infer(
     nmc(num_samples, seed, infer_config);
   } else if (algorithm == InferenceType::NUTS) {
     nuts(num_samples, seed, infer_config);
+  } else if (
+      algorithm == InferenceType::AUTOMATIC_DISCRETE_MARGINALIZATION_NMC) {
+    automatic_discrete_marginalization(
+        InferenceType::NMC, num_samples, seed, infer_config);
+  } else if (
+      algorithm == InferenceType::AUTOMATIC_DISCRETE_MARGINALIZATION_NUTS) {
+    automatic_discrete_marginalization(
+        InferenceType::NUTS, num_samples, seed, infer_config);
   } else {
     throw invalid_argument("unsupported inference algorithm.");
   }
 }
 
-vector<vector<NodeValue>>&
-Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
-  InferConfig infer_config = InferConfig();
-  // TODO: why don't the initialization below to be done for _infer?
-  // If they do, move them there.
-  // Not clear why we have infer and _infer instead of just infer with
-  // a default infer_config.
+vector<vector<NodeValue>>& Graph::infer(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    InferConfig infer_config) {
   agg_type = AggregationType::NONE;
   samples.clear();
   log_prob_vals.clear();
@@ -1335,9 +1341,11 @@ void Graph::_infer_parallel(
   }
 }
 
-vector<double>&
-Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
-  InferConfig infer_config = InferConfig();
+vector<double>& Graph::infer_mean(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    InferConfig infer_config) {
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
   means.clear();

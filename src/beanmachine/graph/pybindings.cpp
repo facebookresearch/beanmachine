@@ -328,12 +328,14 @@ PYBIND11_MODULE(graph, module) {
       .def("query", &Graph::query, "query a node", py::arg("node_id"))
       .def(
           "infer_mean",
-          (std::vector<double> & (Graph::*)(uint, InferenceType, uint)) &
+          (std::vector<double> &
+           (Graph::*)(uint, InferenceType, uint, InferConfig)) &
               Graph::infer_mean,
           "infer the posterior mean of the queried nodes",
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
-          py::arg("seed") = 5123401)
+          py::arg("seed") = 5123401,
+          py::arg("infer_config") = InferConfig())
       .def(
           "infer_mean",
           (std::vector<std::vector<double>> &
@@ -348,12 +350,13 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "infer",
           (std::vector<std::vector<NodeValue>> &
-           (Graph::*)(uint, InferenceType, uint)) &
+           (Graph::*)(uint, InferenceType, uint, InferConfig)) &
               Graph::infer,
           "infer the empirical distribution of the queried nodes",
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
-          py::arg("seed") = 5123401)
+          py::arg("seed") = 5123401,
+          py::arg("infer_config") = InferConfig())
       .def(
           "infer",
           (std::vector<std::vector<std::vector<NodeValue>>> &
