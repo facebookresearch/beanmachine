@@ -43,7 +43,7 @@ class GaussianMixtureModel(object):
 
     @bm.random_variable
     def y(self, i):
-        c = self.component(i)
+        c = self.component(i).item()
         return dist.Normal(self.mu(c), self.sigma(c))
 
 

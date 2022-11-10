@@ -120,12 +120,12 @@ def cat_or_bern(n):
 
 @bm.functional
 def switch_inf():
-    return normal_or_bern(flip1(0))
+    return normal_or_bern(flip1(0).item())
 
 
 @bm.functional
 def switch_4():
-    return cat_or_bern(flip1(0))
+    return cat_or_bern(flip1(0).item())
 
 
 class NodeSupportTest(unittest.TestCase):

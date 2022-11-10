@@ -51,8 +51,8 @@ class PredictiveTest(unittest.TestCase):
         return dist.Bernoulli(self.prior_2())
 
     @bm.random_variable
-    def likelihood_reg(self, x):
-        return dist.Normal(self.prior() * x, torch.tensor(1.0))
+    def likelihood_reg(self):
+        return dist.Normal(self.prior() * self.x, torch.tensor(1.0))
 
     def test_prior_predictive(self):
         queries = [self.prior(), self.likelihood()]
@@ -103,13 +103,14 @@ class PredictiveTest(unittest.TestCase):
     def test_predictive_data(self):
         x = torch.randn(4)
         y = torch.randn(4) + 2.0
-        obs = {self.likelihood_reg(x): y}
+        self.x = x
+        obs = {self.likelihood_reg(): y}
         post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
             [self.prior()], obs, num_samples=10, num_chains=2
         )
         assert post_samples[self.prior()].shape == (2, 10)
-        test_x = torch.randn(4, 1, 1)
-        test_query = self.likelihood_reg(test_x)
+        self.x = torch.randn(4, 1, 1)
+        test_query = self.likelihood_reg()
         predictives = bm.simulate([test_query], post_samples, vectorized=True)
         assert predictives[test_query].shape == (4, 2, 10)
 

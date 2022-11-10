@@ -36,7 +36,7 @@ def category(item):
 
 @bm.random_variable
 def mixed(item):
-    return Normal(mean(category(item)), 2)
+    return Normal(mean(category(item).item()), 2)
 
 
 class GaussianMixtureModelTest(unittest.TestCase):
