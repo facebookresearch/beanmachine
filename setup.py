@@ -17,13 +17,11 @@ REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 7
 
 INSTALL_REQUIRES = [
-    "arviz>=0.12.1",
     "astor>=0.7.1",
     "black==22.3.0",
     "botorch>=0.5.1",
     "gpytorch>=1.3.0, <1.9.0",
     "graphviz>=0.17",
-    "netCDF4<=1.5.8; python_version<'3.8'",
     "numpy>=1.18.1",
     "pandas>=0.24.2",
     "plotly>=2.2.1",
@@ -36,6 +34,7 @@ INSTALL_REQUIRES = [
 ]
 TEST_REQUIRES = ["pytest>=7.0.0", "pytest-cov"]
 TUTORIALS_REQUIRES = [
+    "arviz>=0.12.1",
     "bokeh",
     "cma",
     "ipywidgets",
@@ -44,6 +43,7 @@ TUTORIALS_REQUIRES = [
     "matplotlib",
     "mdformat",
     "mdformat-myst",
+    "netCDF4<=1.5.8; python_version<'3.8'",
     "scikit-learn>=1.0.0",
     "seaborn",
     "tabulate",
