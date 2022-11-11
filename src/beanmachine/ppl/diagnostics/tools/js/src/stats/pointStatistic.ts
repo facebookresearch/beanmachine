@@ -27,3 +27,31 @@ export const mean = (data: number[]): number => {
   const dataSum = sum(data);
   return dataSum / data.length;
 };
+
+/**
+ * Computes the inverse error function at the given point. See
+ * https://en.wikipedia.org/wiki/Error_function#Inverse_functions.
+ *
+ * @param {number} x - The point to calculate the inverse error function of.
+ * @returns {number} The value of the inverse error function.
+ */
+export const inverseERF = (x: number): number => {
+  // maximum relative error = .00013
+  const a = 0.147;
+  const b = 2 / (a * Math.PI) + 0.5 * Math.log(1 - x ** 2);
+  const c = Math.log(1 - x ** 2) / a;
+  const d = Math.sqrt(b ** 2 - c);
+  const e = Math.sqrt(d - b);
+  return Math.sign(x) * e;
+};
+
+/**
+ * Compute the percent point function (PPF) at the given point. See
+ * https://en.wikipedia.org/wiki/Quantile_function.
+ *
+ * @param {number} x - The point where to calculate the PPF.
+ * @returns {number} The calculated PPF.
+ */
+export const ppf = (x: number): number => {
+  return Math.sqrt(2) * inverseERF(2 * x - 1);
+};

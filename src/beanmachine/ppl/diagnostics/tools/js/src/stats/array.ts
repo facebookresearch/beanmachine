@@ -128,3 +128,95 @@ export const valueCounts = (data: number[]): {[key: string]: number} => {
   }
   return counts;
 };
+
+/**
+ * Create an empty 2D array with the given dimensions.
+ *
+ * @param {number} numRows - The number of rows to create the empty array with.
+ * @param {number} numColumns - The number of columns to create the empty array with.
+ * @returns {number[][]} The empty array.
+ */
+export const createEmpty2dArray = (numRows: number, numColumns: number): number[][] => {
+  return [...Array(numRows)].map(() => {
+    return [...Array(numColumns)];
+  });
+};
+
+/**
+ * Computes empirical quantiles for the given data. Follows the implementation in SciPy
+ * closely. See
+ * https://github.com/scipy/scipy/blob/2d49ca49099b498bf847c248c0878b7f0037c0b2/scipy/stats/_mstats_basic.py#L3058
+ * for a more detailed description.
+ *
+ * @param {number[][]} data - Input data.
+ * @param {number} probability - The quantile to compute.
+ * @param {number} [alphap] - Plotting positions parameter.
+ * @param {number} [betap] - Plotting positions parameter.
+ * @returns {number} The calculated quantile.
+ */
+export const quantile = (
+  data: number[][],
+  probability: number,
+  alphap: number = 0.4,
+  betap: number = 1.0,
+): number => {
+  // scipy.mquantiles
+  const flattenedData = data.flat();
+  const sortedData = numericalSort(flattenedData);
+  const n = sortedData.length;
+  const m = alphap + probability * (1 - alphap - betap);
+
+  // scipy.mquantiles._quantiles1D
+  let quantile1d: number;
+  if (n === 0) {
+    quantile1d = Number.NaN;
+  } else if (n === 1) {
+    [quantile1d] = sortedData;
+  } else {
+    const aleph = n * probability + m;
+    const k = Math.floor(aleph);
+    const gamma = aleph - k;
+    quantile1d = (1.0 - gamma) * sortedData[k - 1] + gamma * sortedData[k];
+  }
+  return quantile1d;
+};
+
+/**
+ * Split the given array into two arrays. This implementation follows ArviZ closely.
+ *
+ * @param {number[]} data - 1D input array of data.
+ * @returns {number[][]} The data split into two arrays.
+ */
+export const splitArray = (data: number[]): number[][] => {
+  const numDraws = data.length;
+  const halfIndex = Math.floor(numDraws / 2);
+  const firstHalfOfDraws = data.slice(0, halfIndex);
+  let lastHalfOfDraws = data.slice(halfIndex, numDraws);
+  // NOTE: This follows the original pattern in ArviZ.
+  if (firstHalfOfDraws.length !== lastHalfOfDraws.length) {
+    lastHalfOfDraws = data.slice(halfIndex + 1, numDraws);
+  }
+  return [firstHalfOfDraws, lastHalfOfDraws];
+};
+
+/**
+ * Stack the given arrays in the same way ArviZ does.
+ *
+ * @param {number[][][]} splitChainData - Chain data that has been split.
+ * @returns {number[][]} Data that has had its dimensionality reduced from three
+ *     dimensions to two.
+ */
+export const stackArrays = (splitChainData: number[][][]): number[][] => {
+  // Reduce the given data into a 2D array from a 3D one.
+  const stackedSplitChains = splitChainData.reduce((previousValue, currentValue) => {
+    return previousValue.concat(currentValue);
+  });
+  const evenSplitChainEntries = stackedSplitChains.filter((_, index) => {
+    return index % 2 === 0;
+  });
+  const oddSplitChainEntries = stackedSplitChains.filter((_, index) => {
+    return index % 2 !== 0;
+  });
+  const stackedData = evenSplitChainEntries.concat(oddSplitChainEntries);
+  return stackedData;
+};

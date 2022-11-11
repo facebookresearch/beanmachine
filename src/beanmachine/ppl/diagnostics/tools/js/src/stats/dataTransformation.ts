@@ -5,7 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {argSort, valueCounts} from './array';
+import {argSort, createEmpty2dArray, shape, valueCounts} from './array';
+import {mean, ppf} from './pointStatistic';
 
 /**
  * Scale the given array of numbers by the given scaleFactor. Note that this method
@@ -79,4 +80,72 @@ export const rankData = (data: number[]): number[] => {
     }
   }
   return rank;
+};
+
+/**
+ * Translate the given data such that it is centered about its mean.
+ *
+ * @param {number[]} data - Data needing to be translated.
+ * @returns {number[]} The translated data.
+ */
+export const translateToMean = (data: number[]): number[] => {
+  const dataMean = mean(data);
+  const translation = data.map((datum) => {
+    return datum - dataMean;
+  });
+  return translation;
+};
+
+/**
+ * Back transformation of ranks. The fractional offset defaults to 3/8 as recommended by
+ * Blom (1958). This method follows ArviZ's implementation closely.
+ *
+ * Blom G (1958). Statistical Estimates and Transformed Beta-Variables. Wiley; New York.
+ *
+ * @param {number[]} data - Rank data.
+ * @param {number} [fractionalOffset] - Fractional offset, defaults to 3/8.
+ * @returns {number[]} The back transformation of the given rank data.
+ */
+export const backTransformRanks = (
+  data: number[],
+  fractionalOffset: number = 3 / 8,
+): number[] => {
+  const n = data.length;
+  const backXForm = [];
+  for (let i = 0; i < data.length; i += 1) {
+    const numerator = data[i] - fractionalOffset;
+    const denominator = n - 2 * fractionalOffset + 1;
+    backXForm.push(numerator / denominator);
+  }
+  return backXForm;
+};
+
+/**
+ * Compute the z-scale of the data, by first ranking it, then back transforming it.
+ *
+ * @param {number[][]} data - Data to compute.
+ * @returns {number[][]} Scaled data.
+ */
+export const zScale = (data: number[][]): number[][] => {
+  const [numRows, numColumns] = shape(data);
+  const flatData = data.flat();
+  // Compute the ranks of the data.
+  let rank = rankData(flatData);
+  // Back transform the ranks data.
+  rank = backTransformRanks(rank);
+  // Compute scaled back transformed ranks data.
+  const z = [];
+  for (let i = 0; i < rank.length; i += 1) {
+    z.push(ppf(rank[i]));
+  }
+  // Reshape the scaled data back to the original data shape.
+  const reshapedZ = createEmpty2dArray(numRows, numColumns);
+  let k = 0;
+  for (let i = 0; i < numRows; i += 1) {
+    for (let j = 0; j < numColumns; j += 1) {
+      reshapedZ[i][j] = z[k];
+      k += 1;
+    }
+  }
+  return reshapedZ;
 };
