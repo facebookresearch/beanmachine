@@ -5,6 +5,7 @@
 
 from typing import Any, Dict, Iterator, List, Mapping, NamedTuple, Optional, Union
 
+import arviz as az
 import torch
 import xarray as xr
 from beanmachine.ppl.inference.utils import detach_samples, merge_dicts
@@ -269,7 +270,6 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         Return an az.InferenceData from MonteCarloSamples.
         """
-        import arviz as az
 
         if "posterior" in self.namespaces:
             posterior = detach_samples(self.namespaces["posterior"].samples)
