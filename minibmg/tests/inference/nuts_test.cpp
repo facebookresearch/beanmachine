@@ -46,10 +46,14 @@ TEST(nuts_test, coin_flipping) {
   auto s = expit(sample(normal(0, 100)));
 
   auto bn = bernoulli(s);
-  for (int i = 0; i < num_heads; i++) {
+  for (int i = 0, n = std::min(num_heads, num_tails); i < n; i++) {
+    f.observe(sample(bn), 1);
+    f.observe(sample(bn), 0);
+  }
+  for (int i = 0, n = std::max(0, num_heads - num_tails); i < n; i++) {
     f.observe(sample(bn), 1);
   }
-  for (int i = 0; i < num_tails; i++) {
+  for (int i = 0, n = std::max(0, num_tails - num_heads); i < n; i++) {
     f.observe(sample(bn), 0);
   }
   f.query(s);
@@ -111,11 +115,17 @@ TEST(nuts_test, coin_flipping_bmg) {
   auto bn =
       g.add_distribution(DistributionType::BERNOULLI, AtomicType::BOOLEAN, {s});
 
-  for (int i = 0; i < num_heads; i++) {
+  for (int i = 0, n = std::min(num_heads, num_tails); i < n; i++) {
+    auto sample1 = g.add_operator(OperatorType::SAMPLE, {bn});
+    g.observe(sample1, true);
+    auto sample2 = g.add_operator(OperatorType::SAMPLE, {bn});
+    g.observe(sample2, false);
+  }
+  for (int i = 0, n = std::max(0, num_heads - num_tails); i < n; i++) {
     auto sample = g.add_operator(OperatorType::SAMPLE, {bn});
     g.observe(sample, true);
   }
-  for (int i = 0; i < num_tails; i++) {
+  for (int i = 0, n = std::max(0, num_tails - num_heads); i < n; i++) {
     auto sample = g.add_operator(OperatorType::SAMPLE, {bn});
     g.observe(sample, false);
   }
