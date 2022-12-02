@@ -74,14 +74,14 @@ class Graph : public Container {
 };
 
 // Exception to throw when json_to_graph fails.
-class JsonError2 : public std::exception {
+class JsonError : public std::exception {
  public:
-  explicit JsonError2(const std::string& message);
+  explicit JsonError(const std::string& message);
   const std::string message;
 };
 
 folly::dynamic graph_to_json(const Graph& g);
-Graph json_to_graph2(folly::dynamic d); // throw (JsonError)
+Graph json_to_graph(folly::dynamic d); // throw (JsonError)
 
 template <>
 class NodeRewriteAdapter<Graph> {

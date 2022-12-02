@@ -188,7 +188,7 @@ std::string raw_json_without_types = R"({
 
 TEST(json_test, test_from_string) {
   folly::dynamic parsed = folly::parseJson(raw_json);
-  auto graph = beanmachine::minibmg::json_to_graph2(parsed);
+  auto graph = beanmachine::minibmg::json_to_graph(parsed);
   std::string s =
       folly::toPrettyJson(beanmachine::minibmg::graph_to_json(graph));
   ASSERT_EQ(raw_json_without_types, s);
@@ -196,7 +196,7 @@ TEST(json_test, test_from_string) {
 
 TEST(json_test, test_from_string_without_types) {
   folly::dynamic parsed = folly::parseJson(raw_json_without_types);
-  auto graph = json_to_graph2(parsed);
+  auto graph = json_to_graph(parsed);
   std::string s = folly::toPrettyJson(graph_to_json(graph));
   ASSERT_EQ(raw_json_without_types, s);
 }
