@@ -49,6 +49,6 @@ TEST(out_nodes_test, simple) {
 TEST(out_nodes_test, not_found2) {
   Graph::Factory gf;
   Graph g = gf.build();
-  Nodep n = std::make_shared<ScalarConstantNode>(0);
+  Nodep n = std::make_shared<const ScalarConstantNode>(0);
   ASSERT_THROW(out_nodes(g, n), std::invalid_argument);
 }

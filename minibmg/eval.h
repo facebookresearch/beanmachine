@@ -304,13 +304,11 @@ requires Number<N> EvalResult<N> eval_graph(
       sampler2};
 
   for (const auto& node : graph) {
-    if (auto dist_node =
-            std::dynamic_pointer_cast<const DistributionNode>(node)) {
+    if (auto dist_node = downcast<DistributionNode>(node)) {
       std::shared_ptr<const Distribution<N>> dist =
           evaluator.evaluate_distribution(dist_node);
       distributions[node] = dist;
-    } else if (
-        auto expr_node = std::dynamic_pointer_cast<const ScalarNode>(node)) {
+    } else if (auto expr_node = downcast<ScalarNode>(node)) {
       N expr = evaluator.evaluate_scalar(expr_node);
       data[node] = expr;
     } else {

@@ -61,10 +61,9 @@ struct LocalRewriteRule {
 // Skip though products, returning the rightmost node.
 Nodep skip_products(Nodep node) {
   while (true) {
-    if (auto n = std::dynamic_pointer_cast<const ScalarMultiplyNode>(node)) {
+    if (auto n = downcast<ScalarMultiplyNode>(node)) {
       node = n->right;
-    } else if (
-        auto n = std::dynamic_pointer_cast<const ScalarDivideNode>(node)) {
+    } else if (auto n = downcast<ScalarDivideNode>(node)) {
       node = n->left;
     } else {
       return node;
@@ -74,8 +73,7 @@ Nodep skip_products(Nodep node) {
 
 // Is the node a summation operator?
 bool is_sum(Nodep node) {
-  return std::dynamic_pointer_cast<const ScalarAddNode>(node) ||
-      std::dynamic_pointer_cast<const ScalarSubtractNode>(node);
+  return downcast<ScalarAddNode>(node) || downcast<ScalarSubtractNode>(node);
 }
 
 // Used to decide if we should reorder elements of a summation.
@@ -83,14 +81,14 @@ bool should_precede(Nodep left, Nodep right) {
   if (is_sum(left) || is_sum(right)) {
     return false;
   }
-  while (auto l = std::dynamic_pointer_cast<const ScalarMultiplyNode>(left)) {
+  while (auto l = downcast<ScalarMultiplyNode>(left)) {
     left = l->right;
   }
-  while (auto r = std::dynamic_pointer_cast<const ScalarMultiplyNode>(right)) {
+  while (auto r = downcast<ScalarMultiplyNode>(right)) {
     right = r->right;
   }
-  return std::dynamic_pointer_cast<const ScalarConstantNode>(right) ||
-      (!std::dynamic_pointer_cast<const ScalarConstantNode>(left) &&
+  return downcast<ScalarConstantNode>(right) ||
+      (!downcast<ScalarConstantNode>(left) &&
        skip_products(left)->cached_hash_value <
            skip_products(right)->cached_hash_value);
 }
@@ -238,11 +236,10 @@ std::map<std::type_index, std::vector<LocalRewriteRule>>
 NodepValueEquals same{};
 
 bool unify(const Nodep& pattern, const Nodep& value, Environment& environment) {
-  if (auto var = std::dynamic_pointer_cast<const ScalarVariableNode>(pattern)) {
+  if (auto var = downcast<ScalarVariableNode>(pattern)) {
     auto found = environment.find(var);
     if (found == environment.end()) {
-      if (var->name.starts_with("k") &&
-          !std::dynamic_pointer_cast<const ScalarConstantNode>(value)) {
+      if (var->name.starts_with("k") && !downcast<ScalarConstantNode>(value)) {
         // a variable whose name starts with k must match a constant.
         return false;
       }
@@ -252,12 +249,10 @@ bool unify(const Nodep& pattern, const Nodep& value, Environment& environment) {
     } else {
       return same(found->second, value);
     }
-  } else if (std::dynamic_pointer_cast<const ScalarSampleNode>(pattern)) {
+  } else if (downcast<ScalarSampleNode>(pattern)) {
     throw std::logic_error("sample nodes should not appear in patterns");
-  } else if (
-      auto konst =
-          std::dynamic_pointer_cast<const ScalarConstantNode>(pattern)) {
-    auto kvalue = std::dynamic_pointer_cast<const ScalarConstantNode>(value);
+  } else if (auto konst = downcast<ScalarConstantNode>(pattern)) {
+    auto kvalue = downcast<ScalarConstantNode>(value);
     if (!kvalue) {
       return false;
     }
@@ -320,8 +315,7 @@ class ReplacementInterpolator : NodeEvaluatorVisitor<Traced> {
       throw std::logic_error(
           fmt::format("variable {} not found in the environment", node->name));
     }
-    auto replacement =
-        std::dynamic_pointer_cast<const ScalarNode>(found->second);
+    auto replacement = downcast<ScalarNode>(found->second);
     this->result = Traced{replacement};
   }
   void visit(const ScalarSampleNode*) override {
@@ -347,7 +341,7 @@ Nodep apply_one_rewrite_rule(Nodep node) {
   Environment environment{};
   for (auto& rule : local_rewrite_rules) {
     environment.clear();
-    auto scalar_node = std::dynamic_pointer_cast<const ScalarNode>(node);
+    auto scalar_node = downcast<ScalarNode>(node);
     auto [pattern, replacement, predicate] = rule;
     auto pattern_node = pattern.node;
     auto replacement_node = replacement.node;

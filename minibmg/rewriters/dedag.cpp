@@ -63,8 +63,8 @@ std::unordered_map<Nodep, Nodep> dedag_map(
         auto variable_name = fmt::format("_temp{}", this_variable);
         // temp indices are negative
         auto variable_index = ~this_variable;
-        auto variable =
-            std::make_shared<ScalarVariableNode>(variable_name, variable_index);
+        auto variable = std::make_shared<const ScalarVariableNode>(
+            variable_name, variable_index);
         prelude.push_back(std::pair(variable, rewritten));
         rewritten = variable;
         depth = 1;

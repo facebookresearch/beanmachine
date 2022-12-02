@@ -420,10 +420,8 @@ void eval_saved_dedagged(
   for (int i = 0, n = dedagged.prelude.size(); i < n; i++) {
     assert(dedagged.prelude[i].first->identifier == ~i);
     assert(!temps.empty());
-    temps[i] = eval_node(
-        evaluator,
-        std::dynamic_pointer_cast<const ScalarNode>(
-            dedagged.prelude[i].second));
+    temps[i] =
+        eval_node(evaluator, downcast<ScalarNode>(dedagged.prelude[i].second));
   }
   result.resize(dedagged.result.size());
   auto& dedagged_result = dedagged.result;

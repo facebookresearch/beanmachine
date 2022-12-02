@@ -215,148 +215,136 @@ std::unordered_map<std::string, ReadJsonForOperator> make_reader_by_opname() {
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
-    return std::make_shared<ScalarAddNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    return std::make_shared<const ScalarAddNode>(
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["SUBTRACT"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
-    return std::make_shared<ScalarSubtractNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    return std::make_shared<const ScalarSubtractNode>(
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["NEGATE"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarNegateNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+    return std::make_shared<const ScalarNegateNode>(
+        downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["MULTIPLY"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
-    return std::make_shared<ScalarMultiplyNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    return std::make_shared<const ScalarMultiplyNode>(
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["DIVIDE"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
-    return std::make_shared<ScalarDivideNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    return std::make_shared<const ScalarDivideNode>(
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["POW"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
-    return std::make_shared<ScalarPowNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    return std::make_shared<const ScalarPowNode>(
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["EXP"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarExpNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+    return std::make_shared<const ScalarExpNode>(downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["LOG"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarLogNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+    return std::make_shared<const ScalarLogNode>(downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["ATAN"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarAtanNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+    return std::make_shared<const ScalarAtanNode>(downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["LGAMMA"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarLgammaNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+    return std::make_shared<const ScalarLgammaNode>(
+        downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["POLYGAMMA"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
-    return std::make_shared<ScalarPolygammaNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+    return std::make_shared<const ScalarPolygammaNode>(
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["LOG1P"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarLog1pNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+    return std::make_shared<const ScalarLog1pNode>(downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["IF_EQUAL"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 4);
-    return std::make_shared<ScalarIfEqualNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
+    return std::make_shared<const ScalarIfEqualNode>(
+        downcast<ScalarNode>(in_nodes[0]),
+        downcast<ScalarNode>(in_nodes[1]),
+        downcast<ScalarNode>(in_nodes[2]),
+        downcast<ScalarNode>(in_nodes[3]));
   };
   reader_by_opname["IF_LESS"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 4);
-    return std::make_shared<ScalarIfLessNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
+    return std::make_shared<const ScalarIfLessNode>(
+        downcast<ScalarNode>(in_nodes[0]),
+        downcast<ScalarNode>(in_nodes[1]),
+        downcast<ScalarNode>(in_nodes[2]),
+        downcast<ScalarNode>(in_nodes[3]));
   };
   reader_by_opname["DISTRIBUTION_NORMAL"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
     return std::make_shared<DistributionNormalNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["DISTRIBUTION_HALF_NORMAL"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
     return std::make_shared<DistributionHalfNormalNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+        downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["DISTRIBUTION_BETA"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
     return std::make_shared<DistributionBetaNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+        downcast<ScalarNode>(in_nodes[0]), downcast<ScalarNode>(in_nodes[1]));
   };
   reader_by_opname["DISTRIBUTION_BERNOULLI"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
     return std::make_shared<DistributionBernoulliNode>(
-        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+        downcast<ScalarNode>(in_nodes[0]));
   };
   reader_by_opname["SAMPLE"] =
       [](folly::dynamic json_node,
          std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
     auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
-    return std::make_shared<ScalarSampleNode>(
-        std::dynamic_pointer_cast<const DistributionNode>(in_nodes[0]));
+    return std::make_shared<const ScalarSampleNode>(
+        downcast<DistributionNode>(in_nodes[0]));
   };
   return reader_by_opname;
 }
@@ -440,8 +428,7 @@ Graph json_to_graph(folly::dynamic d) {
       }
       auto node_i = node.asInt();
       if (!identifier_to_node.contains(node_i)) {
-        throw JsonError(
-            fmt::format("bad in_node {} for observation.", node_i));
+        throw JsonError(fmt::format("bad in_node {} for observation.", node_i));
       }
       auto& obs_node = identifier_to_node[node_i];
       auto& value = obs["value"];
