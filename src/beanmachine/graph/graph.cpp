@@ -600,7 +600,7 @@ NodeID Graph::add_node(unique_ptr<Node> node) {
   // in order for the index to be valid.
   bool node_is_observed = node->is_observed;
   auto node_value = node->value;
-  nodes.push_back(move(node));
+  nodes.push_back(std::move(node));
   if (node_is_observed) {
     observe(index, node_value);
   }
@@ -854,7 +854,7 @@ NodeID Graph::add_constant_natural(natural_t value) {
 
 NodeID Graph::add_constant(NodeValue value) {
   unique_ptr<ConstNode> node = make_unique<ConstNode>(value);
-  return add_node(move(node));
+  return add_node(std::move(node));
 }
 
 NodeID Graph::add_constant_probability(double value) {
@@ -940,7 +940,7 @@ NodeID Graph::add_distribution(
   unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, ValueType(sample_type), parent_nodes);
   // and add the node to the graph
-  return add_node(move(node));
+  return add_node(std::move(node));
 }
 
 NodeID Graph::add_distribution(
@@ -952,20 +952,20 @@ NodeID Graph::add_distribution(
   unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, sample_type, parent_nodes);
   // and add the node to the graph
-  return add_node(move(node));
+  return add_node(std::move(node));
 }
 
 NodeID Graph::add_operator(OperatorType op_type, vector<NodeID> parent_ids) {
   vector<Node*> parent_nodes = convert_node_ids(parent_ids);
   unique_ptr<Node> node =
       oper::OperatorFactory::create_op(op_type, parent_nodes);
-  return add_node(move(node));
+  return add_node(std::move(node));
 }
 
 NodeID Graph::add_factor(FactorType fac_type, vector<NodeID> parent_ids) {
   vector<Node*> parent_nodes = convert_node_ids(parent_ids);
   unique_ptr<Node> node = factor::Factor::new_factor(fac_type, parent_nodes);
-  NodeID node_id = add_node(move(node));
+  NodeID node_id = add_node(std::move(node));
   // factors are both stochastic nodes and observed nodes
   Node* node2 = check_node(node_id, NodeType::FACTOR);
   node2->is_observed = true;
@@ -1317,7 +1317,7 @@ void Graph::_infer_parallel(
         e = current_exception();
       }
     });
-    threads.push_back(move(infer_thread));
+    threads.push_back(std::move(infer_thread));
   }
   assert(threads.size() == n_chains);
   // join threads
