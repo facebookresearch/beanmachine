@@ -389,8 +389,7 @@ std::unordered_map<Nodep, Nodep> opt_map(std::vector<Nodep> roots) {
   std::unordered_map<Nodep, Nodep> identity_map;
 
   for (auto& node : sorted) {
-    auto new_node = node;
-    new_node = update_children(new_node, identity_map);
+    auto new_node = update_children(node, identity_map);
 
     if (auto found = map.find(node); found != map.end()) {
       new_node = found->second;
