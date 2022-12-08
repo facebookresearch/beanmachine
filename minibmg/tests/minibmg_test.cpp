@@ -18,7 +18,7 @@
 using namespace ::testing;
 using namespace beanmachine::minibmg;
 
-#define ASSERT_ID(node, num) ASSERT_EQ(node->_value(), num)
+#define ASSERT_ID(node, num) ASSERT_EQ(node.value, num)
 
 TEST(test_minibmg, basic_building_1) {
   Graph::Factory gf;
@@ -84,8 +84,8 @@ TEST(test_minibmg, dedupable_concept) {
 }
 
 TEST(test_minibmg, graph_factory_nodeid_equality) {
-  NodeId a = std::make_shared<NodeIdentifier>(2);
-  NodeId b = std::make_shared<NodeIdentifier>(2);
+  auto a = NodeId{2};
+  auto b = NodeId{2};
   std::unordered_set<NodeId> set{};
   ASSERT_FALSE(set.contains(a));
   ASSERT_FALSE(set.contains(b));
