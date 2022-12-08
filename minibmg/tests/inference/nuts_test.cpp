@@ -104,13 +104,8 @@ TEST(nuts_test, coin_flipping_bmg) {
   auto exp = g.add_operator(OperatorType::EXP, {neg_sample});
   auto k1 = g.add_constant_pos_real(1.0);
   auto denom = g.add_operator(OperatorType::ADD, {k1, exp});
-  // At this point we would like to compute
-  //    s = 1 / denom
-  // but BMG has no divide or reciprocal operation.  So instead we compute
-  //    s = exp(-log(denom))
-  auto log_denom = g.add_operator(OperatorType::LOG, {denom});
-  auto nld = g.add_operator(OperatorType::NEGATE, {log_denom});
-  auto s0 = g.add_operator(OperatorType::EXP, {nld});
+  auto neg_one = g.add_constant(-1.0);
+  auto s0 = g.add_operator(OperatorType::POW, {denom, neg_one});
   auto s = g.add_operator(OperatorType::TO_PROBABILITY, {s0});
 
   auto bn =

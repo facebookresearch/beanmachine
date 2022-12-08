@@ -9,7 +9,7 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
-#include "beanmachine/minibmg/dedup.h"
+#include "beanmachine/minibmg/rewriters/dedup.h"
 #include "beanmachine/minibmg/topological.h"
 
 namespace {
