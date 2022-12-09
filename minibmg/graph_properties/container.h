@@ -68,7 +68,7 @@ class _BaseProperty {
 template <class DerivedPropertyType, class ContainerType, class ValueType>
 class Property : public _BaseProperty {
  public:
-  static ValueType* get(const ContainerType& container);
+  static ValueType& get(const ContainerType& container);
   void _delete_value(const void* valuep) const override {
     auto vp = (const ValueType*)valuep;
     delete vp;
@@ -92,7 +92,7 @@ class Property : public _BaseProperty {
 };
 
 template <class DerivedPropertyType, class ContainerType, class ValueType>
-ValueType* Property<DerivedPropertyType, ContainerType, ValueType>::get(
+ValueType& Property<DerivedPropertyType, ContainerType, ValueType>::get(
     const ContainerType& container) {
   // We enforce the singleton pattern by creating a single instance of the
   // property here. That simplifies the usage pattern, becuse the client merely
@@ -103,7 +103,7 @@ ValueType* Property<DerivedPropertyType, ContainerType, ValueType>::get(
   auto& map = container._container_map;
   auto found = map.find(property);
   if (found != map.end()) {
-    return (ValueType*)found->second;
+    return *(ValueType*)found->second;
   }
   ValueType* result = property->create(container);
   // We cast away const to make the map mutable.  The API is still immutable, as
@@ -113,7 +113,7 @@ ValueType* Property<DerivedPropertyType, ContainerType, ValueType>::get(
   auto& mutable_map =
       *const_cast<std::unordered_map<const _BaseProperty*, const void*>*>(&map);
   mutable_map[property] = reinterpret_cast<const void*>(result);
-  return result;
+  return *result;
 }
 
 } // namespace beanmachine::minibmg

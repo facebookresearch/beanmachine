@@ -40,7 +40,7 @@ class unobserved_samples_property
 namespace beanmachine::minibmg {
 
 const std::vector<Nodep>& unobserved_samples(const Graph& graph) {
-  return *unobserved_samples_property::get(graph);
+  return unobserved_samples_property::get(graph);
 }
 
 } // namespace beanmachine::minibmg
