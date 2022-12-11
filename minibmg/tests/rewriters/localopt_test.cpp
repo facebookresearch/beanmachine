@@ -83,15 +83,10 @@ TEST(localopt_test, symbolic_derivatives) {
   printed << "d2 = ";
   printed << print_result.code[d2] << std::endl;
 
-  auto expected = R"(auto temp_1 = log(rvid.constrained);
-auto temp_2 = 1 - rvid.constrained;
-auto temp_3 = log(temp_2);
-auto temp_4 = -1 / temp_2;
-auto temp_5 = pow(rvid.constrained, -2);
-auto temp_6 = pow(temp_2, -2);
-log_prob = temp_1 + temp_3 + 1.791759469228055 + 2 * temp_1 + temp_3
-d1 = 1 / rvid.constrained + temp_4 + 2 / rvid.constrained + temp_4
-d2 = -temp_5 - temp_6 - 2 * temp_5 - temp_6
+  auto expected = R"(auto temp_1 = -rvid.constrained + 1;
+log_prob = 2 * log(temp_1) + 3 * log(rvid.constrained) + 1.791759469228055
+d1 = -2 / temp_1 + 3 / rvid.constrained
+d2 = -pow(rvid.constrained, -2)
 )";
   ASSERT_EQ(expected, printed.str());
 }
