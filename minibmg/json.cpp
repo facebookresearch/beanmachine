@@ -6,6 +6,7 @@
  */
 
 #include <folly/json.h>
+#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -15,22 +16,6 @@ namespace {
 
 using namespace beanmachine::minibmg;
 using dynamic = folly::dynamic;
-
-inline constexpr auto hash_djb2a(const std::string_view sv) {
-  unsigned long hash{5381};
-  for (unsigned char c : sv) {
-    hash = ((hash << 5) + hash) ^ c;
-  }
-  return hash;
-}
-
-inline constexpr auto // NOLINT: this is used to effectively switch on a string
-                      // below. If we replace that implementation by one that
-                      // indexes a table of functions on a string, this would
-                      // not be necessary.
-operator"" _sh(const char* str, size_t len) {
-  return hash_djb2a(std::string_view{str, len});
-}
 
 class JsonNodeWriterVisitor : public NodeVisitor {
  public:
@@ -111,7 +96,7 @@ class JsonNodeWriterVisitor : public NodeVisitor {
 
 namespace beanmachine::minibmg {
 
-JsonError2::JsonError2(const std::string& message) : message(message) {}
+JsonError::JsonError(const std::string& message) : message(message) {}
 
 folly::dynamic graph_to_json(const Graph& g) {
   std::unordered_map<Nodep, unsigned long> node_to_identifier;
@@ -165,235 +150,249 @@ folly::dynamic graph_to_json(const Graph& g) {
 
 namespace {
 
-Nodep json_to_node( // NOLINT: large cyclomatic complexity doe not imply code
-                    // that is difficult to maintain.  In this case we might be
-                    // able to replace the code with a table of functions
-                    // indexed by string, but I'm not sure that would be better.
+using ReadJsonForOperator = std::function<Nodep(
+    folly::dynamic json_node,
+    std::unordered_map<int, Nodep>& identifier_to_node)>;
+
+std::vector<Nodep> read_in_nodes(
+    folly::dynamic json_node,
+    std::unordered_map<int, Nodep>& identifier_to_node,
+    int required_in_size) {
+  std::vector<Nodep> in_nodes{};
+  auto in_nodesv = json_node["in_nodes"];
+  if (!in_nodesv.isArray()) {
+    throw JsonError("missing in_nodes.");
+  }
+  for (auto& in_nodev : in_nodesv) {
+    if (!in_nodev.isInt()) {
+      throw JsonError("missing in_node for operator.");
+    }
+    auto in_node_i = in_nodev.asInt();
+    if (!identifier_to_node.contains(in_node_i)) {
+      throw JsonError("bad in_node for operator.");
+    }
+    auto in_node = identifier_to_node[in_node_i];
+    in_nodes.push_back(in_node);
+  }
+  if (in_nodes.size() != required_in_size) {
+    throw JsonError("bad in_node for operator.");
+  }
+  return in_nodes;
+}
+
+std::unordered_map<std::string, ReadJsonForOperator> make_reader_by_opname() {
+  std::unordered_map<std::string, ReadJsonForOperator> reader_by_opname;
+  reader_by_opname["CONSTANT"] = [](folly::dynamic json_node,
+                                    std::unordered_map<int, Nodep>&) -> Nodep {
+    auto valuev = json_node["value"];
+    double value;
+    if (valuev.isInt()) {
+      value = valuev.asInt();
+    } else if (valuev.isDouble()) {
+      value = valuev.asDouble();
+    } else {
+      throw JsonError("bad value for constant.");
+    }
+    return std::make_shared<const ScalarConstantNode>(value);
+  };
+  reader_by_opname["VARIABLE"] = [](folly::dynamic json_node,
+                                    std::unordered_map<int, Nodep>&) -> Nodep {
+    auto namev = json_node["name"];
+    std::string name = "";
+    if (namev.isString()) {
+      name = namev.asString();
+    } else {
+      throw JsonError("bad name for variable.");
+    }
+    auto variable_indexv = json_node["variable_index"];
+    if (!variable_indexv.isInt()) {
+      throw JsonError("bad variable_index for variable.");
+    }
+    auto variable_index = (unsigned)variable_indexv.asInt();
+    return std::make_shared<const ScalarVariableNode>(name, variable_index);
+  };
+  reader_by_opname["ADD"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<ScalarAddNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["SUBTRACT"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<ScalarSubtractNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["NEGATE"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarNegateNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["MULTIPLY"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<ScalarMultiplyNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["DIVIDE"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<ScalarDivideNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["POW"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<ScalarPowNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["EXP"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarExpNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["LOG"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarLogNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["ATAN"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarAtanNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["LGAMMA"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarLgammaNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["POLYGAMMA"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<ScalarPolygammaNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["LOG1P"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarLog1pNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["IF_EQUAL"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 4);
+    return std::make_shared<ScalarIfEqualNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
+  };
+  reader_by_opname["IF_LESS"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 4);
+    return std::make_shared<ScalarIfLessNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
+  };
+  reader_by_opname["DISTRIBUTION_NORMAL"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<DistributionNormalNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["DISTRIBUTION_HALF_NORMAL"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<DistributionHalfNormalNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["DISTRIBUTION_BETA"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 2);
+    return std::make_shared<DistributionBetaNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
+  };
+  reader_by_opname["DISTRIBUTION_BERNOULLI"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<DistributionBernoulliNode>(
+        std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
+  };
+  reader_by_opname["SAMPLE"] =
+      [](folly::dynamic json_node,
+         std::unordered_map<int, Nodep>& identifier_to_node) -> Nodep {
+    auto in_nodes = read_in_nodes(json_node, identifier_to_node, 1);
+    return std::make_shared<ScalarSampleNode>(
+        std::dynamic_pointer_cast<const DistributionNode>(in_nodes[0]));
+  };
+  return reader_by_opname;
+}
+
+std::unordered_map<std::string, ReadJsonForOperator> reader_by_opname =
+    make_reader_by_opname();
+
+Nodep json_to_node(
     folly::dynamic json_node,
     std::unordered_map<int, Nodep>& identifier_to_node,
     int& identifier) {
   auto identifierv = json_node["sequence"];
   if (!identifierv.isInt()) {
-    throw JsonError2("missing sequence number.");
+    throw JsonError("missing sequence number.");
   }
   identifier = identifierv.asInt();
 
   auto opv = json_node["operator"];
   if (!opv.isString()) {
-    throw JsonError2("missing operator.");
+    throw JsonError("missing operator.");
+  }
+  auto operator_name = opv.asString();
+
+  auto reader = reader_by_opname.find(operator_name);
+  if (reader == reader_by_opname.end()) {
+    throw JsonError("operator unknown: " + opv.asString());
   }
 
-  std::vector<Nodep> in_nodes{};
-  switch (hash_djb2a(opv.asString())) {
-    case "CONSTANT"_sh:
-    case "VARIABLE"_sh:
-      // in_nodes ignored
-      break;
-    default:
-      auto in_nodesv = json_node["in_nodes"];
-      if (!in_nodesv.isArray()) {
-        throw JsonError2("missing in_nodes.");
-      }
-      for (auto& in_nodev : in_nodesv) {
-        if (!in_nodev.isInt()) {
-          throw JsonError2("missing in_node for operator.");
-        }
-        auto in_node_i = in_nodev.asInt();
-        if (!identifier_to_node.contains(in_node_i)) {
-          throw JsonError2("bad in_node for operator.");
-        }
-        auto in_node = identifier_to_node[in_node_i];
-        in_nodes.push_back(in_node);
-      }
-      break;
-  }
-
-  switch (hash_djb2a(opv.asString())) {
-    case "CONSTANT"_sh: {
-      auto valuev = json_node["value"];
-      double value;
-      if (valuev.isInt()) {
-        value = valuev.asInt();
-      } else if (valuev.isDouble()) {
-        value = valuev.asDouble();
-      } else {
-        throw JsonError2("bad value for constant.");
-      }
-      return std::make_shared<const ScalarConstantNode>(value);
-    }
-    case "VARIABLE"_sh: {
-      auto namev = json_node["name"];
-      std::string name = "";
-      if (namev.isString()) {
-        name = namev.asString();
-      } else {
-        throw JsonError2("bad name for variable.");
-      }
-      auto variable_indexv = json_node["variable_index"];
-      if (!variable_indexv.isInt()) {
-        throw JsonError2("bad variable_index for variable.");
-      }
-      auto variable_index = (unsigned)variable_indexv.asInt();
-      return std::make_shared<const ScalarVariableNode>(name, variable_index);
-    }
-    case "ADD"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarAddNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "SUBTRACT"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarSubtractNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "NEGATE"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarNegateNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "MULTIPLY"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarMultiplyNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "DIVIDE"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarDivideNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "POW"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarPowNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "EXP"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarExpNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "LOG"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarLogNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "ATAN"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarAtanNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "LGAMMA"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarLgammaNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "POLYGAMMA"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarPolygammaNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "LOG1P"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarLog1pNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "IF_EQUAL"_sh: {
-      if (in_nodes.size() != 4) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarIfEqualNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
-    }
-    case "IF_LESS"_sh: {
-      if (in_nodes.size() != 4) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarIfLessNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[2]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[3]));
-    }
-    case "DISTRIBUTION_NORMAL"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<DistributionNormalNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "DISTRIBUTION_HALF_NORMAL"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<DistributionHalfNormalNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-      break;
-    }
-    case "DISTRIBUTION_BETA"_sh: {
-      if (in_nodes.size() != 2) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<DistributionBetaNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]),
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[1]));
-    }
-    case "DISTRIBUTION_BERNOULLI"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<DistributionBernoulliNode>(
-          std::dynamic_pointer_cast<const ScalarNode>(in_nodes[0]));
-    }
-    case "SAMPLE"_sh: {
-      if (in_nodes.size() != 1) {
-        throw JsonError2("bad in_node for operator.");
-      }
-      return std::make_shared<ScalarSampleNode>(
-          std::dynamic_pointer_cast<const DistributionNode>(in_nodes[0]));
-    }
-    default:
-      throw JsonError2("operator unknown: " + opv.asString());
-  }
+  return reader->second(json_node, identifier_to_node);
 }
 
 } // namespace
 
 namespace beanmachine::minibmg {
 
-Graph json_to_graph2(folly::dynamic d) {
+Graph json_to_graph(folly::dynamic d) {
   // Nodes are identified by a "sequence" number appearing in json.
   // They are arbitrary numbers.  The only requirement is that they
   // are distinct.  They are used to identify nodes in the json.
@@ -403,14 +402,14 @@ Graph json_to_graph2(folly::dynamic d) {
 
   auto json_nodes = d["nodes"];
   if (!json_nodes.isArray()) {
-    throw JsonError2("missing \"nodes\" property");
+    throw JsonError("missing \"nodes\" property");
   }
 
   for (auto json_node : json_nodes) {
     int identifier;
     auto node = json_to_node(json_node, identifier_to_node, identifier);
     if (identifier_to_node.contains(identifier)) {
-      throw JsonError2(fmt::format("duplicate node ID {}.", identifier));
+      throw JsonError(fmt::format("duplicate node ID {}.", identifier));
     }
     identifier_to_node[identifier] = node;
   }
@@ -420,11 +419,11 @@ Graph json_to_graph2(folly::dynamic d) {
   if (query_nodes.isArray()) {
     for (auto& query : query_nodes) {
       if (!query.isInt()) {
-        throw JsonError2("bad query value.");
+        throw JsonError("bad query value.");
       }
       auto query_i = query.asInt();
       if (!identifier_to_node.contains(query_i)) {
-        throw JsonError2(fmt::format("bad in_node {} for query.", query_i));
+        throw JsonError(fmt::format("bad in_node {} for query.", query_i));
       }
       auto query_node = identifier_to_node[query_i];
       queries.push_back(query_node);
@@ -437,17 +436,16 @@ Graph json_to_graph2(folly::dynamic d) {
     for (auto& obs : observation_nodes) {
       auto node = obs["node"];
       if (!node.isInt()) {
-        throw JsonError2("bad observation node.");
+        throw JsonError("bad observation node.");
       }
       auto node_i = node.asInt();
       if (!identifier_to_node.contains(node_i)) {
-        throw JsonError2(
-            fmt::format("bad in_node {} for observation.", node_i));
+        throw JsonError(fmt::format("bad in_node {} for observation.", node_i));
       }
       auto& obs_node = identifier_to_node[node_i];
       auto& value = obs["value"];
       if (!node.isDouble() && !node.isInt()) {
-        throw JsonError2("bad value for observation.");
+        throw JsonError("bad value for observation.");
       }
       auto value_d = value.asDouble();
       observations.push_back(std::pair{obs_node, value_d});
