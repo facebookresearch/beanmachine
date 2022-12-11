@@ -57,8 +57,6 @@ std::unordered_map<Nodep, Nodep> dedag_map(
       }
       if (depth >= max_depth || (depth > 1 && predecessor_count.at(node) > 1)) {
         depth_map.insert({rewritten, depth});
-
-        // TODO: we should also do this for nodes that are shared values.
         int this_variable = next_variable++;
         auto variable_name = fmt::format("_temp{}", this_variable);
         // temp indices are negative
