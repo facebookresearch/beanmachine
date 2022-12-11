@@ -31,12 +31,12 @@ class Traced {
   inline Traced() : node{nullptr} {}
   /* implicit */ inline Traced(ScalarNodep node) : node{node} {}
   /* implicit */ inline Traced(double value)
-      : node{std::make_shared<ScalarConstantNode>(value)} {}
+      : node{std::make_shared<const ScalarConstantNode>(value)} {}
   /* implicit */ inline Traced(Real value)
-      : node{std::make_shared<ScalarConstantNode>(value.as_double())} {}
+      : node{std::make_shared<const ScalarConstantNode>(value.as_double())} {}
 
   static Traced variable(const std::string& name, const int identifier) {
-    return Traced{std::make_shared<ScalarVariableNode>(name, identifier)};
+    return Traced{std::make_shared<const ScalarVariableNode>(name, identifier)};
   }
 
   double as_double() const;
@@ -79,9 +79,7 @@ class NodeRewriteAdapter<Traced> {
   Traced rewrite(const Traced& t, const std::unordered_map<Nodep, Nodep>& map)
       const {
     const auto& f = map.find(t.node);
-    return (f == map.end())
-        ? t
-        : Traced(std::dynamic_pointer_cast<const ScalarNode>(f->second));
+    return (f == map.end()) ? t : Traced(downcast<ScalarNode>(f->second));
   }
 };
 

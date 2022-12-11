@@ -39,12 +39,12 @@ class UpdateChildrenVisitor : NodeVisitor {
 
   ScalarNodep mapped(const ScalarNodep& x) {
     auto r = map.at(x);
-    return std::dynamic_pointer_cast<const ScalarNode>(r);
+    return downcast<ScalarNode>(r);
   }
 
   DistributionNodep mapped(const DistributionNodep& x) {
     auto r = map.at(x);
-    return std::dynamic_pointer_cast<const DistributionNode>(r);
+    return downcast<DistributionNode>(r);
   }
 
   void visit(const ScalarConstantNode*) override {
@@ -58,7 +58,7 @@ class UpdateChildrenVisitor : NodeVisitor {
   void visit(const ScalarSampleNode* node) override {
     auto d = mapped(node->distribution);
     if (node->distribution != d) {
-      rewritten = std::make_shared<ScalarSampleNode>(d, node->rvid);
+      rewritten = std::make_shared<const ScalarSampleNode>(d, node->rvid);
     } else {
       rewritten = original;
     }
@@ -68,7 +68,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     auto left = mapped(node->left);
     auto right = mapped(node->right);
     if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarAddNode>(left, right);
+      rewritten = std::make_shared<const ScalarAddNode>(left, right);
     } else {
       rewritten = original;
     }
@@ -78,7 +78,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     auto left = mapped(node->left);
     auto right = mapped(node->right);
     if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarSubtractNode>(left, right);
+      rewritten = std::make_shared<const ScalarSubtractNode>(left, right);
     } else {
       rewritten = original;
     }
@@ -87,7 +87,7 @@ class UpdateChildrenVisitor : NodeVisitor {
   void visit(const ScalarNegateNode* node) override {
     auto x = mapped(node->x);
     if (x != node->x) {
-      rewritten = std::make_shared<ScalarNegateNode>(x);
+      rewritten = std::make_shared<const ScalarNegateNode>(x);
     } else {
       rewritten = original;
     }
@@ -97,7 +97,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     auto left = mapped(node->left);
     auto right = mapped(node->right);
     if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarMultiplyNode>(left, right);
+      rewritten = std::make_shared<const ScalarMultiplyNode>(left, right);
     } else {
       rewritten = original;
     }
@@ -107,7 +107,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     auto left = mapped(node->left);
     auto right = mapped(node->right);
     if (left != node->left || right != node->right) {
-      rewritten = std::make_shared<ScalarDivideNode>(left, right);
+      rewritten = std::make_shared<const ScalarDivideNode>(left, right);
     } else {
       rewritten = original;
     }
@@ -119,7 +119,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (left == node->left && right == node->right) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarPowNode>(left, right);
+      rewritten = std::make_shared<const ScalarPowNode>(left, right);
     }
   }
 
@@ -128,7 +128,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (x == node->x) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarExpNode>(x);
+      rewritten = std::make_shared<const ScalarExpNode>(x);
     }
   }
 
@@ -137,7 +137,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (x == node->x) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarLogNode>(x);
+      rewritten = std::make_shared<const ScalarLogNode>(x);
     }
   }
 
@@ -146,7 +146,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (x == node->x) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarAtanNode>(x);
+      rewritten = std::make_shared<const ScalarAtanNode>(x);
     }
   }
 
@@ -155,7 +155,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (x == node->x) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarLgammaNode>(x);
+      rewritten = std::make_shared<const ScalarLgammaNode>(x);
     }
   }
 
@@ -165,7 +165,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (n == node->n && x == node->x) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarPolygammaNode>(n, x);
+      rewritten = std::make_shared<const ScalarPolygammaNode>(n, x);
     }
   }
 
@@ -174,7 +174,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (x == node->x) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarLog1pNode>(x);
+      rewritten = std::make_shared<const ScalarLog1pNode>(x);
     }
   }
 
@@ -186,7 +186,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (a == node->a && b == node->b && c == node->c && d == node->d) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarIfEqualNode>(a, b, c, d);
+      rewritten = std::make_shared<const ScalarIfEqualNode>(a, b, c, d);
     }
   }
 
@@ -198,7 +198,7 @@ class UpdateChildrenVisitor : NodeVisitor {
     if (a == node->a && b == node->b && c == node->c && d == node->d) {
       rewritten = original;
     } else {
-      rewritten = std::make_shared<ScalarIfLessNode>(a, b, c, d);
+      rewritten = std::make_shared<const ScalarIfLessNode>(a, b, c, d);
     }
   }
 
@@ -263,7 +263,7 @@ ScalarNodep update_children(
     const ScalarNodep& node,
     const std::unordered_map<Nodep, Nodep>& map) {
   Nodep n = node;
-  return std::dynamic_pointer_cast<const ScalarNode>(update_children(n, map));
+  return downcast<ScalarNode>(update_children(n, map));
 }
 
 } // namespace beanmachine::minibmg

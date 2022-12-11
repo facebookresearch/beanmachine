@@ -48,23 +48,22 @@ using Environment = std::unordered_map<Nodep, Nodep>;
 struct LocalRewriteRule {
   Traced pattern;
   Traced replacement;
-  std::function<bool(Nodep node, Environment env)> predicate;
+  std::function<bool(const Nodep& node, const Environment& env)> predicate;
   LocalRewriteRule(Traced pattern, Traced replacement)
       : pattern{pattern}, replacement{replacement}, predicate{nullptr} {}
   LocalRewriteRule(
       Traced pattern,
       Traced replacement,
-      std::function<bool(Nodep node, Environment env)> predicate)
+      std::function<bool(const Nodep& node, const Environment& env)> predicate)
       : pattern{pattern}, replacement{replacement}, predicate{predicate} {}
 };
 
 // Skip though products, returning the rightmost node.
 Nodep skip_products(Nodep node) {
   while (true) {
-    if (auto n = std::dynamic_pointer_cast<const ScalarMultiplyNode>(node)) {
+    if (auto n = downcast<ScalarMultiplyNode>(node)) {
       node = n->right;
-    } else if (
-        auto n = std::dynamic_pointer_cast<const ScalarDivideNode>(node)) {
+    } else if (auto n = downcast<ScalarDivideNode>(node)) {
       node = n->left;
     } else {
       return node;
@@ -73,9 +72,8 @@ Nodep skip_products(Nodep node) {
 }
 
 // Is the node a summation operator?
-bool is_sum(Nodep node) {
-  return std::dynamic_pointer_cast<const ScalarAddNode>(node) ||
-      std::dynamic_pointer_cast<const ScalarSubtractNode>(node);
+bool is_sum(const Nodep& node) {
+  return downcast<ScalarAddNode>(node) || downcast<ScalarSubtractNode>(node);
 }
 
 // Used to decide if we should reorder elements of a summation.
@@ -83,19 +81,20 @@ bool should_precede(Nodep left, Nodep right) {
   if (is_sum(left) || is_sum(right)) {
     return false;
   }
-  while (auto l = std::dynamic_pointer_cast<const ScalarMultiplyNode>(left)) {
+  while (auto l = downcast<ScalarMultiplyNode>(left)) {
     left = l->right;
   }
-  while (auto r = std::dynamic_pointer_cast<const ScalarMultiplyNode>(right)) {
+  while (auto r = downcast<ScalarMultiplyNode>(right)) {
     right = r->right;
   }
-  return std::dynamic_pointer_cast<const ScalarConstantNode>(right) ||
-      (!std::dynamic_pointer_cast<const ScalarConstantNode>(left) &&
+  return downcast<ScalarConstantNode>(right) ||
+      (!downcast<ScalarConstantNode>(left) &&
        skip_products(left)->cached_hash_value <
            skip_products(right)->cached_hash_value);
 }
 
 std::vector<LocalRewriteRule> local_rewrite_rules = {
+    // Infer gives an incorrect warning on the following line.
     {0 + x, x},
     {x + 0, x},
     {x + x, 2 * x},
@@ -183,32 +182,32 @@ std::vector<LocalRewriteRule> local_rewrite_rules = {
     // special rules to reorder long sums, gathering like terms.
     {y + x,
      x + y,
-     [](Nodep node, Environment env) {
+     [](const Nodep&, const Environment& env) {
        return should_precede(env.at(x.node), env.at(y.node));
      }},
     {y - x,
      x - y,
-     [](Nodep node, Environment env) {
+     [](const Nodep&, const Environment& env) {
        return should_precede(env.at(x.node), env.at(y.node));
      }},
     {a + y + x,
      a + x + y,
-     [](Nodep node, Environment env) {
+     [](const Nodep&, const Environment& env) {
        return should_precede(env.at(x.node), env.at(y.node));
      }},
     {a + y - x,
      a - x + y,
-     [](Nodep node, Environment env) {
+     [](const Nodep&, const Environment& env) {
        return should_precede(env.at(x.node), env.at(y.node));
      }},
     {a - y + x,
      a + x - y,
-     [](Nodep node, Environment env) {
+     [](const Nodep&, const Environment& env) {
        return should_precede(env.at(x.node), env.at(y.node));
      }},
     {a - y - x,
      a - x - y,
-     [](Nodep node, Environment env) {
+     [](const Nodep&, const Environment& env) {
        return should_precede(env.at(x.node), env.at(y.node));
      }},
 };
@@ -238,11 +237,10 @@ std::map<std::type_index, std::vector<LocalRewriteRule>>
 NodepValueEquals same{};
 
 bool unify(const Nodep& pattern, const Nodep& value, Environment& environment) {
-  if (auto var = std::dynamic_pointer_cast<const ScalarVariableNode>(pattern)) {
+  if (auto var = downcast<ScalarVariableNode>(pattern)) {
     auto found = environment.find(var);
     if (found == environment.end()) {
-      if (var->name.starts_with("k") &&
-          !std::dynamic_pointer_cast<const ScalarConstantNode>(value)) {
+      if (var->name.starts_with("k") && !downcast<ScalarConstantNode>(value)) {
         // a variable whose name starts with k must match a constant.
         return false;
       }
@@ -252,12 +250,10 @@ bool unify(const Nodep& pattern, const Nodep& value, Environment& environment) {
     } else {
       return same(found->second, value);
     }
-  } else if (std::dynamic_pointer_cast<const ScalarSampleNode>(pattern)) {
+  } else if (downcast<ScalarSampleNode>(pattern)) {
     throw std::logic_error("sample nodes should not appear in patterns");
-  } else if (
-      auto konst =
-          std::dynamic_pointer_cast<const ScalarConstantNode>(pattern)) {
-    auto kvalue = std::dynamic_pointer_cast<const ScalarConstantNode>(value);
+  } else if (auto konst = downcast<ScalarConstantNode>(pattern)) {
+    auto kvalue = downcast<ScalarConstantNode>(value);
     if (!kvalue) {
       return false;
     }
@@ -290,39 +286,68 @@ bool unify(const Nodep& pattern, const Nodep& value, Environment& environment) {
   }
 }
 
-class ReplacementInterpolator;
+class ExpressionInterpolator;
 Nodep apply_local_rewrite_rules(Nodep node);
 
-// This class constructs the replacement once a pattern has been matched
-class ReplacementInterpolator : NodeEvaluatorVisitor<Traced> {
+// Interpolate an expression by rewriting every variable with a value from an
+// environment.
+class ExpressionInterpolator : NodeEvaluatorVisitor<Traced> {
   const Environment& environment;
 
  public:
-  explicit ReplacementInterpolator(const Environment& environment)
+  explicit ExpressionInterpolator(const Environment& environment)
       : NodeEvaluatorVisitor<Traced>{}, environment{environment} {}
 
-  ScalarNodep interpolate(const ScalarNodep& replacement, bool topmost) {
-    visited_node = replacement;
-    replacement->accept(*this);
+  // Interpolate one node.  We treat a topmost node of the replacement
+  // differently than nested nodes.  The topmost node will be repeatedly
+  // optimized by the caller until no more optimizations apply.  However, nested
+  // nodes in the replacement may have further opportunities for optimization to
+  // apply, so if the replacement is not top-level, we apply all possible
+  // optimizations before returning it.  The use of a loop in the caller at the
+  // top level is done to avoid too deep recursion.  If we didn't mind recursion
+  // we would just treat nested and top-level the same, and recursively apply
+  // more rules.
+  ScalarNodep interpolate(const ScalarNodep& expression, bool topmost) {
+    // We save the visited node so we can look it up inside
+    // visit(ScalarVariableNode* node) to find the replacement for
+    // interpolation.  Note that visited_node is a smart pointer, which is not
+    // otherwise available inside the visit method.
+    visited_node = expression;
+
+    // Evaluate the replacement but with special handling of variables
+    // (substitution from the environment in visit(ScalarVariableNode*)).  Most
+    // of the work is done in the base class's implementation to "evaluate" a
+    // node (in this case symbolically).
+    expression->accept(*this);
     ScalarNodep result = this->result.node;
+
+    // Wrap the resulting node in a Traced.
     this->result = Traced{nullptr};
+
+    // If it was not constructed from the top level of a replacement, then
+    // recursively rewrite the node in case further rules apply.  At the top
+    // level, the caller will do it in a loop that is in
+    // apply_local_rewrite_rules.
     return topmost ? result
                    : std::dynamic_pointer_cast<const ScalarNode>(
                          apply_local_rewrite_rules(result));
   }
 
  private:
+  // The visited node is treated as an extra argument to the visitor so that we
+  // can look up variables in the environment to interpolate them.
   ScalarNodep visited_node;
+
   void visit(const ScalarVariableNode* node) override {
-    Nodep n = visited_node;
-    auto found = environment.find(n);
+    // Construct the interpolated expression for the variable by substituting
+    // its value from the environment.
+
+    auto found = environment.find(visited_node);
     if (found == environment.end()) {
       throw std::logic_error(
           fmt::format("variable {} not found in the environment", node->name));
     }
-    auto replacement =
-        std::dynamic_pointer_cast<const ScalarNode>(found->second);
-    this->result = Traced{replacement};
+    this->result = Traced{downcast<ScalarNode>(found->second)};
   }
   void visit(const ScalarSampleNode*) override {
     throw std::logic_error("replacements should not contain samples");
@@ -347,13 +372,13 @@ Nodep apply_one_rewrite_rule(Nodep node) {
   Environment environment{};
   for (auto& rule : local_rewrite_rules) {
     environment.clear();
-    auto scalar_node = std::dynamic_pointer_cast<const ScalarNode>(node);
+    auto scalar_node = downcast<ScalarNode>(node);
     auto [pattern, replacement, predicate] = rule;
     auto pattern_node = pattern.node;
     auto replacement_node = replacement.node;
     if (scalar_node && unify(pattern.node, scalar_node, environment) &&
-        (predicate == nullptr || predicate(scalar_node, environment))) {
-      return ReplacementInterpolator{environment}.interpolate(
+        (predicate == nullptr || predicate(node, environment))) {
+      return ExpressionInterpolator{environment}.interpolate(
           replacement.node, true);
     }
   }
@@ -395,8 +420,7 @@ std::unordered_map<Nodep, Nodep> opt_map(std::vector<Nodep> roots) {
   std::unordered_map<Nodep, Nodep> identity_map;
 
   for (auto& node : sorted) {
-    auto new_node = node;
-    new_node = update_children(new_node, identity_map);
+    auto new_node = update_children(node, identity_map);
 
     if (auto found = map.find(node); found != map.end()) {
       new_node = found->second;

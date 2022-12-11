@@ -26,7 +26,7 @@ class unobserved_samples_property
       observed_samples.insert(p.first);
     }
     for (auto& node : g) {
-      if (std::dynamic_pointer_cast<const ScalarSampleNode>(node) &&
+      if (downcast<ScalarSampleNode>(node) &&
           !observed_samples.contains(node)) {
         result->push_back(node);
       }

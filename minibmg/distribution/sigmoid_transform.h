@@ -55,7 +55,7 @@ template <class Underlying>
 requires Number<Underlying> TransformationPtr<Underlying>
 SigmoidTransformation<Underlying>::instance() {
   static const auto result =
-      std::make_shared<SigmoidTransformation<Underlying>>();
+      std::make_shared<const SigmoidTransformation<Underlying>>();
   return result;
 }
 

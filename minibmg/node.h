@@ -25,6 +25,11 @@ using ScalarNodep = std::shared_ptr<const ScalarNode>;
 using DistributionNodep = std::shared_ptr<const DistributionNode>;
 using ScalarSampleNodep = std::shared_ptr<const ScalarSampleNode>;
 
+template <class T>
+std::shared_ptr<const T> downcast(Nodep node) {
+  return std::dynamic_pointer_cast<const T>(node);
+}
+
 class Node {
  public:
   std::size_t cached_hash_value;
@@ -251,10 +256,10 @@ class NodeNodeValueMap {
  public:
   ~NodeNodeValueMap() {}
   ScalarNodep at(const ScalarNodep& p) const {
-    return std::dynamic_pointer_cast<const ScalarNode>(map.at(p));
+    return downcast<ScalarNode>(map.at(p));
   }
   DistributionNodep at(const DistributionNodep& p) const {
-    return std::dynamic_pointer_cast<const DistributionNode>(map.at(p));
+    return downcast<DistributionNode>(map.at(p));
   }
   Nodep at(const Nodep& p) const {
     return map.at(p);

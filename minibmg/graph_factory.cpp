@@ -14,71 +14,75 @@
 namespace beanmachine::minibmg {
 
 ScalarNodeId Graph::Factory::constant(double value) {
-  ScalarNodep result = std::make_shared<ScalarConstantNode>(value);
+  ScalarNodep result = std::make_shared<const ScalarConstantNode>(value);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::variable(
     const std::string& name,
     const int identifier) {
-  ScalarNodep result = std::make_shared<ScalarVariableNode>(name, identifier);
+  ScalarNodep result =
+      std::make_shared<const ScalarVariableNode>(name, identifier);
   return add_node(result);
 }
 ScalarSampleNodeId Graph::Factory::sample(
     DistributionNodeId distribution,
     const std::string& rvid) {
-  auto result = std::make_shared<ScalarSampleNode>(map[distribution], rvid);
+  auto result =
+      std::make_shared<const ScalarSampleNode>(map[distribution], rvid);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::add(ScalarNodeId left, ScalarNodeId right) {
-  ScalarNodep result = std::make_shared<ScalarAddNode>(map[left], map[right]);
+  ScalarNodep result =
+      std::make_shared<const ScalarAddNode>(map[left], map[right]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::subtract(ScalarNodeId left, ScalarNodeId right) {
   ScalarNodep result =
-      std::make_shared<ScalarSubtractNode>(map[left], map[right]);
+      std::make_shared<const ScalarSubtractNode>(map[left], map[right]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::negate(ScalarNodeId x) {
-  ScalarNodep result = std::make_shared<ScalarNegateNode>(map[x]);
+  ScalarNodep result = std::make_shared<const ScalarNegateNode>(map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::multiply(ScalarNodeId left, ScalarNodeId right) {
   ScalarNodep result =
-      std::make_shared<ScalarMultiplyNode>(map[left], map[right]);
+      std::make_shared<const ScalarMultiplyNode>(map[left], map[right]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::divide(ScalarNodeId left, ScalarNodeId right) {
   ScalarNodep result =
-      std::make_shared<ScalarDivideNode>(map[left], map[right]);
+      std::make_shared<const ScalarDivideNode>(map[left], map[right]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::pow(ScalarNodeId left, ScalarNodeId right) {
-  ScalarNodep result = std::make_shared<ScalarPowNode>(map[left], map[right]);
+  ScalarNodep result =
+      std::make_shared<const ScalarPowNode>(map[left], map[right]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::exp(ScalarNodeId x) {
-  ScalarNodep result = std::make_shared<ScalarExpNode>(map[x]);
+  ScalarNodep result = std::make_shared<const ScalarExpNode>(map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::log(ScalarNodeId x) {
-  ScalarNodep result = std::make_shared<ScalarLogNode>(map[x]);
+  ScalarNodep result = std::make_shared<const ScalarLogNode>(map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::atan(ScalarNodeId x) {
-  ScalarNodep result = std::make_shared<ScalarAtanNode>(map[x]);
+  ScalarNodep result = std::make_shared<const ScalarAtanNode>(map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::lgamma(ScalarNodeId x) {
-  ScalarNodep result = std::make_shared<ScalarLgammaNode>(map[x]);
+  ScalarNodep result = std::make_shared<const ScalarLgammaNode>(map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::polygamma(int n, ScalarNodeId x) {
-  ScalarNodep k = std::make_shared<ScalarConstantNode>(n);
-  ScalarNodep result = std::make_shared<ScalarPolygammaNode>(k, map[x]);
+  ScalarNodep k = std::make_shared<const ScalarConstantNode>(n);
+  ScalarNodep result = std::make_shared<const ScalarPolygammaNode>(k, map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::log1p(ScalarNodeId x) {
-  ScalarNodep result = std::make_shared<ScalarLog1pNode>(map[x]);
+  ScalarNodep result = std::make_shared<const ScalarLog1pNode>(map[x]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::if_equal(
@@ -87,7 +91,7 @@ ScalarNodeId Graph::Factory::if_equal(
     ScalarNodeId c,
     ScalarNodeId d) {
   ScalarNodep result =
-      std::make_shared<ScalarIfEqualNode>(map[a], map[b], map[c], map[d]);
+      std::make_shared<const ScalarIfEqualNode>(map[a], map[b], map[c], map[d]);
   return add_node(result);
 }
 ScalarNodeId Graph::Factory::if_less(
@@ -96,7 +100,7 @@ ScalarNodeId Graph::Factory::if_less(
     ScalarNodeId c,
     ScalarNodeId d) {
   ScalarNodep result =
-      std::make_shared<ScalarIfLessNode>(map[a], map[b], map[c], map[d]);
+      std::make_shared<const ScalarIfLessNode>(map[a], map[b], map[c], map[d]);
   return add_node(result);
 }
 DistributionNodeId Graph::Factory::normal(
@@ -154,7 +158,7 @@ DistributionNodeId Graph::Factory::add_node(DistributionNodep node) {
   return id;
 }
 ScalarSampleNodeId Graph::Factory::add_node(
-    std::shared_ptr<ScalarSampleNode> node) {
+    std::shared_ptr<const ScalarSampleNode> node) {
   check_not_built();
   auto id = ScalarSampleNodeId{next_identifier++};
   identifer_to_node[id] = node;
@@ -173,18 +177,15 @@ Nodep Graph::Factory::operator[](const NodeId& node_id) const {
   return identifer_to_node.at(node_id);
 }
 ScalarNodep Graph::Factory::operator[](const ScalarNodeId& node_id) const {
-  return std::dynamic_pointer_cast<const ScalarNode>(
-      identifer_to_node.at(node_id));
+  return downcast<ScalarNode>(identifer_to_node.at(node_id));
 }
 DistributionNodep Graph::Factory::operator[](
     const DistributionNodeId& node_id) const {
-  return std::dynamic_pointer_cast<const DistributionNode>(
-      identifer_to_node.at(node_id));
+  return downcast<DistributionNode>(identifer_to_node.at(node_id));
 }
 ScalarSampleNodep Graph::Factory::operator[](
     const ScalarSampleNodeId& node_id) const {
-  return std::dynamic_pointer_cast<const ScalarSampleNode>(
-      identifer_to_node.at(node_id));
+  return downcast<ScalarSampleNode>(identifer_to_node.at(node_id));
 }
 
 Graph Graph::Factory::build() {

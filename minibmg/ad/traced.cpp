@@ -28,67 +28,68 @@ double Traced::as_double() const {
 
 // We perform few optimizations during construction - only constant folding.
 Traced operator+(const Traced& left, const Traced& right) {
-  ScalarNodep result = std::make_shared<ScalarAddNode>(left.node, right.node);
+  ScalarNodep result =
+      std::make_shared<const ScalarAddNode>(left.node, right.node);
   return constant_fold(result);
 }
 
 Traced operator-(const Traced& left, const Traced& right) {
   ScalarNodep result =
-      std::make_shared<ScalarSubtractNode>(left.node, right.node);
+      std::make_shared<const ScalarSubtractNode>(left.node, right.node);
   return constant_fold(result);
 }
 
 Traced operator-(const Traced& x) {
-  ScalarNodep result = std::make_shared<ScalarNegateNode>(x.node);
+  ScalarNodep result = std::make_shared<const ScalarNegateNode>(x.node);
   return constant_fold(result);
 }
 
 Traced operator*(const Traced& left, const Traced& right) {
   ScalarNodep result =
-      std::make_shared<ScalarMultiplyNode>(left.node, right.node);
+      std::make_shared<const ScalarMultiplyNode>(left.node, right.node);
   return constant_fold(result);
 }
 
 Traced operator/(const Traced& left, const Traced& right) {
   ScalarNodep result =
-      std::make_shared<ScalarDivideNode>(left.node, right.node);
+      std::make_shared<const ScalarDivideNode>(left.node, right.node);
   return constant_fold(result);
 }
 
 Traced pow(const Traced& base, const Traced& exponent) {
   ScalarNodep result =
-      std::make_shared<ScalarPowNode>(base.node, exponent.node);
+      std::make_shared<const ScalarPowNode>(base.node, exponent.node);
   return constant_fold(result);
 }
 
 Traced exp(const Traced& x) {
-  ScalarNodep result = std::make_shared<ScalarExpNode>(x.node);
+  ScalarNodep result = std::make_shared<const ScalarExpNode>(x.node);
   return constant_fold(result);
 }
 
 Traced log(const Traced& x) {
-  ScalarNodep result = std::make_shared<ScalarLogNode>(x.node);
+  ScalarNodep result = std::make_shared<const ScalarLogNode>(x.node);
   return constant_fold(result);
 }
 
 Traced atan(const Traced& x) {
-  ScalarNodep result = std::make_shared<ScalarAtanNode>(x.node);
+  ScalarNodep result = std::make_shared<const ScalarAtanNode>(x.node);
   return constant_fold(result);
 }
 
 Traced lgamma(const Traced& x) {
-  ScalarNodep result = std::make_shared<ScalarLgammaNode>(x.node);
+  ScalarNodep result = std::make_shared<const ScalarLgammaNode>(x.node);
   return constant_fold(result);
 }
 
 Traced polygamma(const int n, const Traced& x) {
-  ScalarNodep nn = std::make_shared<ScalarConstantNode>(n);
-  ScalarNodep result = std::make_shared<ScalarPolygammaNode>(nn, x.node);
+  ScalarNodep nn = std::make_shared<const ScalarConstantNode>(n);
+  ScalarNodep result = std::make_shared<const ScalarPolygammaNode>(nn, x.node);
   return constant_fold(result);
 }
 
 Traced log1p(const Traced& x) {
-  ScalarNodep result = std::make_shared<ScalarLog1pNode>(x.node);
+  ScalarNodep result = std::make_shared<const ScalarLog1pNode>(x.node);
   return constant_fold(result);
 }
 
@@ -97,7 +98,7 @@ Traced if_equal(
     const Traced& comparand,
     const Traced& when_equal,
     const Traced& when_not_equal) {
-  ScalarNodep result = std::make_shared<ScalarIfEqualNode>(
+  ScalarNodep result = std::make_shared<const ScalarIfEqualNode>(
       value.node, comparand.node, when_equal.node, when_not_equal.node);
   return constant_fold(result);
 }
@@ -107,7 +108,7 @@ Traced if_less(
     const Traced& comparand,
     const Traced& when_less,
     const Traced& when_not_less) {
-  ScalarNodep result = std::make_shared<ScalarIfLessNode>(
+  ScalarNodep result = std::make_shared<const ScalarIfLessNode>(
       value.node, comparand.node, when_less.node, when_not_less.node);
   return constant_fold(result);
 }

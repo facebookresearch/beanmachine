@@ -236,7 +236,7 @@ TEST(fluid_factory_test, log1p_kfold) {
   auto qi = fac.query(l);
   Graph g = fac.build();
   // ASSERT_EQ(g.size(), 2); // we fold during construction, so only one node
-  Value folded = std::dynamic_pointer_cast<const ScalarNode>(g.queries[0]);
+  Value folded = downcast<ScalarNode>(g.queries[0]);
   Value expected = std::log1p(1.1);
   // assert that the graph is just the resulting constant.
   ASSERT_TRUE(NodepValueEquals{}(expected.node, folded.node));

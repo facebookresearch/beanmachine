@@ -40,7 +40,7 @@ MinibmgGlobalState::MinibmgGlobalState(
   // Since we only support scalars, we count the unobserved samples by ones.
   int num_unobserved_samples = -graph.observations.size();
   for (auto& node : graph) {
-    if (std::dynamic_pointer_cast<const ScalarSampleNode>(node)) {
+    if (downcast<ScalarSampleNode>(node)) {
       num_unobserved_samples++;
     }
   }

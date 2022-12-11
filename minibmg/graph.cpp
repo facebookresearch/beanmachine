@@ -24,7 +24,7 @@ const std::vector<Nodep> roots(
     roots.push_back(n);
   }
   for (auto& p : observations) {
-    if (!std::dynamic_pointer_cast<const ScalarSampleNode>(p.first)) {
+    if (!downcast<ScalarSampleNode>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
     roots.push_back(p.first);
@@ -77,7 +77,7 @@ Graph Graph::create(
     const std::vector<std::pair<Nodep, double>>& observations,
     std::unordered_map<Nodep, Nodep>* built_map) {
   for (auto& p : observations) {
-    if (!std::dynamic_pointer_cast<const ScalarSampleNode>(p.first)) {
+    if (!downcast<ScalarSampleNode>(p.first)) {
       throw std::invalid_argument(fmt::format("can only observe a sample"));
     }
   }

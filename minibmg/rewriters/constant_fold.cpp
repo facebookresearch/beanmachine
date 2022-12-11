@@ -40,12 +40,10 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarAddNode* node) override {
-    auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->left);
-    auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->right);
+    auto left_constant = downcast<ScalarConstantNode>(node->left);
+    auto right_constant = downcast<ScalarConstantNode>(node->right);
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           left_constant->constant_value + right_constant->constant_value);
     } else {
       rewritten = original;
@@ -53,12 +51,10 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarSubtractNode* node) override {
-    auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->left);
-    auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->right);
+    auto left_constant = downcast<ScalarConstantNode>(node->left);
+    auto right_constant = downcast<ScalarConstantNode>(node->right);
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           left_constant->constant_value - right_constant->constant_value);
     } else {
       rewritten = original;
@@ -66,23 +62,20 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarNegateNode* node) override {
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (x_constant) {
-      rewritten =
-          std::make_shared<ScalarConstantNode>(-x_constant->constant_value);
+      rewritten = std::make_shared<const ScalarConstantNode>(
+          -x_constant->constant_value);
     } else {
       rewritten = original;
     }
   }
 
   void visit(const ScalarMultiplyNode* node) override {
-    auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->left);
-    auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->right);
+    auto left_constant = downcast<ScalarConstantNode>(node->left);
+    auto right_constant = downcast<ScalarConstantNode>(node->right);
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           left_constant->constant_value * right_constant->constant_value);
     } else {
       rewritten = original;
@@ -90,12 +83,10 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarDivideNode* node) override {
-    auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->left);
-    auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->right);
+    auto left_constant = downcast<ScalarConstantNode>(node->left);
+    auto right_constant = downcast<ScalarConstantNode>(node->right);
     if (left_constant && right_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           left_constant->constant_value / right_constant->constant_value);
     } else {
       rewritten = original;
@@ -103,24 +94,21 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarPowNode* node) override {
-    auto left_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->left);
-    auto right_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->right);
+    auto left_constant = downcast<ScalarConstantNode>(node->left);
+    auto right_constant = downcast<ScalarConstantNode>(node->right);
     if (left_constant && right_constant) {
       auto k3 = std::pow(
           left_constant->constant_value, right_constant->constant_value);
-      rewritten = std::make_shared<ScalarConstantNode>(k3);
+      rewritten = std::make_shared<const ScalarConstantNode>(k3);
     } else {
       rewritten = original;
     }
   }
 
   void visit(const ScalarExpNode* node) override {
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           std::exp(x_constant->constant_value));
     } else {
       rewritten = original;
@@ -128,10 +116,9 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarLogNode* node) override {
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           std::log(x_constant->constant_value));
     } else {
       rewritten = original;
@@ -139,10 +126,9 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarAtanNode* node) override {
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           std::atan(x_constant->constant_value));
     } else {
       rewritten = original;
@@ -150,10 +136,9 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarLgammaNode* node) override {
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           std::lgamma(x_constant->constant_value));
     } else {
       rewritten = original;
@@ -161,24 +146,21 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarPolygammaNode* node) override {
-    auto n_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->n);
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto n_constant = downcast<ScalarConstantNode>(node->n);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (n_constant && x_constant) {
       auto value = boost::math::polygamma(
           n_constant->constant_value, x_constant->constant_value);
-      rewritten = std::make_shared<ScalarConstantNode>(value);
+      rewritten = std::make_shared<const ScalarConstantNode>(value);
     } else {
       rewritten = original;
     }
   }
 
   void visit(const ScalarLog1pNode* node) override {
-    auto x_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->x);
+    auto x_constant = downcast<ScalarConstantNode>(node->x);
     if (x_constant) {
-      rewritten = std::make_shared<ScalarConstantNode>(
+      rewritten = std::make_shared<const ScalarConstantNode>(
           std::log1p(x_constant->constant_value));
     } else {
       rewritten = original;
@@ -186,10 +168,8 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarIfEqualNode* node) override {
-    auto a_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->a);
-    auto b_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->b);
+    auto a_constant = downcast<ScalarConstantNode>(node->a);
+    auto b_constant = downcast<ScalarConstantNode>(node->b);
     if (a_constant && b_constant) {
       rewritten = (a_constant->constant_value == b_constant->constant_value)
           ? node->c
@@ -200,10 +180,8 @@ class ConstantFoldingVisitor : DefaultNodeVisitor {
   }
 
   void visit(const ScalarIfLessNode* node) override {
-    auto a_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->a);
-    auto b_constant =
-        std::dynamic_pointer_cast<const ScalarConstantNode>(node->b);
+    auto a_constant = downcast<ScalarConstantNode>(node->a);
+    auto b_constant = downcast<ScalarConstantNode>(node->b);
     if (a_constant && b_constant) {
       rewritten = (a_constant->constant_value < b_constant->constant_value)
           ? node->c

@@ -112,7 +112,7 @@ class Graph::Factory {
 
   ScalarNodeId add_node(ScalarNodep node);
   DistributionNodeId add_node(DistributionNodep node);
-  ScalarSampleNodeId add_node(std::shared_ptr<ScalarSampleNode> node);
+  ScalarSampleNodeId add_node(std::shared_ptr<const ScalarSampleNode> node);
   void check_not_built();
 };
 
