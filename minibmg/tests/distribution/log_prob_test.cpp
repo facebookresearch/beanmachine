@@ -18,7 +18,6 @@
 
 // using namespace ::testing;
 using namespace ::beanmachine::minibmg;
-using namespace ::std;
 using Dual = Num2<Real>;
 using Triune = Num3<Real>;
 

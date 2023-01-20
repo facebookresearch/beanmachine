@@ -14,9 +14,7 @@
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/inference/global_state.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
-using beanmachine::graph::GlobalState;
 using beanmachine::graph::NodeValue;
 using beanmachine::graph::NUTS;
 

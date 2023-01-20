@@ -9,7 +9,6 @@
 #include "beanmachine/minibmg/ad/num2.h"
 #include "beanmachine/minibmg/ad/traced.h"
 
-using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 TEST(traced_test, simple0) {

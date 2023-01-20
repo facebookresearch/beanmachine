@@ -70,8 +70,6 @@ class NodeRewriteAdapter<QueriesAndObservations> {
   }
 };
 
-using dynamic = folly::dynamic;
-
 Graph Graph::create(
     const std::vector<Nodep>& queries,
     const std::vector<std::pair<Nodep, double>>& observations,

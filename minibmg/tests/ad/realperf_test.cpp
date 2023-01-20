@@ -12,7 +12,6 @@
 #include "beanmachine/minibmg/ad/number.h"
 #include "beanmachine/minibmg/ad/real.h"
 
-using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 #define EXPECT_RSAME(a, b) EXPECT_DOUBLE_EQ((a).as_double(), b)

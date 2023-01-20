@@ -18,8 +18,6 @@
 #include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/util.h"
 
-using namespace ::testing;
-
 using namespace beanmachine;
 using namespace graph;
 using namespace std;

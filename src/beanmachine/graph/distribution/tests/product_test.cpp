@@ -16,7 +16,6 @@
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/tests/testing_util_test.h"
-#include "beanmachine/graph/third-party/nameof.h"
 #include "beanmachine/graph/util.h"
 
 using namespace beanmachine::graph;

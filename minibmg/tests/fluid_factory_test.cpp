@@ -11,7 +11,6 @@
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/pretty.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 namespace fluid_factory_test {

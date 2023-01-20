@@ -10,7 +10,6 @@
 #include "beanmachine/minibmg/ad/traced.h"
 #include "beanmachine/minibmg/rewriters/dedag.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 TEST(dedag_test, depth) {

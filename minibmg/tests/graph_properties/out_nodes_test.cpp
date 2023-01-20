@@ -11,7 +11,6 @@
 #include "beanmachine/minibmg/graph_factory.h"
 #include "beanmachine/minibmg/graph_properties/out_nodes.h"
 
-using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 TEST(out_nodes_test, simple) {

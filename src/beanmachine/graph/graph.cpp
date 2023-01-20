@@ -454,7 +454,6 @@ void Graph::test_grad(vector<DoubleMatrix*>& grad1) {
 }
 
 void Graph::eval_and_grad(vector<DoubleMatrix*>& grad1, uint seed) {
-  using namespace std::placeholders;
   mt19937 generator(seed);
   auto mutable_support = compute_mutable_support();
   rg::for_each(

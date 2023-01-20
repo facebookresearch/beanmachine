@@ -12,7 +12,6 @@
 #include "beanmachine/minibmg/ad/reverse.h"
 #include "beanmachine/minibmg/tests/test_utils.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 using Back = Reverse<Real>;

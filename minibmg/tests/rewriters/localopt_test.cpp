@@ -16,7 +16,6 @@
 #include "beanmachine/minibmg/pretty.h"
 #include "beanmachine/minibmg/rewriters/localopt.h"
 
-using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 template <class T>

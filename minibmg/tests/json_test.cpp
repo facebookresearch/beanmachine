@@ -9,7 +9,6 @@
 
 #include "beanmachine/minibmg/graph.h"
 
-using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 namespace json_test {

@@ -15,7 +15,6 @@
 #include "beanmachine/minibmg/node.h"
 #include "beanmachine/minibmg/rewriters/dedup.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 #define ASSERT_ID(node, num) ASSERT_EQ(node.value, num)

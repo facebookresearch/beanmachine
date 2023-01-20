@@ -12,12 +12,9 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/out_nodes_reflexive_transitive_closure.h"
 
-using namespace ::testing;
-
 using namespace beanmachine;
 using namespace std;
 using namespace graph;
-using namespace util;
 
 void run_ortc_test(
     const char* name,

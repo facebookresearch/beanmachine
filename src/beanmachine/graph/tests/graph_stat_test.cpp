@@ -10,12 +10,9 @@
 
 #include <gtest/gtest.h>
 #include <math.h>
-#include <mcheck.h>
 #include <vector>
 
 #include "beanmachine/graph/graph.h"
-
-using namespace ::testing;
 
 namespace beanmachine {
 namespace graph {

@@ -11,7 +11,6 @@
 #include "beanmachine/minibmg/ad/real.h"
 #include "beanmachine/minibmg/tests/test_utils.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 using Dual = Num2<Real>;

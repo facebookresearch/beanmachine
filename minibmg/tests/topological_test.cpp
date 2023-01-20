@@ -12,7 +12,6 @@
 #include <random>
 #include "beanmachine/minibmg/topological.h"
 
-using namespace ::testing;
 using namespace ::beanmachine::minibmg;
 
 // namespace {

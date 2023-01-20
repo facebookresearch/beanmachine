@@ -10,7 +10,6 @@
 #include "beanmachine/minibmg/graph.h"
 #include "beanmachine/minibmg/graph_properties/observations_by_node.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 TEST(observations_by_node_test, simple) {

@@ -11,7 +11,6 @@
 #include "beanmachine/minibmg/inference/hmc_world.h"
 #include "beanmachine/minibmg/inference/mle_inference.h"
 
-using namespace ::testing;
 using namespace beanmachine::minibmg;
 
 TEST(mle_inference_test, coin_flipping) {
