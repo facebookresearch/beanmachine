@@ -442,7 +442,13 @@ enum class InferenceType {
   GIBBS,
   NMC,
   NUTS,
+  AUTOMATIC_DISCRETE_MARGINALIZATION_NMC,
+  AUTOMATIC_DISCRETE_MARGINALIZATION_NUTS,
 };
+// Eventually we may choose to make inference types full-fledged objects.
+// This would allow automatic discrete marginalization to be a parametric type
+// taking another inference type as parameter: AMD(NUTS), AMD(NUTS), for
+// example.
 
 enum class AggregationType {
   UNKNOWN,
@@ -766,10 +772,14 @@ class Graph {
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
                     GIBBS, and NMC.
   :param seed: The seed provided to the random number generator.
+  :param infer_config: inference configuration.
   :returns: The posterior samples.
   */
-  std::vector<std::vector<NodeValue>>&
-  infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  std::vector<std::vector<NodeValue>>& infer(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed = 5123401,
+      InferConfig infer_config = InferConfig());
   /*
   Draw Monte Carlo samples from the posterior distribution using multiple
   chains.
@@ -794,10 +804,14 @@ class Graph {
   :param num_samples: The number of the MCMC samples.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
   GIBBS, and NMC. :param seed: The seed provided to the random number generator.
+  :param infer_config: inference configuration.
   :returns: The posterior means.
   */
-  std::vector<double>&
-  infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  std::vector<double>& infer_mean(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed = 5123401,
+      InferConfig infer_config = InferConfig());
   /*
   Make point estimates of the posterior means from multiple MCMC chains.
 
@@ -1053,7 +1067,7 @@ class Graph {
       InferenceType algorithm,
       uint seed,
       uint n_chains,
-      InferConfig infer_config);
+      InferConfig infer_config = InferConfig());
 
   uint thread_index;
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
@@ -1081,6 +1095,11 @@ class Graph {
       uint steps_per_iter,
       std::mt19937& gen,
       uint elbo_samples);
+  void automatic_discrete_marginalization(
+      InferenceType base_inference_type,
+      uint num_samples,
+      uint seed,
+      InferConfig infer_config);
 
   // TODO: Review what members of this class can be made static.
 
