@@ -48,6 +48,7 @@ class Sampler(Generator[World, Optional[World], None]):
         self._num_samples_remaining += num_adaptive_samples
         self._num_adaptive_sample_remaining = num_adaptive_samples
 
+    # pyre-fixme[14]: `send` overrides method defined in `Generator` inconsistently.
     def send(self, world: Optional[World] = None) -> World:
         """
         At each iteration, the following is executed:
