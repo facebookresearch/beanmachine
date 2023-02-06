@@ -208,8 +208,6 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         beta = torch.where(beta <= 0, torch.ones_like(beta), beta)
         return alpha, beta
 
-    # pyre-fixme[14]: `do_adaptation` overrides method defined in `BaseProposer`
-    #  inconsistently.
     def do_adaptation(
         self,
         world: World,

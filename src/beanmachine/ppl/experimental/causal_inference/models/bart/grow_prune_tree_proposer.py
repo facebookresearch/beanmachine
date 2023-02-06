@@ -63,8 +63,6 @@ class GrowPruneTreeProposer(TreeProposer):
         self.prune_probability = 1 - self.grow_probability
         self._uniform = Uniform(0.0, 1.0)
 
-    # pyre-fixme[14]: `propose` overrides method defined in `TreeProposer`
-    #  inconsistently.
     def propose(
         self,
         tree: Tree,
