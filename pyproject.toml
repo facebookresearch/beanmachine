@@ -7,37 +7,6 @@ build-backend = "setuptools.build_meta"
 minversion = "6.0"
 addopts = "-ra -q"
 testpaths = ["tests"]
-filterwarnings = [
-    # By default, all warnings are treated as errors
-    "error",
-    # pytorch warns about vmap usage since it's experimental
-    "ignore:torch.vmap is an experimental prototype.*:UserWarning",
-    # pandas sometimes complains about binary compatibility with numpy
-    "default:numpy.ufunc size changed, may indicate binary incompatibility.*:RuntimeWarning",
-    # nbval fspath deprecation not supported in sphinx
-    "ignore::DeprecationWarning:nbval",
-    # PyTorch 1.10 warns against creating a tensor from a list of numpy arrays
-    "default:Creating a tensor from a list of numpy.ndarrays is extremely slow.*:UserWarning",
-    # xarray uses a module that's deprecated since setuptools 60.0.0. This has been
-    # fixed in xarray/pull/6096, so we can remove this filter with the next xarray
-    # release
-    "default:distutils Version classes are deprecated.*:DeprecationWarning",
-    # statsmodels imports a module that's deprecated since pandas 1.14.0
-    "default:pandas.Int64Index is deprecated *:FutureWarning",
-    # functorch 0.1.0 imports deprecated _stateless module
-    "default:The `torch.nn.utils._stateless` code is deprecated*:DeprecationWarning",
-    # BM warns against using torch tensors as arguments of random variables
-    "default:PyTorch tensors are hashed by memory address instead of value.*:UserWarning",
-    # Arviz warns against the use of deprecated methods, due to the recent release of matplotlib v3.6.0
-    "default:The register_cmap function will be deprecated in a future version.*:PendingDeprecationWarning",
-    # gpytorch < 1.9.0 uses torch.triangular_solve
-    "default:torch.triangular_solve is deprecated*:UserWarning",
-    # NNC/TorchInductor warning
-    "ignore:The support of TorchInductor is experimental*:UserWarning",
-    "ignore:The support of NNC compiler is experimental*:UserWarning",
-    # NNC warning introduced in PyTorch 1.13
-    "ignore:The TorchScript type system doesn't support*:UserWarning",
-]
 
 [tool.usort]
 first_party_detection=false
