@@ -1,11 +1,9 @@
 name: Documentation
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-
+    branches: [main]
 jobs:
   build_docs_job:
     runs-on: ubuntu-latest
@@ -16,60 +14,52 @@ jobs:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
         shell: bash -l {0}
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set up Miniconda with Python ${{ matrix.python-version }}
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        miniconda-version: "latest"
-        python-version: ${{ matrix.python-version }}
-        activate-environment: test_env
-
-    - name: Install range-v3 dependency
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.sh
-        ./vcpkg integrate install
-        ./vcpkg install range-v3
-
-    - name: Install other dependencies
-      run: |
-        sudo apt-get install -y yarn
-        conda install -c conda-forge -y boost-cpp eigen=3.4.0
-        python -m pip install --upgrade pip
-        python -m pip install setuptools
-        python -m pip install notebook
-
-    - name: Install Bean Machine in editable mode
-      run: pip install -v -e .[dev]
-
-    - name: Add tutorials to Docs
-      run: make tutorials
-
-    - name: Check env
-      run: echo `which sphinx-build`
-
-    - name: Build the Website
-      run: |
-        cd website
-        yarn install
-        make all
-        cd ..
-
-    - name: Get output time
-      run: echo "The time was ${{ steps.build.outputs.time }}"
-
-    - name: Deploy
-      if: |
-        github.event_name == 'push' &&
-        github.repository == 'facebookresearch/beanmachine'
-      uses: JamesIves/github-pages-deploy-action@releases/v3
-      with:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Miniconda with Python ${{ matrix.python-version }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: latest
+          python-version: ${{ matrix.python-version }}
+          activate-environment: test_env
+      - name: Install range-v3 dependency
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.sh
+          # Ensure the .vcpkg directory exists, otherwise the next command will fail
+          mkdir -p ~/.vcpkg
+          ./vcpkg integrate install
+          ./vcpkg install range-v3
+      - name: Install other dependencies
+        run: |
+          sudo apt-get install -y yarn
+          conda install -c conda-forge -y boost-cpp eigen=3.4.0
+          python -m pip install --upgrade pip
+          python -m pip install setuptools
+          python -m pip install notebook
+      - name: Install Bean Machine in editable mode
+        run: pip install -v -e .[dev]
+      - name: Add tutorials to Docs
+        run: make tutorials
+      - name: Check env
+        run: echo `which sphinx-build`
+      - name: Build the Website
+        run: |
+          cd website
+          yarn install
+          make all
+          cd ..
+      - name: Get output time
+        run: echo "The time was ${{ steps.build.outputs.time }}"
+      - name: Deploy
+        if: |
+          github.event_name == 'push' &&
+          github.repository == 'facebookresearch/beanmachine'
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
           ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: website/build # The folder the action should deploy.
