@@ -35,7 +35,7 @@ class Regression(SimpleGP):
             jitter = jitter.unsqueeze(0)
         mean = self.mean(data)
         cov = self.kernel(data) + jitter
-        if cov.dim > mean.dim + 1:
+        if cov.dim() > mean.dim() + 1:
             cov = cov.squeeze(0)
         return MultivariateNormal(mean, cov)
 
