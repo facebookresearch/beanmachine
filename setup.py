@@ -9,7 +9,7 @@ import re
 import sys
 from glob import glob
 
-from pybind11.setup_helpers import build_ext, Pybind11Extension
+from pybind11.setup_helpers import build_ext, Pybind11Extension, ParallelCompile
 from setuptools import find_packages, setup
 
 
@@ -192,6 +192,9 @@ else:
     )
     INCLUDE_DIRS.append(selected_range_v3_include_dirs[0])
 
+
+ParallelCompile("NPY_NUM_BUILD_JOBS", default=0).install()
+
 setup(
     name="beanmachine",
     version=version,
@@ -230,8 +233,7 @@ setup(
         Pybind11Extension(
             name="beanmachine.graph",
             sources=sorted(
-                set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
-                - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
+                glob("src/beanmachine/graph/**/*.cpp", recursive=True)
             ),
             include_dirs=INCLUDE_DIRS,
             extra_compile_args=CPP_COMPILE_ARGS,
