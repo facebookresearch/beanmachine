@@ -28,7 +28,7 @@ jobs:
         run: |
           git clone https://github.com/Microsoft/vcpkg.git
           cd vcpkg
-          ./bootstrap-vcpkg.sh
+          ./bootstrap-vcpkg.sh -disableMetrics
           # Ensure the .vcpkg directory exists, otherwise the next command will fail
           mkdir -p ~/.vcpkg
           ./vcpkg integrate install

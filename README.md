@@ -61,6 +61,7 @@ including through [`vcpkg`](https://github.com/Microsoft/vcpkg):
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 ./bootstrap-vcpkg.sh
+mkdir -p ~/.vcpkg
 ./vcpkg integrate install
 ./vcpkg install range-v3
 ```
