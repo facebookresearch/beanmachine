@@ -18,7 +18,7 @@ and [Quick Start](https://beanmachine.org/docs/overview/quick_start/) to get sta
 
 ## Installation
 
-Bean Machine supports Python 3.7-3.10 and PyTorch 1.12.
+Bean Machine supports Python 3.7-3.11 and PyTorch 1.12.
 
 ### Install the Latest Release with Pip
 

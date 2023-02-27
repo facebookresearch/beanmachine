@@ -27,9 +27,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         include:
-          - python-version: '3.8'  # source distribution only needs to be build once
+          - python-version: '3.10'  # source distribution only needs to be built once
             os: ubuntu-latest
     defaults:
       run:
