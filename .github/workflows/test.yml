@@ -65,6 +65,7 @@ jobs:
       - name: Print out package info to help with debug
         run: |
           conda list
+          echo
           pip list
       - name: Run unit tests with pytest
         run: pytest
