@@ -1,72 +1,79 @@
 name: Tests
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-
+    branches: [main]
 env:
   PYTHONUNBUFFERED: 1
-  PYTEST_ADDOPTS: "--color=yes"
-
+  PYTEST_ADDOPTS: --color=yes
+  CMAKE_BUILD: build
 jobs:
   conda-install:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
         shell: bash -l {0}
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set up Miniconda with Python ${{ matrix.python-version }}
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        miniconda-version: "latest"
-        python-version: ${{ matrix.python-version }}
-        activate-environment: test_env
-
-    - name: Install Windows range-v3 dependency
-      if: matrix.os == 'windows-latest'
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        bootstrap-vcpkg.bat
-        vcpkg integrate install
-        vcpkg install range-v3
-
-    - name: Install Unix range-v3 dependency
-      if: matrix.os != 'windows-latest'
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.sh
-        ./vcpkg integrate install
-        ./vcpkg install range-v3
-
-    - name: Install other dependencies
-      run: |
-        conda install -c conda-forge -y boost-cpp eigen=3.4.0
-        python -m pip install --upgrade pip
-
-    - name: Install CPU PyTorch (only for Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
-
-    - name: Install Bean Machine in editable mode
-      run: pip install -v -e .[dev]
-
-    - name: Print out package info to help with debug
-      run: pip list
-
-    - name: Run unit tests with pytest
-      run: pytest
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Miniconda with Python ${{ matrix.python-version }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: latest
+          python-version: ${{ matrix.python-version }}
+          activate-environment: test_env
+      - name: Install Windows range-v3 dependency
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          bootstrap-vcpkg.bat -disableMetrics
+          vcpkg integrate install
+          vcpkg install range-v3
+      - name: Install Unix range-v3 dependency
+        if: matrix.os != 'windows-latest'
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.sh -disableMetrics
+          # Ensure the .vcpkg directory exists, otherwise the next command will fail
+          mkdir -p ~/.vcpkg
+          ./vcpkg integrate install
+          ./vcpkg install range-v3
+      - name: Print out Conda info
+        run: |
+          echo $CONDA_PREFIX
+          conda info
+          conda config --show
+      - name: Install other dependencies
+        run: |
+          conda install -c conda-forge -y boost-cpp eigen=3.4.0 gtest gmock
+          python -m pip install --upgrade pip
+      - name: Install CPU PyTorch (only for Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Install Bean Machine in editable mode
+        run: pip install -v -e .[dev]
+      - name: Print out package info to help with debug
+        run: |
+          conda list
+          echo
+          pip list
+      - name: Run unit tests with pytest
+        run: pytest
+      - name: Compile GoogleTest suite
+        run: |
+          cmake -S . -B $CMAKE_BUILD -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake --build $CMAKE_BUILD -j
+      - name: Run unit tests with GoogleTest
+        run: |
+          cd $CMAKE_BUILD/tests
+          ctest

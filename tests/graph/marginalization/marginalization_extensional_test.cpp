@@ -15,8 +15,8 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/marginalization/marginalization_extensional.h"
 #include "beanmachine/graph/operator/operator.h"
-#include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/util.h"
+#include "graph/testing_util_test.h"
 
 using namespace beanmachine;
 using namespace graph;

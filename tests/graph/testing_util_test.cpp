@@ -15,7 +15,7 @@
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
-#include "beanmachine/graph/tests/testing_util_test.h"
+#include "graph/testing_util_test.h"
 
 namespace beanmachine::util {
 

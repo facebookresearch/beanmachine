@@ -27,9 +27,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         include:
-          - python-version: '3.8'  # source distribution only needs to be build once
+          - python-version: '3.10'  # source distribution only needs to be built once
             os: ubuntu-latest
     defaults:
       run:
@@ -53,7 +53,7 @@ jobs:
       run: |
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
-        bootstrap-vcpkg.bat
+        bootstrap-vcpkg.bat -disableMetrics
         vcpkg integrate install
         vcpkg install range-v3
 
@@ -62,7 +62,9 @@ jobs:
       run: |
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
-        ./bootstrap-vcpkg.sh
+        ./bootstrap-vcpkg.sh -disableMetrics
+        # Ensure the .vcpkg directory exists, otherwise the next command will fail
+        mkdir -p ~/.vcpkg
         ./vcpkg integrate install
         ./vcpkg install range-v3
         sudo mv ./packages/range-v3_x64-linux/include /usr/include/range-v3
@@ -128,7 +130,8 @@ jobs:
           yum install -y curl zip unzip tar wget boost169-devel &&
           git clone https://github.com/Microsoft/vcpkg.git &&
           cd vcpkg &&
-          ./bootstrap-vcpkg.sh &&
+          ./bootstrap-vcpkg.sh -disableMetrics &&
+          mkdir -p ~/.vcpkg &&
           ./vcpkg integrate install &&
           ./vcpkg install range-v3 &&
           wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz &&

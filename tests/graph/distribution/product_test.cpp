@@ -15,8 +15,8 @@
 #include "beanmachine/graph/global/global_state.h"
 #include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/tests/testing_util_test.h"
 #include "beanmachine/graph/util.h"
+#include "graph/testing_util_test.h"
 
 using namespace beanmachine::graph;
 using namespace beanmachine::distribution;
