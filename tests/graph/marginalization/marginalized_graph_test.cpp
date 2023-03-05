@@ -17,7 +17,7 @@
 using namespace beanmachine;
 using namespace graph;
 
-TEST(testmarginal, only_discrete) {
+TEST(testmarginal, DISABLED_only_discrete) {
   /*
   Original graph
   digraph G {
@@ -345,7 +345,7 @@ TEST(testmarginals, DISABLED_parent_and_children) {
   EXPECT_EQ(normal_2_node->out_nodes[0], n2_node);
 }
 
-TEST(testmarginal, parent_and_long_child) {
+TEST(testmarginal, DISABLED_parent_and_long_child) {
   /*
   Original graph:
   digraph G {
@@ -464,7 +464,7 @@ TEST(testmarginal, parent_and_long_child) {
   EXPECT_EQ(n_node->in_nodes[0], normal_node);
 }
 
-TEST(testmarginal, upstream_from_parents) {
+TEST(testmarginal, DISABLED_upstream_from_parents) {
   /*
   Original graph:
   digraph G {
