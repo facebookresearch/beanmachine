@@ -113,9 +113,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Install Boost and Eigen dependencies (MacOS only)
-      if: matrix.os == 'macos-latest'
-      run: brew install boost eigen range-v3
+#     - name: Install Boost and Eigen dependencies (MacOS only)
+#       if: matrix.os == 'macos-latest'
+#       run: brew install boost eigen range-v3
 
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.4.0
