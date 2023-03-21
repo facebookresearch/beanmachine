@@ -5,10 +5,12 @@ on:
   workflow_dispatch:
     inputs:
       deploy:
-        description: 'Where to deploy the artifacts? Only build (build), deploy to test PyPI (test), or deploy to PyPI (prod).'
+        description: >
+          Where to deploy the artifacts? Only build (build), deploy to test PyPI
+          (test), or deploy to PyPI (prod).
         required: true
         type: choice
-        default: 'test'
+        default: test
         options:
           - build
           - test
@@ -16,7 +18,7 @@ on:
 
 env:
   PYTHONUNBUFFERED: 1
-  PYTEST_ADDOPTS: "--color=yes"
+  PYTEST_ADDOPTS: --color=yes
 
 jobs:
   build-windows-wheel-and-sdist:
@@ -29,7 +31,7 @@ jobs:
         os: [windows-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10']
         include:
-          - python-version: '3.8'  # source distribution only needs to be build once
+          - python-version: '3.8'  # source distribution only needs to be built once
             os: ubuntu-latest
     defaults:
       run:
@@ -37,68 +39,69 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Set up Miniconda with Python ${{ matrix.python-version }}
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        miniconda-version: "latest"
-        python-version: ${{ matrix.python-version }}
-        activate-environment: build_env
+      - name: Set up Miniconda with Python ${{ matrix.python-version }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: latest
+          python-version: ${{ matrix.python-version }}
+          activate-environment: build_env
 
-    - name: Install Windows range-v3 dependency
-      if: matrix.os == 'windows-latest'
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        bootstrap-vcpkg.bat
-        vcpkg integrate install
-        vcpkg install range-v3
+      - name: Install Windows range-v3 dependency
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          bootstrap-vcpkg.bat
+          vcpkg integrate install
+          vcpkg install range-v3
 
-    - name: Install Unix range-v3 dependency
-      if: matrix.os != 'windows-latest'
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.sh
-        ./vcpkg integrate install
-        ./vcpkg install range-v3
-        sudo mv ./packages/range-v3_x64-linux/include /usr/include/range-v3
+      - name: Install Unix range-v3 dependency
+        if: matrix.os != 'windows-latest'
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.sh
+          ./vcpkg integrate install
+          ./vcpkg install range-v3
+          sudo mv ./packages/range-v3_x64-linux/include /usr/include/range-v3
 
-    - name: Install other dependencies
-      run: |
-        conda install -c conda-forge -y boost-cpp eigen=3.4.0
-        python -m pip install --upgrade pip
-        pip install -U build
+      - name: Install other dependencies
+        run: |
+          conda install -c conda-forge -y boost-cpp eigen=3.4.0
+          python -m pip install --upgrade pip
+          pip install -U build
 
-    - name: Building Bean Machine wheel on ${{ matrix.os }} ${{ matrix.python-version }}
-      if: matrix.os == 'windows-latest'
-      run: python -m build --wheel
+      - name: >
+          Building Bean Machine wheel on ${{ matrix.os }} ${{ matrix.python-version }}
+        if: matrix.os == 'windows-latest'
+        run: python -m build --wheel
 
-    - name: Building source distribution on ${{ matrix.os }}
-      if: matrix.os == 'ubuntu-latest'
-      run: python -m build --sdist
+      - name: Building source distribution on ${{ matrix.os }}
+        if: matrix.os == 'ubuntu-latest'
+        run: python -m build --sdist
 
-    - name: Install built Bean Machine
-      # this will install prebuilt wheels on Windows or sdist on Ubuntu
-      run: pip install dist/*
+      - name: Install built Bean Machine
+        # this will install prebuilt wheels on Windows or sdist on Ubuntu
+        run: pip install dist/*
 
-    - name: Install pytest
-      run: pip install -U pytest
+      - name: Install pytest
+        run: pip install -U pytest
 
-    - name: Print out package info to help with debug
-      run: pip list
+      - name: Print out package info to help with debug
+        run: pip list
 
-    - name: Run unit tests with pytest
-      run: pytest
+      - name: Run unit tests with pytest
+        run: pytest
 
-    - name: Sending wheels to the deployment workflow
-      uses: actions/upload-artifact@v3
-      with:
-        name: beanmachine-wheels
-        path: dist/*
+      - name: Sending wheels to the deployment workflow
+        uses: actions/upload-artifact@v3
+        with:
+          name: beanmachine-wheels
+          path: dist/*
 
   cibuildwheel:
     if: github.repository == 'facebookresearch/beanmachine'
@@ -107,44 +110,40 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        cibw_build: ['cp37-*', 'cp38-*', 'cp39-*', 'cp310-*']
+        cibw_build: [cp37-*, cp38-*, cp39-*, cp310-*]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-#     - name: Install Boost and Eigen dependencies (MacOS only)
-#       if: matrix.os == 'macos-latest'
-#       run: brew install boost eigen range-v3
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.4.0
+        env:
+          CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          # Manually install range-v3 with vcpkg and Eigen3.4
+          # since yum is not up to date
+          CIBW_BEFORE_ALL_LINUX: >
+            yum install -y curl zip unzip tar wget boost169-devel &&
+            git clone https://github.com/Microsoft/vcpkg.git &&
+            cd vcpkg &&
+            ./bootstrap-vcpkg.sh &&
+            ./vcpkg integrate install &&
+            ./vcpkg install range-v3 &&
+            wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz &&
+            tar -xvf eigen-3.4.0.tar.gz &&
+            mv eigen-3.4.0 /usr/include/eigen3
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: pytest {package}
+          MACOSX_DEPLOYMENT_TARGET: "10.13"
 
-    - name: Build wheels
-      uses: pypa/cibuildwheel@v2.4.0
-      env:
-        CIBW_BUILD: ${{ matrix.cibw_build }}
-        CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
-        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-        CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-        CIBW_BEFORE_ALL_LINUX: >  # Manually install range-v3 with vcpkg and Eigen3.4 since yum is not up to date
-          yum install -y curl zip unzip tar wget boost169-devel &&
-          git clone https://github.com/Microsoft/vcpkg.git &&
-          cd vcpkg &&
-          ./bootstrap-vcpkg.sh &&
-          ./vcpkg integrate install &&
-          ./vcpkg install range-v3 &&
-          wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz &&
-          tar -xvf eigen-3.4.0.tar.gz &&
-          mv eigen-3.4.0 /usr/include/eigen3
-        CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: pytest {package}
-        MACOSX_DEPLOYMENT_TARGET: "10.13"
-
-
-    - name: Sending wheels to the deployment workflow
-      uses: actions/upload-artifact@v3
-      with:
-        name: beanmachine-wheels
-        path: wheelhouse/*
-
+      - name: Sending wheels to the deployment workflow
+        uses: actions/upload-artifact@v3
+        with:
+          name: beanmachine-wheels
+          path: wheelhouse/*
 
   publish-to-pypi:
     runs-on: ubuntu-latest
@@ -152,29 +151,29 @@ jobs:
       - build-windows-wheel-and-sdist
       - cibuildwheel
     steps:
-    - name: Download wheels from previous jobs
-      # by default this will download all artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: beanmachine-wheels
-        # PyPI publish action uploads everything under dist/* by default
-        path: dist
+      - name: Download wheels from previous jobs
+        # by default this will download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: beanmachine-wheels
+          # PyPI publish action uploads everything under dist/* by default
+          path: dist
 
-    - name: Display the list of artifacts
-      run: ls -R dist
+      - name: Display the list of artifacts
+        run: ls -R dist
 
-    - name: Publish to Test PyPI
-      if: github.event.inputs.deploy == 'test'
-      uses: pypa/gh-action-pypi-publish@v1.4.2
-      with:
-        password: ${{ secrets.TEST_PYPI_PASSWORD }}
-        repository_url: https://test.pypi.org/legacy/
-        skip_existing: true
-        verbose: true
+      - name: Publish to Test PyPI
+        if: github.event.inputs.deploy == 'test'
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          password: ${{ secrets.TEST_PYPI_PASSWORD }}
+          repository_url: https://test.pypi.org/legacy/
+          skip_existing: true
+          verbose: true
 
-    - name: Publish to PyPI
-      if: github.event.inputs.deploy == 'prod' && startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@v1.4.2
-      with:
-        password: ${{ secrets.PYPI_PASSWORD }}
-        verbose: true
+      - name: Publish to PyPI
+        if: github.event.inputs.deploy == 'prod' && startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          password: ${{ secrets.PYPI_PASSWORD }}
+          verbose: true

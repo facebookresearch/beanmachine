@@ -29,7 +29,7 @@ INSTALL_REQUIRES = [
     "plotly>=2.2.1",
     "scipy>=0.16",
     "statsmodels>=0.12.0",
-    "torch>=1.9.0",
+    "torch>=1.9.0, <1.14.0",
     "tqdm>=4.46.0",
     "typing-extensions>=3.10",
     "xarray>=0.16.0",
@@ -67,7 +67,13 @@ DEV_REQUIRES = (
 )
 
 if platform.system() == "Windows":
-    CPP_COMPILE_ARGS = ["/WX", "/permissive-", "/std:c++20"]
+    CPP_COMPILE_ARGS = [
+        "/WX",
+        "/permissive-",
+        "/std:c++20",
+        # Ignore utils.h(365) warning C4244 conversion from '__int64' to 'int'.
+        "/wd4244",
+    ]
 else:
     CPP_COMPILE_ARGS = ["-std=c++2a", "-Werror"]
 
