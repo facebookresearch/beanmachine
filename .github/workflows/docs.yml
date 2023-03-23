@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7]
+        python-version: [3.9]
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell

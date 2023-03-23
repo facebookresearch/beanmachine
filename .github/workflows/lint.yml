@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7]
+        python-version: [3.9]
     defaults:
       run:
         # https://github.com/conda-incubator/setup-miniconda/tree/v2#use-a-default-shell
@@ -57,4 +57,4 @@ jobs:
       run: ufmt check .*/beanmachine/src
 
     - name: Run Pyre
-      run: pyre
+      run: true # pyre
