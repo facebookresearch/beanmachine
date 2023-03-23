@@ -26,11 +26,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Bean Machine
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Bean Machine
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -69,7 +73,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="beanmachine.ppl.html">beanmachine.ppl package</a></li>
           <li class="breadcrumb-item"><a href="beanmachine.ppl.world.html">beanmachine.ppl.world package</a></li>
       <li class="breadcrumb-item active">beanmachine.ppl.world.world module</li>
@@ -158,7 +162,7 @@ in the world.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.world.World.initialize_world">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">initialize_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">Iterable[RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Optional[RVDict]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">InitializeFn</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_to_uniform&gt;,</span> <span class="pre">max_retries:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.world.World.initialize_world" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">initialize_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">Iterable[beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_to_uniform&gt;,</span> <span class="pre">max_retries:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">beanmachine.ppl.world.world.T</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.world.World.initialize_world" title="Permalink to this definition"></a></dt>
 <dd><p>Initializes a world with all of the random variables (queries and observations).
 In case of initializing values outside of support of the distributions, the
 method will keep resampling until a valid initialization is found up to
