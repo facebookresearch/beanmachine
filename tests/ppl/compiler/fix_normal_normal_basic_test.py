@@ -10,7 +10,7 @@ import unittest
 
 import scipy
 import torch
-from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
+from beanmachine.ppl.examples.conjugate_models import NormalNormalModel
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
 from torch.distributions import Normal
@@ -21,8 +21,8 @@ class NormalNormalConjugacyTest(unittest.TestCase):
         bmg = BMGInference()
 
         model = NormalNormalModel(10.0, 2.0, 5.0)
-        queries = [model.normal_p()]
-        observations = {model.normal(): tensor(15.9)}
+        queries = [model.theta()]
+        observations = {model.x(): tensor(15.9)}
         observed_bmg = bmg.to_dot(queries, observations, skip_optimizations=set())
         expected_bmg = """
 digraph "graph" {
@@ -49,26 +49,24 @@ digraph "graph" {
         torch.manual_seed(seed)
         random.seed(seed)
         true_mu = 0.5
-        true_y = Normal(true_mu, 10.0)
+        true_x = Normal(true_mu, 10.0)
         num_samples = 1000
         bmg = BMGInference()
 
         model = NormalNormalModel(10.0, 2.0, 5.0)
-        queries = [model.normal_p()]
-        observations = {
-            model.normal(): true_y.sample(),
-        }
+        queries = [model.theta()]
+        observations = {model.x(): true_x.sample()}
 
         skip_optimizations = {"normal_normal_conjugate_fixer"}
         original_posterior = bmg.infer(
             queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
         )
-        original_samples = original_posterior[model.normal_p()][0]
+        original_samples = original_posterior[model.theta()][0]
 
         transformed_posterior = bmg.infer(
             queries, observations, num_samples, 1, skip_optimizations=set()
         )
-        transformed_samples = transformed_posterior[model.normal_p()][0]
+        transformed_samples = transformed_posterior[model.theta()][0]
 
         self.assertEqual(
             type(original_samples),

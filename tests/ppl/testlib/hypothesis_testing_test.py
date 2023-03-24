@@ -6,7 +6,9 @@
 """Tests for hypothesis_testing.py"""
 import unittest
 
-from beanmachine.ppl.testlib.hypothesis_testing import (
+from torch import tensor
+
+from .hypothesis_testing import (
     inverse_chi2_cdf,
     inverse_normal_cdf,
     mean_equality_hypothesis_confidence_interval,
@@ -14,7 +16,6 @@ from beanmachine.ppl.testlib.hypothesis_testing import (
     variance_equality_hypothesis_confidence_interval,
     variance_equality_hypothesis_test,
 )
-from torch import tensor
 
 
 class HypothesisTestingTest(unittest.TestCase):

@@ -6,7 +6,8 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.testlib.abstract_conjugate import AbstractConjugateTests
+
+from ..testlib.abstract_conjugate import AbstractConjugateTests
 
 
 class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):

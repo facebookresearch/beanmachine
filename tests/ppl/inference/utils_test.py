@@ -4,37 +4,39 @@
 # LICENSE file in the root directory of this source tree.
 
 import beanmachine.ppl as bm
-import torch
-import torch.distributions as dist
+import pytest
+from beanmachine.ppl.examples.primitive_models import NormalModel
+from torch import tensor
+
+from ..utils.fixtures import approx_all, parametrize_inference, parametrize_model
 
 
-@bm.random_variable
-def foo():
-    return dist.Normal(0.0, 1.0)
+pytestmark = [
+    parametrize_model([NormalModel(tensor(0.0), tensor(1.0))]),
+    parametrize_inference([bm.SingleSiteAncestralMetropolisHastings()]),
+]
 
 
-def test_set_random_seed():
+@pytest.mark.parametrize("seed", [123, 47])
+def test_set_random_seed(model, inference, seed):
     def sample_with_seed(seed):
         bm.seed(seed)
-        return bm.SingleSiteAncestralMetropolisHastings().infer(
-            [foo()], {}, num_samples=20, num_chains=1
-        )
+        return inference.infer([model.x()], {}, num_samples=20, num_chains=1)
 
-    samples1 = sample_with_seed(123)
-    samples2 = sample_with_seed(123)
-    assert torch.allclose(samples1[foo()], samples2[foo()])
+    samples = (sample_with_seed(seed) for _ in range(2))
+    assert approx_all(*(s[model.x()] for s in samples))
 
 
-def test_detach_samples():
+def test_detach_samples(model, inference):
     """Test to ensure samples are detached from torch computation graphs."""
-    queries = [foo()]
-    samples = bm.SingleSiteAncestralMetropolisHastings().infer(
+    queries = [model.x()]
+    samples = inference.infer(
         queries=queries,
         observations={},
         num_samples=20,
         num_chains=1,
     )
-    rv_data = samples[foo()]
+    rv_data = samples[model.x()]
     idata = samples.to_inference_data()
     assert hasattr(rv_data, "detach")
-    assert not hasattr(idata["posterior"][foo()], "detach")
+    assert not hasattr(idata["posterior"][model.x()], "detach")

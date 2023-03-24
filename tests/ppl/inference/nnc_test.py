@@ -6,38 +6,33 @@
 import warnings
 
 import beanmachine.ppl as bm
-import pytest
 import torch
-import torch.distributions as dist
+from beanmachine.ppl.examples.conjugate_models import NormalNormalModel
+from torch import tensor
+
+from ..utils.fixtures import parametrize_inference, parametrize_model
 
 
-class SampleModel:
-    @bm.random_variable
-    def foo(self):
-        return dist.Normal(0.0, 1.0)
-
-    @bm.random_variable
-    def bar(self):
-        return dist.Normal(self.foo(), 1.0)
+pytestmark = parametrize_model(
+    [NormalNormalModel(tensor(0.0), tensor(1.0), tensor(1.0))]
+)
 
 
-@pytest.mark.parametrize(
-    "algorithm",
+@parametrize_inference(
     [
         bm.GlobalNoUTurnSampler(nnc_compile=True),
         bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, nnc_compile=True),
-    ],
+    ]
 )
-def test_nnc_compile(algorithm):
-    model = SampleModel()
-    queries = [model.foo()]
-    observations = {model.bar(): torch.tensor(0.5)}
+def test_nnc_compile(model, inference):
+    queries = [model.theta()]
+    observations = {model.x(): torch.tensor(0.5)}
     num_samples = 30
     num_chains = 2
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         # verify that NNC can run through
-        samples = algorithm.infer(
+        samples = inference.infer(
             queries,
             observations,
             num_samples,
@@ -45,4 +40,4 @@ def test_nnc_compile(algorithm):
             num_chains=num_chains,
         )
     # sanity check: make sure that the samples are valid
-    assert not torch.isnan(samples[model.foo()]).any()
+    assert not torch.isnan(samples[model.theta()]).any()

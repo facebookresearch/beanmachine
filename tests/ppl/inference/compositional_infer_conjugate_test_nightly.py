@@ -6,7 +6,8 @@
 import unittest
 
 from beanmachine.ppl.inference.compositional_infer import CompositionalInference
-from beanmachine.ppl.testlib.abstract_conjugate import AbstractConjugateTests
+
+from ..testlib.abstract_conjugate import AbstractConjugateTests
 
 
 class CompositionalInferenceConjugateTest(unittest.TestCase, AbstractConjugateTests):

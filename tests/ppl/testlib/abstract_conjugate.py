@@ -10,21 +10,22 @@ import numpy as np
 import scipy.stats
 import torch
 from beanmachine.ppl.diagnostics.common_statistics import effective_sample_size
-from beanmachine.ppl.examples.conjugate_models.beta_binomial import BetaBinomialModel
-from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
+from beanmachine.ppl.examples.conjugate_models import (
+    BetaBinomialModel,
     CategoricalDirichletModel,
+    GammaGammaModel,
+    GammaNormalModel,
+    NormalNormalModel,
 )
-from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaModel
-from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
-from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
 from beanmachine.ppl.inference import utils
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.testlib.hypothesis_testing import (
+from torch import Tensor, tensor
+
+from .hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,
     variance_equality_hypothesis_confidence_interval,
 )
-from torch import Tensor, tensor
 
 
 class AbstractConjugateTests(metaclass=ABCMeta):
@@ -71,7 +72,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             (alpha_prime * beta_prime)
             / ((alpha_prime + beta_prime).pow(2.0) * (alpha_prime + beta_prime + 1.0))
         ).pow(0.5)
-
         return (mean_prime, std_prime, queries, observations)
 
     def compute_gamma_gamma_moments(
@@ -88,8 +88,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         alpha = tensor([1.5, 1.5])
         obs = tensor([2.0, 4.0])
         model = GammaGammaModel(shape, rate, alpha)
-        queries = [model.gamma_p()]
-        observations = {model.gamma(): obs}
+        queries = [model.theta()]
+        observations = {model.x(): obs}
         shape = shape + alpha
         rate = rate + obs
         expected_mean = shape / rate
@@ -110,8 +110,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mu = tensor([1.0, 2.0])
         obs = tensor([1.5, 2.5])
         model = GammaNormalModel(shape, rate, mu)
-        queries = [model.gamma()]
-        observations = {model.normal(): obs}
+        queries = [model.theta()]
+        observations = {model.x(): obs}
         shape = shape + tensor([0.5, 0.5])
         deviations = (obs - mu).pow(2.0)
         rate = rate + (deviations * (0.5))
@@ -129,19 +129,14 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         queries and observations
         """
         mu = tensor([1.0, 1.0])
-        std = tensor([1.0, 1.0])
         sigma = tensor([1.0, 1.0])
+        std = tensor([1.0, 1.0])
         obs = tensor([1.5, 2.5])
-        model = NormalNormalModel(mu, std, sigma)
-        queries = [model.normal_p()]
-        observations = {model.normal(): obs}
-        expected_mean = (mu / std.pow(2.0) + obs / sigma.pow(2.0)) / (
-            # pyre-fixme[58]: `/` is not supported for operand types `float` and
-            #  `Tensor`.
-            1.0 / sigma.pow(2.0)
-            # pyre-fixme[58]: `/` is not supported for operand types `float` and
-            #  `Tensor`.
-            + 1.0 / std.pow(2.0)
+        model = NormalNormalModel(mu, sigma, std)
+        queries = [model.theta()]
+        observations = {model.x(): obs}
+        expected_mean = (mu / sigma.pow(2.0) + obs / std.pow(2.0)) / (
+            tensor(1.0) / std.pow(2.0) + tensor(1.0) / sigma.pow(2.0)
         )
         expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
         return (expected_mean, expected_std, queries, observations)
@@ -157,8 +152,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         alpha = tensor([0.5, 0.5])
         model = CategoricalDirichletModel(alpha)
         obs = tensor([1.0])
-        queries = [model.dirichlet()]
-        observations = {model.categorical(): obs}
+        queries = [model.theta()]
+        observations = {model.x(): obs}
         alpha = alpha + tensor([0.0, 1.0])
         expected_mean = alpha / alpha.sum()
         expected_std = (expected_mean * (1 - expected_mean) / (alpha.sum() + 1)).pow(
