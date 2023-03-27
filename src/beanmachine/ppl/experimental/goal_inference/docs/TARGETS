@@ -1,0 +1,17 @@
+# (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+load("@fbcode_macros//build_defs:sphinx_wiki.bzl", "sphinx_wiki")
+
+oncall("hackppl")
+
+sphinx_wiki(
+    name = "docs",
+    srcs = ["README.rst"],
+    apidoc_modules = {
+        "beanmachine.facebook.goal_inference": "api",
+    },
+    python_library_deps = [
+        "//beanmachine/facebook/goal_inference:goal_inference",
+    ],
+    wiki_root_path = "Users/jkdamewo/goal_inference_api",
+)
