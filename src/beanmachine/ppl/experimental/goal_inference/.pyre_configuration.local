@@ -1,7 +1,0 @@
-{
-  "oncall": "ppl",
-  "targets": [
-    "fbcode//beanmachine/facebook/goal_inference:goal_inference"
-  ],
-  "version": "4a6a0463eedefb5fb85e5b2ff69716cd12841aa1"
-}
