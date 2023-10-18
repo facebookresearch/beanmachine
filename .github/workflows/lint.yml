@@ -42,7 +42,7 @@ jobs:
       run: pip list
 
     - name: Lint with flake8
-      run: flake8 . --exclude
+      run: flake8 .
 
     - name: Lint with ufmt (black + usort)
       run: ufmt check .*/beanmachine/src
