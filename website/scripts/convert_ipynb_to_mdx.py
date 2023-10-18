@@ -7,7 +7,6 @@ import json
 import re
 import shutil
 import uuid
-import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
@@ -523,10 +522,7 @@ def handle_pandas(
         # Remove the index if it is just a range, and output to markdown.
         mdx = ""
         if isinstance(md_df.index, pd.RangeIndex):
-            # Ignore FutureWarning: 'showindex' is deprecated.
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                mdx = md_df.to_markdown(showindex=False)
+            mdx = md_df.to_markdown(index=False)
         elif not isinstance(md_df.index, pd.RangeIndex):
             mdx = md_df.to_markdown()
         output.append((index, f"\n{mdx}\n\n"))
