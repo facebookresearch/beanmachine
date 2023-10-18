@@ -20,7 +20,7 @@ class SampleModel:
     def bar(self):
         return dist.Normal(self.foo(), 1.0)
 
-
+@pytest.mark.skip(reason="disable NNC test until we fix the compatibility issue with PyTorch 2.0")
 @pytest.mark.parametrize(
     "algorithm",
     [

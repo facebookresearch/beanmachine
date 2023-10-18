@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
-from typing import Callable, Optional, Tuple, TypeVar
+from typing import Callable, TypeVar
 
 from typing_extensions import ParamSpec
 
@@ -14,9 +14,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def nnc_jit(
-    f: Callable[P, R], static_argnums: Optional[Tuple[int]] = None
-) -> Callable[P, R]:
+def nnc_jit(f: Callable[P, R]) -> Callable[P, R]:
     """
     A helper function that lazily imports the NNC utils, which initialize the compiler
     and displaying a experimental warning, then invoke the underlying nnc_jit on
@@ -33,7 +31,7 @@ def nnc_jit(
         # return original function without change
         return f
 
-    return raw_nnc_jit(f, static_argnums)
+    return raw_nnc_jit(f)
 
 
 __all__ = ["nnc_jit"]

@@ -48,7 +48,7 @@ class _DefaultInference(BaseInference):
     Mixed inference class that handles both discrete and continuous RVs
     """
 
-    def __init__(self, nnc_compile: bool = True):
+    def __init__(self, nnc_compile: bool = False):
         self._disc_proposers = {}
         self._cont_proposer = None
         self._continuous_rvs = set()
@@ -155,7 +155,7 @@ class CompositionalInference(BaseInference):
                 Union[BaseInference, Tuple[BaseInference, ...], EllipsisClass],
             ]
         ] = None,
-        nnc_compile: bool = True,
+        nnc_compile: bool = False,
     ):
         self.config: Dict[Union[Callable, Tuple[Callable, ...]], BaseInference] = {}
         # create a set for the RV families that are being covered in the config; this is

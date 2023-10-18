@@ -61,7 +61,7 @@ class HMCProposer(BaseProposer):
         adapt_mass_matrix: bool = True,
         full_mass_matrix: bool = False,
         target_accept_prob: float = 0.8,
-        jit_backend: TorchJITBackend = TorchJITBackend.NNC,
+        jit_backend: TorchJITBackend = TorchJITBackend.NONE,
     ):
         self.world = initial_world
         self._target_rvs = target_rvs
