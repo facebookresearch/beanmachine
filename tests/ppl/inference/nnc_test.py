@@ -20,12 +20,12 @@ class SampleModel:
     def bar(self):
         return dist.Normal(self.foo(), 1.0)
 
-
+@pytest.mark.skip(reason="disable NNC test until we fix the compatibility issue with PyTorch 2.0")
 @pytest.mark.parametrize(
     "algorithm",
     [
-        bm.GlobalNoUTurnSampler(nnc_compile=False),
-        bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, nnc_compile=False),
+        bm.GlobalNoUTurnSampler(nnc_compile=True),
+        bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, nnc_compile=True),
     ],
 )
 def test_nnc_compile(algorithm):
