@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
-from typing import Callable, Optional, Tuple, TypeVar
+from typing import Callable, TypeVar
 
 from typing_extensions import ParamSpec
 
