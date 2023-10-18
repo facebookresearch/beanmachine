@@ -29,18 +29,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
         activate-environment: test_env
 
-    - name: Install range-v3 dependency
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.sh
-        ./vcpkg integrate install
-        ./vcpkg install range-v3
-
     - name: Install other dependencies
       run: |
         sudo apt-get install -y yarn
-        conda install -c conda-forge -y boost-cpp eigen=3.4.0
+        conda install -c conda-forge -y boost-cpp eigen range-v3
         python -m pip install --upgrade pip
         python -m pip install setuptools
         python -m pip install notebook

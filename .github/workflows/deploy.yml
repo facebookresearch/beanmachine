@@ -48,28 +48,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
         activate-environment: build_env
 
-    - name: Install Windows range-v3 dependency
-      if: matrix.os == 'windows-latest'
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        bootstrap-vcpkg.bat
-        vcpkg integrate install
-        vcpkg install range-v3
-
-    - name: Install Unix range-v3 dependency
-      if: matrix.os != 'windows-latest'
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.sh
-        ./vcpkg integrate install
-        ./vcpkg install range-v3
-        sudo mv ./packages/range-v3_x64-linux/include /usr/include/range-v3
-
     - name: Install other dependencies
       run: |
-        conda install -c conda-forge -y boost-cpp eigen=3.4.0
+        conda install -c conda-forge -y boost-cpp eigen range-v3
         python -m pip install --upgrade pip
         pip install -U build
 
@@ -124,13 +105,8 @@ jobs:
         CIBW_SKIP: "*-manylinux_i686 *-musllinux_*"
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-        CIBW_BEFORE_ALL_LINUX: >  # Manually install range-v3 with vcpkg and Eigen3.4 since yum is not up to date
-          yum install -y curl zip unzip tar wget boost169-devel &&
-          git clone https://github.com/Microsoft/vcpkg.git &&
-          cd vcpkg &&
-          ./bootstrap-vcpkg.sh &&
-          ./vcpkg integrate install &&
-          ./vcpkg install range-v3 &&
+        CIBW_BEFORE_ALL_LINUX: >  # Manually install Eigen3.4 since yum is not up to date
+          yum install -y curl zip unzip tar wget boost169-devel range-v3-devel &&
           wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz &&
           tar -xvf eigen-3.4.0.tar.gz &&
           mv eigen-3.4.0 /usr/include/eigen3

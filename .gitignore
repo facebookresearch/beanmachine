@@ -121,6 +121,3 @@ website/static/js/*
 !website/static/js/code_block_buttons.js
 website/static/_sphinx-sources/
 docs/api/
-
-## ignore user's local installation of vcpkg
-vcpkg
