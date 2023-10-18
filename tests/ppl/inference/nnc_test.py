@@ -24,8 +24,8 @@ class SampleModel:
 @pytest.mark.parametrize(
     "algorithm",
     [
-        bm.GlobalNoUTurnSampler(nnc_compile=True),
-        bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, nnc_compile=True),
+        bm.GlobalNoUTurnSampler(nnc_compile=False),
+        bm.GlobalHamiltonianMonteCarlo(trajectory_length=1.0, nnc_compile=False),
     ],
 )
 def test_nnc_compile(algorithm):

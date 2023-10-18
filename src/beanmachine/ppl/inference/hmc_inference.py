@@ -108,7 +108,7 @@ class SingleSiteHamiltonianMonteCarlo(BaseInference):
         adapt_mass_matrix: bool = True,
         full_mass_matrix: bool = False,
         target_accept_prob: float = 0.8,
-        nnc_compile: bool = True,
+        nnc_compile: bool = False,
         experimental_inductor_compile: bool = False,
     ):
         self.trajectory_length = trajectory_length

@@ -83,7 +83,7 @@ class NUTSProposer(HMCProposer):
         full_mass_matrix: bool = False,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
-        jit_backend: TorchJITBackend = TorchJITBackend.NNC,
+        jit_backend: TorchJITBackend = TorchJITBackend.NONE,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
