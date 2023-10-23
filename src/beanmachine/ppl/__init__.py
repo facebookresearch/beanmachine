@@ -41,7 +41,6 @@ __all__ = [
     "Diagnostics",
     "GlobalHamiltonianMonteCarlo",
     "GlobalNoUTurnSampler",
-    "Predictive",
     "RVIdentifier",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
