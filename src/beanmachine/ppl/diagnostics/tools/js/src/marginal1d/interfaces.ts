@@ -8,6 +8,10 @@
 import {Plot} from '@bokehjs/models/plots/plot';
 import {ColumnDataSource} from '@bokehjs/models/sources/column_data_source';
 import {HoverTool} from '@bokehjs/models/tools/inspectors/hover_tool';
+import {Div} from '@bokehjs/models/widgets/div';
+import {RadioButtonGroup} from '@bokehjs/models/widgets/radio_button_group';
+import {Select} from '@bokehjs/models/widgets/selectbox';
+import {Slider} from '@bokehjs/models/widgets/slider';
 
 // NOTE: In the corresponding Python typing files for the diagnostic tool, we define
 //       similar types using a TypedDict object. TypeScript allows us to maintain
@@ -94,4 +98,12 @@ export interface Tooltips {
   [key: string]: any;
   marginal: Tooltip;
   cumulative: Tooltip;
+}
+
+export interface Widgets {
+  rv_select: Select;
+  bw_factor_slider: Slider;
+  bw_div: Div;
+  hdi_slider: Slider;
+  stats_button: RadioButtonGroup;
 }
