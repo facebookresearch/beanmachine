@@ -44,8 +44,13 @@ class DiagnosticsTools:
 
     def __init__(self: DiagnosticsTools, mcs: MonteCarloSamples) -> None:
         """Initialize."""
+        from beanmachine.ppl.diagnostics.tools.marginal1d.tool import Marginal1d
+        from beanmachine.ppl.diagnostics.tools.trace.tool import Trace
+
         self.mcs = mcs
         self.idata = self.mcs.to_inference_data()
+        self.marginal1d_tool = Marginal1d
+        self.trace_tool = Trace
 
     @_requires_dev_packages
     def marginal1d(self: DiagnosticsTools) -> None:
@@ -55,9 +60,7 @@ class DiagnosticsTools:
         Returns:
             None: Displays the tool directly in a Jupyter notebook.
         """
-        from beanmachine.ppl.diagnostics.tools.marginal1d.tool import Marginal1d
-
-        Marginal1d(self.mcs).show()
+        self.marginal1d_tool(self.mcs).show()
 
     @_requires_dev_packages
     def trace(self: DiagnosticsTools) -> None:
@@ -67,6 +70,24 @@ class DiagnosticsTools:
         Returns:
             None: Displays the tool directly in a Jupyter notebook.
         """
-        from beanmachine.ppl.diagnostics.tools.trace.tool import Trace
+        self.trace_tool(self.mcs).show()
 
-        Trace(self.mcs).show()
+    @_requires_dev_packages
+    def dashboard(self: DiagnosticsTools) -> None:
+        """
+        Dashboard showing all available diagnostic tools.
+
+        Returns:
+            None: Displays the tool directly in a Jupyter notebook.
+        """
+        from bokeh.embed import file_html
+        from bokeh.models.widgets.panels import Panel, Tabs
+        from bokeh.resources import INLINE
+        from IPython.display import display, HTML
+
+        marginal1d_tool_view = self.marginal1d_tool(self.mcs).create_document()
+        marginal1d_panel = Panel(child=marginal1d_tool_view, title="Marginal 1D tool")
+        trace_tool_view = self.trace_tool(self.mcs).create_document()
+        trace_panel = Panel(child=trace_tool_view, title="Trace tool")
+        tabs = Tabs(tabs=[marginal1d_panel, trace_panel], sizing_mode="scale_both")
+        display(HTML(file_html(tabs, resources=INLINE)))
