@@ -10,6 +10,7 @@ import torch
 import xarray as xr
 from beanmachine.ppl.inference.utils import detach_samples, merge_dicts
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.diagnostics.tools.viz import _requires_dev_packages
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
@@ -266,10 +267,12 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             if n not in self.namespaces:
                 self.namespaces[n] = mcs.namespaces[n]
 
-    def to_inference_data(self, include_adapt_steps: bool = False) -> az.InferenceData:
+    @_requires_dev_packages
+    def to_inference_data(self, include_adapt_steps: bool = False):
         """
         Return an az.InferenceData from MonteCarloSamples.
         """
+        import arviz as az
 
         if "posterior" in self.namespaces:
             posterior = detach_samples(self.namespaces["posterior"].samples)
