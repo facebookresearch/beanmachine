@@ -5,9 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {linearRange, numericalSort, shape} from './array';
+import {arrayMean, linearRange, numericalSort, shape} from './array';
 import {rankData, scaleToOne} from './dataTransformation';
-import {mean as computeMean} from './pointStatistic';
 
 /**
  * Compute the histogram of the given data.
@@ -16,7 +15,8 @@ import {mean as computeMean} from './pointStatistic';
  * @param {number} [numBins] - The number of bins to use for the histogram. If none is
  *     given, then we follow ArviZ's implementation by using twice then number of bins
  *     of the Sturges formula.
- * @returns {number[][]} [TODO:description]
+ * @returns {number[][]} A two-dimensional array where the first row is the bins and the
+ *     second row is the histogram count.
  */
 export const calculateHistogram = (data: number[], numBins: number = 0): number[][] => {
   const sortedData = numericalSort(data);
@@ -123,7 +123,7 @@ export const rankHistogram = (data: number[][]): RankHistogram => {
       return value + i;
     });
 
-    const chainRankMean = computeMean(chainCounts);
+    const chainRankMean = arrayMean(chainCounts);
     const left = binEdges.slice(0, binEdges.length - 1);
     const right = binEdges.slice(1);
     const binLabel = [];
@@ -145,7 +145,7 @@ export const rankHistogram = (data: number[][]): RankHistogram => {
       line: {x: x, y: y},
       chain: Array(x.length).fill(i + 1),
       rankMean: Array(x.length).fill(chainIndex - chainRankMean),
-      mean: Array(x.length).fill(computeMean(counts)),
+      mean: Array(x.length).fill(arrayMean(counts)),
     };
   }
   return output;

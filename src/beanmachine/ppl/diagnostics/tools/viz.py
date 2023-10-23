@@ -60,6 +60,18 @@ class DiagnosticsTools:
         Marginal1d(self.mcs).show()
 
     @_requires_dev_packages
+    def marginal2d(self: DiagnosticsTools) -> None:
+        """
+        Marginal 2D diagnostic tool for a Bean Machine model.
+
+        Returns:
+            None: Displays the tool directly in a Jupyter notebook.
+        """
+        from beanmachine.ppl.diagnostics.tools.marginal2d.tool import Marginal2d
+
+        Marginal2d(self.mcs).show()
+
+    @_requires_dev_packages
     def trace(self: DiagnosticsTools) -> None:
         """
         Trace diagnostic tool for a Bean Machine model.

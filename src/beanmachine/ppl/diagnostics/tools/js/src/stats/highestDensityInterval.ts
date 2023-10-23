@@ -94,3 +94,82 @@ export const data = (
     upperBound: hdi.upperBound,
   };
 };
+
+/**
+ * Create the HDI Bokeh annotation for a marginal that has been rotated and flipped. We
+ * must break up the annotation into a lower and upper component so that it renders
+ * correctly in the browser.
+ *
+ * @param {number[]} rvData - Raw random variable data from the model.
+ * @param {number[]} marginalX - The support of the Kernel Density Estimate of the
+ *     random variable.
+ * @param {number[]} marginalY - The Kernel Density Estimate of the random variable.
+ * @param {number} hdiProbability - The highest density interval probability to use when
+ *     calculating the HDI.
+ * @returns {{
+ *     lower: {base: number[]; lower: number[]; upper: number[]};
+ *     upper: {base: number[]; lower: number[]; upper: number[]};
+ *     lowerBound: number;
+ *     upperBound: number;
+ * }} The lower and upper components are drawn on the same figure.
+ */
+export const data90Degrees = (
+  rvData: number[],
+  marginalX: number[],
+  marginalY: number[],
+  hdiProbability: number,
+): {
+  lower: {
+    base: number[];
+    lower: number[];
+    upper: number[];
+  };
+  upper: {
+    base: number[];
+    lower: number[];
+    upper: number[];
+  };
+  lowerBound: number;
+  upperBound: number;
+} => {
+  const hdiBounds = interval(rvData, hdiProbability);
+  const hdiData = data(rvData, marginalX, marginalY, hdiProbability);
+  const hdiX = hdiData.base;
+  const n = hdiX.length;
+  const halfIndex = Math.floor(n / 2);
+  const xAtHalfIndex = hdiX[halfIndex];
+
+  const lowerBase = [0];
+  const lowerLower = [hdiBounds.lowerBound];
+  for (let i = 0; i < marginalX.length; i += 1) {
+    if (marginalX[i] <= xAtHalfIndex && marginalX[i] >= hdiBounds.lowerBound) {
+      lowerBase.push(marginalY[i]);
+      lowerLower.push(marginalX[i]);
+    }
+  }
+  const lowerUpper = Array(lowerBase.length).fill(xAtHalfIndex);
+
+  const upperBase = [0];
+  const upperUpper = [hdiBounds.upperBound];
+  for (let i = marginalX.length - 1; i >= 0; i -= 1) {
+    if (marginalX[i] >= xAtHalfIndex && marginalX[i] <= hdiBounds.upperBound) {
+      upperBase.push(marginalY[i]);
+      upperUpper.push(marginalX[i]);
+    }
+  }
+  const upperLower = Array(upperBase.length).fill(xAtHalfIndex);
+  return {
+    lower: {
+      base: upperBase,
+      lower: upperLower,
+      upper: upperUpper,
+    },
+    upper: {
+      base: lowerBase,
+      lower: lowerLower,
+      upper: lowerUpper,
+    },
+    lowerBound: hdiBounds.lowerBound,
+    upperBound: hdiBounds.upperBound,
+  };
+};

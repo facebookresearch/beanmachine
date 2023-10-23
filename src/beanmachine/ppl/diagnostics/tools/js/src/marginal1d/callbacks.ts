@@ -5,35 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {Axis} from '@bokehjs/models/axes/axis';
-import {cumulativeSum} from '../stats/array';
+import {arrayMean, cumulativeSum} from '../stats/array';
 import {scaleToOne} from '../stats/dataTransformation';
 import {
   interval as hdiInterval,
   data as hdiData,
 } from '../stats/highestDensityInterval';
 import {oneD} from '../stats/marginal';
-import {mean as computeMean} from '../stats/pointStatistic';
 import {interpolatePoints} from '../stats/utils';
+import {updateAxisLabel} from '../utils/plottingUtils';
 import * as interfaces from './interfaces';
 
 // Define the names of the figures used for this Bokeh application.
 const figureNames = ['marginal', 'cumulative'];
-
-/**
- * Update the given Bokeh Axis object with the new label string. You must use this
- * method to update axis strings using TypeScript, otherwise the ts compiler will throw
- * a type check error.
- *
- * @param {Axis} axis - The Bokeh Axis object needing a new label.
- * @param {string | null} label - The new label for the Bokeh Axis object.
- */
-export const updateAxisLabel = (axis: Axis, label: string | null): void => {
-  // Type check requirement.
-  if ('axis_label' in axis) {
-    axis.axis_label = label;
-  }
-};
 
 /**
  * Compute the following statistics for the given random variable data
@@ -72,7 +56,7 @@ export const computeStats = (
 
   // Compute the point statistics for the KDE, and create labels to display them in the
   // figures.
-  const mean = computeMean(rawData);
+  const mean = arrayMean(rawData);
   const hdiBounds = hdiInterval(rawData, hdiProbability);
   const x = [hdiBounds.lowerBound, mean, hdiBounds.upperBound];
   const y = interpolatePoints({x: marginalX, y: marginalY, points: x});
