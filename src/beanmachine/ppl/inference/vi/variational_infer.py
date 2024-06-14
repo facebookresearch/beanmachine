@@ -115,21 +115,24 @@ class VariationalInfer:
         Returns:
             torch.Tensor: the loss value (before the step)
         """
-        self._optimizer.zero_grad()
-        loss = mc_approx(
-            self.observations,
-            num_samples,
-            discrepancy_fn,
-            self.params,
-            self.queries_to_guides,
-            subsample_factor=subsample_factor,
-            device=self._device,
-        )
-        if not torch.isnan(loss) and not torch.isinf(loss):
+
+        def _closure():
+            self._optimizer.zero_grad()
+            loss = mc_approx(
+                self.observations,
+                num_samples,
+                discrepancy_fn,
+                self.params,
+                self.queries_to_guides,
+                subsample_factor=subsample_factor,
+                device=self._device,
+            )
             loss.backward()
-            self._optimizer.step()
-        else:
-            logging.warn("Encountered NaN/inf loss, skipping step.")
+            return loss
+
+        loss = self._optimizer.step(_closure)
+        if torch.isnan(loss).any().item or torch.isinf(loss).any().item():
+            logging.warn(f"Encountered NaN/inf loss={loss}.")
         return loss
 
     def initialize_world(self) -> VariationalWorld:
